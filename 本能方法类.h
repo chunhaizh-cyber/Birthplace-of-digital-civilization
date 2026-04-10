@@ -1,0 +1,54 @@
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+#include <string>
+#include <vector>
+
+class 自我类;
+
+enum class 枚举_本能方法ID : std::uint32_t {
+    未定义 = 0,
+    自我_读取核心状态 = 6020,
+    自我_读取最新人类输入 = 6021,
+    自我_确认收到 = 6022,
+    自我_请求补充信息 = 6023,
+    自我_停止当前试探并进入保守态 = 6024,
+    自我_服务归零待机保护 = 6026,
+    自我_定时衰减服务值 = 6027,
+    自我_按双值重算服务衰减步长 = 6028,
+    自我_按服务值重算安全增加步长 = 6029,
+    自我_按服务值重算安全减少步长 = 6030,
+    自我_安全低位回升 = 6031,
+    自我_安全高位回落 = 6032,
+    自我_风险安全回归 = 6033,
+};
+
+enum class 枚举_本能方法分类 : std::uint8_t {
+    未定义 = 0,
+    内部先天动作 = 1,
+    自我内部动作 = 2,
+    外部动作 = 3,
+};
+
+struct 结构_本能方法元信息 {
+    枚举_本能方法ID ID = 枚举_本能方法ID::未定义;
+    枚举_本能方法分类 分类 = 枚举_本能方法分类::未定义;
+    const char* 动作名称 = "";
+    const char* 说明 = "";
+    bool 允许自我线程被动触发 = false;
+    bool 允许任务方法调用 = false;
+    bool 允许学习兜底调用 = false;
+};
+
+class 本能方法类 {
+public:
+    static const 结构_本能方法元信息* 查询元信息(枚举_本能方法ID 本能ID) noexcept;
+    static std::vector<结构_本能方法元信息> 枚举默认自我本能方法();
+    static std::vector<枚举_本能方法ID> 枚举默认自我本能方法ID();
+
+    static std::size_t 注册默认自我本能方法集(
+        自我类& 自我对象,
+        const std::string& 调用点 = "本能方法类::注册默认自我本能方法集") noexcept;
+    static bool 默认自我本能方法已注册(const 自我类& 自我对象) noexcept;
+};

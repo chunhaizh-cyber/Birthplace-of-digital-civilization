@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>鱼巢控制面板</title>
+  <style>
+    :root{
+      --bg:#f4efe6;
+      --ink:#1f2a2c;
+      --muted:#5b6b6e;
+      --line:#d7c7ae;
+      --card:#fffaf2;
+      --accent:#b85c38;
+      --accent-soft:#f0d7c2;
+      --shadow:0 16px 32px rgba(76, 47, 32, .08);
+    }
+    *{box-sizing:border-box}
+    ::selection{
+      background:rgba(184,92,56,.24);
+      color:var(--ink);
+    }
+    body{
+      margin:0;
+      font-family:"Microsoft YaHei UI","Source Han Sans SC","PingFang SC",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at top right, rgba(184,92,56,.18), transparent 24%),
+        linear-gradient(180deg, #fff8ed 0%, var(--bg) 100%);
+      -webkit-user-select:text;
+      user-select:text;
+    }
+    h1,.panel h2,.panel h3,.lead,.label,.value,.sub,.summary,.toolbar-title,.toolbar-sub,
+    .data-table th,.data-table td,.tree-leaf,details>summary,li,.footer{
+      -webkit-user-select:text;
+      user-select:text;
+    }
+    .shell{max-width:1680px;margin:0 auto;padding:24px 20px 42px}
+    .layout{
+      display:grid;
+      grid-template-columns:240px minmax(0,1fr);
+      gap:18px;
+      align-items:start;
+    }
+    .rail{
+      position:sticky;
+      top:16px;
+      background:rgba(255,250,242,.92);
+      border:1px solid rgba(91,107,110,.12);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:18px 16px;
+      backdrop-filter:blur(8px);
+    }
+    .brand{
+      font-size:13px;
+      letter-spacing:.08em;
+      color:var(--muted);
+      text-transform:uppercase;
+    }
+    .rail-title{
+      margin:10px 0 0;
+      font-size:24px;
+      font-weight:700;
+      line-height:1.3;
+    }
+    .rail-sub{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+    }
+    .nav{
+      margin-top:18px;
+      display:grid;
+      gap:8px;
+    }
+    .menu-item,.menu-refresh,.toolbar-btn{
+      border:none;
+      border-radius:14px;
+      padding:11px 12px;
+      font-size:14px;
+      cursor:pointer;
+      transition:transform .12s ease, background .12s ease, color .12s ease;
+      -webkit-user-select:none;
+      user-select:none;
+    }
+    .menu-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      width:100%;
+      background:rgba(184,92,56,.08);
+      color:var(--ink);
+      text-align:left;
+    }
+    .menu-item:hover,.menu-refresh:hover,.toolbar-btn:hover{
+      transform:translateY(-1px);
+    }
+    .menu-item:hover{
+      background:rgba(184,92,56,.16);
+    }
+    .menu-item.active{
+      background:var(--accent);
+      color:#fffaf2;
+      font-weight:700;
+      box-shadow:0 10px 22px rgba(184,92,56,.18);
+    }
+    .menu-label{
+      min-width:0;
+      flex:1 1 auto;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .menu-badge{
+      flex:0 0 auto;
+      border-radius:999px;
+      padding:3px 9px;
+      font-size:12px;
+      line-height:1.4;
+      background:rgba(31,42,44,.08);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .menu-item.active .menu-badge{
+      background:rgba(255,250,242,.2);
+      color:#fffaf2;
+    }
+    .rail-actions{
+      margin-top:16px;
+      padding-top:16px;
+      border-top:1px solid rgba(91,107,110,.12);
+    }
+    .menu-refresh{
+      width:100%;
+      background:linear-gradient(135deg, var(--accent), #cb7a58);
+      color:#fffaf2;
+      font-weight:700;
+    }
+    .content{min-width:0}
+    .toolbar{
+      position:sticky;
+      top:16px;
+      z-index:3;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:18px 20px;
+      background:rgba(255,250,242,.9);
+      border:1px solid rgba(91,107,110,.12);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+    }
+    .toolbar-kicker{
+      font-size:12px;
+      letter-spacing:.08em;
+      color:var(--muted);
+      text-transform:uppercase;
+    }
+    .toolbar-title{
+      margin-top:6px;
+      font-size:28px;
+      font-weight:700;
+      line-height:1.2;
+    }
+    .toolbar-sub{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.6;
+    }
+    .toolbar-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-shrink:0;
+    }
+    .toolbar-btn{
+      min-width:112px;
+      background:linear-gradient(135deg, var(--accent), #cb7a58);
+      color:#fffaf2;
+      font-weight:700;
+    }
+    .toolbar-btn.secondary{
+      background:rgba(184,92,56,.08);
+      border:1px solid rgba(184,92,56,.18);
+      color:var(--ink);
+      font-weight:600;
+    }
+    .page-stack{margin-top:18px}
+    .page{
+      display:none;
+      animation:panel-in .18s ease;
+    }
+    .page.active{display:block}
+    @keyframes panel-in{
+      from{opacity:0;transform:translateY(6px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    .hero{
+      background:linear-gradient(135deg, rgba(184,92,56,.12), rgba(59,85,88,.08));
+      border:1px solid rgba(184,92,56,.18);
+      border-radius:28px;
+      padding:28px;
+      box-shadow:var(--shadow);
+    }
+    h1{margin:0;font-size:36px;letter-spacing:.04em}
+    .lead{margin:12px 0 0;color:var(--muted);font-size:15px;line-height:1.7}
+    .cards{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:14px;
+    }
+    .card,.panel{
+      background:var(--card);
+      border:1px solid rgba(91,107,110,.12);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+    }
+    .card{padding:18px}
+    .label{font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+    .value{margin-top:8px;font-size:26px;font-weight:700}
+    .sub{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .grid{
+      display:grid;
+      grid-template-columns:1.15fr 1fr;
+      gap:18px;
+      margin-top:18px;
+    }
+    .triple{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+      margin-top:18px;
+    }
+    .panel{padding:20px}
+    .panel h2{margin:0 0 14px;font-size:22px}
+    .panel h3{margin:0 0 12px;font-size:16px}
+    .summary{
+      white-space:pre-wrap;
+      font-size:14px;
+      line-height:1.8;
+      color:var(--ink);
+      background:rgba(184,92,56,.06);
+      border:1px dashed rgba(184,92,56,.28);
+      border-radius:16px;
+      padding:14px 16px;
+    }
+    .muted{color:var(--muted)}
+    .data-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:14px;
+    }
+    .data-table th,.data-table td{
+      text-align:left;
+      vertical-align:top;
+      border-top:1px solid rgba(91,107,110,.12);
+      padding:10px 8px;
+    }
+    .data-table th{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:var(--muted);
+      border-top:none;
+      padding-top:0;
+    }
+    ul{margin:0;padding-left:18px}
+    li{margin:4px 0}
+    details>summary{cursor:pointer;color:var(--accent);font-weight:600}
+    .tree-root,.tree-root ul{list-style:none;padding-left:16px}
+    .tree-root{padding-left:0}
+    .tree-leaf{padding:4px 0;line-height:1.5}
+    .footer{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:13px;
+      text-align:right;
+    }
+    @media (max-width: 1100px){
+      .layout{grid-template-columns:1fr}
+      .rail{position:static}
+      .toolbar{position:static}
+      .grid,.triple{grid-template-columns:1fr}
+      h1{font-size:30px}
+    }
+    @media (max-width: 720px){
+      .toolbar{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .toolbar-actions{
+        width:100%;
+      }
+      .toolbar-btn{
+        width:100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="layout">
+      <aside class="rail">
+        <div class="brand">WebView2 控制面板</div>
+        <div class="rail-title">鱼巢</div>
+        <div class="rail-sub">左侧为菜单栏，中间为单页内容区；每次刷新都直接重新抓取当前工程快照。</div>
+        <nav class="nav" aria-label="控制面板菜单">
+<button class='menu-item active' type='button' data-page='overview'><span class='menu-label'>概览</span><span class='menu-badge'>状态 20</span></button><button class='menu-item' type='button' data-page='task-mgmt'><span class='menu-label'>任务管理</span><span class='menu-badge'>14</span></button><button class='menu-item' type='button' data-page='innate-actions'><span class='menu-label'>先天动作</span><span class='menu-badge'>0/0</span></button><button class='menu-item' type='button' data-page='need-tree'><span class='menu-label'>需求树</span><span class='menu-badge'>2</span></button><button class='menu-item' type='button' data-page='task-tree'><span class='menu-label'>任务树</span><span class='menu-badge'>5</span></button><button class='menu-item' type='button' data-page='method-tree'><span class='menu-label'>方法树</span><span class='menu-badge'>13</span></button><button class='menu-item' type='button' data-page='world-tree'><span class='menu-label'>世界树</span><span class='menu-badge'>155</span></button><button class='menu-item' type='button' data-page='scene-entity'><span class='menu-label'>场景与存在</span><span class='menu-badge'>34/17</span></button><button class='menu-item' type='button' data-page='thread-events'><span class='menu-label'>线程事件</span><span class='menu-badge'>1</span></button>
+        </nav>
+        <div class="rail-actions">
+          <button class="menu-refresh js-refresh" type="button">刷新当前快照</button>
+        </div>
+      </aside>
+      <main class="content">
+        <div class="toolbar">
+          <div class="toolbar-meta">
+            <div class="toolbar-kicker">控制面板</div>
+            <div class="toolbar-title" id="page-title">概览</div>
+            <div class="toolbar-sub" id="page-subtitle">自我总览、运行时与主要统计。</div>
+          </div>
+          <div class="toolbar-actions">
+            <button class="toolbar-btn secondary js-copy-page" type="button">复制当前页</button>
+            <button class="toolbar-btn js-refresh" type="button">刷新</button>
+          </div>
+        </div>
+        <div class="page-stack">
+          <section class="page active" data-page="overview" data-title="概览" data-subtitle="自我总览、运行时与主要统计。">
+            <section class="hero">
+              <h1>鱼巢控制面板</h1>
+              <div class="lead">当前工程参照旧版控制面板迁移了最小显示链，优先展示这套代码真实存在的世界树、自我核心值和三棵独立信息树。</div>
+              <div class="cards">
+<div class='card'><div class='label'>自我状态</div><div class='value'>活动</div><div class='sub'>初始化=是 | 存在=已建立 | 待机=否 | 安全=2305843009213693951 | 服务=4611686018427387903 | 风险安全=9223372036854775807</div></div><div class='card'><div class='label'>自我线程</div><div class='value'>未启动</div><div class='sub'>生命周期=未启动 | 健康=是 | 首轮=否 | Tick=0 | 当前阶段=自我初始化 | 摘要=自我锚点与运行环境已就绪</div></div><div class='card'><div class='label'>安全值</div><div class='value'>2305843009213693951</div><div class='sub'>物理安全 9223372036854775807</div></div><div class='card'><div class='label'>服务值</div><div class='value'>4611686018427387903</div><div class='sub'>风险安全 9223372036854775807</div></div><div class='card'><div class='label'>安全根方向差值</div><div class='value'>6917529027641081856</div><div class='sub'>越大说明越偏离根安全目标</div></div><div class='card'><div class='label'>先天动作</div><div class='value'>0 动态 / 0 因果</div><div class='sub'>线程每周期被动触发的本能动作事实与因果</div></div><div class='card'><div class='label'>世界树节点</div><div class='value'>155</div><div class='sub'>场景 34 / 存在 17</div></div><div class='card'><div class='label'>三棵树</div><div class='value'>需求 2 / 任务 5 / 方法 13</div><div class='sub'>当前主需求指针 2268119461008</div></div>
+              </div>
+            </section>
+
+            <div class="grid">
+              <section class="panel">
+                <h2>自我与运行时</h2>
+        <div class="summary">生命周期=未启动 | 健康=是 | 首轮=否 | Tick=0 | 当前阶段=自我初始化 | 摘要=自我锚点与运行环境已就绪
+主需求=安全根需求 | 主任务=安全根任务 | 主方法=停止当前试探并进入保守态 | 缺口=无 | 去向=无 | 方法来源=无 | 步骤位=无 | 当前步骤=空 | 最近结果=空 | 生命周期=未启动 | Tick=0 | 正向步长=1 | 反向步长=1 | 服务衰减=1</div>
+        <div class="cards" style="margin-top:16px">
+<div class='card'><div class='label'>现实场景</div><div class='value'>自我初始场景</div><div class='sub'>指针 2268119049280</div></div><div class='card'><div class='label'>内部世界</div><div class='value'>自我内部世界</div><div class='sub'>指针 2268119052272</div></div><div class='card'><div class='label'>正向步长</div><div class='value'>1</div><div class='sub'>反向步长 1</div></div><div class='card'><div class='label'>服务衰减</div><div class='value'>1</div><div class='sub'>存在指针 2268119055088</div></div><div class='card'><div class='label'>线程Tick</div><div class='value'>0</div><div class='sub'>最近Tick 185715358442</div></div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <h2>仓库统计</h2>
+        <div class="cards" style="margin-top:0">
+<div class='card'><div class='label'>世界根子项</div><div class='value'>7</div></div><div class='card'><div class='label'>特征</div><div class='value'>38</div></div><div class='card'><div class='label'>状态</div><div class='value'>20</div></div><div class='card'><div class='label'>动态</div><div class='value'>15</div></div><div class='card'><div class='label'>因果实例</div><div class='value'>15</div></div><div class='card'><div class='label'>因果模板</div><div class='value'>15</div></div><div class='card'><div class='label'>先天动作动态</div><div class='value'>0</div></div><div class='card'><div class='label'>先天动作因果</div><div class='value'>0</div></div>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section class="page" data-page="task-mgmt" data-title="任务管理" data-subtitle="查看任务管理一步治理的上下文镜像、结果面和触发环节。">
+            <section class="panel">
+              <h2>任务管理专项摘要</h2>
+      <div class="summary">主需求=安全根需求 | 管理任务=任务管理任务 | 宿主任务=安全根任务 | 当前方法=停止当前试探并进入保守态 | 当前步骤=执行位_维护_运行中_停止当前试探并进入保守态 | 最近结果=执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态 | 缺口=任务待启动 | 去向=进入运行 | 最近域=维护 | 最近反馈=宿主任务已推进到运行中；方法来源=默认本能兜底；步骤位=执行位；宿主目标=运行中/结果=完成/差额=待推进；步骤目标=完成/结果=完成/差额=已对齐；结果目标=完成/结果=完成/差额=已对齐
+功能域=维护 | 缺口=任务待启动 | 去向=进入运行 | 迁移=进入运行 | 方法来源=默认本能兜底 | 步骤位=执行位 | 总控=宿主已进入运行 | 反馈=治理推进 | 摘要=宿主任务已推进到运行中；方法来源=默认本能兜底；步骤位=执行位；宿主目标=运行中/结果=完成/差额=待推进；步骤目标=完成/结果=完成/差额=已对齐；结果目标=完成/结果=完成/差额=已对齐</div>
+      <div class="triple" style="margin-top:16px">
+        <div>
+          <h3>输入面</h3>
+<table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td>当前主需求</td><td>安全根需求</td></tr><tr><td>当前管理任务</td><td>任务管理任务</td></tr><tr><td>当前宿主任务</td><td>安全根任务</td></tr><tr><td>当前方法</td><td>停止当前试探并进入保守态</td></tr><tr><td>当前步骤</td><td>执行位_维护_运行中_停止当前试探并进入保守态</td></tr><tr><td>最近结果</td><td>执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态</td></tr><tr><td>当前缺口类型</td><td>任务待启动</td></tr><tr><td>当前下一步去向</td><td>进入运行</td></tr><tr><td>最近功能域</td><td>维护</td></tr><tr><td>最近总控结果</td><td>宿主已进入运行</td></tr><tr><td>最近反馈类型</td><td>治理推进</td></tr><tr><td>最近反馈摘要</td><td>宿主任务已推进到运行中；方法来源=默认本能兜底；步骤位=执行位；宿主目标=运行中/结果=完成/差额=待推进；步骤目标=完成/结果=完成/差额=已对齐；结果目标=完成/结果=完成/差额=已对齐</td></tr></tbody></table>        </div>
+        <div>
+          <h3>输出面</h3>
+<table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td>当前功能域</td><td>维护</td></tr><tr><td>当前缺口类型</td><td>任务待启动</td></tr><tr><td>当前下一步去向</td><td>进入运行</td></tr><tr><td>当前治理状态迁移</td><td>进入运行</td></tr><tr><td>当前方法来源</td><td>默认本能兜底</td></tr><tr><td>当前步骤位类型</td><td>执行位</td></tr><tr><td>最近总控结果</td><td>宿主已进入运行</td></tr><tr><td>最近反馈类型</td><td>治理推进</td></tr><tr><td>当前步骤节点</td><td>执行位_维护_运行中_停止当前试探并进入保守态</td></tr><tr><td>最新结果节点</td><td>执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态</td></tr><tr><td>最新目标状态</td><td>任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务目标状态为4</td></tr><tr><td>宿主任务状态迁移</td><td>未启动 -&gt; 运行中</td></tr><tr><td colspan='2' class='muted'>... 省略 2 项</td></tr></tbody></table>        </div>
+        <div>
+          <h3>触发环节</h3>
+<table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td>补齐治理任务</td><td>否</td></tr><tr><td>选中宿主任务</td><td>否</td></tr><tr><td>绑定方法挂点</td><td>是</td></tr><tr><td>推进任务状态</td><td>是</td></tr><tr><td>创建步骤节点</td><td>是</td></tr><tr><td>创建结果节点</td><td>是</td></tr><tr><td>命中最近结果</td><td>否</td></tr><tr><td>复用当前步骤</td><td>否</td></tr><tr><td>生成治理证据</td><td>是</td></tr><tr><td>写回目标状态</td><td>是</td></tr></tbody></table>        </div>
+      </div>
+            </section>
+          </section>
+
+          <section class="page" data-page="innate-actions" data-title="先天动作" data-subtitle="检查自我线程每周期自动触发的先天动作动态与因果。">
+            <section class="panel">
+              <h2>先天动作检查</h2>
+      <div class="summary">先天动作动态 0 | 先天动作因果 0 | 总动态 15 | 总因果实例 15</div>
+      <div class="grid" style="margin-top:16px">
+        <div>
+          <h3>先天动作动态</h3>
+<table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td colspan='2' class='muted'>暂无数据</td></tr></tbody></table>        </div>
+        <div>
+          <h3>先天动作因果</h3>
+<table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td colspan='2' class='muted'>暂无数据</td></tr></tbody></table>        </div>
+      </div>
+            </section>
+          </section>
+
+          <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="查看自我的需求树与节点摘要。">
+            <section class="panel">
+              <h2>需求树</h2>
+<ul class='tree-root'><li><details open><summary>需求树 (2)</summary><ul><li><div class='tree-leaf'>安全根需求 | 权重 10000 | 相关任务 安全根任务</div></li><li><div class='tree-leaf'>服务根需求 | 权重 10000 | 相关任务 服务根任务</div></li></ul></details></li></ul><div style='margin-top:16px'><table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td>安全根需求</td><td>权重 10000 | 相关任务 安全根任务</td></tr><tr><td>服务根需求</td><td>权重 10000 | 相关任务 服务根任务</td></tr></tbody></table></div>
+            </section>
+          </section>
+
+          <section class="page" data-page="task-tree" data-title="任务树" data-subtitle="查看自我的任务树与治理链。">
+            <section class="panel">
+              <h2>任务树</h2>
+<ul class='tree-root'><li><details open><summary>任务树 (5)</summary><ul><li><details open><summary>安全根任务 | 运行中 | 头结点 | 调度优先级 10000 | 来源 安全根需求 | 目标 任务账本_安全根任务的任务目标状态为2 | 结果 任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务结果状态为4</summary><ul><li><details open><summary>执行位_维护_运行中_停止当前试探并进入保守态 | 完成 | 步骤节点 | 调度优先级 10000 | 来源 安全根需求 | 目标 任务账本_执行位_维护_运行中_停止当前试探并进入保守态的任务目标状态为4 | 结果 任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务结果状态为4</summary><ul><li><div class='tree-leaf'>执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态 | 完成 | 结果节点 | 调度优先级 10000 | 来源 安全根需求 | 目标 任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务目标状态为4 | 结果 任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务结果状态为4</div></li></ul></details></li></ul></details></li><li><div class='tree-leaf'>任务管理任务 | 运行中 | 头结点 | 调度优先级 10000 | 来源 安全根需求</div></li><li><div class='tree-leaf'>服务根任务 | 未启动 | 头结点 | 调度优先级 10000 | 来源 服务根需求</div></li></ul></details></li></ul><div style='margin-top:16px'><table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td>安全根任务</td><td>运行中 | 头结点 | 调度优先级 10000 | 来源 安全根需求 | 目标 任务账本_安全根任务的任务目标状态为2 | 结果 任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务结果状态为4</td></tr><tr><td>执行位_维护_运行中_停止当前试探并进入保守态</td><td>完成 | 步骤节点 | 调度优先级 10000 | 来源 安全根需求 | 目标 任务账本_执行位_维护_运行中_停止当前试探并进入保守态的任务目标状态为4 | 结果 任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务结果状态为4</td></tr><tr><td>执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态</td><td>完成 | 结果节点 | 调度优先级 10000 | 来源 安全根需求 | 目标 任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务目标状态为4 | 结果 任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务结果状态为4</td></tr><tr><td>任务管理任务</td><td>运行中 | 头结点 | 调度优先级 10000 | 来源 安全根需求</td></tr><tr><td>服务根任务</td><td>未启动 | 头结点 | 调度优先级 10000 | 来源 服务根需求</td></tr></tbody></table></div>
+            </section>
+          </section>
+
+          <section class="page" data-page="method-tree" data-title="方法树" data-subtitle="查看本能方法与当前方法树结构。">
+            <section class="panel">
+              <h2>方法树</h2>
+<ul class='tree-root'><li><details open><summary>方法树 (13)</summary><ul><li><div class='tree-leaf'>读取核心状态 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>风险安全回归 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>安全高位回落 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>安全低位回升 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>按服务值重算安全减少步长 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>按服务值重算安全增加步长 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>按双值重算服务衰减步长 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>定时衰减服务值 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>服务归零待机保护 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>停止当前试探并进入保守态 | 方法首 | 来源 安全根任务 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>请求补充信息 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>确认收到 | 方法首 | 动作句柄已绑定</div></li><li><div class='tree-leaf'>... 省略 1 个节点</div></li></ul></details></li></ul><div style='margin-top:16px'><table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td>读取核心状态</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>风险安全回归</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>安全高位回落</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>安全低位回升</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>按服务值重算安全减少步长</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>按服务值重算安全增加步长</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>按双值重算服务衰减步长</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>定时衰减服务值</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>服务归零待机保护</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>停止当前试探并进入保守态</td><td>方法首 | 来源 安全根任务 | 动作句柄已绑定</td></tr><tr><td>请求补充信息</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td>确认收到</td><td>方法首 | 动作句柄已绑定</td></tr><tr><td colspan='2' class='muted'>... 省略 1 项</td></tr></tbody></table></div>
+            </section>
+          </section>
+
+          <section class="page" data-page="world-tree" data-title="世界树" data-subtitle="查看当前世界树的层级结构。">
+            <section class="panel">
+              <h2>世界树</h2>
+<ul class='tree-root'><li><details open><summary>世界树</summary><ul><li><details open><summary>现实世界</summary><ul><li><details open><summary>自我初始场景（现实世界）</summary><ul><li><details open><summary>自我（自我类型）</summary><ul><li><details open><summary>自我内部世界（内部世界）</summary><ul><li><details open><summary>本能方法_读取核心状态（方法虚拟存在）</summary><ul><li><div class='tree-leaf'>本能方法条件场景_读取核心状态（内部世界）</div></li><li><div class='tree-leaf'>本能方法结果场景_读取核心状态（内部世界）</div></li></ul></details></li><li><div class='tree-leaf'>任务管理_最近结果推进使自我的任务管理_最近结果指针为执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态成立</div></li><li><div class='tree-leaf'>自我执行了停止当前试探并进入保守态</div></li><li><div class='tree-leaf'>自我的任务管理_最近结果指针为执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态</div></li><li><div class='tree-leaf'>任务管理_当前步骤推进使自我的任务管理_当前步骤指针为执行位_维护_运行中_停止当前试探并进入保守态成立</div></li><li><div class='tree-leaf'>自我执行了停止当前试探并进入保守态</div></li><li><div class='tree-leaf'>自我的任务管理_当前步骤指针为执行位_维护_运行中_停止当前试探并进入保守态</div></li><li><div class='tree-leaf'>任务管理_最近反馈摘要使自我的任务管理_最近反馈摘要为宿主任务已推进到运行中；方法来源=默认本能兜底；步骤位=执行位；宿主目标=运行中/结果=完成/差额=待推进；步骤目标=完成/结果=完成/差额=已对齐；结果目标=完成/结果=完成/差额=已对齐成立</div></li><li><div class='tree-leaf'>自我执行了停止当前试探并进入保守态</div></li><li><div class='tree-leaf'>自我的任务管理_最近反馈摘要为宿主任务已推进到运行中；方法来源=默认本能兜底；步骤位=执行位；宿主目标=运行中/结果=完成/差额=待推进；步骤目标=完成/结果=完成/差额=已对齐；结果目标=完成/结果=完成/差额=已对齐</div></li><li><div class='tree-leaf'>任务管理_最近反馈类型使自我的任务管理_最近反馈类型为1成立</div></li><li><div class='tree-leaf'>自我执行了停止当前试探并进入保守态</div></li><li><div class='tree-leaf'>... 省略 46 个节点</div></li></ul></details></li><li><div class='tree-leaf'>任务管理_最近结果指针为执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态</div></li><li><div class='tree-leaf'>任务管理_当前步骤指针为执行位_维护_运行中_停止当前试探并进入保守态</div></li><li><div class='tree-leaf'>任务管理_最近反馈摘要为ptr#2268119689280</div></li><li><div class='tree-leaf'>任务管理_最近反馈类型为1</div></li><li><div class='tree-leaf'>任务管理_最近总控结果为4</div></li><li><div class='tree-leaf'>任务管理_最近功能域为2</div></li><li><div class='tree-leaf'>任务管理_当前步骤位类型为1</div></li><li><div class='tree-leaf'>任务管理_当前方法来源为6</div></li><li><div class='tree-leaf'>任务管理_当前治理状态迁移为3</div></li><li><div class='tree-leaf'>任务管理_当前下一步去向为3</div></li><li><div class='tree-leaf'>任务管理_当前缺口类型为5</div></li><li><div class='tree-leaf'>... 省略 22 个节点</div></li></ul></details></li><li><div class='tree-leaf'>任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务结果状态为4</div></li><li><div class='tree-leaf'>任务账本_执行位_维护_运行中_停止当前试探并进入保守态的任务结果状态为4</div></li><li><div class='tree-leaf'>任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态的任务目标状态为4</div></li><li><details open><summary>任务账本_执行结果_维护_任务待启动_进入运行_运行中_停止当前试探并进入保守态（任务虚拟存在）</summary><ul><li><div class='tree-leaf'>任务目标状态</div></li><li><div class='tree-leaf'>任务结果状态</div></li></ul></details></li><li><div class='tree-leaf'>任务账本_执行位_维护_运行中_停止当前试探并进入保守态的任务目标状态为4</div></li><li><details open><summary>任务账本_执行位_维护_运行中_停止当前试探并进入保守态（任务虚拟存在）</summary><ul><li><div class='tree-leaf'>任务目标状态</div></li><li><div class='tree-leaf'>任务结果状态</div></li></ul></details></li><li><div class='tree-leaf'>任务账本_安全根任务的任务目标状态为2</div></li><li><details open><summary>任务账本_安全根任务（任务虚拟存在）</summary><ul><li><div class='tree-leaf'>任务目标状态</div></li></ul></details></li></ul></details></li></ul></details></li><li><details open><summary>因果信息</summary><ul><li><div class='tree-leaf'>通常任务管理_宿主任务切换会使自我的任务管理_当前宿主任务指针发生切换成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_最近结果推进会使自我的任务管理_最近结果指针发生切换成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_当前步骤推进会使自我的任务管理_当前步骤指针发生切换成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_最近反馈摘要会使自我的任务管理_最近反馈摘要发生切换成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_最近反馈类型会使自我的任务管理_最近反馈类型发生变化成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_最近总控结果会使自我的任务管理_最近总控结果发生变化成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_最近功能域会使自我的任务管理_最近功能域发生变化成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_当前步骤位类型会使自我的任务管理_当前步骤位类型发生变化成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_当前方法来源会使自我的任务管理_当前方法来源发生变化成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_当前治理状态迁移会使自我的任务管理_当前治理状态迁移发生迁移成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_当前下一步去向会使自我的任务管理_当前下一步去向发生变化成立（成立 1 次）</div></li><li><div class='tree-leaf'>通常任务管理_当前缺口类型会使自我的任务管理_当前缺口类型发生变化成立（成立 1 次）</div></li><li><div class='tree-leaf'>... 省略 3 个节点</div></li></ul></details></li><li><div class='tree-leaf'>虚拟世界</div></li><li><div class='tree-leaf'>推理世界</div></li><li><div class='tree-leaf'>记忆世界</div></li><li><div class='tree-leaf'>想象世界</div></li><li><div class='tree-leaf'>文本世界</div></li></ul></details></li></ul>
+            </section>
+          </section>
+
+          <section class="page" data-page="scene-entity" data-title="场景与存在" data-subtitle="查看世界、场景和存在列表摘要。">
+            <section class="panel">
+              <h2>场景与存在</h2>
+        <div class="summary">世界列表 7 | 场景列表 34 | 存在列表 17</div>
+        <div style="margin-top:16px"><h3>场景列表</h3><table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td>现实世界</td><td>现实世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td>文本世界</td><td>文本世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td>想象世界</td><td>想象世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td>记忆世界</td><td>记忆世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td>推理世界</td><td>推理世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td>虚拟世界</td><td>虚拟世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td>自我初始场景</td><td>现实世界 | 状态索引 5 | 动态索引 0 | 因果索引 0</td></tr><tr><td>自我内部世界</td><td>内部世界 | 状态索引 15 | 动态索引 15 | 因果索引 15</td></tr><tr><td>本能方法条件场景_读取核心状态</td><td>内部世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td>本能方法结果场景_读取核心状态</td><td>内部世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td>本能方法条件场景_读取最新人类输入</td><td>内部世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td>本能方法结果场景_读取最新人类输入</td><td>内部世界 | 状态索引 0 | 动态索引 0 | 因果索引 0</td></tr><tr><td colspan='2' class='muted'>... 省略 22 项</td></tr></tbody></table></div>
+        <div style="margin-top:16px"><h3>存在列表</h3><table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody><tr><td>自我</td><td>自我类型 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_读取核心状态</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_读取最新人类输入</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_确认收到</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_请求补充信息</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_停止当前试探并进入保守态</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_服务归零待机保护</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_定时衰减服务值</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_按双值重算服务衰减步长</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_按服务值重算安全增加步长</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_按服务值重算安全减少步长</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td>本能方法_安全低位回升</td><td>方法虚拟存在 | 需求根=是 | 任务根=是 | 方法根=是</td></tr><tr><td colspan='2' class='muted'>... 省略 5 项</td></tr></tbody></table></div>
+            </section>
+          </section>
+
+          <section class="page" data-page="thread-events" data-title="线程事件" data-subtitle="查看自我线程阶段事件与最近摘要。">
+            <section class="panel">
+              <h2>自我线程阶段事件</h2>
+      <div class="summary">[185715358442] 自我初始化 | 自我锚点与运行环境已就绪</div>
+            </section>
+          </section>
+        </div>
+
+        <div class="footer">当前页面由现工程快照直接生成；左侧菜单切换内容页，刷新按钮会重新抓取最新运行快照。</div>
+      </main>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const 菜单项列表 = Array.from(document.querySelectorAll('.menu-item'));
+      const 页面列表 = Array.from(document.querySelectorAll('.page'));
+      const 标题节点 = document.getElementById('page-title');
+      const 副标题节点 = document.getElementById('page-subtitle');
+      const 页面别名 = {
+        'runtime': 'overview',
+        'stats': 'overview'
+      };
+
+      const 刷新页面 = () => {
+        if (window.chrome && window.chrome.webview) {
+          window.chrome.webview.postMessage('refresh');
+        } else {
+          location.reload();
+        }
+      };
+
+      const 复制按钮列表 = Array.from(document.querySelectorAll('.js-copy-page'));
+      let 复制反馈计时器 = 0;
+
+      const 设置复制按钮文本 = (文本) => {
+        复制按钮列表.forEach((按钮) => {
+          按钮.textContent = 文本;
+        });
+      };
+
+      const 读取当前页文本 = () => {
+        const 当前页面 = 页面列表.find((页面) => 页面.classList.contains('active')) || 页面列表[0];
+        if (!当前页面) return '';
+
+        const 标题 = 当前页面.dataset.title || '';
+        const 副标题 = 当前页面.dataset.subtitle || '';
+        const 正文 = (当前页面.innerText || '').trim();
+        return [标题, 副标题, 正文].filter(Boolean).join('\n\n').trim();
+      };
+
+      const 回退复制文本 = (文本) => {
+        const 文本框 = document.createElement('textarea');
+        文本框.value = 文本;
+        文本框.setAttribute('readonly', 'readonly');
+        文本框.style.position = 'fixed';
+        文本框.style.opacity = '0';
+        文本框.style.pointerEvents = 'none';
+        document.body.appendChild(文本框);
+        文本框.focus();
+        文本框.select();
+        let 成功 = false;
+        try {
+          成功 = document.execCommand('copy');
+        } catch (_) {
+          成功 = false;
+        }
+        文本框.remove();
+        return 成功;
+      };
+
+      const 复制当前页 = async () => {
+        const 文本 = 读取当前页文本();
+        if (!文本) {
+          设置复制按钮文本('无可复制内容');
+          clearTimeout(复制反馈计时器);
+          复制反馈计时器 = window.setTimeout(() => 设置复制按钮文本('复制当前页'), 1200);
+          return;
+        }
+
+        let 成功 = false;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(文本);
+            成功 = true;
+          } catch (_) {
+            成功 = false;
+          }
+        }
+        if (!成功) {
+          成功 = 回退复制文本(文本);
+        }
+
+        设置复制按钮文本(成功 ? '已复制当前页' : '复制失败');
+        clearTimeout(复制反馈计时器);
+        复制反馈计时器 = window.setTimeout(() => 设置复制按钮文本('复制当前页'), 1400);
+      };
+
+      const 归一化页面键 = (键) => {
+        if (!键) return 'overview';
+        return 页面别名[键] || 键;
+      };
+
+      const 切换页面 = (键, 是否同步地址栏) => {
+        const 目标键 = 归一化页面键(键);
+        const 目标页面 = 页面列表.find((页面) => 页面.dataset.page === 目标键) || 页面列表[0];
+        if (!目标页面) return;
+
+        页面列表.forEach((页面) => {
+          页面.classList.toggle('active', 页面 === 目标页面);
+        });
+        菜单项列表.forEach((菜单项) => {
+          菜单项.classList.toggle('active', 菜单项.dataset.page === 目标页面.dataset.page);
+        });
+
+        if (标题节点) {
+          标题节点.textContent = 目标页面.dataset.title || '控制面板';
+        }
+        if (副标题节点) {
+          副标题节点.textContent = 目标页面.dataset.subtitle || '';
+        }
+
+        if (是否同步地址栏) {
+          const 新哈希 = '#' + 目标页面.dataset.page;
+          if (location.hash !== 新哈希) {
+            history.replaceState(null, '', 新哈希);
+          }
+        }
+
+        window.scrollTo(0, 0);
+      };
+
+      菜单项列表.forEach((菜单项) => {
+        菜单项.addEventListener('click', () => 切换页面(菜单项.dataset.page, true));
+      });
+      document.querySelectorAll('.js-refresh').forEach((按钮) => {
+        按钮.addEventListener('click', 刷新页面);
+      });
+      复制按钮列表.forEach((按钮) => {
+        按钮.addEventListener('click', () => {
+          void 复制当前页();
+        });
+      });
+      window.addEventListener('hashchange', () => {
+        切换页面(location.hash.slice(1), false);
+      });
+
+      切换页面(location.hash.slice(1), false);
+    })();
+  </script>
+</body>
+</html>

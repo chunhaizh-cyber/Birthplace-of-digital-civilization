@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="源文件\基础模块">
+      <UniqueIdentifier>{451ffff4-0b5c-41e5-9e16-af8dde09e0bc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="鱼巢.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="控制面板类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="控制面板WebView2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="基础数据类型.ixx">
+      <Filter>源文件\基础模块</Filter>
+    </ClCompile>
+    <ClCompile Include="日志模块.ixx">
+      <Filter>源文件\基础模块</Filter>
+    </ClCompile>
+    <ClCompile Include="基础信息类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="特征类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="存在类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="场景类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="二次特征类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="状态类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="动态类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="因果类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="世界树类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="基础信息主信息类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="语素类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="语言类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我特征定义.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="本能方法类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我初始化模块.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="任务管理任务模块.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我线程类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="日志接入.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="双向链表模板核心.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="基础信息节点类型.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="基础信息类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="控制面板类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="控制面板WebView2.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WebView2导入.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="世界树类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="双向链表模板_序列化.inl">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="双向链表模板_深拷贝.inl">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="基础信息主信息类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="特征值主信息类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="特征值类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="特征类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="存在类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="场景类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="二次特征类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="状态类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="动态类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="因果类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="需求主信息类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="需求类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="任务主信息类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="任务类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="方法主信息类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="方法类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="语素节点类型.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="语素主信息类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="语素类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="语言节点类型.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="语言主信息类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="语言类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="自我特征定义.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="本能方法类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="自我初始化模块.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="任务管理任务模块.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="自我类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="自我线程类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="语素主信息类.cpp">
+      <Filter>源文件</Filter>
+    </None>
+  </ItemGroup>
+</Project>
