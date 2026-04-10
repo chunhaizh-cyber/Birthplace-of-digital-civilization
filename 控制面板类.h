@@ -27,6 +27,7 @@ struct 结构_控制面板快照 {
     bool 自我线程运行中 = false;
     bool 自我线程健康运行 = false;
     bool 自我线程首轮运行已完成 = false;
+    bool 自我线程本次启动来自故障恢复 = false;
     bool 自我存在已建立 = false;
     bool 自我内部世界已建立 = false;
     bool 自我待机状态 = false;
@@ -46,17 +47,29 @@ struct 结构_控制面板快照 {
     std::size_t 需求数 = 0;
     std::size_t 任务数 = 0;
     std::size_t 方法数 = 0;
+    std::size_t 学习任务总数 = 0;
+    std::size_t 学习任务活跃数 = 0;
+    std::size_t 学习任务挂起数 = 0;
+    std::size_t 学习任务可调度数 = 0;
+    std::size_t 学习任务执行中数 = 0;
+    std::size_t 学习任务已完成数 = 0;
+    std::size_t 学习就绪队列数 = 0;
+    std::size_t 学习等待表数 = 0;
 
     std::int64_t 自我安全值 = 0;
     std::int64_t 自我服务值 = 0;
     std::int64_t 自我物理安全值 = 0;
     std::int64_t 自我风险安全值 = 0;
+    std::int64_t 自我待学习方法数量 = 0;
     std::int64_t 自我安全根方向差值 = 0;
     std::int64_t 自我时序正向步长 = 0;
     std::int64_t 自我时序反向步长 = 0;
     std::int64_t 自我服务时序衰减步长 = 0;
     std::uint64_t 自我Tick计数 = 0;
+    std::uint64_t 自我线程累计故障次数 = 0;
+    std::uint64_t 自我线程累计恢复次数 = 0;
     时间戳 自我最近Tick时间 = 0;
+    时间戳 自我线程上次故障时间 = 0;
 
     std::uintptr_t 自我存在指针 = 0;
     std::uintptr_t 自我现实场景指针 = 0;
@@ -69,20 +82,48 @@ struct 结构_控制面板快照 {
 
     std::string 自我现实场景名称{};
     std::string 自我内部世界名称{};
+    std::string 任务管理根层重判结果{};
+    std::string 任务管理执行前门控结果{};
+    std::string 任务管理上层反馈摘要{};
     std::string 任务管理当前缺口{};
     std::string 任务管理当前去向{};
+    std::string 任务管理总控结果{};
+    std::string 任务管理反馈类型{};
+    std::string 任务管理反馈摘要{};
     std::string 任务管理方法来源{};
     std::string 任务管理步骤位{};
+    std::string 任务管理步骤语义{};
     std::string 任务管理当前步骤标题{};
     std::string 任务管理最近结果标题{};
     std::string 任务管理目标结果摘要{};
+    std::string 主循环归并来源{};
+    std::string 主循环归并摘要{};
+    std::string 主消息心跳车道状态{};
+    std::string 任务治理车道状态{};
+    std::string 学习车道状态{};
+    std::string 延迟事实车道状态{};
+    std::string 根任务结构调整车道状态{};
+    std::string 运行时车道摘要{};
     std::string 自我摘要{};
     std::string 自我线程摘要{};
     std::string 运行时摘要{};
     std::string 任务管理专项摘要{};
     std::string 任务管理上下文摘要{};
     std::string 任务管理输出摘要{};
+    std::string 学习账本摘要{};
+    std::string 学习调度摘要{};
+    std::string 学习专项摘要{};
+    std::string 学习当前阶段{};
+    std::string 学习当前状态{};
+    std::string 学习当前任务标题{};
+    std::string 学习当前方法标题{};
+    std::string 学习最近摘要{};
+    std::string 学习最近失败摘要{};
+    std::string 学习最近回流摘要{};
+    std::string 自我线程当前最终去向{};
     std::string 自我线程当前阶段{};
+    std::string 自我线程上次故障摘要{};
+    std::string 自我线程最近恢复摘要{};
     std::string 自我线程最近故障摘要{};
 
     std::vector<结构_控制面板列表项> 世界列表{};
@@ -94,6 +135,9 @@ struct 结构_控制面板快照 {
     std::vector<结构_控制面板列表项> 任务管理输入列表{};
     std::vector<结构_控制面板列表项> 任务管理输出列表{};
     std::vector<结构_控制面板列表项> 任务管理触发列表{};
+    std::vector<结构_控制面板列表项> 学习任务列表{};
+    std::vector<结构_控制面板列表项> 学习就绪列表{};
+    std::vector<结构_控制面板列表项> 学习等待列表{};
     std::vector<结构_控制面板列表项> 先天动作动态列表{};
     std::vector<结构_控制面板列表项> 先天动作因果列表{};
     std::vector<结构_自我运行阶段事件> 自我运行阶段事件{};
@@ -108,8 +152,9 @@ enum class 枚举_控制面板命令 {
     无 = 0,
     输出摘要 = 1,
     输出任务管理摘要 = 2,
-    生成HTML = 3,
-    打开窗口 = 4,
+    输出学习摘要 = 3,
+    生成HTML = 4,
+    打开窗口 = 5,
 };
 
 结构_控制面板快照 读取控制面板快照(
@@ -122,6 +167,10 @@ std::string 渲染控制面板摘要(
     std::size_t 列表预览上限 = 8);
 
 std::string 渲染任务管理摘要(
+    const 结构_控制面板快照& 快照,
+    std::size_t 列表预览上限 = 12);
+
+std::string 渲染学习摘要(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限 = 12);
 

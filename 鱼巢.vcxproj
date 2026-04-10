@@ -147,6 +147,10 @@
     <ClCompile Include="语言类.cpp" />
     <ClCompile Include="自我特征定义.cpp" />
     <ClCompile Include="本能方法类.cpp" />
+    <ClCompile Include="学习任务模块.cpp" />
+    <ClCompile Include="学习对象适配器.cpp" />
+    <ClCompile Include="学习调度模块.cpp" />
+    <ClCompile Include="学习执行模块.cpp" />
     <ClCompile Include="自我初始化模块.cpp" />
     <ClCompile Include="任务管理任务模块.cpp" />
     <ClCompile Include="自我类.cpp" />
@@ -169,6 +173,10 @@
     <ClInclude Include="特征值主信息类.h" />
     <ClInclude Include="特征值类.h" />
     <ClInclude Include="特征类.h" />
+    <ClInclude Include="学习任务模块.h" />
+    <ClInclude Include="学习对象适配器.h" />
+    <ClInclude Include="学习调度模块.h" />
+    <ClInclude Include="学习执行模块.h" />
     <ClInclude Include="存在类.h" />
     <ClInclude Include="场景类.h" />
     <ClInclude Include="二次特征类.h" />

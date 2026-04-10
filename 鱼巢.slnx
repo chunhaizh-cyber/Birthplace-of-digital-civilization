@@ -1,7 +1,7 @@
 <Solution>
   <Configurations>
+    <Platform Name="Win32" />
     <Platform Name="x64" />
-    <Platform Name="x86" />
   </Configurations>
-  <Project Path="鱼巢.vcxproj" Id="b0f2f27b-2034-4728-8604-0449af6b7a43" />
+  <Project Path="鱼巢.vcxproj" />
 </Solution>
