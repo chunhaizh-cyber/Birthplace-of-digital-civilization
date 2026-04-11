@@ -74,6 +74,7 @@ msbuild .\鱼巢.vcxproj /t:Build /p:Configuration=Debug /p:Platform=x64 /m
 .\x64\Debug\鱼巢.exe --learning-summary
 .\x64\Debug\鱼巢.exe --panel-html
 .\x64\Debug\鱼巢.exe --self-check-log
+.\x64\Debug\鱼巢.exe --acceptance-report
 ```
 
 补充说明：
@@ -82,6 +83,7 @@ msbuild .\鱼巢.vcxproj /t:Build /p:Configuration=Debug /p:Platform=x64 /m
 - `--task-summary` 也支持 `--task-mgmt-summary` / `--task-management-summary`
 - `--learning-summary` 也支持 `--study-summary`
 - `--panel` 或 `--panel-open` 会直接打开控制面板窗口
+- `--acceptance-report` 会执行 “M1-M4 六原语主体化验收”，覆盖运行态任务治理、自然运行态补方法、两个半白盒补原语场景、白盒补原语/治理本能分支、白盒补方法正式提交闸门场景，以及 `M4` 的恢复重建与等待态投影场景
 - 默认控制台交互命令为：`启动控制面板`、`检查自我实现`、`退出`
 
 ## 当前状态
