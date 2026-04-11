@@ -103,6 +103,9 @@ struct 结构_控制面板快照 {
     std::string 任务管理恢复投影摘要{};
     bool 任务管理恢复存在待消费学习回流 = false;
     bool 任务管理恢复存在待消费外部反馈 = false;
+    std::size_t 治理mailbox待消费数 = 0;
+    std::uint64_t 治理mailbox最老等待微秒 = 0;
+    std::size_t 治理mailbox可恢复事件数 = 0;
     std::string 主循环归并来源{};
     std::string 主循环归并摘要{};
     std::string 主消息心跳车道状态{};
@@ -111,6 +114,17 @@ struct 结构_控制面板快照 {
     std::string 延迟事实车道状态{};
     std::string 根任务结构调整车道状态{};
     std::string 运行时车道摘要{};
+    std::string 治理mailbox摘要{};
+    std::string 治理mailbox类型计数摘要{};
+    std::string 治理mailbox最老等待摘要{};
+    std::string 治理mailbox最近拦截摘要{};
+    std::string 治理mailbox待恢复摘要{};
+    std::string 最近消费治理事件摘要{};
+    std::string 最近消费治理事件优先级{};
+    std::string 最近消费治理事件幂等键{};
+    std::uint32_t 最近消费治理事件重放代数 = 0;
+    std::uint32_t 最近消费治理事件消费次数 = 0;
+    std::string 最近消费治理事件结果{};
     std::string 自我摘要{};
     std::string 自我线程摘要{};
     std::string 运行时摘要{};

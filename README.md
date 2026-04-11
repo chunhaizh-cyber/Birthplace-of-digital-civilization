@@ -75,6 +75,7 @@ msbuild .\鱼巢.vcxproj /t:Build /p:Configuration=Debug /p:Platform=x64 /m
 .\x64\Debug\鱼巢.exe --panel-html
 .\x64\Debug\鱼巢.exe --self-check-log
 .\x64\Debug\鱼巢.exe --acceptance-report
+.\x64\Debug\鱼巢.exe --acceptance-report --acceptance-report-json
 ```
 
 补充说明：
@@ -83,17 +84,19 @@ msbuild .\鱼巢.vcxproj /t:Build /p:Configuration=Debug /p:Platform=x64 /m
 - `--task-summary` 也支持 `--task-mgmt-summary` / `--task-management-summary`
 - `--learning-summary` 也支持 `--study-summary`
 - `--panel` 或 `--panel-open` 会直接打开控制面板窗口
-- `--acceptance-report` 会执行 “M1-M6 六原语主体化、事件模型与最终去向验收”，当前覆盖 14 个场景：运行态任务治理、自然运行态补方法、两个半白盒补原语场景、白盒补原语/治理本能、白盒补方法正式提交闸门、`M4` 恢复重建与等待态投影、`M5` 三类 mailbox 单次消费与双事件顺序、`M6` 两类最终去向裁决与延迟事实统一裁决
+- `--acceptance-report` 会执行 “M1-M10 六原语主体化、事件模型、最终去向、队列观测、恢复重放、自动化回归与长期策略验收”，当前覆盖 22 个场景：运行态任务治理、自然运行态补方法、两个半白盒补原语场景、白盒补原语/治理本能、白盒补方法正式提交闸门、`M4` 恢复重建与等待态投影、`M5` 三类 mailbox 单次消费与双事件顺序、`M6` 两类最终去向裁决与延迟事实统一裁决、`M7-1` 事件优先级与队列观测、`M7-1` 幂等键重复拦截、`M7-2` 两类恢复待回判场景与普通推进仅内存态场景，以及 `M10` 的“正式学习回流沉淀长期策略 / 长期策略驱动方法回填 / 长期策略驱动业务步骤推进”三个场景
 - `--acceptance-repeat=<n>` 与 `--acceptance-report-repeat=<n>` 可用于重复/批量回归
+- `--acceptance-report-json` 会把验收结果写到 `日志/acceptance-report.json`，也支持 `--acceptance-report-json=<path>`；与 `--acceptance-report-repeat=<n>` 组合时会输出批量汇总 JSON
+- 仓库内置了最小本地门禁脚本：`.githooks/pre-push` 与 `.githooks/pre-push.ps1`；启用方式为 `git config core.hooksPath .githooks`
 - 默认控制台交互命令为：`启动控制面板`、`检查自我实现`、`退出`
 
 ### 当前进入后续阶段前状态
 
-当前工程已经把 `M1-M6` 这条主线收成正式基线：`主体化 / 桥接字段 / 学习双通道 / 恢复重建一次性消费 / 最小 mailbox / 延迟事实车道 / 主循环最终去向裁决` 都已落地。现阶段最主要的缺口，已经不再是“事件能否回来”，而是更进一步的：
+当前工程已经把 `M1-M10` 的当前基线收成正式主线：`主体化 / 桥接字段 / 学习双通道 / 恢复重建一次性消费 / 最小 mailbox / 延迟事实车道 / 主循环最终去向裁决 / 事件优先级与队列观测 / 事件持久化与恢复待回判纪律 / 验收 JSON 输出 / 本地 pre-push 回归门 / 正式学习回流沉淀到主体长期策略 / 长期策略驱动下一轮方法回填 / 长期策略驱动业务步骤推进` 都已落地。现阶段最主要的缺口，已经从“事件能否回来”进一步转成：
 
-- 更细粒度的事件优先级、事件持久化与队列观测
-- 更完整的业务步骤链与学习回流后的长期策略
-- 把当前 `--acceptance-report` 继续沉到自动化回归门，例如本地 pre-push 或 CI
+- 把当前 `--acceptance-report` 继续沉到更稳定的自动化回归门，例如 CI
+- 任务管理模块进一步内聚重构
+- 更完整的业务子任务派生链与长期策略深化
 
 ## 当前状态
 
@@ -113,7 +116,7 @@ msbuild .\鱼巢.vcxproj /t:Build /p:Configuration=Debug /p:Platform=x64 /m
 - 真实业务步骤链仍少于治理链
 - 方法条件、结果、成熟度、可靠度和学习回写仍需继续深化
 - 自然语言显示有一部分还停留在名称层或短句层
-- 事件优先级、延迟事实持久化和自动化回归门仍可继续加强
+- 自动化回归门、任务管理模块内聚和业务步骤链深化仍可继续加强
 
 ## 阅读顺序
 

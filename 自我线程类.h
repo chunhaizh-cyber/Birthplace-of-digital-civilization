@@ -24,14 +24,28 @@ enum class 枚举_治理唤醒原因 : std::uint8_t {
     恢复重建 = 5,
 };
 
+enum class 枚举_治理事件优先级 : std::uint8_t {
+    未定义 = 0,
+    低 = 1,
+    中 = 2,
+    高 = 3,
+    很高 = 4,
+    紧急 = 5,
+};
+
 struct 结构_治理邮箱事件 {
     std::uint64_t 事件ID = 0;
     时间戳 进入时间 = 0;
+    枚举_治理事件优先级 事件优先级 = 枚举_治理事件优先级::未定义;
     枚举_任务管理触发事件类型 事件类型 = 枚举_任务管理触发事件类型::未定义;
     枚举_治理唤醒原因 唤醒原因 = 枚举_治理唤醒原因::未定义;
     枚举_任务管理触发来源 触发来源 = 枚举_任务管理触发来源::自然运行态;
     std::uint64_t 来源最小原语位图 = 0;
     std::string 来源主观察特征{};
+    std::string 事件幂等键{};
+    std::uint32_t 重放代数 = 0;
+    std::uint32_t 消费次数 = 0;
+    std::string 最后消费结果{};
     std::string 影子验证状态{};
     bool 允许正式资产提交 = false;
     bool 带恢复快照 = false;
@@ -151,6 +165,8 @@ struct 结构_自我线程快照 {
     std::size_t 学习任务执行中数 = 0;
     std::uint64_t 最近显式治理事件ID = 0;
     std::uint64_t 累计显式治理事件消费数 = 0;
+    std::uint64_t 治理mailbox最老等待微秒 = 0;
+    std::size_t 治理mailbox可恢复事件数 = 0;
 
     std::string 自我现实场景名称{};
     std::string 自我内部世界名称{};
@@ -175,7 +191,16 @@ struct 结构_自我线程快照 {
     bool 任务管理恢复存在待消费外部反馈 = false;
     std::size_t 治理mailbox待消费数 = 0;
     std::string 治理mailbox摘要{};
+    std::string 治理mailbox类型计数摘要{};
+    std::string 治理mailbox最老等待摘要{};
+    std::string 治理mailbox最近拦截摘要{};
+    std::string 治理mailbox待恢复摘要{};
     std::string 最近消费治理事件摘要{};
+    std::string 最近消费治理事件优先级{};
+    std::string 最近消费治理事件幂等键{};
+    std::uint32_t 最近消费治理事件重放代数 = 0;
+    std::uint32_t 最近消费治理事件消费次数 = 0;
+    std::string 最近消费治理事件结果{};
     std::string 最近显式治理事件摘要{};
     std::string 最近显式治理请求摘要{};
     std::string 最近显式治理结果摘要{};
@@ -241,6 +266,8 @@ public:
         bool 解封前验收通过 = false;
         bool 重外部输入保持封闭 = true;
         std::size_t 治理mailbox待消费数 = 0;
+        std::uint64_t 治理mailbox最老等待微秒 = 0;
+        std::size_t 治理mailbox可恢复事件数 = 0;
         std::uintptr_t 任务管理当前步骤指针 = 0;
         std::uintptr_t 任务管理最近结果指针 = 0;
         std::size_t 学习任务总数 = 0;
@@ -269,7 +296,16 @@ public:
         bool 任务管理恢复存在待消费学习回流 = false;
         bool 任务管理恢复存在待消费外部反馈 = false;
         std::string 治理mailbox摘要{};
+        std::string 治理mailbox类型计数摘要{};
+        std::string 治理mailbox最老等待摘要{};
+        std::string 治理mailbox最近拦截摘要{};
+        std::string 治理mailbox待恢复摘要{};
         std::string 最近消费治理事件摘要{};
+        std::string 最近消费治理事件优先级{};
+        std::string 最近消费治理事件幂等键{};
+        std::uint32_t 最近消费治理事件重放代数 = 0;
+        std::uint32_t 最近消费治理事件消费次数 = 0;
+        std::string 最近消费治理事件结果{};
         std::string 主循环归并来源{};
         std::string 主循环归并摘要{};
         std::string 主消息心跳车道状态{};
@@ -326,6 +362,7 @@ private:
     void 主循环_();
     结构_循环结果 执行主循环一轮_(时间戳 now);
     void 刷新初始化标记_已加锁() noexcept;
+    void 刷新治理恢复事件镜像_已加锁() noexcept;
     void 刷新快照_已加锁(
         时间戳 now,
         枚举_自我线程运行阶段 当前运行阶段,
@@ -366,6 +403,9 @@ private:
     std::string 最近显式治理事件摘要_{};
     std::string 最近显式治理请求摘要_{};
     std::string 最近显式治理结果摘要_{};
+    std::string 最近治理mailbox拦截摘要_{};
+    bool 存在进行中治理事件_ = false;
+    结构_治理邮箱事件 进行中治理事件_{};
     std::deque<结构_治理邮箱事件> 治理mailbox_{};
     结构_循环结果 最近循环结果_{};
     结构_自我线程快照 最近快照_{};
