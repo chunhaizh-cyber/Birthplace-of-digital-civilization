@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <deque>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -11,7 +12,32 @@
 
 #include "动作执行回执.h"
 #include "实践结果消息.h"
+#include "任务管理任务模块.h"
 #include "自我类.h"
+
+enum class 枚举_治理唤醒原因 : std::uint8_t {
+    未定义 = 0,
+    普通心跳 = 1,
+    学习回流 = 2,
+    外部反馈 = 3,
+    执行结果 = 4,
+    恢复重建 = 5,
+};
+
+struct 结构_治理邮箱事件 {
+    std::uint64_t 事件ID = 0;
+    时间戳 进入时间 = 0;
+    枚举_任务管理触发事件类型 事件类型 = 枚举_任务管理触发事件类型::未定义;
+    枚举_治理唤醒原因 唤醒原因 = 枚举_治理唤醒原因::未定义;
+    枚举_任务管理触发来源 触发来源 = 枚举_任务管理触发来源::自然运行态;
+    std::uint64_t 来源最小原语位图 = 0;
+    std::string 来源主观察特征{};
+    std::string 影子验证状态{};
+    bool 允许正式资产提交 = false;
+    bool 带恢复快照 = false;
+    结构_治理恢复快照 恢复快照{};
+    std::string 摘要{};
+};
 
 enum class 枚举_线程生命周期状态 : std::uint8_t {
     未启动 = 0,
@@ -123,6 +149,8 @@ struct 结构_自我线程快照 {
     std::size_t 学习任务就绪数 = 0;
     std::size_t 学习任务等待数 = 0;
     std::size_t 学习任务执行中数 = 0;
+    std::uint64_t 最近显式治理事件ID = 0;
+    std::uint64_t 累计显式治理事件消费数 = 0;
 
     std::string 自我现实场景名称{};
     std::string 自我内部世界名称{};
@@ -145,12 +173,19 @@ struct 结构_自我线程快照 {
     std::string 任务管理恢复投影摘要{};
     bool 任务管理恢复存在待消费学习回流 = false;
     bool 任务管理恢复存在待消费外部反馈 = false;
+    std::size_t 治理mailbox待消费数 = 0;
+    std::string 治理mailbox摘要{};
+    std::string 最近消费治理事件摘要{};
+    std::string 最近显式治理事件摘要{};
+    std::string 最近显式治理请求摘要{};
+    std::string 最近显式治理结果摘要{};
     std::string 主循环归并来源{};
     std::string 主循环归并摘要{};
     std::string 主消息心跳车道状态{};
     std::string 任务治理车道状态{};
     std::string 学习车道状态{};
     std::string 延迟事实车道状态{};
+    std::string 延迟事实摘要{};
     std::string 根任务结构调整车道状态{};
     std::string 运行时车道摘要{};
     std::string 学习调度摘要{};
@@ -205,6 +240,7 @@ public:
         bool 已产出动作实践结果消息 = false;
         bool 解封前验收通过 = false;
         bool 重外部输入保持封闭 = true;
+        std::size_t 治理mailbox待消费数 = 0;
         std::uintptr_t 任务管理当前步骤指针 = 0;
         std::uintptr_t 任务管理最近结果指针 = 0;
         std::size_t 学习任务总数 = 0;
@@ -232,12 +268,15 @@ public:
         std::string 任务管理恢复投影摘要{};
         bool 任务管理恢复存在待消费学习回流 = false;
         bool 任务管理恢复存在待消费外部反馈 = false;
+        std::string 治理mailbox摘要{};
+        std::string 最近消费治理事件摘要{};
         std::string 主循环归并来源{};
         std::string 主循环归并摘要{};
         std::string 主消息心跳车道状态{};
         std::string 任务治理车道状态{};
         std::string 学习车道状态{};
         std::string 延迟事实车道状态{};
+        std::string 延迟事实摘要{};
         std::string 根任务结构调整车道状态{};
         std::string 运行时车道摘要{};
         std::string 任务管理摘要{};
@@ -275,6 +314,8 @@ public:
     bool 是否运行中() const noexcept;
     bool 是否初始化完成() const noexcept;
     bool 是否健康运行() const noexcept;
+    bool 投递治理邮箱事件(const 结构_治理邮箱事件& 事件);
+    void 清空治理邮箱事件();
 
     结构_自我线程快照 读取快照() const;
 
@@ -312,13 +353,20 @@ private:
     bool 本次启动来自故障恢复_ = false;
     bool 待故障恢复启动_ = false;
     std::uint64_t Tick计数_ = 0;
+    std::uint64_t 治理事件序号_ = 0;
     std::uint64_t 累计故障次数_ = 0;
     std::uint64_t 累计恢复次数_ = 0;
+    std::uint64_t 最近显式治理事件ID_ = 0;
+    std::uint64_t 累计显式治理事件消费数_ = 0;
     时间戳 最近Tick时间_ = 0;
     时间戳 上次故障时间_ = 0;
     std::string 上次故障摘要_{};
     std::string 最近恢复摘要_{};
     std::string 最近故障摘要_{};
+    std::string 最近显式治理事件摘要_{};
+    std::string 最近显式治理请求摘要_{};
+    std::string 最近显式治理结果摘要_{};
+    std::deque<结构_治理邮箱事件> 治理mailbox_{};
     结构_循环结果 最近循环结果_{};
     结构_自我线程快照 最近快照_{};
 };
@@ -327,4 +375,9 @@ private:
 bool 初始化自我环境(const std::string& 调用点 = "初始化自我环境");
 bool 启动自我线程(const std::string& 调用点 = "启动自我线程");
 void 停止自我线程(const std::string& 调用点 = "停止自我线程");
+bool 投递治理邮箱事件(const 结构_治理邮箱事件& 事件);
+void 清空治理邮箱事件();
+bool 投递治理外部反馈事件(
+    const std::string& 摘要,
+    const std::string& 来源主观察特征 = "外部反馈/人工注入");
 结构_自我线程快照 读取全局自我线程快照();

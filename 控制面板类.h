@@ -99,6 +99,10 @@ struct 结构_控制面板快照 {
     std::string 任务管理当前步骤标题{};
     std::string 任务管理最近结果标题{};
     std::string 任务管理目标结果摘要{};
+    std::string 任务管理恢复点类型{};
+    std::string 任务管理恢复投影摘要{};
+    bool 任务管理恢复存在待消费学习回流 = false;
+    bool 任务管理恢复存在待消费外部反馈 = false;
     std::string 主循环归并来源{};
     std::string 主循环归并摘要{};
     std::string 主消息心跳车道状态{};
