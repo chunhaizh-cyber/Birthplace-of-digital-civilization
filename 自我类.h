@@ -47,6 +47,11 @@ public:
     I64 获取服务值() const noexcept;
     I64 获取物理安全值() const noexcept;
     I64 获取风险安全值() const noexcept;
+    bool 设置物理安全值(
+        I64 值,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::设置物理安全值"
+    ) noexcept;
 
     bool 是否已消亡() const noexcept;
     bool 是否待机状态() const noexcept;

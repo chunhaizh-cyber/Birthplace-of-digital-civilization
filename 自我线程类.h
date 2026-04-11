@@ -9,6 +9,8 @@
 #include <thread>
 #include <vector>
 
+#include "动作执行回执.h"
+#include "实践结果消息.h"
 #include "自我类.h"
 
 enum class 枚举_线程生命周期状态 : std::uint8_t {
@@ -78,6 +80,8 @@ struct 结构_自我线程快照 {
     bool 首轮运行已完成 = false;
     bool 待机状态 = false;
     bool 本次启动来自故障恢复 = false;
+    bool 解封前验收通过 = false;
+    bool 重外部输入保持封闭 = true;
 
     I64 安全值 = 0;
     I64 服务值 = 0;
@@ -125,6 +129,7 @@ struct 结构_自我线程快照 {
     std::string 任务管理根层重判结果{};
     std::string 任务管理执行前门控结果{};
     std::string 任务管理上层反馈摘要{};
+    std::string 任务管理锚点裁决摘要{};
     std::string 任务管理当前缺口{};
     std::string 任务管理当前去向{};
     std::string 任务管理总控结果{};
@@ -147,11 +152,15 @@ struct 结构_自我线程快照 {
     std::string 学习调度摘要{};
     std::string 学习当前阶段{};
     std::string 学习当前状态{};
+    std::string 学习当前影响面{};
     std::string 学习当前任务标题{};
     std::string 学习当前方法标题{};
     std::string 学习最近摘要{};
     std::string 学习最近失败摘要{};
     std::string 学习最近回流摘要{};
+    std::string 学习最近回放摘要{};
+    std::string 动作最近摘要{};
+    std::string 解封前验收摘要{};
     枚举_自我线程最终去向 当前最终去向枚举 = 枚举_自我线程最终去向::未定义;
     std::string 当前最终去向{};
     枚举_自我线程运行阶段 当前运行阶段枚举 = 枚举_自我线程运行阶段::未定义;
@@ -188,15 +197,22 @@ public:
         bool 已归并任务治理结果 = false;
         bool 已归并学习结果 = false;
         bool 已归并学习回流 = false;
+        bool 已产出动作执行回执 = false;
+        bool 已产出动作实践结果消息 = false;
+        bool 解封前验收通过 = false;
+        bool 重外部输入保持封闭 = true;
         std::uintptr_t 任务管理当前步骤指针 = 0;
         std::uintptr_t 任务管理最近结果指针 = 0;
         std::size_t 学习任务总数 = 0;
         std::size_t 学习任务就绪数 = 0;
         std::size_t 学习任务等待数 = 0;
         std::size_t 学习任务执行中数 = 0;
+        结构_动作执行回执 动作执行回执{};
+        结构_实践结果消息 动作实践结果消息{};
         std::string 任务管理根层重判结果{};
         std::string 任务管理执行前门控结果{};
         std::string 任务管理上层反馈摘要{};
+        std::string 任务管理锚点裁决摘要{};
         std::string 任务管理当前缺口{};
         std::string 任务管理当前去向{};
         std::string 任务管理总控结果{};
@@ -220,11 +236,15 @@ public:
         std::string 学习调度摘要{};
         std::string 学习当前阶段{};
         std::string 学习当前状态{};
+        std::string 学习当前影响面{};
         std::string 学习当前任务{};
         std::string 学习当前方法{};
         std::string 学习最近摘要{};
         std::string 学习最近失败{};
         std::string 学习最近回流{};
+        std::string 学习最近回放{};
+        std::string 动作最近摘要{};
+        std::string 解封前验收摘要{};
         枚举_自我线程最终去向 当前最终去向 = 枚举_自我线程最终去向::未定义;
         枚举_自我线程运行阶段 当前运行阶段 = 枚举_自我线程运行阶段::未定义;
     };
