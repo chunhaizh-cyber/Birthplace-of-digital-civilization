@@ -1321,13 +1321,24 @@ namespace {
         return 来源方法 ? 私有_方法标题(来源方法) : std::string("无来源方法");
     }
 
+    template<class T节点>
+    std::string 私有_引用主键或指针文本(const 可解析引用<T节点>& 引用, const char* 前缀)
+    {
+        if (!引用.主键.empty()) {
+            return std::string(前缀) + "#" + 引用.主键;
+        }
+        if (引用.指针) {
+            return std::string(前缀) + "ptr#" + std::to_string(reinterpret_cast<std::uintptr_t>(引用.指针));
+        }
+        return std::string("无来源") + 前缀;
+    }
+
     std::string 私有_动态来源任务标题(const 动态节点主信息类& 主信息)
     {
         const auto* 来源方法 = reinterpret_cast<const 方法类::节点类*>(主信息.来源动作.指针);
-        const auto* 来源任务 = 来源方法 && 来源方法->主信息.来源任务.指针
-            ? reinterpret_cast<const 任务类::节点类*>(来源方法->主信息.来源任务.指针)
-            : nullptr;
-        return 来源任务 ? 私有_任务标题(来源任务) : std::string("无来源任务");
+        return 来源方法
+            ? 私有_引用主键或指针文本(来源方法->主信息.来源任务, "任务")
+            : std::string("无来源任务");
     }
 
     std::string 私有_动态来源场景标题(const 动态节点主信息类& 主信息)
@@ -1737,9 +1748,8 @@ namespace {
         const auto& 主信息 = 节点->主信息;
         std::ostringstream 输出;
         输出 << 私有_方法节点种类文本(主信息.节点种类);
-        if (主信息.来源任务.指针) {
-            const auto* 来源任务 = reinterpret_cast<const 任务类::节点类*>(主信息.来源任务.指针);
-            输出 << " | 来源 " << 私有_任务标题(来源任务);
+        if (主信息.来源任务.有效()) {
+            输出 << " | 来源 " << 私有_引用主键或指针文本(主信息.来源任务, "任务");
         }
         if (主信息.动作句柄.有效()) {
             输出 << " | 动作句柄已绑定";
