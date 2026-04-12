@@ -146,6 +146,57 @@ namespace {
         return "在" + 轴键 + "维度上";
     }
 
+    std::string 私有_二次特征粒度短语(const 二次特征主信息类* 主信息)
+    {
+        if (!主信息) return {};
+        switch (主信息->粒度) {
+        case 枚举_二次特征粒度::当前场景: return "按当前场景";
+        case 枚举_二次特征粒度::相邻分步: return "按相邻分步";
+        case 枚举_二次特征粒度::首尾整体: return "按首尾整体";
+        case 枚举_二次特征粒度::完整路径: return "按完整路径";
+        case 枚举_二次特征粒度::聚合段: return "按聚合段";
+        default: return {};
+        }
+    }
+
+    std::string 私有_二次特征基准短语(const 二次特征主信息类* 主信息)
+    {
+        if (!主信息) return {};
+        switch (主信息->基准类型) {
+        case 枚举_二次特征基准类型::相邻前态: return "相对前一状态";
+        case 枚举_二次特征基准类型::起始态: return "相对起始态";
+        case 枚举_二次特征基准类型::稳态: return "相对稳态";
+        case 枚举_二次特征基准类型::目标态: return "相对目标态";
+        case 枚举_二次特征基准类型::上边界: return "相对上边界";
+        case 枚举_二次特征基准类型::下边界: return "相对下边界";
+        default: return {};
+        }
+    }
+
+    std::string 私有_二次特征时间归一短语(const 二次特征主信息类* 主信息)
+    {
+        if (!主信息) return {};
+        switch (主信息->时间归一方式) {
+        case 枚举_时间归一方式::分步时长: return "按分步时长归一";
+        case 枚举_时间归一方式::总时长: return "按总时长归一";
+        case 枚举_时间归一方式::频率窗口: return "按频率窗口归一";
+        default: return {};
+        }
+    }
+
+    std::string 私有_连接限定短语(const std::vector<std::string>& 短语列表)
+    {
+        std::ostringstream 输出;
+        bool 首项 = true;
+        for (const auto& 短语 : 短语列表) {
+            if (短语.empty()) continue;
+            if (!首项) 输出 << "，";
+            输出 << 短语;
+            首项 = false;
+        }
+        return 输出.str();
+    }
+
     std::string 私有_二次特征单体方向结果(std::string 结果)
     {
         if (结果.rfind("更", 0) == 0 && 结果.size() > std::string("更").size()) {
@@ -229,6 +280,18 @@ namespace {
         if (!维度短语.empty()) {
             短语.push_back(维度短语);
         }
+        const auto 粒度短语 = 私有_二次特征粒度短语(主信息);
+        if (!粒度短语.empty()) {
+            短语.push_back(粒度短语);
+        }
+        const auto 基准短语 = 私有_二次特征基准短语(主信息);
+        if (!基准短语.empty()) {
+            短语.push_back(基准短语);
+        }
+        const auto 时间归一短语 = 私有_二次特征时间归一短语(主信息);
+        if (!时间归一短语.empty()) {
+            短语.push_back(时间归一短语);
+        }
 
         const auto 比较对象 = 私有_二次特征比较对象名称(基础信息, 主信息);
         if (!比较对象.empty()) {
@@ -239,7 +302,8 @@ namespace {
             短语.push_back("在" + 私有_基础节点短名(基础信息, 主信息->所属场景.指针) + "中");
         }
 
-        return 私有_连接短语(短语, "");
+        if (短语.empty()) return {};
+        return "（" + 私有_连接限定短语(短语) + "）";
     }
 
     std::string 私有_基础节点短名(const 基础信息类* 基础信息, const 基础信息节点类* 节点)

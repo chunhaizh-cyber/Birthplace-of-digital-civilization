@@ -174,6 +174,16 @@ public:
         时间戳 now = 结构体_时间戳::当前_微秒(),
         const std::string& 调用点 = "自我类::应用风险安全回归"
     ) noexcept;
+    bool 更新待学习方法数量(
+        I64 数量,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::更新待学习方法数量"
+    ) noexcept;
+    bool 更新尝试学习状态(
+        bool 正在尝试学习,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::更新尝试学习状态"
+    ) noexcept;
 
     结构_根任务权重& 根任务权重() noexcept;
     const 结构_根任务权重& 根任务权重() const noexcept;

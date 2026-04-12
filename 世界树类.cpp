@@ -11,6 +11,7 @@
     , 存在服务_(&基础信息链_)
     , 场景服务_(&基础信息链_)
     , 二次特征服务_(&基础信息链_)
+    , 二次特征生成服务_(this)
     , 状态服务_(&基础信息链_)
     , 动态服务_(&基础信息链_)
     , 因果服务_(&基础信息链_)
@@ -48,6 +49,8 @@ const 存在类& 世界树类::存在() const noexcept { return 存在服务_; }
 const 场景类& 世界树类::场景() const noexcept { return 场景服务_; }
 二次特征类& 世界树类::二次特征() noexcept { return 二次特征服务_; }
 const 二次特征类& 世界树类::二次特征() const noexcept { return 二次特征服务_; }
+二次特征生成模块& 世界树类::二次特征生成() noexcept { return 二次特征生成服务_; }
+const 二次特征生成模块& 世界树类::二次特征生成() const noexcept { return 二次特征生成服务_; }
 状态类& 世界树类::状态() noexcept { return 状态服务_; }
 const 状态类& 世界树类::状态() const noexcept { return 状态服务_; }
 动态类& 世界树类::动态() noexcept { return 动态服务_; }
@@ -206,4 +209,21 @@ const VecIU64* 世界树类::读取特征VecU(const 特征节点类* 节点) con
     场景服务_.绑定宿主(内部世界, 宿主存在);
     存在服务_.绑定内部世界(宿主存在, 内部世界);
     return 内部世界;
+}
+
+bool 世界树类::写入存在观测位置(存在节点类* 节点, const Vector3D& 位置_mm)
+{
+    if (!节点) return false;
+    if (!存在服务_.写入观测位置(节点, 位置_mm)) {
+        return false;
+    }
+
+    auto* 父节点 = static_cast<基础信息节点类*>(节点->父);
+    auto* 场景节点 = 父节点 && 基础信息链_.取主信息<场景节点主信息类>(父节点)
+        ? static_cast<场景节点类*>(父节点)
+        : nullptr;
+    if (场景节点) {
+        (void)二次特征生成服务_.刷新场景存在型基础二次特征(场景节点);
+    }
+    return true;
 }

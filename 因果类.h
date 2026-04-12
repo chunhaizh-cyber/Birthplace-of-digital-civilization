@@ -51,6 +51,16 @@ public:
     bool 追加证据实例(因果模板节点类* 节点, 因果实例节点类* 证据实例);
     bool 追加条件模板(因果模板节点类* 节点, 二次特征节点类* 条件模板);
     bool 追加结果模板(因果模板节点类* 节点, 二次特征节点类* 结果模板);
+    bool 二次特征匹配模板(const 二次特征节点类* 二次特征, const 二次特征节点类* 模板) const noexcept;
+    bool 因果模板匹配二次特征(
+        const 因果模板节点类* 模板,
+        const std::vector<二次特征节点类*>& 条件候选,
+        const std::vector<二次特征节点类*>& 结果候选) const noexcept;
+    std::vector<因果模板节点类*> 查找匹配因果模板(
+        枚举_因果锚点类型 锚点类型,
+        std::uint32_t 状态层级,
+        const std::vector<二次特征节点类*>& 条件候选,
+        const std::vector<二次特征节点类*>& 结果候选) const;
 
     bool 生成实例因果表达单元(const 因果实例节点类* 节点, 结构_因果表达单元& 输出) const;
     bool 生成抽象因果表达单元(const 因果模板节点类* 节点, 结构_因果表达单元& 输出) const;

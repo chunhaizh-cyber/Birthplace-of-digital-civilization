@@ -138,6 +138,7 @@
     <ClCompile Include="存在类.cpp" />
     <ClCompile Include="场景类.cpp" />
     <ClCompile Include="二次特征类.cpp" />
+    <ClCompile Include="二次特征生成模块.cpp" />
     <ClCompile Include="状态类.cpp" />
     <ClCompile Include="动态类.cpp" />
     <ClCompile Include="因果类.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="学习调度模块.cpp" />
     <ClCompile Include="学习执行模块.cpp" />
     <ClCompile Include="自我初始化模块.cpp" />
+    <ClCompile Include="任务管理最小原语模块.cpp" />
     <ClCompile Include="任务管理任务模块.cpp" />
     <ClCompile Include="自我类.cpp" />
     <ClCompile Include="自我线程类.cpp" />
@@ -180,6 +182,7 @@
     <ClInclude Include="存在类.h" />
     <ClInclude Include="场景类.h" />
     <ClInclude Include="二次特征类.h" />
+    <ClInclude Include="二次特征生成模块.h" />
     <ClInclude Include="状态类.h" />
     <ClInclude Include="动态类.h" />
     <ClInclude Include="因果类.h" />
@@ -200,6 +203,7 @@
     <ClInclude Include="自我特征定义.h" />
     <ClInclude Include="本能方法类.h" />
     <ClInclude Include="自我初始化模块.h" />
+    <ClInclude Include="任务管理最小原语模块.h" />
     <ClInclude Include="任务管理任务模块.h" />
     <ClInclude Include="自我类.h" />
     <ClInclude Include="自我线程类.h" />

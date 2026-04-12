@@ -103,6 +103,7 @@ struct 结构_学习任务同步输入 {
     I64 当前服务值 = 0;
     I64 当前风险安全 = 0;
     std::uint64_t 来源最小原语位图 = 0;
+    std::string 来源正式原语摘要{};
     std::string 来源主观察特征{};
     std::string 当前影子验证状态{};
     std::string 学习承接摘要{};
@@ -160,6 +161,7 @@ struct 结构_学习任务实体 {
     bool 本轮新建 = false;
     bool 本轮更新 = false;
     std::uint64_t 来源最小原语位图 = 0;
+    std::string 来源正式原语摘要{};
 
     std::string 学习子任务标题{};
     std::string 学习方法标题{};

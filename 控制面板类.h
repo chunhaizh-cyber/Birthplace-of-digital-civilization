@@ -37,6 +37,7 @@ struct 结构_控制面板快照 {
 
     std::size_t 世界根子节点数 = 0;
     std::size_t 基础信息节点数 = 0;
+    std::size_t 世界树活跃节点数 = 0;
     std::size_t 场景数 = 0;
     std::size_t 存在数 = 0;
     std::size_t 特征数 = 0;
@@ -57,6 +58,15 @@ struct 结构_控制面板快照 {
     std::size_t 学习任务已完成数 = 0;
     std::size_t 学习就绪队列数 = 0;
     std::size_t 学习等待表数 = 0;
+    std::size_t 历史宿主残留节点数 = 0;
+    std::size_t 历史宿主残留特征数 = 0;
+    std::size_t 历史宿主残留状态数 = 0;
+    std::size_t 历史宿主残留动态数 = 0;
+    std::size_t 历史宿主残留因果数 = 0;
+    std::size_t 历史宿主残留提示数 = 0;
+    std::size_t 历史宿主残留告警数 = 0;
+    std::size_t 历史宿主残留阻断数 = 0;
+    bool 历史宿主残留需要阻断 = false;
 
     std::int64_t 自我安全值 = 0;
     std::int64_t 自我服务值 = 0;
@@ -140,6 +150,7 @@ struct 结构_控制面板快照 {
     std::string 动态场景摘要{};
     std::string 动态树摘要{};
     std::string 学习账本摘要{};
+    std::string 历史宿主残留严重级别{};
     std::string 学习调度摘要{};
     std::string 学习专项摘要{};
     std::string 学习当前阶段{};
@@ -180,6 +191,8 @@ struct 结构_控制面板快照 {
     std::vector<结构_控制面板列表项> 学习等待列表{};
     std::vector<结构_控制面板列表项> 先天动作动态列表{};
     std::vector<结构_控制面板列表项> 先天动作因果列表{};
+    std::vector<结构_控制面板列表项> 历史宿主残留列表{};
+    std::vector<std::string> 历史宿主残留阻断摘要{};
     std::vector<结构_自我运行阶段事件> 自我运行阶段事件{};
 
     结构_控制面板树节点 世界树根{};
@@ -193,8 +206,11 @@ enum class 枚举_控制面板命令 {
     输出摘要 = 1,
     输出任务管理摘要 = 2,
     输出学习摘要 = 3,
-    生成HTML = 4,
-    打开窗口 = 5,
+    输出历史宿主残留摘要 = 4,
+    归档历史宿主残留 = 5,
+    清理历史宿主残留 = 6,
+    生成HTML = 7,
+    打开窗口 = 8,
 };
 
 结构_控制面板快照 读取控制面板快照(
@@ -214,9 +230,19 @@ std::string 渲染学习摘要(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限 = 12);
 
+std::string 渲染历史宿主残留摘要(
+    const 结构_控制面板快照& 快照,
+    std::size_t 列表预览上限 = 12);
+
 std::string 生成控制面板HTML(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限 = 12);
+
+bool 归档历史宿主残留快照(
+    std::filesystem::path* 输出路径 = nullptr,
+    std::string* 摘要输出 = nullptr);
+
+bool 清理历史宿主残留(std::string* 摘要输出 = nullptr);
 
 bool 保存控制面板HTML(
     const std::filesystem::path& 输出路径,

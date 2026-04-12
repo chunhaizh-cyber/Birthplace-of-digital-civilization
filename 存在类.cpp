@@ -1,10 +1,20 @@
 #include "存在类.h"
 
+#include <cmath>
+
 #include "需求类.h"
 #include "任务类.h"
 #include "方法类.h"
 
 namespace {
+    std::int64_t 私有_计算距离_mm(const Vector3D& 左位置, const Vector3D& 右位置) noexcept
+    {
+        const long double dx = static_cast<long double>(左位置.x) - static_cast<long double>(右位置.x);
+        const long double dy = static_cast<long double>(左位置.y) - static_cast<long double>(右位置.y);
+        const long double dz = static_cast<long double>(左位置.z) - static_cast<long double>(右位置.z);
+        return static_cast<std::int64_t>(std::llround(std::sqrt(dx * dx + dy * dy + dz * dz)));
+    }
+
     bool 私有_词性相同(const 词性节点类* a, const 词性节点类* b) noexcept
     {
         if (a == b) return true;
@@ -308,6 +318,42 @@ bool 存在类::绑定内部世界(存在节点类* 节点, 场景节点类* 内
     auto* 主信息 = 取存在主信息(节点);
     if (!主信息) return false;
     主信息->内部世界 = 私有_生成引用(内部世界);
+    return true;
+}
+
+bool 存在类::写入观测位置(存在节点类* 节点, const Vector3D& 位置_mm)
+{
+    auto* 主信息 = 取存在主信息(节点);
+    if (!主信息) return false;
+
+    const bool 已有历史 = 主信息->有位置历史;
+    const auto 原最近位置 = 主信息->最近观测位置_mm;
+    if (已有历史) {
+        主信息->上次观测位置_mm = 原最近位置;
+        主信息->最近位移_mm = 私有_计算距离_mm(原最近位置, 位置_mm);
+    } else {
+        主信息->上次观测位置_mm = 位置_mm;
+        主信息->最近位移_mm = 0;
+    }
+
+    主信息->最近观测位置_mm = 位置_mm;
+    主信息->有位置历史 = true;
+    主信息->连续未命中帧 = 0;
+    if (已有历史 && 主信息->最近位移_mm == 0) {
+        ++主信息->连续静止帧;
+    } else {
+        主信息->连续静止帧 = 0;
+    }
+    return true;
+}
+
+bool 存在类::标记观测未命中(存在节点类* 节点)
+{
+    auto* 主信息 = 取存在主信息(节点);
+    if (!主信息) return false;
+
+    ++主信息->连续未命中帧;
+    主信息->连续静止帧 = 0;
     return true;
 }
 

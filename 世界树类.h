@@ -8,6 +8,7 @@
 #include "存在类.h"
 #include "场景类.h"
 #include "二次特征类.h"
+#include "二次特征生成模块.h"
 #include "状态类.h"
 #include "动态类.h"
 #include "因果类.h"
@@ -37,6 +38,8 @@ public:
     const 场景类& 场景() const noexcept;
     二次特征类& 二次特征() noexcept;
     const 二次特征类& 二次特征() const noexcept;
+    二次特征生成模块& 二次特征生成() noexcept;
+    const 二次特征生成模块& 二次特征生成() const noexcept;
     状态类& 状态() noexcept;
     const 状态类& 状态() const noexcept;
     动态类& 动态() noexcept;
@@ -75,6 +78,7 @@ public:
     存在节点类* 取或创建自我存在();
     场景节点类* 取存在内部世界(const 存在节点类* 宿主存在) const noexcept;
     场景节点类* 取或创建存在内部世界(存在节点类* 宿主存在, const 词性节点类* 场景名称 = nullptr);
+    bool 写入存在观测位置(存在节点类* 节点, const Vector3D& 位置_mm);
 
 public:
     场景节点类* 现实世界 = nullptr;
@@ -93,6 +97,7 @@ private:
     存在类 存在服务_;
     场景类 场景服务_;
     二次特征类 二次特征服务_;
+    二次特征生成模块 二次特征生成服务_;
     状态类 状态服务_;
     动态类 动态服务_;
     因果类 因果服务_;
