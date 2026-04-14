@@ -155,8 +155,23 @@
     <ClCompile Include="自我初始化模块.cpp" />
     <ClCompile Include="任务管理最小原语模块.cpp" />
     <ClCompile Include="任务管理任务模块.cpp" />
+    <ClCompile Include="任务管理工作线程.cpp" />
+    <ClCompile Include="自我线程运行包.cpp" />
+    <ClCompile Include="自我线程轮次执行器.cpp" />
+    <ClCompile Include="自我线程最小回写器.cpp" />
+    <ClCompile Include="自我线程模块.ixx" />
+    <ClCompile Include="自我线程模块.impl.cpp" />
+    <ClCompile Include="任务实体模块.ixx" />
+    <ClCompile Include="任务工作线程协议模块.ixx" />
+    <ClCompile Include="任务管理工作线程模块.ixx" />
+    <ClCompile Include="自我线程消息协议模块.ixx" />
+    <ClCompile Include="自我线程消息路由模块.ixx" />
+    <ClCompile Include="自我线程消息处理器模块.ixx" />
+    <ClCompile Include="自我线程消息批次执行器模块.ixx" />
+    <ClCompile Include="自我线程运行包模块.ixx" />
+    <ClCompile Include="自我线程轮次执行器模块.ixx" />
+    <ClCompile Include="自我线程最小回写器模块.ixx" />
     <ClCompile Include="自我类.cpp" />
-    <ClCompile Include="自我线程类.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="日志接入.h" />
@@ -205,8 +220,17 @@
     <ClInclude Include="自我初始化模块.h" />
     <ClInclude Include="任务管理最小原语模块.h" />
     <ClInclude Include="任务管理任务模块.h" />
+    <ClInclude Include="任务管理工作线程.h" />
+    <ClInclude Include="任务实体模块.h" />
+    <ClInclude Include="任务工作线程协议模块.h" />
+    <ClInclude Include="自我线程消息协议模块.h" />
+    <ClInclude Include="自我线程消息路由模块.h" />
+    <ClInclude Include="自我线程消息处理器模块.h" />
+    <ClInclude Include="自我线程消息批次执行器模块.h" />
+    <ClInclude Include="自我线程运行包.h" />
+    <ClInclude Include="自我线程轮次执行器.h" />
+    <ClInclude Include="自我线程最小回写器.h" />
     <ClInclude Include="自我类.h" />
-    <ClInclude Include="自我线程类.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="语素主信息类.cpp" />

@@ -17,7 +17,8 @@
 
 #include "WebView2导入.h"
 #include "控制面板类.h"
-#include "自我线程类.h"
+#include "自我类.h"
+import 自我线程模块;
 
 using Microsoft::WRL::ComPtr;
 

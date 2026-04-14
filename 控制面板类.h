@@ -6,8 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "自我线程类.h"
-
 struct 结构_控制面板树节点 {
     std::uintptr_t 节点指针 = 0;
     std::string 文本{};
@@ -18,6 +16,18 @@ struct 结构_控制面板列表项 {
     std::uintptr_t 节点指针 = 0;
     std::string 标题{};
     std::string 摘要{};
+    std::vector<std::string> 详情行{};
+};
+
+struct 结构_控制面板线程事件 {
+    std::uint64_t 时间 = 0;
+    std::uint8_t 阶段 = 0;
+    std::string 摘要{};
+    std::uintptr_t 自我存在 = 0;
+    std::uintptr_t 当前主需求 = 0;
+    std::uintptr_t 当前主任务 = 0;
+    std::uintptr_t 当前主方法 = 0;
+    std::uintptr_t 当前管理任务 = 0;
 };
 
 struct 结构_控制面板快照 {
@@ -33,7 +43,7 @@ struct 结构_控制面板快照 {
     bool 自我存在已建立 = false;
     bool 自我内部世界已建立 = false;
     bool 自我待机状态 = false;
-    枚举_线程生命周期状态 自我线程生命周期 = 枚举_线程生命周期状态::未启动;
+    std::uint8_t 自我线程生命周期 = 0;
 
     std::size_t 世界根子节点数 = 0;
     std::size_t 基础信息节点数 = 0;
@@ -80,8 +90,8 @@ struct 结构_控制面板快照 {
     std::uint64_t 自我Tick计数 = 0;
     std::uint64_t 自我线程累计故障次数 = 0;
     std::uint64_t 自我线程累计恢复次数 = 0;
-    时间戳 自我最近Tick时间 = 0;
-    时间戳 自我线程上次故障时间 = 0;
+    std::uint64_t 自我最近Tick时间 = 0;
+    std::uint64_t 自我线程上次故障时间 = 0;
 
     std::uintptr_t 自我存在指针 = 0;
     std::uintptr_t 自我现实场景指针 = 0;
@@ -111,6 +121,7 @@ struct 结构_控制面板快照 {
     std::string 任务管理目标结果摘要{};
     std::string 任务管理恢复点类型{};
     std::string 任务管理恢复投影摘要{};
+    bool 任务管理恢复存在待消费学习反馈 = false;
     bool 任务管理恢复存在待消费学习回流 = false;
     bool 任务管理恢复存在待消费外部反馈 = false;
     std::size_t 治理mailbox待消费数 = 0;
@@ -160,6 +171,7 @@ struct 结构_控制面板快照 {
     std::string 学习当前方法标题{};
     std::string 学习最近摘要{};
     std::string 学习最近失败摘要{};
+    std::string 学习最近反馈摘要{};
     std::string 学习最近回流摘要{};
     std::string 学习最近回放摘要{};
     std::string 自我线程动作最近摘要{};
@@ -193,7 +205,7 @@ struct 结构_控制面板快照 {
     std::vector<结构_控制面板列表项> 先天动作因果列表{};
     std::vector<结构_控制面板列表项> 历史宿主残留列表{};
     std::vector<std::string> 历史宿主残留阻断摘要{};
-    std::vector<结构_自我运行阶段事件> 自我运行阶段事件{};
+    std::vector<结构_控制面板线程事件> 自我运行阶段事件{};
 
     结构_控制面板树节点 世界树根{};
     结构_控制面板树节点 需求树根{};
