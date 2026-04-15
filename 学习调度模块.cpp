@@ -4,6 +4,8 @@
 #include <sstream>
 #include <vector>
 
+import 任务管理任务模块;
+
 namespace {
     bool 私有_本能缺口属于原语或治理补齐(
         枚举_任务管理本能能力缺口类型 缺口类型) noexcept

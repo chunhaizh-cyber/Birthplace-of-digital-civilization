@@ -1,5 +1,7 @@
 #include "任务管理最小原语模块.h"
 
+import 任务管理任务模块;
+
 namespace {
     bool 私有_执行任务管理最小原语(
         const 任务管理最小原语模块::结构_任务管理最小原语执行请求& 请求) noexcept

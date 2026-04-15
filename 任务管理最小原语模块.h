@@ -1,16 +1,18 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 #include "本能方法类.h"
-#include "任务管理任务模块.h"
+
+enum class 枚举_任务管理最小原语ID : std::uint8_t;
 
 namespace 任务管理最小原语模块 {
 
 using 类型_任务管理最小原语执行体 = bool (*)(void*) noexcept;
 
 struct 结构_任务管理最小原语执行请求 {
-    枚举_任务管理最小原语ID 原语ID = 枚举_任务管理最小原语ID::未定义;
+    枚举_任务管理最小原语ID 原语ID = static_cast<枚举_任务管理最小原语ID>(0);
     枚举_本能方法ID 本能ID = 枚举_本能方法ID::未定义;
     void* 执行上下文 = nullptr;
     类型_任务管理最小原语执行体 执行体 = nullptr;

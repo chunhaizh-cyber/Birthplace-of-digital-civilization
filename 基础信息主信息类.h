@@ -15,7 +15,7 @@
 #include "任务信息类型.h"
 #include "需求信息类型.h"
 
-import 基础数据类型模块;
+#include "基础数据类型.h"
 //class 方法节点类;
 //class 任务节点类;
 //class 需求节点类;

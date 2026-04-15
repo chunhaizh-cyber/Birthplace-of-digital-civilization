@@ -77,6 +77,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -92,6 +93,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -105,7 +107,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,6 +123,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -154,23 +157,26 @@
     <ClCompile Include="学习执行模块.cpp" />
     <ClCompile Include="自我初始化模块.cpp" />
     <ClCompile Include="任务管理最小原语模块.cpp" />
-    <ClCompile Include="任务管理任务模块.cpp" />
-    <ClCompile Include="任务管理工作线程.cpp" />
-    <ClCompile Include="自我线程运行包.cpp" />
-    <ClCompile Include="自我线程轮次执行器.cpp" />
-    <ClCompile Include="自我线程最小回写器.cpp" />
+    <ClCompile Include="任务管理任务模块.ixx" />
+    <ClCompile Include="任务管理任务模块.impl.cpp" />
+    <ClCompile Include="任务模块.最小回写器.cpp" />
     <ClCompile Include="自我线程模块.ixx" />
     <ClCompile Include="自我线程模块.impl.cpp" />
-    <ClCompile Include="任务实体模块.ixx" />
-    <ClCompile Include="任务工作线程协议模块.ixx" />
-    <ClCompile Include="任务管理工作线程模块.ixx" />
-    <ClCompile Include="自我线程消息协议模块.ixx" />
-    <ClCompile Include="自我线程消息路由模块.ixx" />
-    <ClCompile Include="自我线程消息处理器模块.ixx" />
-    <ClCompile Include="自我线程消息批次执行器模块.ixx" />
-    <ClCompile Include="自我线程运行包模块.ixx" />
-    <ClCompile Include="自我线程轮次执行器模块.ixx" />
-    <ClCompile Include="自我线程最小回写器模块.ixx" />
+    <ClCompile Include="任务模块.运行包.ixx" />
+    <ClCompile Include="任务模块.运行包.impl.cpp" />
+    <ClCompile Include="任务模块.ixx" />
+    <ClCompile Include="任务模块.实体.ixx" />
+    <ClCompile Include="任务模块.工作线程协议.ixx" />
+    <ClCompile Include="任务模块.管理任务.ixx" />
+    <ClCompile Include="任务模块.管理工作线程.ixx" />
+    <ClCompile Include="自我模块.特征定义.ixx" />
+    <ClCompile Include="自我模块.初始化.ixx" />
+    <ClCompile Include="自我模块.ixx" />
+    <ClCompile Include="自我线程模块.消息协议.ixx" />
+    <ClCompile Include="自我线程模块.消息路由.ixx" />
+    <ClCompile Include="自我线程模块.消息处理器.ixx" />
+    <ClCompile Include="自我线程模块.消息批次执行器.ixx" />
+    <ClCompile Include="任务模块.最小回写器.ixx" />
     <ClCompile Include="自我类.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -215,22 +221,8 @@
     <ClInclude Include="语言节点类型.h" />
     <ClInclude Include="语言主信息类.h" />
     <ClInclude Include="语言类.h" />
-    <ClInclude Include="自我特征定义.h" />
     <ClInclude Include="本能方法类.h" />
-    <ClInclude Include="自我初始化模块.h" />
     <ClInclude Include="任务管理最小原语模块.h" />
-    <ClInclude Include="任务管理任务模块.h" />
-    <ClInclude Include="任务管理工作线程.h" />
-    <ClInclude Include="任务实体模块.h" />
-    <ClInclude Include="任务工作线程协议模块.h" />
-    <ClInclude Include="自我线程消息协议模块.h" />
-    <ClInclude Include="自我线程消息路由模块.h" />
-    <ClInclude Include="自我线程消息处理器模块.h" />
-    <ClInclude Include="自我线程消息批次执行器模块.h" />
-    <ClInclude Include="自我线程运行包.h" />
-    <ClInclude Include="自我线程轮次执行器.h" />
-    <ClInclude Include="自我线程最小回写器.h" />
-    <ClInclude Include="自我类.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="语素主信息类.cpp" />

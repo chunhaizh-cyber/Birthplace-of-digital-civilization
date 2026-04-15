@@ -4,8 +4,13 @@
 #include <limits>
 #include <sstream>
 
-#include "自我类.h"
+#include "世界树类.h"
+#include "需求类.h"
+#include "任务类.h"
+#include "方法类.h"
 #include "语素类.h"
+
+import 自我模块;
 
 namespace {
     std::string 私有_状态短语(const 基础信息类* 基础信息, const 可解析引用<状态节点类>& 状态引用);

@@ -24,18 +24,20 @@
 #pragma comment(lib, "comctl32.lib")
 
 #include "世界树类.h"
-#include "自我类.h"
 #include "语言主信息类.h"
 #include "本能方法类.h"
 #include "语素类.h"
 #include "需求类.h"
 #include "任务类.h"
 #include "方法类.h"
-#include "任务管理任务模块.h"
 #include "学习任务模块.h"
 #include "学习调度模块.h"
 
+import 自我模块;
+import 自我模块.特征定义;
+import 任务管理任务模块;
 import 自我线程模块;
+
 
 namespace {
     constexpr UINT 私有_WM_刷新控制面板窗口 = WM_APP + 1;

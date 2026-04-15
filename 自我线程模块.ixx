@@ -10,13 +10,17 @@ module;
 #include <string>
 #include <thread>
 #include <vector>
-
-#include "任务管理任务模块.h"
-#include "自我类.h"
+#include "基础数据类型.h"
+#include "需求类.h"
 export module 自我线程模块;
 
-export import 基础数据类型模块;
-export import 自我线程消息协议模块;
+import 自我模块;
+import 任务管理任务模块;
+import 任务模块.实体;
+import 任务模块.管理工作线程;
+import 自我线程模块.消息协议;
+import 自我线程模块.消息处理器;
+import 自我线程模块.消息批次执行器;
 export enum class 枚举_线程生命周期状态 : std::uint8_t {
     未启动 = 0,
     启动中 = 1,
@@ -69,6 +73,34 @@ export struct 结构_自我运行阶段事件 {
 export struct 结构_自我线程配置 {
     std::chrono::microseconds Tick间隔{250000};
     std::size_t 运行阶段事件保留上限 = 32;
+};
+
+export struct 结构_线程状态切换上报参数 {
+    结构_线程存在初始化参数 线程存在初始化{};
+    自我线程消息协议::枚举_存在类型 线程存在类型 =
+        自我线程消息协议::枚举_存在类型::未定义;
+    自我线程消息协议::枚举_特征类型 状态特征类型 =
+        自我线程消息协议::枚举_特征类型::生命周期状态;
+    I64 旧状态 = 0;
+    I64 新状态 = 0;
+    时间戳 发生时间 = 0;
+    自我线程消息协议::枚举_消息来源链 来源链 =
+        自我线程消息协议::枚举_消息来源链::线程直达消息;
+    自我线程消息协议::枚举_存在类型 决策者类型 =
+        自我线程消息协议::枚举_存在类型::未定义;
+    std::uint64_t 决策者主键 = 0;
+    std::string 决策者标签{};
+    std::string 触发动作{};
+    std::string 原因键{};
+    std::string 原因摘要{};
+    自我线程消息协议::枚举_存在类型 直属拥有者类型 =
+        自我线程消息协议::枚举_存在类型::未定义;
+    std::uint64_t 直属拥有者主键 = 0;
+    std::uint64_t 关联任务主键 = 0;
+    std::uint64_t 关联线程主键 = 0;
+    bool 是否故障触发 = false;
+    bool 是否stop链触发 = false;
+    bool 无变化时仅同步特征 = true;
 };
 
 export class 自我线程类 {
@@ -136,14 +168,46 @@ public:
     std::string 读取最近恢复摘要() const;
     std::string 读取最近故障摘要() const;
     std::string 读取最近运行摘要() const;
-    bool 投递治理消息(const 结构_治理消息& 消息);
-    void 清空治理消息();
     结构_自我线程配置& 配置() noexcept;
     const 结构_自我线程配置& 配置() const noexcept;
 
 private:
+    struct 结构_主循环骨架上下文 {
+        时间戳 当前时间 = 0;
+        结构_循环结果 结果{};
+        自我线程消息协议::结构_治理消息 已消费消息{};
+        std::deque<结构_治理消息> 本轮冻结消息{};
+        自我线程消息批次执行器::结构_治理消息批次 本轮治理消息批次{};
+        自我线程消息处理器::结构_需求分支刷新范围 需求树变更刷新范围{};
+        自我线程消息批次执行器::结构_线程裁决结果 线程裁决结果{};
+        结构_任务局部运行态 任务局部运行态{};
+        任务管理工作线程::结构_工作线程桥接结果 桥接结果{};
+        bool 命中治理邮箱事件 = false;
+        bool 已应用需求树变更 = false;
+    };
+
+    friend bool 投递治理外部反馈事件(
+        const std::string& 摘要,
+        const std::string& 来源主观察特征);
+    friend bool 上报线程状态变化(
+        const 自我线程消息协议::结构_线程状态变化消息段& 消息段,
+        const 结构_线程存在初始化参数* 线程存在初始化,
+        const std::string& 调用点);
+    friend bool 切换线程状态并上报(
+        const 结构_线程状态切换上报参数& 参数,
+        const std::string& 调用点);
+
     void 主循环_();
     结构_循环结果 执行主循环一轮_(时间戳 now);
+    void 步骤_冻结本轮消息批次_(结构_主循环骨架上下文* 上下文);
+    void 步骤_规范化消息并落一次特征账_(结构_主循环骨架上下文* 上下文);
+    void 步骤_重算受影响二次特征_(结构_主循环骨架上下文* 上下文);
+    void 步骤_刷新线程上下文并生成治理帧_(结构_主循环骨架上下文* 上下文);
+    void 步骤_整理需求并做根层重判_(结构_主循环骨架上下文* 上下文);
+    void 步骤_生成并执行主派发决议_(结构_主循环骨架上下文* 上下文);
+    void 步骤_路由结果并协调父任务_(结构_主循环骨架上下文* 上下文);
+    void 步骤_本轮结算学习触发故障收口_(结构_主循环骨架上下文* 上下文);
+    bool 投递治理消息(const 结构_治理消息& 消息);
     void 刷新初始化标记_已加锁() noexcept;
     void 刷新治理恢复事件镜像_已加锁() noexcept;
     void 记录阶段事件_已加锁(
@@ -189,12 +253,13 @@ export 自我线程类& 获取全局自我线程() noexcept;
 export bool 初始化自我环境(const std::string& 调用点 = "初始化自我环境");
 export bool 启动自我线程(const std::string& 调用点 = "启动自我线程");
 export void 停止自我线程(const std::string& 调用点 = "停止自我线程");
-export bool 投递治理消息(const 结构_治理消息& 消息);
-export void 清空治理消息();
+export bool 上报线程状态变化(
+    const 自我线程消息协议::结构_线程状态变化消息段& 消息段,
+    const 结构_线程存在初始化参数* 线程存在初始化 = nullptr,
+    const std::string& 调用点 = "上报线程状态变化");
+export bool 切换线程状态并上报(
+    const 结构_线程状态切换上报参数& 参数,
+    const std::string& 调用点 = "切换线程状态并上报");
 export bool 投递治理外部反馈事件(
     const std::string& 摘要,
     const std::string& 来源主观察特征 = "外部反馈/人工注入");
-export bool 投递治理需求树变更事件(
-    const 结构_需求树更新指令& 变更消息,
-    const std::string& 摘要 = {},
-    const std::string& 来源主观察特征 = "需求树变更");

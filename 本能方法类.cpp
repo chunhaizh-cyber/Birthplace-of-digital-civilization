@@ -2,9 +2,11 @@
 
 #include <array>
 
-#include "自我类.h"
+#include "世界树类.h"
 #include "方法类.h"
 #include "语素类.h"
+
+import 自我模块;
 
 namespace {
     using 方法节点 = 方法类::节点类;

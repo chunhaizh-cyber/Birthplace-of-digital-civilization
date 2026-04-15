@@ -12,7 +12,7 @@
 #include <cstdint>
 #include <limits>
 
-import 基础数据类型模块;
+#include "基础数据类型.h"
 
 // 双向链表模板（环形）
 // - 同层：用 上/下 构成环

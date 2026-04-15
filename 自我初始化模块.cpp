@@ -1,11 +1,15 @@
-#include "自我初始化模块.h"
+module;
 
 #include <string_view>
 #include <vector>
 
 #include "本能方法类.h"
-#include "任务管理任务模块.h"
-#include "自我类.h"
+#include "世界树类.h"
+
+module 自我模块;
+
+import 自我模块.特征定义;
+import 任务管理任务模块;
 
 namespace {
     bool 私有_存在I64特征(const 自我类& 自我对象, const 词性节点类* 特征类型) noexcept

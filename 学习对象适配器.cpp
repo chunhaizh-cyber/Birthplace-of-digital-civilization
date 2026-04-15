@@ -5,6 +5,8 @@
 
 #include "世界树类.h"
 
+import 任务管理任务模块;
+
 namespace {
     std::string 私有_优先文本(const std::string& 文本, const std::string& 回退 = {})
     {
@@ -137,7 +139,7 @@ namespace {
             结果片段.emplace_back("候选方法=" + 学习任务.学习方法标题);
         }
         if (本能补齐学习 && !学习任务.回流目标摘要.empty()) {
-            结果片段.emplace_back("回流目标=" + 学习任务.回流目标摘要);
+            结果片段.emplace_back("反馈目标=" + 学习任务.回流目标摘要);
         }
         输出.原料.结果摘要 = 私有_拼接片段(结果片段);
     }

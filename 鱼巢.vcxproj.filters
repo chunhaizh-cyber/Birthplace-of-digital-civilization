@@ -209,19 +209,10 @@
     <ClInclude Include="语言类.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="自我特征定义.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="本能方法类.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="自我初始化模块.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="任务管理任务模块.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="自我类.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="自我线程类.h">

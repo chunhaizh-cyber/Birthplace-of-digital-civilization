@@ -16,15 +16,22 @@ struct 结构_学习执行结果 {
     bool 已提交 = false;
     bool 已回滚 = false;
     bool 已回流 = false;
+    bool 已形成学习反馈 = false;
+    bool 已完善方法 = false;
     bool 已产出实践结果消息 = false;
     std::uint64_t 账本ID = 0;
     枚举_学习阶段 当前阶段 = 枚举_学习阶段::未定义;
     枚举_学习状态 当前状态 = 枚举_学习状态::未定义;
+    枚举_任务管理学习反馈消费策略 建议消费动作 =
+        static_cast<枚举_任务管理学习反馈消费策略>(0);
     std::string 当前阶段文本{};
     std::string 当前状态文本{};
     结构_实践结果消息 实践结果消息{};
     std::string 摘要{};
     std::string 失败摘要{};
+    std::string 学习情况摘要{};
+    std::string 学习反馈摘要{};
+    std::string 已完善方法摘要{};
     std::string 回流摘要{};
 };
 

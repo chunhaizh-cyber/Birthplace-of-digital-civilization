@@ -17,7 +17,8 @@
 
 #include "WebView2导入.h"
 #include "控制面板类.h"
-#include "自我类.h"
+
+import 自我模块;
 import 自我线程模块;
 
 using Microsoft::WRL::ComPtr;
@@ -42,6 +43,21 @@ namespace {
     std::mutex 私有_控制面板窗口互斥{};
     std::atomic<HWND> 私有_控制面板窗口句柄{ nullptr };
     std::atomic<int> 私有_控制面板启动诊断码{ 0 };
+
+    void 私有_确保控制面板线程存在(const std::string& 调用点) noexcept
+    {
+        if (!自我.已初始化()) {
+            (void)初始化自我环境(调用点 + "/初始化自我");
+        }
+        if (!自我.已初始化()) {
+            return;
+        }
+
+        结构_线程存在初始化参数 参数{};
+        参数.线程标签 = "控制面板窗口线程";
+        参数.线程类型 = "控制面板线程";
+        (void)自我.确保线程子存在(参数, 调用点);
+    }
 
     std::wstring 私有_UTF8转宽字串(const std::string& 输入)
     {
@@ -445,6 +461,7 @@ bool 启动控制面板WebView2窗口() noexcept
 
         std::promise<bool> 启动结果{};
         auto 结果 = 启动结果.get_future();
+        (void)私有_确保控制面板线程存在("控制面板WebView2/启动线程");
         std::thread(私有_控制面板窗口线程主体, std::move(启动结果)).detach();
         return 结果.get();
     }

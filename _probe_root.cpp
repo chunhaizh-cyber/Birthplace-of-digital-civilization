@@ -1,6 +1,7 @@
 #include <iostream>
 #include "世界树类.h"
-#include "自我初始化模块.h"
+import 自我模块;
+import 自我模块.初始化;
 int main(){
     世界树.初始化();
     世界树.初始化默认世界();

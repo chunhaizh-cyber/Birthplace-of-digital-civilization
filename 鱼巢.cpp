@@ -16,12 +16,12 @@
 #include "学习对象适配器.h"
 #include "学习执行模块.h"
 #include "日志接入.h"
-#include "任务管理任务模块.h"
+#include "世界树类.h"
 #include "语素类.h"
-#include "自我类.h"
-#include "自我初始化模块.h"
-#include "自我特征定义.h"
 
+import 自我模块;
+import 自我模块.初始化;
+import 任务管理任务模块;
 import 自我线程模块;
 
 namespace {
