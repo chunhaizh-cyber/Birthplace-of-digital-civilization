@@ -9,6 +9,8 @@ module;
 #include "需求类.h"
 export module 任务管理任务模块;
 
+export import 任务管理任务模块.消息协议;
+
 import 自我模块;
 import 任务模块.运行包;
 

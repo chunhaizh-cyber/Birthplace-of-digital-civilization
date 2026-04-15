@@ -157,6 +157,7 @@
     <ClCompile Include="学习执行模块.cpp" />
     <ClCompile Include="自我初始化模块.cpp" />
     <ClCompile Include="任务管理最小原语模块.cpp" />
+    <ClCompile Include="任务管理任务模块.消息协议.ixx" />
     <ClCompile Include="任务管理任务模块.ixx" />
     <ClCompile Include="任务管理任务模块.impl.cpp" />
     <ClCompile Include="任务模块.最小回写器.cpp" />
