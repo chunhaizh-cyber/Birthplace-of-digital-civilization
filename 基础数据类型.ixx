@@ -36,13 +36,63 @@ export struct I64区间 {
 // ============================================================================
 // 通用小结构
 // ============================================================================
+// 主信息统一约定：
+// - “我关联到谁”这类关系锚点，用 可解析引用 保存；
+// - 本地标量、时间、计数、自有值直接存；
+// - 名称/类型/动作名这类稳定语义标签，可继续保持轻量词指针。
 export template<class T节点>
 struct 可解析引用 {
     T节点* 指针 = nullptr;
     std::string 主键{};
 
+    可解析引用() = default;
+    可解析引用(T节点* 节点) { 绑定(节点); }
+    可解析引用(T节点* 节点, const std::string& 主键值) { 绑定(节点, 主键值); }
+
     bool 有效() const noexcept { return 指针 != nullptr || !主键.empty(); }
+    T节点* 获取() const noexcept { return 指针; }
+    T节点* operator->() const noexcept { return 指针; }
+    operator T节点* () const noexcept { return 指针; }
+
+    可解析引用& operator=(T节点* 节点)
+    {
+        绑定(节点);
+        return *this;
+    }
+
+    void 绑定(T节点* 节点)
+    {
+        指针 = 节点;
+        主键 = 私有_提取主键(节点);
+    }
+
+    void 绑定(T节点* 节点, const std::string& 主键值)
+    {
+        指针 = 节点;
+        主键 = !主键值.empty()
+            ? 主键值
+            : 私有_提取主键(节点);
+    }
+
     void 清空() noexcept { 指针 = nullptr; 主键.clear(); }
+
+private:
+    template<class U节点>
+    static auto 私有_提取主键_impl(U节点* 节点, int) -> decltype(节点->获取主键(), std::string{})
+    {
+        return 节点 ? 节点->获取主键() : std::string{};
+    }
+
+    template<class U节点>
+    static std::string 私有_提取主键_impl(U节点*, long)
+    {
+        return {};
+    }
+
+    static std::string 私有_提取主键(T节点* 节点)
+    {
+        return 私有_提取主键_impl(节点, 0);
+    }
 };
 
 export struct 结构_统计 {

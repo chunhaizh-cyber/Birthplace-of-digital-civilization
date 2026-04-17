@@ -1,7 +1,7 @@
 #pragma once
 
 #include "语言节点类型.h"
-#include "语素信息类型.h"
+#include "语素节点类型.h"
 #include "基础信息节点类型.h"
 #include "双向链表模板核心.h"
 

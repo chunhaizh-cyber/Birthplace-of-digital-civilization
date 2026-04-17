@@ -87,7 +87,7 @@ export struct 日志参数 {
     std::string 文件前缀 = "海鱼";
     // 写入后是否每条都 flush（默认 true，便于崩溃前落盘；追求性能可关）
     bool 每条刷新 = true;
-    // 是否同时输出到调试器（OutputDebugStringA 风格）；这里不直接依赖 WinAPI，默认 false
+    // 是否同时输出到调试器（OutputDebugStringW），默认 false
     bool 输出到调试器 = false;
 };
 
@@ -290,16 +290,27 @@ namespace 日志::detail {
             // thread id
             std::ostringstream tid;
             tid << std::this_thread::get_id();
+            const auto 线程ID文本 = tid.str();
 
             const std::string ts = 取时间戳_YYYYMMDD_hhmmss_mmm();
-            ofs << ts << " [" << 级别字符串(lv) << "]"
-                << " [T" << tid.str() << "] "
-                << msg << "\n";
+            std::string 行文本{};
+            行文本.reserve(ts.size() + 线程ID文本.size() + msg.size() + 32);
+            行文本.append(ts);
+            行文本.append(" [");
+            行文本.append(级别字符串(lv));
+            行文本.append("] [T");
+            行文本.append(线程ID文本);
+            行文本.append("] ");
+            行文本.append(msg);
+
+            ofs << 行文本 << "\n";
 
             if (每条刷新) ofs.flush();
 
-            // 可选：输出到调试器（不引 WinAPI，留给你接入）。
-            (void)输出到调试器;
+            if (输出到调试器) {
+                const auto 调试文本 = utf8_to_wide_lossy(行文本 + "\n");
+                ::OutputDebugStringW(调试文本.c_str());
+            }
         }
 
         void 关闭() {

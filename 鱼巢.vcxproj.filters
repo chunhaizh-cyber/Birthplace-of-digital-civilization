@@ -48,10 +48,43 @@
     <ClCompile Include="二次特征类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="二次特征生成模块.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="二次特征类.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="二次特征匹配模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="二次特征匹配桥接.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="状态类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="动态类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="方法类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="本能动作类.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="本能动作管理类.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="动作线程类.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="本能线程类.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="度量模板注册表类.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="度量模板注册表桥接.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="因果类.cpp">
@@ -78,6 +111,9 @@
     <ClCompile Include="学习任务模块.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="任务类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="学习对象适配器.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -102,9 +138,42 @@
     <ClCompile Include="自我线程类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="自我_初始化模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我_核心状态模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我_固定机制模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我_恢复快照模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我_结果治理模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我_学习承接模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我_主循环治理模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我_治理记忆模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="自我_执行桥模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="日志接入.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="二次特征匹配桥接.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="度量模板注册表桥接.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="双向链表模板核心.h">

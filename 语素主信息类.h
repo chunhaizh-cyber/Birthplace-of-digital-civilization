@@ -48,8 +48,8 @@ public:
 
 class 短语主信息类 : public 语素基类 {
 public:
-    const 词性节点类* 参照词 = nullptr;
-    const 词性节点类* 比较对象词 = nullptr;
+    可解析引用<const 词性节点类> 参照词{};
+    可解析引用<const 词性节点类> 比较对象词{};
 
     短语主信息类(const 词性节点类* a = nullptr, const 词性节点类* b = nullptr)
         : 参照词(a), 比较对象词(b) {
@@ -60,19 +60,32 @@ public:
         if (!右) return -1;
         switch (字段) {
         case 枚举_比较字段::语素_短语字节点_参照词:
-            return reinterpret_cast<std::intptr_t>(参照词) - reinterpret_cast<std::intptr_t>(右->参照词);
+            return 私有_比较词引用(参照词, 右->参照词);
         case 枚举_比较字段::语素_短语字节点_比较对象词:
-            return reinterpret_cast<std::intptr_t>(比较对象词) - reinterpret_cast<std::intptr_t>(右->比较对象词);
+            return 私有_比较词引用(比较对象词, 右->比较对象词);
         default:
             return -1;
         }
+    }
+
+private:
+    static std::int64_t 私有_比较词引用(
+        const 可解析引用<const 词性节点类>& 左,
+        const 可解析引用<const 词性节点类>& 右) noexcept
+    {
+        if (左.指针 == 右.指针) return 0;
+        if (!左.主键.empty() || !右.主键.empty()) {
+            if (左.主键 == 右.主键) return 0;
+            return 左.主键 < 右.主键 ? -1 : 1;
+        }
+        return reinterpret_cast<std::intptr_t>(左.指针) - reinterpret_cast<std::intptr_t>(右.指针);
     }
 };
 
 class 短语子节点主信息类 : public 语素基类 {
 public:
-    const 词性节点类* 比较词 = nullptr;
-    const 词性节点类* 结果词 = nullptr;
+    可解析引用<const 词性节点类> 比较词{};
+    可解析引用<const 词性节点类> 结果词{};
 
     短语子节点主信息类(const 词性节点类* a = nullptr, const 词性节点类* b = nullptr)
         : 比较词(a), 结果词(b) {
@@ -83,11 +96,24 @@ public:
         if (!右) return -1;
         switch (字段) {
         case 枚举_比较字段::语素_短语子节点_比较词:
-            return reinterpret_cast<std::intptr_t>(比较词) - reinterpret_cast<std::intptr_t>(右->比较词);
+            return 私有_比较词引用(比较词, 右->比较词);
         case 枚举_比较字段::语素_短语子节点_结果词:
-            return reinterpret_cast<std::intptr_t>(结果词) - reinterpret_cast<std::intptr_t>(右->结果词);
+            return 私有_比较词引用(结果词, 右->结果词);
         default:
             return -1;
         }
+    }
+
+private:
+    static std::int64_t 私有_比较词引用(
+        const 可解析引用<const 词性节点类>& 左,
+        const 可解析引用<const 词性节点类>& 右) noexcept
+    {
+        if (左.指针 == 右.指针) return 0;
+        if (!左.主键.empty() || !右.主键.empty()) {
+            if (左.主键 == 右.主键) return 0;
+            return 左.主键 < 右.主键 ? -1 : 1;
+        }
+        return reinterpret_cast<std::intptr_t>(左.指针) - reinterpret_cast<std::intptr_t>(右.指针);
     }
 };
