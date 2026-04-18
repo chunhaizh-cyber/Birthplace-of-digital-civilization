@@ -48,16 +48,10 @@
     <ClCompile Include="二次特征类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="二次特征生成模块.cpp">
+    <ClCompile Include="二次特征应用模块.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="二次特征类.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="二次特征匹配模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="二次特征匹配桥接.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="状态类.cpp">
@@ -168,9 +162,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="日志接入.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="二次特征匹配桥接.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="度量模板注册表桥接.h">

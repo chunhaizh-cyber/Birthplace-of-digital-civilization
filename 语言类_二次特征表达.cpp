@@ -7,6 +7,8 @@
 #include "语素类.h"
 #include "方法类.h"
 
+import 二次特征应用模块;
+
 namespace {
     std::string 私有_基础节点短名(const 基础信息类* 基础信息, const 基础信息节点类* 节点);
 
@@ -366,7 +368,7 @@ namespace {
             return "动态";
         }
 
-        if (const auto* 二次特征主信息 = 基础信息->取主信息<二次特征主信息类>(节点)) {
+        if (const auto* 二次特征主信息 = 二次特征主信息_桥接(节点)) {
             const auto 概念名称 = 私有_安全词(二次特征主信息->概念名称);
             if (!概念名称.empty()) return 概念名称;
             return 私有_二次特征种类文本(二次特征主信息->种类);
@@ -392,20 +394,20 @@ namespace {
 
 std::string 语言类::生成二次特征反义词结果(const 二次特征节点类* 节点) const
 {
-    const auto* 主信息 = 节点 ? dynamic_cast<const 二次特征主信息类*>(节点->主信息) : nullptr;
+    const auto* 主信息 = 二次特征主信息_桥接(节点);
     return 私有_二次特征反义词结果_按主信息(主信息);
 }
 
 std::string 语言类::生成二次特征介词短语(const 二次特征节点类* 节点) const
 {
-    const auto* 主信息 = 节点 ? dynamic_cast<const 二次特征主信息类*>(节点->主信息) : nullptr;
+    const auto* 主信息 = 二次特征主信息_桥接(节点);
     return 私有_二次特征介词短语_按主信息(&世界树.基础信息(), 主信息);
 }
 
 std::string 语言类::生成二次特征自然语言(const 二次特征节点类* 节点) const
 {
     const auto& 基础信息 = 世界树.基础信息();
-    const auto* 主信息 = 节点 ? dynamic_cast<const 二次特征主信息类*>(节点->主信息) : nullptr;
+    const auto* 主信息 = 二次特征主信息_桥接(节点);
     if (!主信息) return {};
 
     const auto 主语 = 私有_二次特征主语名称(&基础信息, 主信息);

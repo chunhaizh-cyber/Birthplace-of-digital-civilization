@@ -141,10 +141,8 @@
     <ClCompile Include="存在类.cpp" />
     <ClCompile Include="场景类.cpp" />
     <ClCompile Include="二次特征类.cpp" />
-    <ClCompile Include="二次特征生成模块.cpp" />
+    <ClCompile Include="二次特征应用模块.ixx" />
     <ClCompile Include="二次特征类.ixx" />
-    <ClCompile Include="二次特征匹配模块.ixx" />
-    <ClCompile Include="二次特征匹配桥接.cpp" />
     <ClCompile Include="状态类.cpp" />
     <ClCompile Include="动态类.cpp" />
     <ClCompile Include="方法类.cpp" />
@@ -202,7 +200,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="日志接入.h" />
-    <ClInclude Include="二次特征匹配桥接.h" />
     <ClInclude Include="度量模板注册表桥接.h" />
     <ClInclude Include="任务信息类型.h" />
     <ClInclude Include="双向链表模板核心.h" />
@@ -226,7 +223,6 @@
     <ClInclude Include="存在类.h" />
     <ClInclude Include="场景类.h" />
     <ClInclude Include="二次特征类.h" />
-    <ClInclude Include="二次特征生成模块.h" />
     <ClInclude Include="状态类.h" />
     <ClInclude Include="动态类.h" />
     <ClInclude Include="因果类.h" />

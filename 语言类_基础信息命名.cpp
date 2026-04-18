@@ -5,6 +5,8 @@
 
 #include "世界树类.h"
 
+import 二次特征应用模块;
+
 namespace {
     std::string 私有_安全词(const 词性节点类* 词)
     {
@@ -184,7 +186,7 @@ std::string 语言类::获取基础信息名称(const 基础信息节点类* 节
         return "动态";
     }
 
-    if (const auto* 二次特征主信息 = 基础信息.取主信息<二次特征主信息类>(节点)) {
+    if (const auto* 二次特征主信息 = 二次特征主信息_桥接(节点)) {
         const auto 自然语言 = 生成二次特征自然语言(static_cast<const 二次特征节点类*>(节点));
         if (!自然语言.empty()) return 自然语言;
 

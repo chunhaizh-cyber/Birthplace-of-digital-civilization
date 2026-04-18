@@ -8,6 +8,8 @@
 #include "度量模板注册表桥接.h"
 #include "语素类.h"
 
+import 二次特征应用模块;
+
 namespace {
     I64 私有_饱和减(I64 a, I64 b) noexcept
     {
@@ -62,7 +64,7 @@ namespace {
     , 存在服务_(&基础信息链_)
     , 场景服务_(&基础信息链_)
     , 二次特征服务_(&基础信息链_)
-    , 二次特征生成服务_(this)
+    , 二次特征生成服务_(std::make_unique<二次特征生成模块>(this))
     , 状态服务_(&基础信息链_)
     , 动态服务_(&基础信息链_)
     , 因果服务_(&基础信息链_)
@@ -104,8 +106,8 @@ const 存在类& 世界树类::存在() const noexcept { return 存在服务_; }
 const 场景类& 世界树类::场景() const noexcept { return 场景服务_; }
 二次特征类& 世界树类::二次特征() noexcept { return 二次特征服务_; }
 const 二次特征类& 世界树类::二次特征() const noexcept { return 二次特征服务_; }
-二次特征生成模块& 世界树类::二次特征生成() noexcept { return 二次特征生成服务_; }
-const 二次特征生成模块& 世界树类::二次特征生成() const noexcept { return 二次特征生成服务_; }
+二次特征生成模块& 世界树类::二次特征生成() noexcept { return *二次特征生成服务_; }
+const 二次特征生成模块& 世界树类::二次特征生成() const noexcept { return *二次特征生成服务_; }
 状态类& 世界树类::状态() noexcept { return 状态服务_; }
 const 状态类& 世界树类::状态() const noexcept { return 状态服务_; }
 动态类& 世界树类::动态() noexcept { return 动态服务_; }
@@ -334,7 +336,7 @@ std::vector<二次特征节点类*> 世界树类::刷新存在比较二次特征
 
     auto* 所属场景 = 左场景 ? 左场景 : 右场景;
     const auto 比较结果 = 比较存在(左存在, 右存在, 参数);
-    return 二次特征生成服务_.由存在比较结果生成二次特征(
+    return 二次特征生成服务_->由存在比较结果生成二次特征(
         所属场景,
         左存在,
         右存在,
@@ -400,7 +402,7 @@ bool 世界树类::写入存在观测位置(存在节点类* 节点, const Vecto
         ? static_cast<场景节点类*>(父节点)
         : nullptr;
     if (场景节点) {
-        (void)二次特征生成服务_.刷新场景存在型基础二次特征(场景节点);
+        (void)二次特征生成服务_->刷新场景存在型基础二次特征(场景节点);
     }
     return true;
 }

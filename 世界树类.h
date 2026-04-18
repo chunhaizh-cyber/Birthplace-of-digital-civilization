@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "基础信息类.h"
@@ -8,10 +9,11 @@
 #include "存在类.h"
 #include "场景类.h"
 #include "二次特征类.h"
-#include "二次特征生成模块.h"
 #include "状态类.h"
 #include "动态类.h"
 #include "因果类.h"
+
+class 二次特征生成模块;
 
 class 世界树类 {
 public:
@@ -140,7 +142,7 @@ private:
     存在类 存在服务_;
     场景类 场景服务_;
     二次特征类 二次特征服务_;
-    二次特征生成模块 二次特征生成服务_;
+    std::unique_ptr<二次特征生成模块> 二次特征生成服务_;
     状态类 状态服务_;
     动态类 动态服务_;
     因果类 因果服务_;
