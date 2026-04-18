@@ -2,6 +2,7 @@ module;
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "世界树类.h"
 #include "任务类.h"
@@ -220,6 +221,77 @@ enum class 枚举_任务管理学习反馈消费策略 : std::uint8_t {
     挂起观察 = 2,
     使用已完善方法 = 3,
     再派生学习任务 = 4,
+};
+
+// P0：运行时判定原语类型。
+// 二次特征只作为证据输入，真正进入总控前必须先落成原语判定结果。
+enum class 枚举_原语类型 : std::uint8_t {
+    条件满足 = 0,
+    方向一致 = 1,
+    结果符合 = 2,
+    冲突判定 = 3,
+    因果稳定 = 4,
+    升阶判定 = 5,
+};
+
+struct 结构_原语判定结果 {
+    枚举_原语类型 类型 = 枚举_原语类型::条件满足;
+    bool 是否满足 = false;
+    std::int64_t 满足度_Q10000 = 0;
+    std::int64_t 置信度_Q10000 = 0;
+    bool 是否冲突 = false;
+    bool 需升阶 = false;
+    std::string 主域{};
+    std::string 小域{};
+    std::string 原因说明{};
+    std::string 下一步建议{};
+};
+
+struct 结构_原语判定汇总 {
+    bool 条件满足 = false;
+    bool 方向一致 = false;
+    bool 结果符合 = false;
+    bool 出现冲突 = false;
+    bool 因果稳定 = false;
+    bool 需要升阶 = false;
+    std::int64_t 综合满足度_Q10000 = 0;
+    std::int64_t 综合置信度_Q10000 = 0;
+    std::string 升阶原因{};
+    std::vector<结构_原语判定结果> 明细{};
+};
+
+struct 结构_原语候选项 {
+    任务类::节点类* 节点 = nullptr;
+    std::string 候选角色{};
+    std::string 候选主键{};
+    bool 是否同向 = false;
+};
+
+struct 结构_任务管理请求;
+struct 结构_任务管理单步决策;
+
+class 原语判定接口 {
+public:
+    virtual ~原语判定接口() = default;
+
+    virtual bool 执行原语(
+        const 结构_任务管理请求& 输入,
+        枚举_原语类型 类型,
+        结构_原语判定结果* 输出 = nullptr) noexcept = 0;
+
+    virtual bool 汇总原语(
+        const std::vector<结构_原语判定结果>& 结果集,
+        结构_原语判定汇总* 输出 = nullptr) noexcept = 0;
+};
+
+class 选择函数接口 {
+public:
+    virtual ~选择函数接口() = default;
+
+    virtual bool 选择下一步(
+        const 结构_任务管理请求& 输入,
+        const 结构_原语判定汇总& 汇总,
+        结构_任务管理单步决策* 输出 = nullptr) noexcept = 0;
 };
 
 struct 结构_任务管理显式事件控制 {
@@ -501,6 +573,9 @@ struct 结构_任务管理请求 {
     std::string 来源主观察特征{};
     std::string 影子验证状态{"未触发"};
     bool 允许正式资产提交 = false;
+    结构_原语判定汇总 当前原语判定汇总{};
+    std::string 当前需求轴键{};
+    std::vector<结构_原语候选项> 当前升阶候选组{};
     std::string 触发事件摘要{};
     std::string 当前恢复点类型{};
     bool 存在待消费学习反馈 = false;
@@ -527,6 +602,7 @@ struct 结构_任务管理单步决策 {
     std::string 来源主观察特征{};
     std::string 影子验证状态{"未触发"};
     bool 允许正式资产提交 = false;
+    结构_原语判定汇总 当前原语判定汇总{};
     std::string 决策摘要{};
 };
 
@@ -568,6 +644,7 @@ struct 结构_任务管理一步结果 {
     std::string 来源主观察特征{};
     std::string 影子验证状态{"未触发"};
     bool 允许正式资产提交 = false;
+    结构_原语判定汇总 当前原语判定汇总{};
     bool 已触发学习承接 = false;
     枚举_任务管理学习承接类型 当前学习承接类型 = 枚举_任务管理学习承接类型::未定义;
     bool 当前学习为本能补齐 = false;
@@ -657,6 +734,7 @@ struct 结构_任务管理结果 {
     std::uint64_t 当前分身ID = 0;
     枚举_任务管理触发来源 当前触发来源 = 枚举_任务管理触发来源::自然运行态;
     std::uint64_t 来源最小原语位图 = 0;
+    结构_原语判定汇总 当前原语判定汇总{};
 
     结构_任务管理上下文 上下文{};
     结构_任务管理请求 当前请求{};
@@ -854,6 +932,15 @@ bool 构造任务管理请求(
     const 自我类& 自我对象,
     时间戳 now = 0,
     结构_任务管理请求* 输出 = nullptr) noexcept;
+
+bool 形成任务管理原语判定汇总(
+    const 结构_任务管理请求& 请求,
+    结构_原语判定汇总* 输出 = nullptr) noexcept;
+
+bool 选择任务管理下一步(
+    const 结构_任务管理请求& 请求,
+    const 结构_原语判定汇总& 汇总,
+    结构_任务管理单步决策* 输出 = nullptr) noexcept;
 
 // 兼容：按请求快照推导阶段决策。
 bool 形成任务管理单步决策(
