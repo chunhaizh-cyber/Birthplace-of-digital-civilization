@@ -21,7 +21,13 @@
     <ClCompile Include="鱼巢.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="控制面板类.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="控制面板类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="控制面板WebView2.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="控制面板WebView2.cpp">
@@ -102,16 +108,28 @@
     <ClCompile Include="本能方法类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="学习任务模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="学习任务模块.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="任务类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="学习对象适配器.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="学习对象适配器.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="学习调度模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="学习调度模块.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="学习执行模块.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="学习执行模块.cpp">
@@ -176,12 +194,6 @@
     <ClInclude Include="基础信息类.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="控制面板类.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="控制面板WebView2.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="WebView2导入.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -204,18 +216,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="特征类.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="学习任务模块.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="学习对象适配器.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="学习调度模块.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="学习执行模块.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="存在类.h">

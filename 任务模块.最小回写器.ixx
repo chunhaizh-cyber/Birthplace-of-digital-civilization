@@ -20,7 +20,7 @@ struct 结构_最小回写结果 {
     bool 已写入动态 = false;
     bool 已写入因果候选 = false;
     动态节点类* 动态节点 = nullptr;
-    因果实例节点类* 因果节点 = nullptr;
+    因果模板节点类* 因果节点 = nullptr;
     任务运行包::结构_回流结算包 结算包{};
     std::string 摘要{};
 };

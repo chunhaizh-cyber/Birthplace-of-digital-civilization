@@ -1,10 +1,14 @@
-#pragma once
+module;
 
 #include <cstddef>
 #include <string>
 #include <vector>
 
-#include "学习对象适配器.h"
+export module 学习调度模块;
+
+export import 学习对象适配器;
+
+export {
 
 struct 结构_学习调度项 {
     结构_学习任务实体 实体{};
@@ -20,9 +24,13 @@ struct 结构_学习调度快照 {
     std::size_t 就绪队列数 = 0;
     std::size_t 等待表数 = 0;
     std::size_t 执行中数 = 0;
+    std::size_t 因兜底切换进入就绪数 = 0;
+    std::size_t 因兜底切换进入采样数 = 0;
     std::vector<结构_学习调度项> 就绪队列{};
     std::vector<结构_学习调度项> 等待表{};
     std::vector<结构_学习调度项> 执行中列表{};
+    std::string 首个兜底切换就绪摘要{};
+    std::string 首个兜底切换采样摘要{};
     std::string 摘要{};
 };
 
@@ -35,3 +43,5 @@ bool 选择一条可执行学习任务(
     结构_学习调度快照* 快照输出 = nullptr) noexcept;
 
 } // namespace 学习调度模块
+
+} // export

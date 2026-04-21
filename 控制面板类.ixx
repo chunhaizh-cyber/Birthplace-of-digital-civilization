@@ -1,10 +1,14 @@
-#pragma once
+module;
 
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <string>
 #include <vector>
+
+export module 控制面板类;
+
+export {
 
 struct 结构_控制面板树节点 {
     std::uintptr_t 节点指针 = 0;
@@ -38,6 +42,8 @@ struct 结构_控制面板快照 {
     bool 自我线程健康运行 = false;
     bool 自我线程首轮运行已完成 = false;
     bool 自我线程本次启动来自故障恢复 = false;
+    bool 自我线程最近结算已生成 = false;
+    bool 自我线程最近已执行固定机制 = false;
     bool 自我线程解封前验收通过 = false;
     bool 自我线程重外部输入保持封闭 = true;
     bool 自我存在已建立 = false;
@@ -55,6 +61,7 @@ struct 结构_控制面板快照 {
     std::size_t 动态数 = 0;
     std::size_t 因果实例数 = 0;
     std::size_t 因果模板数 = 0;
+    std::size_t 因果证据动态样本数 = 0;
     std::size_t 先天动作动态数 = 0;
     std::size_t 先天动作因果数 = 0;
     std::size_t 需求数 = 0;
@@ -68,6 +75,12 @@ struct 结构_控制面板快照 {
     std::size_t 学习任务已完成数 = 0;
     std::size_t 学习就绪队列数 = 0;
     std::size_t 学习等待表数 = 0;
+    std::size_t 学习因兜底切换进入就绪数 = 0;
+    std::size_t 学习因兜底切换进入采样数 = 0;
+    std::size_t 学习恢复请求数 = 0;
+    bool 学习应触发学习 = false;
+    bool 学习应申请重试恢复 = false;
+    bool 学习应申请收束恢复 = false;
     std::size_t 历史宿主残留节点数 = 0;
     std::size_t 历史宿主残留特征数 = 0;
     std::size_t 历史宿主残留状态数 = 0;
@@ -101,6 +114,18 @@ struct 结构_控制面板快照 {
     std::uintptr_t 当前主方法指针 = 0;
     std::uintptr_t 任务管理当前步骤指针 = 0;
     std::uintptr_t 任务管理最近结果指针 = 0;
+    std::size_t 任务管理任务实体数量 = 0;
+    bool 任务管理工作线程已启动 = false;
+    bool 任务管理工作线程正在执行 = false;
+    bool 任务管理工作线程已收到请求 = false;
+    std::uint64_t 任务管理工作线程最近任务根ID = 0;
+    std::uint64_t 任务管理工作线程累计推进次数 = 0;
+    std::uint64_t 任务管理工作线程累计收到请求数 = 0;
+    std::uint64_t 任务管理工作线程累计收到控制请求数 = 0;
+    std::uint64_t 任务管理工作线程累计发送上行消息数 = 0;
+    std::uint64_t 任务管理工作线程最近一次上行消息数 = 0;
+    std::uint64_t 任务管理工作线程当前排队数 = 0;
+    std::uint64_t 任务管理工作线程最近推进时间 = 0;
 
     std::string 自我现实场景名称{};
     std::string 自我内部世界名称{};
@@ -140,18 +165,15 @@ struct 结构_控制面板快照 {
     std::string 治理mailbox最老等待摘要{};
     std::string 治理mailbox最近拦截摘要{};
     std::string 治理mailbox待恢复摘要{};
-    std::string 最近消费治理事件摘要{};
-    std::string 最近消费治理事件优先级{};
-    std::string 最近消费治理事件幂等键{};
-    std::uint32_t 最近消费治理事件重放代数 = 0;
-    std::uint32_t 最近消费治理事件消费次数 = 0;
-    std::string 最近消费治理事件结果{};
     std::string 自我摘要{};
     std::string 自我线程摘要{};
     std::string 运行时摘要{};
     std::string 任务管理专项摘要{};
     std::string 任务管理上下文摘要{};
     std::string 任务管理输出摘要{};
+    std::string 任务管理状态数量摘要{};
+    std::string 任务管理消息汇总摘要{};
+    std::string 任务管理工作线程摘要{};
     std::string 需求与权重治理输出摘要{};
     std::string 主派发输出摘要{};
     std::string 队列治理输出摘要{};
@@ -170,6 +192,8 @@ struct 结构_控制面板快照 {
     std::string 历史宿主残留严重级别{};
     std::string 学习调度摘要{};
     std::string 学习专项摘要{};
+    std::string 学习首个兜底切换就绪摘要{};
+    std::string 学习首个兜底切换采样摘要{};
     std::string 学习当前阶段{};
     std::string 学习当前状态{};
     std::string 学习当前影响面{};
@@ -180,10 +204,14 @@ struct 结构_控制面板快照 {
     std::string 学习最近反馈摘要{};
     std::string 学习最近回流摘要{};
     std::string 学习最近回放摘要{};
+    std::string 学习固定机制观察摘要{};
     std::string 自我线程动作最近摘要{};
     std::string 自我线程解封前验收摘要{};
     std::string 自我线程当前最终去向{};
     std::string 自我线程当前阶段{};
+    std::string 自我线程最近结算摘要{};
+    std::string 自我线程最近固定机制摘要{};
+    std::string 自我线程最近主派发判据摘要{};
     std::string 自我线程上次故障摘要{};
     std::string 自我线程最近恢复摘要{};
     std::string 自我线程最近故障摘要{};
@@ -201,9 +229,13 @@ struct 结构_控制面板快照 {
     std::vector<结构_控制面板列表项> 动态任务列表{};
     std::vector<结构_控制面板列表项> 动态场景列表{};
     std::vector<结构_控制面板列表项> 动态树列表{};
+    std::vector<结构_控制面板列表项> 因果实例列表{};
+    std::vector<结构_控制面板列表项> 因果模板列表{};
+    std::vector<结构_控制面板列表项> 任务管理汇总列表{};
     std::vector<结构_控制面板列表项> 任务管理输入列表{};
     std::vector<结构_控制面板列表项> 任务管理输出列表{};
     std::vector<结构_控制面板列表项> 任务管理触发列表{};
+    std::vector<结构_控制面板列表项> 任务管理工作线程列表{};
     std::vector<结构_控制面板列表项> 主派发动作列表{};
     std::vector<结构_控制面板列表项> 主派发队列裁决列表{};
     std::vector<结构_控制面板列表项> 需求候选列表{};
@@ -232,6 +264,7 @@ struct 结构_控制面板快照 {
     std::vector<std::string> 历史宿主残留阻断摘要{};
     std::vector<结构_控制面板线程事件> 自我运行阶段事件{};
 
+    结构_控制面板树节点 因果信息树根{};
     结构_控制面板树节点 世界树根{};
     结构_控制面板树节点 需求树根{};
     结构_控制面板树节点 任务树根{};
@@ -292,3 +325,5 @@ int 获取控制面板启动诊断码() noexcept;
 std::filesystem::path 默认控制面板HTML路径();
 
 枚举_控制面板命令 解析控制面板命令行(int argc, char** argv) noexcept;
+
+} // export

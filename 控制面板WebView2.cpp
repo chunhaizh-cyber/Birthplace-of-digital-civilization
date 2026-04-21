@@ -1,4 +1,4 @@
-#include "控制面板WebView2.h"
+module;
 
 #include <atomic>
 #include <filesystem>
@@ -16,8 +16,10 @@
 #include <wrl/event.h>
 
 #include "WebView2导入.h"
-#include "控制面板类.h"
 
+module 控制面板WebView2;
+
+import 控制面板类;
 import 自我模块;
 import 自我线程模块;
 

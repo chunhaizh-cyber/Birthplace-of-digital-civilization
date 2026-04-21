@@ -130,12 +130,9 @@ public:
 
         std::size_t 治理mailbox待消费数 = 0;
         std::string 任务管理当前去向{};
-        std::string 最近消费治理事件摘要{};
-        std::string 最近消费治理事件幂等键{};
-        std::uint32_t 最近消费治理事件重放代数 = 0;
-        std::string 最近消费治理事件结果{};
         std::string 最近二次特征摘要{};
         std::string 最近影响项摘要{};
+        std::string 最近主派发判定二次特征摘要{};
         std::string 最近根值摘要{};
         std::string 最近回流摘要{};
         std::string 最近结算摘要{};
@@ -304,8 +301,17 @@ public:
 
     struct 结构_主派发输出快照 {
         bool 已生成 = false;
+        bool 已生成治理桥预判 = false;
+        bool 已生成治理桥结果 = false;
+        bool 有派生需求待实例化 = false;
+        自我线程消息批次执行器::枚举_批次执行去向 批次执行去向 =
+            自我线程消息批次执行器::枚举_批次执行去向::继续提交;
         bool 允许任务入口实例化 = false;
         bool 允许工作线程推进 = false;
+        bool 治理桥允许进入执行链 = false;
+        bool 治理桥要求触发学习 = false;
+        bool 治理桥要求进入等待链 = false;
+        bool 治理桥要求停止 = false;
         std::size_t 来源需求候选数 = 0;
         std::size_t 来源方法禁止项数 = 0;
         std::size_t 绝对禁止项数 = 0;
@@ -322,6 +328,7 @@ public:
         I64 禁止付出值 = 0;
         bool 命中需求升格建议 = false;
         bool 命中新任务入口建议 = false;
+        bool 命中禁止项重筹办建议 = false;
         bool 命中绝对禁止项 = false;
         bool 命中已验证降根禁止项 = false;
         bool 命中目标反向禁止项 = false;
@@ -375,6 +382,14 @@ public:
         std::string 联合阈值细则摘要{};
         std::string 覆盖优先细则摘要{};
         std::string 根层判定摘要{};
+        std::string 主派发判定二次特征摘要{};
+        std::string 治理桥预判去向{};
+        std::string 治理桥预判摘要{};
+        std::string 治理桥功能域{};
+        std::string 治理桥状态迁移{};
+        std::string 治理桥总控结果{};
+        std::string 治理桥去向{};
+        std::string 治理桥摘要{};
         std::string 主派发摘要{};
         std::string 当前去向{};
         std::vector<结构_主派发动作快照> 派发动作列表{};
@@ -486,8 +501,10 @@ public:
     struct 结构_结算治理输出快照 {
         bool 已生成 = false;
         bool 是否有效推进 = false;
+        bool 已执行固定机制 = false;
         I64 服务净变化 = 0;
         I64 安全净变化 = 0;
+        std::string 固定机制摘要{};
         std::string 下一轮唤醒原因{};
         结构_双值结算账快照 双值结算账{};
         结构_学习恢复接口快照 学习恢复接口{};
@@ -599,11 +616,17 @@ private:
         I64 禁止付出值 = 0;
         bool 命中需求升格建议 = false;
         bool 命中新任务入口建议 = false;
+        bool 命中禁止项重筹办建议 = false;
         bool 命中绝对禁止项 = false;
         bool 命中已验证降根禁止项 = false;
         bool 命中目标反向禁止项 = false;
         bool 命中方法硬阻断 = false;
         bool 允许任务入口实例化 = false;
+        bool 已生成治理桥预判 = false;
+        bool 治理桥允许进入执行链 = false;
+        bool 治理桥要求触发学习 = false;
+        bool 治理桥要求进入等待链 = false;
+        bool 治理桥要求停止 = false;
         bool 命中绝对边界优先层 = false;
         bool 命中长期根方向否决层 = false;
         bool 命中收益放行层 = false;
@@ -652,6 +675,11 @@ private:
         std::string 多证据联合裁决摘要{};
         std::string 联合阈值细则摘要{};
         std::string 覆盖优先细则摘要{};
+        std::string 主派发判定二次特征摘要{};
+        std::string 治理桥预判去向{};
+        std::string 治理桥预判摘要{};
+        std::string 治理桥去向{};
+        std::string 治理桥摘要{};
         std::string 上层反馈摘要{};
         std::string 摘要{};
     };
@@ -855,6 +883,7 @@ private:
     struct 结构_本轮结算封口 {
         bool 已生成 = false;
         bool 是否有效推进 = false;
+        bool 已执行固定机制 = false;
         bool 已生成否定项候选 = false;
         bool 已触发学习 = false;
         bool 已生成故障收口摘要 = false;
@@ -863,6 +892,7 @@ private:
         std::size_t 新增关键中间状态沉淀数 = 0;
         I64 服务净变化 = 0;
         I64 安全净变化 = 0;
+        std::string 固定机制摘要{};
         std::string 否定项摘要{};
         std::string 学习摘要{};
         std::string 故障收口摘要{};
@@ -921,6 +951,7 @@ private:
     void 步骤_重算受影响二次特征_(结构_主循环骨架上下文* 上下文);
     void 步骤_刷新线程上下文并生成治理帧_(结构_主循环骨架上下文* 上下文);
     void 步骤_整理需求并做根层重判_(结构_主循环骨架上下文* 上下文);
+    void 步骤_生成主派发判定二次特征_(结构_主循环骨架上下文* 上下文);
     void 步骤_生成并执行主派发决议_(结构_主循环骨架上下文* 上下文);
     void 步骤_路由结果并协调父任务_(结构_主循环骨架上下文* 上下文);
     void 步骤_本轮结算学习触发故障收口_(结构_主循环骨架上下文* 上下文);
@@ -951,8 +982,6 @@ private:
     std::uint64_t 治理事件序号_ = 0;
     std::uint64_t 累计故障次数_ = 0;
     std::uint64_t 累计恢复次数_ = 0;
-    std::uint64_t 最近显式治理事件ID_ = 0;
-    std::uint64_t 累计显式治理事件消费数_ = 0;
     时间戳 最近Tick时间_ = 0;
     时间戳 上次故障时间_ = 0;
     std::string 上次故障摘要_{};

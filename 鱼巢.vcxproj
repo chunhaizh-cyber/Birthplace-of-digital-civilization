@@ -135,7 +135,9 @@
     <ClCompile Include="日志模块.ixx" />
     <ClCompile Include="基础信息类.cpp" />
     <ClCompile Include="鱼巢.cpp" />
+    <ClCompile Include="控制面板类.ixx" />
     <ClCompile Include="控制面板类.cpp" />
+    <ClCompile Include="控制面板WebView2.ixx" />
     <ClCompile Include="控制面板WebView2.cpp" />
     <ClCompile Include="特征类.cpp" />
     <ClCompile Include="存在类.cpp" />
@@ -159,10 +161,14 @@
     <ClCompile Include="语言类.cpp" />
     <ClCompile Include="自我特征定义.cpp" />
     <ClCompile Include="本能方法类.cpp" />
+    <ClCompile Include="学习任务模块.ixx" />
     <ClCompile Include="学习任务模块.cpp" />
     <ClCompile Include="任务类.cpp" />
+    <ClCompile Include="学习对象适配器.ixx" />
     <ClCompile Include="学习对象适配器.cpp" />
+    <ClCompile Include="学习调度模块.ixx" />
     <ClCompile Include="学习调度模块.cpp" />
+    <ClCompile Include="学习执行模块.ixx" />
     <ClCompile Include="学习执行模块.cpp" />
     <ClCompile Include="自我初始化模块.cpp" />
     <ClCompile Include="任务管理最小原语模块.cpp" />
@@ -205,8 +211,6 @@
     <ClInclude Include="双向链表模板核心.h" />
     <ClInclude Include="基础信息节点类型.h" />
     <ClInclude Include="基础信息类.h" />
-    <ClInclude Include="控制面板类.h" />
-    <ClInclude Include="控制面板WebView2.h" />
     <ClInclude Include="WebView2导入.h" />
     <ClInclude Include="世界树类.h" />
     <ClInclude Include="双向链表模板_序列化.inl" />
@@ -216,10 +220,6 @@
     <ClInclude Include="特征值主信息类.h" />
     <ClInclude Include="特征值类.h" />
     <ClInclude Include="特征类.h" />
-    <ClInclude Include="学习任务模块.h" />
-    <ClInclude Include="学习对象适配器.h" />
-    <ClInclude Include="学习调度模块.h" />
-    <ClInclude Include="学习执行模块.h" />
     <ClInclude Include="存在类.h" />
     <ClInclude Include="场景类.h" />
     <ClInclude Include="二次特征类.h" />

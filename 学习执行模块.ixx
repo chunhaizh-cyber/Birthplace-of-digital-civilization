@@ -1,11 +1,17 @@
-#pragma once
+module;
 
+#include <cstdint>
 #include <string>
 
-#include "学习调度模块.h"
 #include "实践结果消息.h"
 
-class 自我类;
+export module 学习执行模块;
+
+export import 学习调度模块;
+import 任务管理任务模块;
+import 自我模块;
+
+export {
 
 struct 结构_学习执行结果 {
     bool 已命中任务 = false;
@@ -44,3 +50,5 @@ namespace 学习执行模块 {
     const std::string& 调用点) noexcept;
 
 } // namespace 学习执行模块
+
+} // export

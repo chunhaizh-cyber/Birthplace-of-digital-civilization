@@ -7,6 +7,8 @@ module;
 
 export module 任务模块.运行包;
 
+import 任务管理任务模块.消息协议;
+
 export namespace 任务运行包 {
 
 using 主键 = std::uint64_t;
@@ -140,6 +142,15 @@ struct 结构_一步治理任务包 {
     结构_授权约束段 授权约束{};
     std::vector<结构_方法候选项> 候选方法集{};
     std::optional<结构_方法候选项> 选定方法{};
+    std::string 高阶排序需求轴键{};
+    std::string 高阶排序胜出候选主键{};
+    主键 高阶排序胜出方法主键 = 0;
+    bool 已显式消费高阶排序绑定 = false;
+    std::string 高阶排序绑定摘要{};
+    std::string 控制请求主键{};
+    枚举_任务管理控制意图值 控制意图值 = 枚举_任务管理控制意图值::未定义;
+    bool 控制意图需要确认 = false;
+    std::string 控制意图摘要{};
     std::vector<主键> 预期输入状态主键集{};
     std::vector<主键> 预期输出状态主键集{};
     bool 要求记录动态 = true;

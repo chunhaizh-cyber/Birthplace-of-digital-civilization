@@ -1,10 +1,14 @@
-#pragma once
+module;
 
 #include <cstddef>
 #include <cstdint>
 #include <string>
 
-#include "学习任务模块.h"
+export module 学习对象适配器;
+
+export import 学习任务模块;
+
+export {
 
 enum class 枚举_学习对象来源类型 : std::uint8_t {
     未定义 = 0,
@@ -20,7 +24,7 @@ struct 结构_学习对象原料 {
     bool 使用因果信息 = false;
     bool 使用最近结果 = false;
     bool 使用成功执行片段 = false;
-    std::size_t 因果实例数 = 0;
+    std::size_t 因果动态证据数 = 0;
     std::size_t 因果模板数 = 0;
     std::string 来源摘要{};
     std::string 动作摘要{};
@@ -51,3 +55,5 @@ namespace 学习对象适配器 {
     const 结构_学习任务实体& 学习任务) noexcept;
 
 } // namespace 学习对象适配器
+
+} // export

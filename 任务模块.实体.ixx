@@ -57,6 +57,10 @@ export struct 结构_任务控制态 {
     bool 等待子结果 = false;
     bool 请求收束 = false;
     bool 请求停止 = false;
+    bool 是否已响应控制意图 = false;
+    bool 控制请求待确认 = false;
+    std::string 当前控制请求主键{};
+    std::string 当前控制意图摘要{};
     std::string 控制摘要{};
 };
 

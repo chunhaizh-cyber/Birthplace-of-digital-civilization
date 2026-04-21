@@ -9,12 +9,12 @@ module;
 #include "任务类.h"
 #include "方法类.h"
 #include "实践结果消息.h"
-#include "学习执行模块.h"
 
 export module 自我_结果治理模块;
 
 import 自我模块;
 import 本能动作管理模块;
+import 学习执行模块;
 import 任务管理任务模块;
 
 namespace 自我_结果治理模块_detail {

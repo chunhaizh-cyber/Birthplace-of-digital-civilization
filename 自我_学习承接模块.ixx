@@ -6,14 +6,13 @@ module;
 #include "需求类.h"
 #include "任务类.h"
 #include "方法类.h"
-#include "学习任务模块.h"
-#include "学习执行模块.h"
 
 export module 自我_学习承接模块;
 
 import 自我模块;
 import 自我模块.特征定义;
 import 自我线程模块;
+import 学习执行模块;
 import 任务管理任务模块;
 
 namespace 自我_学习承接模块_detail {
