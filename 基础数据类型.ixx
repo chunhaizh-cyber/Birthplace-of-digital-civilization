@@ -1313,3 +1313,221 @@ export struct 结构_评估包 {
     std::int64_t 成功次数 = 0;
     std::int64_t 失败次数 = 0;
 };
+
+export enum class 枚举_特征使用者 : std::uint8_t {
+    未定义 = 0,
+    下一步合成器,
+    特征组合器,
+    需求显现器,
+    风险闸门,
+    完成判定器,
+    学习任务创建器,
+    方法选择器,
+    解释引擎,
+    验证引擎,
+    调试器,
+};
+
+export enum class 枚举_特征使用方式 : std::uint8_t {
+    未定义 = 0,
+    决策输入,
+    排序信号,
+    过滤条件,
+    风险闸门,
+    派生父特征,
+    解释依据,
+    需求触发,
+    学习触发,
+    验证信号,
+    冲突发现,
+    调试信号,
+};
+
+export enum class 枚举_特征结果影响 : std::uint8_t {
+    未定义 = 0,
+    选择步骤改变,
+    优先级改变,
+    风险阻断动作,
+    创建学习任务,
+    创建新特征,
+    改变方法选择,
+    显现新需求,
+    标记任务完成,
+    标记任务阻塞,
+    解释失败,
+};
+
+export enum class 枚举_特征使用类别 : std::uint8_t {
+    未定义 = 0,
+    高频执行特征,
+    低频风险闸门,
+    高阶父特征,
+    诊断解释,
+    需求显现,
+    历史回放,
+};
+
+export enum class 枚举_特征生命周期 : std::uint8_t {
+    候选 = 0,
+    试用 = 1,
+    激活 = 2,
+    冷却 = 3,
+    归档 = 4,
+    弃用 = 5,
+};
+
+export enum class 枚举_特征健康状态 : std::uint8_t {
+    健康 = 0,
+    未使用 = 1,
+    已使用但可疑 = 2,
+    已使用但不稳定 = 3,
+    过时 = 4,
+};
+
+export struct 结构_特征使用事件 {
+    std::string ID{};
+    std::string 特征类型主键{};
+    std::string 特征值主键{};
+    枚举_特征使用者 使用者 = 枚举_特征使用者::未定义;
+    枚举_特征使用方式 使用方式 = 枚举_特征使用方式::未定义;
+    std::string 目标实体类型{};
+    std::string 目标实体主键{};
+    bool 已改变结果 = false;
+    枚举_特征结果影响 结果影响 = 枚举_特征结果影响::未定义;
+    时间戳 时间 = 0;
+
+    bool 有效() const noexcept
+    {
+        return !特征类型主键.empty();
+    }
+
+    bool 是有效治理边() const noexcept
+    {
+        return 有效() && 已改变结果;
+    }
+};
+
+export struct 结构_特征暴露事件 {
+    std::string 特征类型主键{};
+    枚举_特征使用者 暴露给 = 枚举_特征使用者::未定义;
+    std::string 机会主键{};
+    bool 已被使用 = false;
+    时间戳 时间 = 0;
+
+    bool 有效() const noexcept
+    {
+        return !特征类型主键.empty() && !机会主键.empty();
+    }
+};
+
+export struct 结构_特征使用边 {
+    std::string 特征类型主键{};
+    std::string 目标种类{};
+    std::string 目标主键{};
+    枚举_特征使用方式 使用方式 = 枚举_特征使用方式::未定义;
+    bool 已改变结果 = false;
+
+    bool 有效() const noexcept
+    {
+        return !特征类型主键.empty() && !目标种类.empty();
+    }
+
+    bool 是有效治理边() const noexcept
+    {
+        return 有效() && 已改变结果;
+    }
+};
+
+export struct 结构_特征使用统计 {
+    std::string 特征类型主键{};
+
+    std::uint64_t 暴露次数 = 0;
+    std::uint64_t 读取次数 = 0;
+    std::uint64_t 有效使用次数 = 0;
+    std::uint64_t 历史使用次数 = 0;
+    std::uint64_t 近期使用次数 = 0;
+
+    std::uint64_t 作为决策输入次数 = 0;
+    std::uint64_t 作为派生父特征次数 = 0;
+    std::uint64_t 作为需求触发次数 = 0;
+    std::uint64_t 作为风险闸门次数 = 0;
+    std::uint64_t 作为验证信号次数 = 0;
+    std::uint64_t 作为解释依据次数 = 0;
+
+    std::uint64_t 结果改变次数 = 0;
+    std::uint64_t 坏结果次数 = 0;
+    std::uint64_t 下游依赖特征数 = 0;
+
+    时间戳 最近使用时间 = 0;
+    时间戳 最近有效使用时间 = 0;
+
+    bool 有效() const noexcept
+    {
+        return !特征类型主键.empty();
+    }
+
+    bool 存在有效治理边() const noexcept
+    {
+        return 结果改变次数 > 0;
+    }
+};
+
+export inline bool 特征生命周期仍在试用暴露期(枚举_特征生命周期 生命周期) noexcept
+{
+    return 生命周期 == 枚举_特征生命周期::候选
+        || 生命周期 == 枚举_特征生命周期::试用;
+}
+
+export inline bool 特征统计应保留(
+    const 结构_特征使用统计& 统计,
+    枚举_特征生命周期 生命周期,
+    bool 试用期已结束 = false) noexcept
+{
+    if (特征生命周期仍在试用暴露期(生命周期)) {
+        return !试用期已结束;
+    }
+
+    return 统计.结果改变次数 > 0
+        || 统计.下游依赖特征数 > 0
+        || 统计.作为风险闸门次数 > 0
+        || 统计.作为需求触发次数 > 0;
+}
+
+export inline bool 特征统计应归档(
+    const 结构_特征使用统计& 统计,
+    枚举_特征生命周期 生命周期,
+    bool 试用期已结束 = false) noexcept
+{
+    if (!特征生命周期仍在试用暴露期(生命周期) || !试用期已结束) {
+        return false;
+    }
+
+    return 统计.结果改变次数 == 0
+        && 统计.下游依赖特征数 == 0
+        && 统计.作为风险闸门次数 == 0
+        && 统计.作为需求触发次数 == 0;
+}
+
+export inline 枚举_特征生命周期 基于使用统计更新特征生命周期(
+    const 结构_特征使用统计& 统计,
+    枚举_特征生命周期 当前生命周期,
+    bool 试用期已结束 = false) noexcept
+{
+    if (当前生命周期 == 枚举_特征生命周期::候选) {
+        return 枚举_特征生命周期::试用;
+    }
+
+    if (特征统计应归档(统计, 当前生命周期, 试用期已结束)) {
+        return 枚举_特征生命周期::归档;
+    }
+
+    if (特征统计应保留(统计, 当前生命周期, 试用期已结束)) {
+        return 枚举_特征生命周期::激活;
+    }
+
+    if (统计.历史使用次数 > 0 && 统计.近期使用次数 == 0) {
+        return 枚举_特征生命周期::冷却;
+    }
+
+    return 当前生命周期;
+}

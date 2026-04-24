@@ -995,6 +995,9 @@ struct 结构_任务管理结果 {
     bool 已复用补条件子任务 = false;
     bool 已创建学习子任务 = false;
     bool 已复用学习子任务 = false;
+    bool 已上报业务派生需求 = false;
+    bool 已上报补条件需求 = false;
+    bool 已上报学习需求 = false;
     bool 已创建学习方法头 = false;
     bool 已复用学习方法头 = false;
     bool 已创建学习方法条件节点 = false;
@@ -1137,6 +1140,10 @@ struct 结构_任务管理学习推进结果 {
     bool 已构建学习调度快照 = false;
     bool 已选中学习任务 = false;
     bool 已执行学习任务 = false;
+    bool 已写回学习方法结构 = false;
+    bool 已补动作骨架 = false;
+    bool 已补条件节点 = false;
+    bool 已补结果节点 = false;
     std::uint64_t 当前学习账本ID = 0;
     std::string 学习调度摘要{};
     std::string 学习执行摘要{};

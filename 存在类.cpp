@@ -123,40 +123,54 @@ const 存在节点主信息类* 存在类::取存在主信息(const 存在节点
     return 主信息;
 }
 
+bool 存在类::确保存在三类根节点(存在节点类* 节点) const noexcept
+{
+    auto* 主信息 = 取存在主信息(节点);
+    return 主信息 ? 私有_确保存在具备三类信息根节点(*主信息) : false;
+}
+
+bool 存在类::确保存在三类根节点(const 存在节点类* 节点) const noexcept
+{
+    const auto* 主信息 = 取存在主信息(节点);
+    if (!主信息) return false;
+    auto* 可补齐主信息 = const_cast<存在节点主信息类*>(主信息);
+    return 私有_确保存在具备三类信息根节点(*可补齐主信息);
+}
+
 需求类::节点类* 存在类::获取需求根节点(存在节点类* 节点) const noexcept
 {
     auto* 主信息 = 取存在主信息(节点);
-    return 主信息 ? reinterpret_cast<需求类::节点类*>(主信息->需求根节点.指针) : nullptr;
+    return 主信息 ? reinterpret_cast<需求类::节点类*>(主信息->需求根节点) : nullptr;
 }
 
 const 需求类::节点类* 存在类::获取需求根节点(const 存在节点类* 节点) const noexcept
 {
     auto* 主信息 = 取存在主信息(节点);
-    return 主信息 ? reinterpret_cast<const 需求类::节点类*>(主信息->需求根节点.指针) : nullptr;
+    return 主信息 ? reinterpret_cast<const 需求类::节点类*>(主信息->需求根节点) : nullptr;
 }
 
 任务类::节点类* 存在类::获取任务根节点(存在节点类* 节点) const noexcept
 {
     auto* 主信息 = 取存在主信息(节点);
-    return 主信息 ? reinterpret_cast<任务类::节点类*>(主信息->任务根节点.指针) : nullptr;
+    return 主信息 ? reinterpret_cast<任务类::节点类*>(主信息->任务根节点) : nullptr;
 }
 
 const 任务类::节点类* 存在类::获取任务根节点(const 存在节点类* 节点) const noexcept
 {
     auto* 主信息 = 取存在主信息(节点);
-    return 主信息 ? reinterpret_cast<const 任务类::节点类*>(主信息->任务根节点.指针) : nullptr;
+    return 主信息 ? reinterpret_cast<const 任务类::节点类*>(主信息->任务根节点) : nullptr;
 }
 
 方法类::节点类* 存在类::获取方法根节点(存在节点类* 节点) const noexcept
 {
     auto* 主信息 = 取存在主信息(节点);
-    return 主信息 ? reinterpret_cast<方法类::节点类*>(主信息->方法根节点.指针) : nullptr;
+    return 主信息 ? reinterpret_cast<方法类::节点类*>(主信息->方法根节点) : nullptr;
 }
 
 const 方法类::节点类* 存在类::获取方法根节点(const 存在节点类* 节点) const noexcept
 {
     auto* 主信息 = 取存在主信息(节点);
-    return 主信息 ? reinterpret_cast<const 方法类::节点类*>(主信息->方法根节点.指针) : nullptr;
+    return 主信息 ? reinterpret_cast<const 方法类::节点类*>(主信息->方法根节点) : nullptr;
 }
 
 存在节点类* 存在类::创建存在(基础信息节点类* 父节点, 存在节点主信息类* 主信息)

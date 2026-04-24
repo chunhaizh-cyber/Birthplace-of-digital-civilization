@@ -102,6 +102,9 @@
     <ClCompile Include="语言类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="需求类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="自我特征定义.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

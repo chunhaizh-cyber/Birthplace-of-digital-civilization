@@ -159,6 +159,7 @@
     <ClCompile Include="基础信息主信息类.cpp" />
     <ClCompile Include="语素类.cpp" />
     <ClCompile Include="语言类.cpp" />
+    <ClCompile Include="需求类.cpp" />
     <ClCompile Include="自我特征定义.cpp" />
     <ClCompile Include="本能方法类.cpp" />
     <ClCompile Include="学习任务模块.ixx" />

@@ -25,6 +25,10 @@ struct 结构_学习执行结果 {
     bool 已形成学习反馈 = false;
     bool 已完善方法 = false;
     bool 已产出实践结果消息 = false;
+    bool 已写回学习方法结构 = false;
+    bool 已补动作骨架 = false;
+    bool 已补条件节点 = false;
+    bool 已补结果节点 = false;
     std::uint64_t 账本ID = 0;
     枚举_学习阶段 当前阶段 = 枚举_学习阶段::未定义;
     枚举_学习状态 当前状态 = 枚举_学习状态::未定义;

@@ -1,32 +1,28 @@
 module;
 
 #include <algorithm>
-#include <atomic>
-#include <chrono>
-#include <ctime>
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
-#include <future>
 #include <iomanip>
-#include <mutex>
+#include <limits>
+#include <optional>
 #include <sstream>
+#include <string>
 #include <string_view>
-#include <thread>
-#include <unordered_map>
+#include <type_traits>
 #include <unordered_set>
+#include <utility>
 #include <variant>
+#include <vector>
 
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <commctrl.h>
 #include <TlHelp32.h>
 
-#pragma comment(lib, "comctl32.lib")
-
 #include "世界树类.h"
-#include "语言主信息类.h"
-#include "本能方法类.h"
 #include "语素类.h"
 #include "需求类.h"
 #include "任务类.h"
@@ -34,172 +30,133 @@ module;
 
 module 控制面板类;
 
-import 自我模块;
-import 自我模块.特征定义;
-import 自我_恢复快照模块;
-import 自我_学习承接模块;
 import 控制面板WebView2;
+import 自我模块;
+import 自我_学习承接模块;
+import 自我线程模块;
 import 学习任务模块;
 import 学习调度模块;
 import 任务模块.管理工作线程;
-import 任务模块.运行包;
 import 任务管理任务模块;
-import 自我线程模块;
-
 
 namespace {
-    constexpr UINT 私有_WM_刷新控制面板窗口 = WM_APP + 1;
-    constexpr int 私有_ID_刷新按钮 = 1001;
-    constexpr int 私有_ID_摘要文本框 = 1002;
-    constexpr int 私有_ID_内容文本框 = 1003;
-    constexpr int 私有_ID_页面标题 = 1004;
-    constexpr int 私有_ID_树控件 = 1005;
-    constexpr int 私有_ID_导航概览按钮 = 1101;
-    constexpr int 私有_ID_导航世界树按钮 = 1102;
-    constexpr int 私有_ID_导航需求树按钮 = 1103;
-    constexpr int 私有_ID_导航需求列表按钮 = 1104;
-    constexpr int 私有_ID_导航任务树按钮 = 1105;
-    constexpr int 私有_ID_导航方法树按钮 = 1106;
-    constexpr int 私有_ID_导航线程状态按钮 = 1107;
-    constexpr int 私有_ID_导航线程事件按钮 = 1108;
-    constexpr int 私有_ID_导航先天动作按钮 = 1109;
-    constexpr wchar_t 私有_控制面板窗口类名[] = L"鱼巢控制面板独立窗口";
+    using 需求节点 = 需求类::节点类;
+    using 任务节点 = 任务类::节点类;
+    using 方法节点 = 方法类::节点类;
+    using 路径集合 = std::unordered_set<std::uintptr_t>;
 
-    enum class 枚举_控制面板页面 : int {
-        概览 = 0,
-        世界树 = 1,
-        需求树 = 2,
-        需求列表 = 3,
-        任务树 = 4,
-        方法树 = 5,
-        线程状态 = 6,
-        线程事件 = 7,
-        先天动作 = 8,
+    constexpr std::uintptr_t 私有_线程详情_自我 = 1;
+    constexpr std::uintptr_t 私有_线程详情_工作 = 2;
+    constexpr std::uintptr_t 私有_线程详情_系统 = 3;
+    constexpr std::size_t 私有_列表分页大小 = 100;
+
+    struct 结构_构建上下文 {
+        std::size_t 树深度上限 = 0;
+        std::size_t 树广度上限 = 0;
+        std::size_t 引用展开深度上限 = 2;
+        路径集合 世界默认展开路径{};
+        路径集合 需求默认展开路径{};
+        路径集合 任务默认展开路径{};
+        路径集合 方法默认展开路径{};
+        std::uintptr_t 自我存在指针 = 0;
+        std::uintptr_t 自我现实场景指针 = 0;
+        std::uintptr_t 自我内部世界指针 = 0;
+        std::uintptr_t 当前主需求指针 = 0;
+        std::uintptr_t 当前主任务指针 = 0;
+        std::uintptr_t 当前主方法指针 = 0;
     };
 
-    struct 结构_控制面板窗口上下文 {
-        HWND 页面标题 = nullptr;
-        HWND 摘要文本框 = nullptr;
-        HWND 内容文本框 = nullptr;
-        HWND 树控件 = nullptr;
-        HWND 刷新按钮 = nullptr;
-        HWND 导航概览按钮 = nullptr;
-        HWND 导航世界树按钮 = nullptr;
-        HWND 导航需求树按钮 = nullptr;
-        HWND 导航需求列表按钮 = nullptr;
-        HWND 导航任务树按钮 = nullptr;
-        HWND 导航方法树按钮 = nullptr;
-        HWND 导航线程状态按钮 = nullptr;
-        HWND 导航线程事件按钮 = nullptr;
-        HWND 导航先天动作按钮 = nullptr;
-        HFONT 文本字体 = nullptr;
-        HFONT 标题字体 = nullptr;
-        枚举_控制面板页面 当前页面 = 枚举_控制面板页面::概览;
-        结构_控制面板快照 当前快照{};
-        bool 已加载快照 = false;
-    };
+    结构_控制面板树节点 私有_构建基础信息树节点(
+        基础信息节点类* 节点,
+        const 结构_构建上下文& 上下文,
+        std::size_t 剩余深度,
+        路径集合 路径);
+    结构_控制面板树节点 私有_构建需求树节点(
+        需求节点* 节点,
+        const 结构_构建上下文& 上下文,
+        std::size_t 剩余深度,
+        路径集合 路径,
+        bool 列表模式 = false);
+    结构_控制面板树节点 私有_构建任务树节点(
+        任务节点* 节点,
+        const 结构_构建上下文& 上下文,
+        std::size_t 剩余深度,
+        路径集合 路径);
+    结构_控制面板树节点 私有_构建方法树节点(
+        方法节点* 节点,
+        const 结构_构建上下文& 上下文,
+        std::size_t 剩余深度,
+        路径集合 路径);
+    结构_控制面板树节点 私有_构建基础信息根链骨架(
+        基础信息节点类* 节点,
+        const 结构_构建上下文& 上下文);
+    结构_控制面板树节点 私有_构建需求根链骨架(
+        需求节点* 节点,
+        const 结构_构建上下文& 上下文);
+    结构_控制面板树节点 私有_构建任务根链骨架(
+        任务节点* 节点,
+        const 结构_构建上下文& 上下文);
+    结构_控制面板树节点 私有_构建方法根链骨架(
+        方法节点* 节点,
+        const 结构_构建上下文& 上下文);
+    std::string 私有_截断文本(const std::string& 文本, std::size_t 上限);
 
-    enum class 枚举_历史宿主残留类型 : std::uint8_t {
-        无 = 0,
-        特征 = 1,
-        状态 = 2,
-        动态 = 3,
-        因果实例 = 4,
-        因果模板 = 5,
-    };
-
-    enum class 枚举_历史宿主残留严重级别 : std::uint8_t {
-        无 = 0,
-        提示 = 1,
-        告警 = 2,
-        阻断 = 3,
-    };
-
-    std::mutex 私有_控制面板窗口互斥{};
-    std::atomic<HWND> 私有_控制面板窗口句柄{ nullptr };
-    std::atomic<int> 私有_控制面板启动诊断码{ 0 };
-
-    const 动态节点主信息类* 私有_解析动态主信息(const 可解析引用<动态节点类>& 动态引用) noexcept;
-    const 状态节点主信息类* 私有_解析迁移左状态主信息(const 可解析引用<二次特征节点类>& 二次特征引用) noexcept;
-    const 状态节点主信息类* 私有_解析迁移右状态主信息(const 可解析引用<二次特征节点类>& 二次特征引用) noexcept;
-    bool 私有_状态迁移引用状态(
-        const 可解析引用<二次特征节点类>& 迁移引用,
-        const 状态节点类* 状态) noexcept;
-
-    std::string 私有_转义HTML(std::string_view 文本)
+    template<class T节点>
+    std::uintptr_t 私有_地址(const T节点* 节点) noexcept
     {
-        std::string 输出;
-        输出.reserve(文本.size() + 16);
-        for (const char ch : 文本) {
-            switch (ch) {
-            case '&': 输出 += "&amp;"; break;
-            case '<': 输出 += "&lt;"; break;
-            case '>': 输出 += "&gt;"; break;
-            case '"': 输出 += "&quot;"; break;
-            case '\'': 输出 += "&#39;"; break;
-            default: 输出.push_back(ch); break;
-            }
-        }
-        return 输出;
+        return reinterpret_cast<std::uintptr_t>(节点);
     }
 
-    std::wstring 私有_UTF8转宽字串(const std::string& 输入)
+    template<class T节点>
+    bool 私有_非空(const T节点* 节点) noexcept
     {
-        if (输入.empty()) {
-            return {};
-        }
-
-        const int 所需长度 = MultiByteToWideChar(CP_UTF8, 0, 输入.c_str(), -1, nullptr, 0);
-        if (所需长度 <= 0) {
-            return {};
-        }
-
-        std::wstring 输出(static_cast<std::size_t>(所需长度), L'\0');
-        MultiByteToWideChar(CP_UTF8, 0, 输入.c_str(), -1, 输出.data(), 所需长度);
-        if (!输出.empty() && 输出.back() == L'\0') {
-            输出.pop_back();
-        }
-        return 输出;
+        return 节点 != nullptr;
     }
 
-    std::string 私有_宽字串转UTF8(const std::wstring& 输入)
+    const char* 私有_布尔文本(const bool 值) noexcept
     {
-        if (输入.empty()) {
-            return {};
-        }
-
-        const int 所需长度 = WideCharToMultiByte(
-            CP_UTF8,
-            0,
-            输入.c_str(),
-            -1,
-            nullptr,
-            0,
-            nullptr,
-            nullptr);
-        if (所需长度 <= 0) {
-            return {};
-        }
-
-        std::string 输出(static_cast<std::size_t>(所需长度), '\0');
-        WideCharToMultiByte(
-            CP_UTF8,
-            0,
-            输入.c_str(),
-            -1,
-            输出.data(),
-            所需长度,
-            nullptr,
-            nullptr);
-        if (!输出.empty() && 输出.back() == '\0') {
-            输出.pop_back();
-        }
-        return 输出;
+        return 值 ? "是" : "否";
     }
 
-    std::string 私有_安全词(const 词性节点类* 词) noexcept
+    std::string 私有_十六进制指针(const std::uintptr_t 值)
     {
-        if (!词) return {};
+        std::ostringstream 输出;
+        输出 << "0x" << std::hex << std::uppercase << 值;
+        return 输出.str();
+    }
+
+    std::string 私有_时间文本(const 时间戳 时间)
+    {
+        return 时间 == 0 ? "0" : std::to_string(时间);
+    }
+
+    std::string 私有_区间文本(const I64区间& 区间)
+    {
+        return "[" + std::to_string(区间.低值) + ", " + std::to_string(区间.高值) + "]";
+    }
+
+    std::string 私有_可选区间文本(const std::optional<I64区间>& 区间)
+    {
+        return 区间.has_value() ? 私有_区间文本(*区间) : "空";
+    }
+
+    std::string 私有_时间段文本(const 结构_时间段& 时间段)
+    {
+        return "起=" + 私有_时间文本(时间段.起) + " | 止=" + 私有_时间文本(时间段.止);
+    }
+
+    std::string 私有_向量文本(const Vector3D& 向量)
+    {
+        std::ostringstream 输出;
+        输出 << "(" << 向量.x << ", " << 向量.y << ", " << 向量.z << ")";
+        return 输出.str();
+    }
+
+    std::string 私有_词文本(const 词性节点类* 词) noexcept
+    {
+        if (!词) {
+            return {};
+        }
         try {
             return 语素集.获取词(词);
         }
@@ -208,1221 +165,107 @@ namespace {
         }
     }
 
-    std::string 私有_基础节点标题(const 基础信息节点类* 节点);
-    void 私有_追加列表预览(
-        std::ostringstream& 输出,
-        std::string_view 标题,
-        const std::vector<结构_控制面板列表项>& 列表,
-        std::size_t 上限);
-
-    std::string 私有_安全文本(std::string 文本, const std::string& 回退)
+    std::string 私有_自然句文本(const 自然句节点类* 句子) noexcept
     {
-        return 文本.empty() ? 回退 : std::move(文本);
-    }
-
-    const char* 私有_学习阶段简文本(枚举_学习阶段 阶段) noexcept
-    {
-        switch (阶段) {
-        case 枚举_学习阶段::待适配: return "待适配";
-        case 枚举_学习阶段::待调度: return "待调度";
-        case 枚举_学习阶段::采样: return "采样";
-        case 枚举_学习阶段::更新: return "更新";
-        case 枚举_学习阶段::验证: return "验证";
-        case 枚举_学习阶段::提交: return "提交";
-        case 枚举_学习阶段::回滚: return "回滚";
-        default: return "未定义";
-        }
-    }
-
-    const char* 私有_学习状态简文本(枚举_学习状态 状态) noexcept
-    {
-        switch (状态) {
-        case 枚举_学习状态::待创建: return "待创建";
-        case 枚举_学习状态::挂起: return "挂起";
-        case 枚举_学习状态::可调度: return "可调度";
-        case 枚举_学习状态::执行中: return "执行中";
-        case 枚举_学习状态::已提交: return "已提交";
-        case 枚举_学习状态::已回滚: return "已回滚";
-        case 枚举_学习状态::已失败: return "已失败";
-        default: return "未定义";
-        }
-    }
-
-    const char* 私有_学习等待原因简文本(枚举_学习等待原因 原因) noexcept
-    {
-        switch (原因) {
-        case 枚举_学习等待原因::原料不足: return "原料不足";
-        case 枚举_学习等待原因::仅需求位方法头: return "仅需求位方法头";
-        case 枚举_学习等待原因::等待对象补齐: return "等待对象补齐";
-        case 枚举_学习等待原因::等待再次命中: return "等待再次命中";
-        case 枚举_学习等待原因::根层禁止学习: return "根层禁止学习";
-        case 枚举_学习等待原因::等待提交前审计: return "等待提交前审计";
-        case 枚举_学习等待原因::等待正式提交放行: return "等待正式提交放行";
-        default: return "无";
-        }
-    }
-
-    const char* 私有_学习目标类型简文本(枚举_学习目标类型 类型) noexcept
-    {
-        switch (类型) {
-        case 枚举_学习目标类型::让方法可用: return "让方法可用";
-        case 枚举_学习目标类型::修正失败方法: return "修正失败方法";
-        case 枚举_学习目标类型::迁移已有方法: return "迁移已有方法";
-        case 枚举_学习目标类型::压缩相似方法: return "压缩相似方法";
-        case 枚举_学习目标类型::分化高冲突方法: return "分化高冲突方法";
-        case 枚举_学习目标类型::提升方法优选级: return "提升方法优选级";
-        default: return "未定义";
-        }
-    }
-
-    const char* 私有_学习需求类型简文本(枚举_学习需求类型 类型) noexcept
-    {
-        switch (类型) {
-        case 枚举_学习需求类型::方法可用需求: return "让方法可用";
-        case 枚举_学习需求类型::方法修正需求: return "修正方法";
-        case 枚举_学习需求类型::方法迁移需求: return "迁移方法";
-        case 枚举_学习需求类型::方法优选需求: return "方法优选";
-        default: return "未定义";
-        }
-    }
-
-    const char* 私有_学习动作类型简文本(枚举_学习动作类型 类型) noexcept
-    {
-        switch (类型) {
-        case 枚举_学习动作类型::样本收集: return "补基础证据";
-        case 枚举_学习动作类型::差异比较: return "比较差异";
-        case 枚举_学习动作类型::共同条件提取: return "补条件";
-        case 枚举_学习动作类型::候选动作生成: return "补动作";
-        case 枚举_学习动作类型::结果预测: return "补结果";
-        case 枚举_学习动作类型::沙箱验证: return "验证可用";
-        case 枚举_学习动作类型::风险评估: return "评估风险";
-        case 枚举_学习动作类型::边界标记: return "补边界";
-        case 枚举_学习动作类型::可用层进入判断: return "进入可用层";
-        case 枚举_学习动作类型::优选层进入判断: return "进入优选层";
-        default: return "未定义";
-        }
-    }
-
-    const char* 私有_学习原函数类型简文本(枚举_学习原函数类型 类型) noexcept
-    {
-        switch (类型) {
-        case 枚举_学习原函数类型::读取特征: return "读取特征";
-        case 枚举_学习原函数类型::收集样本: return "收集样本";
-        case 枚举_学习原函数类型::比较样本: return "比较样本";
-        case 枚举_学习原函数类型::提取共同点: return "提取共同点";
-        case 枚举_学习原函数类型::提取差异点: return "提取差异点";
-        case 枚举_学习原函数类型::生成候选条件: return "生成条件";
-        case 枚举_学习原函数类型::生成候选动作: return "生成动作";
-        case 枚举_学习原函数类型::生成候选结果: return "生成结果";
-        case 枚举_学习原函数类型::执行沙箱验证: return "沙箱验证";
-        case 枚举_学习原函数类型::计算二次特征: return "计算二次特征";
-        case 枚举_学习原函数类型::标记边界: return "标记边界";
-        case 枚举_学习原函数类型::回滚候选: return "回滚候选";
-        case 枚举_学习原函数类型::注册方法: return "注册方法";
-        default: return "未定义";
-        }
-    }
-
-    const char* 私有_学习程序决策简文本(枚举_学习程序决策 决策) noexcept
-    {
-        switch (决策) {
-        case 枚举_学习程序决策::继续执行: return "继续执行";
-        case 枚举_学习程序决策::补充样本: return "补充样本";
-        case 枚举_学习程序决策::拆分候选方法: return "拆分候选";
-        case 枚举_学习程序决策::合并候选方法: return "合并候选";
-        case 枚举_学习程序决策::降权观察: return "降权观察";
-        case 枚举_学习程序决策::试运行: return "试运行";
-        case 枚举_学习程序决策::转正: return "转正";
-        case 枚举_学习程序决策::暂停: return "暂停";
-        default: return "未定义";
-        }
-    }
-
-    template<typename 范围类型, typename 文本函数>
-    std::string 私有_学习集合简要拼接(
-        const 范围类型& 集合,
-        文本函数&& 取文本,
-        std::size_t 上限 = 3)
-    {
-        if (集合.empty()) {
+        if (!句子) {
             return {};
         }
-
-        std::ostringstream 输出;
-        const auto 实际上限 = (std::min)(上限, 集合.size());
-        for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
-            if (索引 > 0) {
-                输出 << "、";
-            }
-            输出 << 取文本(集合[索引]);
-        }
-        if (集合.size() > 实际上限) {
-            输出 << " 等" << 集合.size() << "项";
-        }
-        return 输出.str();
+        return "自然句#" + 句子->获取主键();
     }
 
-    std::string 私有_学习需求集合简摘要(
-        const std::vector<结构_学习需求描述>& 集合)
+    std::string 私有_特征值文本(const 特征值& 值)
     {
-        return 私有_学习集合简要拼接(
-            集合,
-            [](const 结构_学习需求描述& 项) {
-                return std::string(私有_学习需求类型简文本(项.类型));
-            });
+        if (std::holds_alternative<std::monostate>(值)) {
+            return "空";
+        }
+        if (const auto* 标量 = std::get_if<I64>(&值)) {
+            return std::to_string(*标量);
+        }
+        if (const auto* 向量 = std::get_if<VecU句柄>(&值)) {
+            return std::string("VecU@") + 私有_十六进制指针(向量->主信息指针);
+        }
+        if (const auto* 指针 = std::get_if<指针句柄>(&值)) {
+            return std::string("指针@") + 私有_十六进制指针(指针->指针);
+        }
+        return "未定义";
     }
 
-    std::string 私有_学习动作集合简摘要(
-        const std::vector<结构_学习动作描述>& 集合)
+    const char* 私有_特征值类型文本(const 特征值& 值) noexcept
     {
-        return 私有_学习集合简要拼接(
-            集合,
-            [](const 结构_学习动作描述& 项) {
-                return std::string(私有_学习动作类型简文本(项.类型));
-            });
+        if (std::holds_alternative<std::monostate>(值)) {
+            return "空";
+        }
+        if (std::holds_alternative<I64>(值)) {
+            return "i64";
+        }
+        if (std::holds_alternative<VecU句柄>(值)) {
+            return "VecU句柄";
+        }
+        if (std::holds_alternative<指针句柄>(值)) {
+            return "指针句柄";
+        }
+        return "未定义";
     }
 
-    std::string 私有_学习原函数集合简摘要(
-        const std::vector<结构_学习原函数需求项>& 集合)
+    const char* 私有_线程生命周期文本(const 枚举_线程生命周期状态 状态) noexcept
     {
-        return 私有_学习集合简要拼接(
-            集合,
-            [](const 结构_学习原函数需求项& 项) {
-                return std::string(私有_学习原函数类型简文本(项.类型));
-            });
+        switch (状态) {
+        case 枚举_线程生命周期状态::未启动: return "未启动";
+        case 枚举_线程生命周期状态::启动中: return "启动中";
+        case 枚举_线程生命周期状态::运行中: return "运行中";
+        case 枚举_线程生命周期状态::停止请求中: return "停止请求中";
+        case 枚举_线程生命周期状态::收尾中: return "收尾中";
+        case 枚举_线程生命周期状态::已停止: return "已停止";
+        case 枚举_线程生命周期状态::故障: return "故障";
+        default: return "未定义";
+        }
     }
 
-    std::string 私有_学习任务主标题(const 结构_学习任务实体& 实体)
+    const char* 私有_线程运行阶段文本(const 枚举_自我线程运行阶段 阶段) noexcept
     {
-        if (!实体.当前选中学习方法标题.empty()) {
-            return 实体.当前选中学习方法标题;
+        switch (阶段) {
+        case 枚举_自我线程运行阶段::自我初始化: return "自我初始化";
+        case 枚举_自我线程运行阶段::线程启动中: return "线程启动中";
+        case 枚举_自我线程运行阶段::运行态建立: return "运行态建立";
+        case 枚举_自我线程运行阶段::主循环消息归并: return "主循环消息归并";
+        case 枚举_自我线程运行阶段::主循环初始化补齐: return "主循环初始化补齐";
+        case 枚举_自我线程运行阶段::主循环主链回填: return "主循环主链回填";
+        case 枚举_自我线程运行阶段::主循环根层裁决: return "主循环根层裁决";
+        case 枚举_自我线程运行阶段::主循环任务治理: return "主循环任务治理";
+        case 枚举_自我线程运行阶段::主循环结果回流: return "主循环结果回流";
+        case 枚举_自我线程运行阶段::主循环心跳巡检: return "主循环心跳巡检";
+        case 枚举_自我线程运行阶段::停止请求中: return "停止请求中";
+        case 枚举_自我线程运行阶段::线程收尾: return "线程收尾";
+        case 枚举_自我线程运行阶段::线程停止: return "线程停止";
+        case 枚举_自我线程运行阶段::线程故障: return "线程故障";
+        default: return "未定义";
         }
-        if (!实体.学习方法标题.empty()) {
-            return 实体.学习方法标题;
-        }
-        if (!实体.学习任务兜底方法标题.empty()) {
-            return std::string("兜底方法: ") + 实体.学习任务兜底方法标题;
-        }
-        if (!实体.学习子任务标题.empty()) {
-            return 实体.学习子任务标题;
-        }
-        return "空学习任务";
     }
 
-    std::string 私有_学习任务主摘要(const 结构_学习任务实体& 实体)
+    const char* 私有_线程最终去向文本(const 枚举_自我线程最终去向 去向) noexcept
     {
-        std::ostringstream 输出;
-        const auto 学习目标 =
-            !实体.当前学习目标.摘要.empty()
-            ? 实体.当前学习目标.摘要
-            : std::string(私有_学习目标类型简文本(实体.当前学习目标.类型));
-        const auto 学习需求 = 私有_学习需求集合简摘要(实体.当前学习需求集合);
-        const auto 学习动作 = 私有_学习动作集合简摘要(实体.当前学习动作集合);
-        const auto 原函数需求 = 私有_学习原函数集合简摘要(实体.当前原函数需求集合);
-        const auto 候选程序 =
-            !实体.当前候选学习程序.摘要.empty()
-            ? std::string(私有_学习程序决策简文本(实体.当前候选学习程序.当前裁决))
-            : std::string(私有_学习程序决策简文本(实体.当前候选学习程序.当前裁决));
-
-        输出 << "目标=" << 私有_安全文本(学习目标, "让方法可用")
-            << " | 需求=" << 私有_安全文本(学习需求, "无")
-            << " | 动作=" << 私有_安全文本(学习动作, "无")
-            << " | 程序=" << 私有_安全文本(候选程序, "未定义")
-            << " | 当前方法可执行=" << (实体.当前选中学习方法已可执行 ? "是" : "否")
-            << " | 可直接进入学习=" << (实体.可直接进入学习 ? "是" : "否");
-        if (!原函数需求.empty()) {
-            输出 << " | 原函数=" << 原函数需求;
+        switch (去向) {
+        case 枚举_自我线程最终去向::继续提交: return "继续提交";
+        case 枚举_自我线程最终去向::回到重筹办: return "回到重筹办";
+        case 枚举_自我线程最终去向::转入学习: return "转入学习";
+        case 枚举_自我线程最终去向::进入收束: return "进入收束";
+        case 枚举_自我线程最终去向::待机: return "待机";
+        case 枚举_自我线程最终去向::停止: return "停止";
+        default: return "未定义";
         }
-        return 输出.str();
     }
 
-    std::vector<std::string> 私有_学习任务详情行(const 结构_学习任务实体& 实体)
+    const char* 私有_任务节点种类文本(const 枚举_任务节点种类 种类) noexcept
     {
-        std::vector<std::string> 详情{};
-
-        {
-            std::ostringstream 行;
-            行 << "子任务=" << 私有_安全文本(实体.学习子任务标题, "空")
-               << " | 阶段=" << 私有_学习阶段简文本(实体.当前阶段)
-               << " | 状态=" << 私有_学习状态简文本(实体.当前状态)
-               << " | 等待=" << 私有_学习等待原因简文本(实体.当前等待原因)
-               << " | 影响面=" << 学习任务模块::学习影响面文本(实体.当前影响面);
-            详情.push_back(行.str());
-        }
-
-        {
-            std::ostringstream 行;
-            行 << "当前方法=" << 私有_安全文本(实体.当前选中学习方法标题, "空")
-               << " | 兜底方法=" << 私有_安全文本(实体.学习任务兜底方法标题, "空")
-               << " | 兜底可执行=" << (实体.学习任务兜底方法已可执行 ? "是" : "否")
-               << " | 已切兜底执行=" << (实体.已切换到兜底可执行方法 ? "是" : "否")
-               << " | 已由兜底进采样=" << (实体.已由兜底切换进入采样 ? "是" : "否");
-            详情.push_back(行.str());
-        }
-
-        if (!实体.待学习方法骨架摘要.empty()) {
-            详情.push_back("骨架=" + 实体.待学习方法骨架摘要);
-        }
-        if (!实体.当前学习目标.摘要.empty()) {
-            详情.push_back("学习目标=" + 实体.当前学习目标.摘要);
-        }
-        if (!实体.当前学习需求集合.empty()) {
-            详情.push_back("学习需求=" + 私有_学习需求集合简摘要(实体.当前学习需求集合));
-        }
-        if (!实体.当前学习动作集合.empty()) {
-            详情.push_back("学习动作=" + 私有_学习动作集合简摘要(实体.当前学习动作集合));
-        }
-        if (!实体.当前原函数需求集合.empty()) {
-            详情.push_back("原函数需求=" + 私有_学习原函数集合简摘要(实体.当前原函数需求集合));
-        }
-        if (!实体.当前学习方法选择摘要.empty()) {
-            详情.push_back("方法选择=" + 实体.当前学习方法选择摘要);
-        }
-        if (!实体.当前候选学习程序.摘要.empty()) {
-            详情.push_back("候选程序=" + 实体.当前候选学习程序.摘要);
-        }
-        if (!实体.最近抽象因果摘要.empty()) {
-            详情.push_back("抽象因果=" + 实体.最近抽象因果摘要);
-        }
-        if (!实体.最近反馈摘要.empty()) {
-            详情.push_back("最近反馈=" + 实体.最近反馈摘要);
-        }
-        else if (!实体.学习反馈摘要.empty()) {
-            详情.push_back("学习反馈=" + 实体.学习反馈摘要);
-        }
-        return 详情;
-    }
-
-    std::string 私有_线程运行阶段文本(枚举_自我线程运行阶段 阶段);
-
-    bool 私有_文本以指定前缀开头(std::string_view 文本, std::string_view 前缀) noexcept
-    {
-        return 文本.size() >= 前缀.size()
-            && 文本.compare(0, 前缀.size(), 前缀) == 0;
-    }
-
-    bool 私有_词是任务管理特征(const 词性节点类* 词) noexcept
-    {
-        return 私有_文本以指定前缀开头(私有_安全词(词), "任务管理_");
-    }
-
-    bool 私有_特征主信息是任务管理特征(const 特征节点主信息类* 主信息) noexcept
-    {
-        return 主信息
-            && (私有_词是任务管理特征(主信息->类型)
-                || 私有_词是任务管理特征(主信息->名称));
-    }
-
-    bool 私有_特征节点是任务管理特征(const 特征节点类* 节点) noexcept
-    {
-        return 私有_特征主信息是任务管理特征(
-            节点 ? 世界树.基础信息().取主信息<特征节点主信息类>(节点) : nullptr);
-    }
-
-    bool 私有_节点是自我存在宿主(
-        const 基础信息节点类* 节点,
-        const 存在节点类* 自我存在) noexcept
-    {
-        return 节点 != nullptr
-            && 自我存在 != nullptr
-            && 节点 == reinterpret_cast<const 基础信息节点类*>(自我存在);
-    }
-
-    bool 私有_特征节点是历史宿主残留(
-        const 基础信息节点类* 节点,
-        const 存在节点类* 自我存在) noexcept
-    {
-        const auto* 特征主信息 = 世界树.基础信息().取主信息<特征节点主信息类>(节点);
-        return 特征主信息
-            && 私有_特征主信息是任务管理特征(特征主信息)
-            && 私有_节点是自我存在宿主(节点 ? 节点->父 : nullptr, 自我存在);
-    }
-
-    bool 私有_状态主信息是历史宿主残留(
-        const 状态节点主信息类* 主信息,
-        const 存在节点类* 自我存在) noexcept
-    {
-        if (!主信息) {
-            return false;
-        }
-        if (!私有_特征节点是任务管理特征(主信息->状态特征.指针)) {
-            return false;
-        }
-        return 私有_节点是自我存在宿主(主信息->状态主体.指针, 自我存在)
-            || 私有_节点是自我存在宿主(
-                主信息->状态特征.指针 ? 主信息->状态特征.指针->父 : nullptr,
-                自我存在);
-    }
-
-    bool 私有_动态主信息是历史宿主残留(
-        const 动态节点主信息类* 主信息,
-        const 存在节点类* 自我存在) noexcept
-    {
-        if (!主信息) {
-            return false;
-        }
-        if (!私有_特征节点是任务管理特征(主信息->动态特征.指针)) {
-            return false;
-        }
-        return 私有_节点是自我存在宿主(主信息->动态主体.指针, 自我存在)
-            || 私有_节点是自我存在宿主(
-                主信息->动态特征.指针 ? 主信息->动态特征.指针->父 : nullptr,
-                自我存在);
-    }
-
-    bool 私有_因果实例主信息是历史宿主残留(
-        const 因果实例主信息类* 主信息,
-        const 存在节点类* 自我存在) noexcept
-    {
-        if (!主信息) {
-            return false;
-        }
-
-        const auto 特征是否残留 = [&](const 可解析引用<特征节点类>& 引用) {
-            return 引用.指针
-                && 私有_特征节点是历史宿主残留(
-                    引用.指针,
-                    自我存在);
-        };
-
-        for (const auto& 条件模板 : 主信息->条件模板) {
-            if (特征是否残留(条件模板)) {
-                return true;
-            }
-        }
-        for (const auto& 状态迁移 : 主信息->状态迁移模板) {
-            const auto* 左状态 = 私有_解析迁移左状态主信息(状态迁移);
-            if (左状态 && 私有_状态主信息是历史宿主残留(左状态, 自我存在)) {
-                return true;
-            }
-            const auto* 右状态 = 私有_解析迁移右状态主信息(状态迁移);
-            if (右状态 && 私有_状态主信息是历史宿主残留(右状态, 自我存在)) {
-                return true;
-            }
-        }
-        for (const auto& 证据动态 : 主信息->证据动态样本) {
-            const auto* 动态主信息 = 私有_解析动态主信息(证据动态);
-            if (动态主信息
-                && 私有_动态主信息是历史宿主残留(动态主信息, 自我存在)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool 私有_因果模板主信息是历史宿主残留(
-        const 因果模板主信息类* 主信息,
-        const 存在节点类* 自我存在) noexcept
-    {
-        if (!主信息 || 主信息->证据动态样本.empty()) {
-            return false;
-        }
-
-        bool 有有效证据 = false;
-        for (const auto& 证据动态 : 主信息->证据动态样本) {
-            if (!证据动态.指针) {
-                continue;
-            }
-            有有效证据 = true;
-            if (!私有_动态主信息是历史宿主残留(
-                世界树.动态().取动态主信息(证据动态.指针),
-                自我存在)) {
-                return false;
-            }
-        }
-        return 有有效证据;
-    }
-
-    枚举_历史宿主残留类型 私有_判定历史宿主残留类型(
-        const 基础信息节点类* 节点,
-        const 存在节点类* 自我存在) noexcept
-    {
-        if (!节点 || !自我存在) {
-            return 枚举_历史宿主残留类型::无;
-        }
-
-        if (私有_特征节点是历史宿主残留(节点, 自我存在)) {
-            return 枚举_历史宿主残留类型::特征;
-        }
-        if (私有_状态主信息是历史宿主残留(
-            世界树.基础信息().取主信息<状态节点主信息类>(节点),
-            自我存在)) {
-            return 枚举_历史宿主残留类型::状态;
-        }
-        if (私有_动态主信息是历史宿主残留(
-            世界树.基础信息().取主信息<动态节点主信息类>(节点),
-            自我存在)) {
-            return 枚举_历史宿主残留类型::动态;
-        }
-        if (const auto* 因果主信息 = 世界树.因果().取因果主信息(static_cast<const 因果节点类*>(节点))) {
-            if (因果主信息->是实例因果()
-                && 私有_因果实例主信息是历史宿主残留(因果主信息, 自我存在)) {
-                return 枚举_历史宿主残留类型::因果实例;
-            }
-            if (因果主信息->是抽象因果()
-                && 私有_因果模板主信息是历史宿主残留(因果主信息, 自我存在)) {
-                return 枚举_历史宿主残留类型::因果模板;
-            }
-        }
-        return 枚举_历史宿主残留类型::无;
-    }
-
-    std::string 私有_历史宿主残留类型文本(枚举_历史宿主残留类型 类型)
-    {
-        switch (类型) {
-        case 枚举_历史宿主残留类型::特征: return "特征";
-        case 枚举_历史宿主残留类型::状态: return "状态";
-        case 枚举_历史宿主残留类型::动态: return "动态";
-        case 枚举_历史宿主残留类型::因果实例: return "因果实例";
-        case 枚举_历史宿主残留类型::因果模板: return "因果模板";
-        default: return "未知";
+        switch (种类) {
+        case 枚举_任务节点种类::头结点: return "头结点";
+        case 枚举_任务节点种类::步骤节点: return "步骤节点";
+        case 枚举_任务节点种类::结果节点: return "结果节点";
+        default: return "未定义";
         }
     }
 
-    std::string 私有_历史宿主残留严重级别文本(枚举_历史宿主残留严重级别 级别)
-    {
-        switch (级别) {
-        case 枚举_历史宿主残留严重级别::提示: return "提示";
-        case 枚举_历史宿主残留严重级别::告警: return "告警";
-        case 枚举_历史宿主残留严重级别::阻断: return "阻断";
-        default: return "无";
-        }
-    }
-
-    std::string 私有_历史宿主残留摘要(
-        const 基础信息节点类* 节点,
-        枚举_历史宿主残留类型 类型)
-    {
-        const auto 父节点标题 = 节点 && 节点->父
-            ? 私有_基础节点标题(节点->父)
-            : std::string("无");
-
-        switch (类型) {
-        case 枚举_历史宿主残留类型::特征:
-            return "特征 | 旧宿主=自我存在 | 父节点=" + 父节点标题;
-        case 枚举_历史宿主残留类型::状态:
-            return "状态 | 旧宿主=自我存在 | 观测场景=" + 父节点标题;
-        case 枚举_历史宿主残留类型::动态:
-            return "动态 | 旧宿主=自我存在 | 观测场景=" + 父节点标题;
-        case 枚举_历史宿主残留类型::因果实例:
-            return "因果实例 | 条件/结果状态仍引用旧宿主残留";
-        case 枚举_历史宿主残留类型::因果模板:
-            return "因果模板 | 当前证据动态只来自旧宿主残留";
-        default:
-            return "未命名历史宿主残留";
-        }
-    }
-
-    struct 结构_历史宿主残留候选 {
-        std::vector<特征节点类*> 特征{};
-        std::vector<状态节点类*> 状态{};
-        std::vector<动态节点类*> 动态{};
-        std::vector<因果实例节点类*> 因果实例{};
-        std::vector<因果模板节点类*> 因果模板{};
-    };
-
-    struct 结构_历史宿主残留清理结果 {
-        std::size_t 清理前残留节点数 = 0;
-        std::size_t 清理后残留节点数 = 0;
-        std::size_t 删除特征数 = 0;
-        std::size_t 删除状态数 = 0;
-        std::size_t 删除动态数 = 0;
-        std::size_t 删除因果实例数 = 0;
-        std::size_t 删除因果模板数 = 0;
-        bool 已执行清理前归档 = false;
-        std::string 清理前归档路径{};
-        std::vector<std::string> 阻塞摘要{};
-    };
-
-    struct 结构_历史宿主残留分析结果 {
-        枚举_历史宿主残留严重级别 总体级别 = 枚举_历史宿主残留严重级别::无;
-        std::size_t 提示数 = 0;
-        std::size_t 告警数 = 0;
-        std::size_t 阻断数 = 0;
-        std::unordered_map<const 基础信息节点类*, 枚举_历史宿主残留严重级别> 节点级别{};
-        std::vector<std::string> 阻断摘要{};
-    };
-
-    结构_历史宿主残留候选 私有_收集历史宿主残留候选(const 存在节点类* 自我存在)
-    {
-        结构_历史宿主残留候选 输出{};
-        for (auto* 基础节点 : 世界树.基础信息().枚举全部节点()) {
-            switch (私有_判定历史宿主残留类型(基础节点, 自我存在)) {
-            case 枚举_历史宿主残留类型::特征:
-                输出.特征.push_back(static_cast<特征节点类*>(基础节点));
-                break;
-            case 枚举_历史宿主残留类型::状态:
-                输出.状态.push_back(static_cast<状态节点类*>(基础节点));
-                break;
-            case 枚举_历史宿主残留类型::动态:
-                输出.动态.push_back(static_cast<动态节点类*>(基础节点));
-                break;
-            case 枚举_历史宿主残留类型::因果实例:
-                输出.因果实例.push_back(static_cast<因果实例节点类*>(基础节点));
-                break;
-            case 枚举_历史宿主残留类型::因果模板:
-                输出.因果模板.push_back(static_cast<因果模板节点类*>(基础节点));
-                break;
-            default:
-                break;
-            }
-        }
-        return 输出;
-    }
-
-    bool 私有_因果模板引用实例(
-        const 因果模板主信息类* 主信息,
-        const 因果实例节点类* 实例) noexcept;
-
-    bool 私有_因果实例引用状态(
-        const 因果实例主信息类* 主信息,
-        const 状态节点类* 状态) noexcept;
-
-    bool 私有_动态引用状态(
-        const 动态节点主信息类* 主信息,
-        const 状态节点类* 状态) noexcept;
-
-    bool 私有_状态引用特征(
-        const 状态节点主信息类* 主信息,
-        const 特征节点类* 特征) noexcept;
-
-    bool 私有_动态引用特征(
-        const 动态节点主信息类* 主信息,
-        const 特征节点类* 特征) noexcept;
-
-    void 私有_记录历史宿主残留级别(
-        结构_历史宿主残留分析结果* 输出,
-        const 基础信息节点类* 节点,
-        枚举_历史宿主残留严重级别 级别)
-    {
-        if (!输出 || !节点) {
-            return;
-        }
-        输出->节点级别[节点] = 级别;
-        switch (级别) {
-        case 枚举_历史宿主残留严重级别::提示:
-            ++输出->提示数;
-            break;
-        case 枚举_历史宿主残留严重级别::告警:
-            ++输出->告警数;
-            break;
-        case 枚举_历史宿主残留严重级别::阻断:
-            ++输出->阻断数;
-            break;
-        default:
-            break;
-        }
-        if (static_cast<std::uint8_t>(级别) > static_cast<std::uint8_t>(输出->总体级别)) {
-            输出->总体级别 = 级别;
-        }
-    }
-
-    const 因果模板节点类* 私有_查找活跃模板引用实例(
-        const 因果实例节点类* 实例,
-        const std::unordered_set<const 因果模板节点类*>& 残留模板集合) noexcept
-    {
-        for (auto* 模板节点 : 世界树.因果().枚举因果模板()) {
-            if (!模板节点 || 残留模板集合.count(模板节点) > 0) {
-                continue;
-            }
-            if (私有_因果模板引用实例(世界树.因果().取模板主信息(模板节点), 实例)) {
-                return 模板节点;
-            }
-        }
-        return nullptr;
-    }
-
-    const 基础信息节点类* 私有_查找活跃状态引用者(
-        const 状态节点类* 状态,
-        const std::unordered_set<const 因果实例节点类*>& 残留实例集合,
-        const std::unordered_set<const 动态节点类*>& 残留动态集合) noexcept
-    {
-        for (auto* 实例节点 : 世界树.因果().枚举因果实例()) {
-            if (!实例节点 || 残留实例集合.count(实例节点) > 0) {
-                continue;
-            }
-            if (私有_因果实例引用状态(世界树.因果().取实例主信息(实例节点), 状态)) {
-                return 实例节点;
-            }
-        }
-        for (auto* 动态节点 : 世界树.动态().枚举全部动态()) {
-            if (!动态节点 || 残留动态集合.count(动态节点) > 0) {
-                continue;
-            }
-            if (私有_动态引用状态(世界树.动态().取动态主信息(动态节点), 状态)) {
-                return 动态节点;
-            }
-        }
-        return nullptr;
-    }
-
-    const 基础信息节点类* 私有_查找活跃特征引用者(
-        const 特征节点类* 特征,
-        const std::unordered_set<const 状态节点类*>& 残留状态集合,
-        const std::unordered_set<const 动态节点类*>& 残留动态集合) noexcept
-    {
-        for (auto* 状态节点 : 世界树.状态().枚举全部状态()) {
-            if (!状态节点 || 残留状态集合.count(状态节点) > 0) {
-                continue;
-            }
-            if (私有_状态引用特征(世界树.状态().取状态主信息(状态节点), 特征)) {
-                return 状态节点;
-            }
-        }
-        for (auto* 动态节点 : 世界树.动态().枚举全部动态()) {
-            if (!动态节点 || 残留动态集合.count(动态节点) > 0) {
-                continue;
-            }
-            if (私有_动态引用特征(世界树.动态().取动态主信息(动态节点), 特征)) {
-                return 动态节点;
-            }
-        }
-        return nullptr;
-    }
-
-    结构_历史宿主残留分析结果 私有_分析历史宿主残留(const 存在节点类* 自我存在)
-    {
-        const auto 候选 = 私有_收集历史宿主残留候选(自我存在);
-        结构_历史宿主残留分析结果 输出{};
-
-        std::unordered_set<const 因果模板节点类*> 残留模板集合(
-            候选.因果模板.begin(), 候选.因果模板.end());
-        std::unordered_set<const 因果实例节点类*> 残留实例集合(
-            候选.因果实例.begin(), 候选.因果实例.end());
-        std::unordered_set<const 状态节点类*> 残留状态集合(
-            候选.状态.begin(), 候选.状态.end());
-        std::unordered_set<const 动态节点类*> 残留动态集合(
-            候选.动态.begin(), 候选.动态.end());
-
-        for (auto* 模板节点 : 候选.因果模板) {
-            私有_记录历史宿主残留级别(
-                &输出, 模板节点, 枚举_历史宿主残留严重级别::提示);
-        }
-
-        for (auto* 实例节点 : 候选.因果实例) {
-            const auto* 活跃模板 = 私有_查找活跃模板引用实例(实例节点, 残留模板集合);
-            if (活跃模板) {
-                私有_记录历史宿主残留级别(
-                    &输出, 实例节点, 枚举_历史宿主残留严重级别::阻断);
-                输出.阻断摘要.push_back(
-                    "因果实例《" + 私有_基础节点标题(实例节点)
-                    + "》仍被活跃因果模板《" + 私有_基础节点标题(活跃模板) + "》引用");
-                continue;
-            }
-            私有_记录历史宿主残留级别(
-                &输出, 实例节点, 枚举_历史宿主残留严重级别::提示);
-        }
-
-        for (auto* 动态节点 : 候选.动态) {
-            私有_记录历史宿主残留级别(
-                &输出, 动态节点, 枚举_历史宿主残留严重级别::告警);
-        }
-
-        for (auto* 状态节点 : 候选.状态) {
-            const auto* 活跃引用者 = 私有_查找活跃状态引用者(
-                状态节点, 残留实例集合, 残留动态集合);
-            if (活跃引用者) {
-                私有_记录历史宿主残留级别(
-                    &输出, 状态节点, 枚举_历史宿主残留严重级别::阻断);
-                输出.阻断摘要.push_back(
-                    "状态《" + 私有_基础节点标题(状态节点)
-                    + "》仍被活跃节点《" + 私有_基础节点标题(活跃引用者) + "》引用");
-                continue;
-            }
-            私有_记录历史宿主残留级别(
-                &输出, 状态节点, 枚举_历史宿主残留严重级别::告警);
-        }
-
-        for (auto* 特征节点 : 候选.特征) {
-            const auto* 活跃引用者 = 私有_查找活跃特征引用者(
-                特征节点, 残留状态集合, 残留动态集合);
-            if (活跃引用者) {
-                私有_记录历史宿主残留级别(
-                    &输出, 特征节点, 枚举_历史宿主残留严重级别::阻断);
-                输出.阻断摘要.push_back(
-                    "特征《" + 私有_基础节点标题(特征节点)
-                    + "》仍被活跃节点《" + 私有_基础节点标题(活跃引用者) + "》引用");
-                continue;
-            }
-            私有_记录历史宿主残留级别(
-                &输出, 特征节点, 枚举_历史宿主残留严重级别::告警);
-        }
-
-        return 输出;
-    }
-
-    bool 私有_因果模板引用实例(
-        const 因果模板主信息类* 主信息,
-        const 因果实例节点类* 实例) noexcept
-    {
-        (void)主信息;
-        (void)实例;
-        return false;
-    }
-
-    bool 私有_因果实例引用状态(
-        const 因果实例主信息类* 主信息,
-        const 状态节点类* 状态) noexcept
-    {
-        if (!主信息 || !状态) {
-            return false;
-        }
-        if (私有_状态迁移引用状态(主信息->主状态迁移, 状态)) {
-            return true;
-        }
-        return std::any_of(
-            主信息->状态迁移模板.begin(),
-            主信息->状态迁移模板.end(),
-            [&](const auto& 状态迁移) { return 私有_状态迁移引用状态(状态迁移, 状态); });
-    }
-
-    bool 私有_动态引用状态(
-        const 动态节点主信息类* 主信息,
-        const 状态节点类* 状态) noexcept
-    {
-        return 主信息
-            && 状态
-            && (主信息->初始状态.指针 == 状态 || 主信息->结果状态.指针 == 状态);
-    }
-
-    bool 私有_状态引用特征(
-        const 状态节点主信息类* 主信息,
-        const 特征节点类* 特征) noexcept
-    {
-        return 主信息 && 特征 && 主信息->状态特征.指针 == 特征;
-    }
-
-    bool 私有_动态引用特征(
-        const 动态节点主信息类* 主信息,
-        const 特征节点类* 特征) noexcept
-    {
-        return 主信息 && 特征 && 主信息->动态特征.指针 == 特征;
-    }
-
-    bool 私有_存在存活模板引用实例(const 因果实例节点类* 实例) noexcept
-    {
-        for (auto* 模板节点 : 世界树.因果().枚举因果模板()) {
-            if (私有_因果模板引用实例(世界树.因果().取模板主信息(模板节点), 实例)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool 私有_存在存活实例或动态引用状态(const 状态节点类* 状态) noexcept
-    {
-        for (auto* 实例节点 : 世界树.因果().枚举因果实例()) {
-            if (私有_因果实例引用状态(世界树.因果().取实例主信息(实例节点), 状态)) {
-                return true;
-            }
-        }
-        for (auto* 动态节点 : 世界树.动态().枚举全部动态()) {
-            if (私有_动态引用状态(世界树.动态().取动态主信息(动态节点), 状态)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool 私有_存在存活状态或动态引用特征(const 特征节点类* 特征) noexcept
-    {
-        for (auto* 状态节点 : 世界树.状态().枚举全部状态()) {
-            if (私有_状态引用特征(世界树.状态().取状态主信息(状态节点), 特征)) {
-                return true;
-            }
-        }
-        for (auto* 动态节点 : 世界树.动态().枚举全部动态()) {
-            if (私有_动态引用特征(世界树.动态().取动态主信息(动态节点), 特征)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    std::string 私有_清理结果摘要(
-        const 结构_历史宿主残留清理结果& 结果,
-        std::size_t 预览上限 = 12)
-    {
-        std::ostringstream 输出;
-        输出 << "历史宿主残留清理结果\n";
-        输出 << "  - 清理前残留: " << 结果.清理前残留节点数 << '\n';
-        if (结果.已执行清理前归档) {
-            输出 << "  - 清理前归档: "
-                << (结果.清理前归档路径.empty() ? "已写出" : 结果.清理前归档路径)
-                << '\n';
-        }
-        else {
-            输出 << "  - 清理前归档: 跳过（无残留可归档）\n";
-        }
-        输出 << "  - 已删除: 特征 " << 结果.删除特征数
-            << " / 状态 " << 结果.删除状态数
-            << " / 动态 " << 结果.删除动态数
-            << " / 因果实例 " << 结果.删除因果实例数
-            << " / 因果模板 " << 结果.删除因果模板数 << '\n';
-        输出 << "  - 清理后残留: " << 结果.清理后残留节点数 << '\n';
-        if (!结果.阻塞摘要.empty()) {
-            输出 << "  - 阻塞项:\n";
-            const auto 上限 = (std::min)(预览上限, 结果.阻塞摘要.size());
-            for (std::size_t 索引 = 0; 索引 < 上限; ++索引) {
-                输出 << "    - " << 结果.阻塞摘要[索引] << '\n';
-            }
-            if (结果.阻塞摘要.size() > 上限) {
-                输出 << "    - ... 省略 " << (结果.阻塞摘要.size() - 上限) << " 项\n";
-            }
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_JSON转义(std::string_view 输入)
-    {
-        std::ostringstream 输出;
-        for (const unsigned char 字符 : 输入) {
-            switch (字符) {
-            case '\\': 输出 << "\\\\"; break;
-            case '"': 输出 << "\\\""; break;
-            case '\b': 输出 << "\\b"; break;
-            case '\f': 输出 << "\\f"; break;
-            case '\n': 输出 << "\\n"; break;
-            case '\r': 输出 << "\\r"; break;
-            case '\t': 输出 << "\\t"; break;
-            default:
-                if (字符 < 0x20U) {
-                    输出 << "\\u"
-                        << "00"
-                        << "0123456789abcdef"[字符 >> 4U]
-                        << "0123456789abcdef"[字符 & 0x0FU];
-                }
-                else {
-                    输出 << static_cast<char>(字符);
-                }
-                break;
-            }
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_指针文本(std::uintptr_t 指针值)
-    {
-        std::ostringstream 输出;
-        输出 << "0x"
-            << std::hex << std::uppercase
-            << static_cast<unsigned long long>(指针值);
-        return 输出.str();
-    }
-
-    std::filesystem::path 私有_默认历史宿主残留归档路径()
-    {
-        const auto 当前时间 = std::chrono::system_clock::now();
-        const auto 微秒时间 = std::chrono::duration_cast<std::chrono::microseconds>(
-            当前时间.time_since_epoch()).count();
-        const auto 当前秒 = std::chrono::system_clock::to_time_t(当前时间);
-        std::tm 本地时间{};
-        localtime_s(&本地时间, &当前秒);
-
-        std::ostringstream 文件名;
-        文件名 << "legacy-host-residue-"
-            << std::put_time(&本地时间, "%Y%m%d-%H%M%S")
-            << "-" << std::setw(6) << std::setfill('0')
-            << static_cast<long long>(微秒时间 % 1000000LL)
-            << ".json";
-        return std::filesystem::absolute(
-            std::filesystem::current_path() / "日志" / "legacy-host-residue" / 文件名.str());
-    }
-
-    std::string 私有_构造历史宿主残留归档JSON(
-        const std::filesystem::path& 输出路径,
-        const 结构_控制面板快照& 快照)
-    {
-        const auto 当前微秒 = std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
-
-        std::ostringstream 输出;
-        输出 << "{\n"
-            << "  \"archive_version\": \"legacy_host_residue_archive_v2\",\n"
-            << "  \"generated_at_us\": " << 当前微秒 << ",\n"
-            << "  \"archive_path\": \"" << 私有_JSON转义(输出路径.string()) << "\",\n"
-            << "  \"raw_world_tree_nodes\": " << 快照.基础信息节点数 << ",\n"
-            << "  \"active_world_tree_nodes\": " << 快照.世界树活跃节点数 << ",\n"
-            << "  \"legacy_residue_nodes\": " << 快照.历史宿主残留节点数 << ",\n"
-            << "  \"legacy_residue_feature_nodes\": " << 快照.历史宿主残留特征数 << ",\n"
-            << "  \"legacy_residue_state_nodes\": " << 快照.历史宿主残留状态数 << ",\n"
-            << "  \"legacy_residue_dynamic_nodes\": " << 快照.历史宿主残留动态数 << ",\n"
-            << "  \"legacy_residue_causal_nodes\": " << 快照.历史宿主残留因果数 << ",\n"
-            << "  \"severity\": \"" << 私有_JSON转义(快照.历史宿主残留严重级别) << "\",\n"
-            << "  \"blocking\": " << (快照.历史宿主残留需要阻断 ? "true" : "false") << ",\n"
-            << "  \"severity_notice_nodes\": " << 快照.历史宿主残留提示数 << ",\n"
-            << "  \"severity_warning_nodes\": " << 快照.历史宿主残留告警数 << ",\n"
-            << "  \"severity_blocking_nodes\": " << 快照.历史宿主残留阻断数 << ",\n"
-            << "  \"summary\": \""
-            << 私有_JSON转义(渲染历史宿主残留摘要(快照, 20))
-            << "\",\n"
-            << "  \"blocking_reasons\": [\n";
-
-        for (std::size_t 索引 = 0; 索引 < 快照.历史宿主残留阻断摘要.size(); ++索引) {
-            输出 << "    \"" << 私有_JSON转义(快照.历史宿主残留阻断摘要[索引]) << "\"";
-            if (索引 + 1 < 快照.历史宿主残留阻断摘要.size()) {
-                输出 << ",";
-            }
-            输出 << '\n';
-        }
-        输出 << "  ],\n"
-            << "  \"items\": [\n";
-
-        for (std::size_t 索引 = 0; 索引 < 快照.历史宿主残留列表.size(); ++索引) {
-            const auto& 项 = 快照.历史宿主残留列表[索引];
-            输出 << "    {\n"
-                << "      \"pointer\": \"" << 私有_JSON转义(私有_指针文本(项.节点指针)) << "\",\n"
-                << "      \"title\": \"" << 私有_JSON转义(项.标题) << "\",\n"
-                << "      \"summary\": \"" << 私有_JSON转义(项.摘要) << "\"\n"
-                << "    }";
-            if (索引 + 1 < 快照.历史宿主残留列表.size()) {
-                输出 << ",";
-            }
-            输出 << '\n';
-        }
-        输出 << "  ]\n"
-            << "}\n";
-        return 输出.str();
-    }
-
-    bool 私有_保存历史宿主残留归档(
-        const std::filesystem::path& 输出路径,
-        const 结构_控制面板快照& 快照,
-        std::string* 摘要输出 = nullptr)
-    {
-        std::error_code 错误{};
-        std::filesystem::create_directories(输出路径.parent_path(), 错误);
-        if (错误) {
-            if (摘要输出) {
-                *摘要输出 = "历史宿主残留归档结果\n  - 创建归档目录失败: "
-                    + 输出路径.parent_path().string() + '\n';
-            }
-            return false;
-        }
-
-        std::ofstream 输出文件(输出路径, std::ios::binary | std::ios::trunc);
-        if (!输出文件) {
-            if (摘要输出) {
-                *摘要输出 = "历史宿主残留归档结果\n  - 打开归档文件失败: "
-                    + 输出路径.string() + '\n';
-            }
-            return false;
-        }
-
-        const auto 内容 = 私有_构造历史宿主残留归档JSON(输出路径, 快照);
-        输出文件.write(内容.data(), static_cast<std::streamsize>(内容.size()));
-        if (!输出文件.good()) {
-            if (摘要输出) {
-                *摘要输出 = "历史宿主残留归档结果\n  - 写入归档文件失败: "
-                    + 输出路径.string() + '\n';
-            }
-            return false;
-        }
-
-        if (摘要输出) {
-            std::ostringstream 输出;
-            输出 << "历史宿主残留归档结果\n";
-            输出 << "  - 归档路径: " << 输出路径.string() << '\n';
-            输出 << "  - 快照残留: " << 快照.历史宿主残留节点数
-                << "（特征 " << 快照.历史宿主残留特征数
-                << " / 状态 " << 快照.历史宿主残留状态数
-                << " / 动态 " << 快照.历史宿主残留动态数
-                << " / 因果 " << 快照.历史宿主残留因果数 << "）\n";
-            输出 << "  - 总体级别: " << 私有_安全文本(快照.历史宿主残留严重级别, "无")
-                << "（提示 " << 快照.历史宿主残留提示数
-                << " / 告警 " << 快照.历史宿主残留告警数
-                << " / 阻断 " << 快照.历史宿主残留阻断数 << "）\n";
-            *摘要输出 = 输出.str();
-        }
-        return true;
-    }
-
-    std::string 私有_精简节点标题(std::string 文本)
-    {
-        const auto 分隔位置 = 文本.find(" | ");
-        if (分隔位置 != std::string::npos) {
-            文本.erase(分隔位置);
-        }
-        return 文本;
-    }
-
-    void 私有_追加摘要片段(
-        std::vector<std::string>* 片段,
-        std::string_view 标签,
-        std::string 值,
-        bool 空值时跳过 = false)
-    {
-        if (!片段) {
-            return;
-        }
-        if (值.empty()) {
-            if (空值时跳过) {
-                return;
-            }
-            值 = "空";
-        }
-        片段->push_back(std::string(标签) + "=" + std::move(值));
-    }
-
-    std::string 私有_拼接摘要片段(const std::vector<std::string>& 片段)
-    {
-        std::ostringstream 输出;
-        bool 首项 = true;
-        for (const auto& 片段文本 : 片段) {
-            if (片段文本.empty()) {
-                continue;
-            }
-            if (!首项) {
-                输出 << " | ";
-            }
-            输出 << 片段文本;
-            首项 = false;
-        }
-        return 输出.str();
-    }
-
-    void 私有_收集树标题映射(
-        const 结构_控制面板树节点& 节点,
-        std::unordered_map<std::uintptr_t, std::string>* 输出)
-    {
-        if (!输出) return;
-        if (节点.节点指针 != 0 && !节点.文本.empty()) {
-            输出->try_emplace(节点.节点指针, 私有_精简节点标题(节点.文本));
-        }
-        for (const auto& 子项 : 节点.子项) {
-            私有_收集树标题映射(子项, 输出);
-        }
-    }
-
-    std::string 私有_替换指针文本(
-        std::string 文本,
-        const std::unordered_map<std::uintptr_t, std::string>& 映射)
-    {
-        std::size_t 搜索位置 = 0;
-        while ((搜索位置 = 文本.find("ptr#", 搜索位置)) != std::string::npos) {
-            const auto 数字起点 = 搜索位置 + 4;
-            auto 数字终点 = 数字起点;
-            while (数字终点 < 文本.size() && std::isdigit(static_cast<unsigned char>(文本[数字终点]))) {
-                ++数字终点;
-            }
-
-            if (数字终点 == 数字起点) {
-                搜索位置 = 数字起点;
-                continue;
-            }
-
-            std::uintptr_t 指针值 = 0;
-            try {
-                指针值 = static_cast<std::uintptr_t>(std::stoull(文本.substr(数字起点, 数字终点 - 数字起点)));
-            }
-            catch (...) {
-                搜索位置 = 数字终点;
-                continue;
-            }
-
-            const auto it = 映射.find(指针值);
-            if (it == 映射.end() || it->second.empty()) {
-                搜索位置 = 数字终点;
-                continue;
-            }
-
-            文本.replace(搜索位置, 数字终点 - 搜索位置, it->second);
-            搜索位置 += it->second.size();
-        }
-        return 文本;
-    }
-
-    void 私有_替换树内指针文本(
-        结构_控制面板树节点* 节点,
-        const std::unordered_map<std::uintptr_t, std::string>& 映射)
-    {
-        if (!节点) return;
-        节点->文本 = 私有_替换指针文本(std::move(节点->文本), 映射);
-        for (auto& 子项 : 节点->子项) {
-            私有_替换树内指针文本(&子项, 映射);
-        }
-    }
-
-    void 私有_替换列表内指针文本(
-        std::vector<结构_控制面板列表项>* 列表,
-        const std::unordered_map<std::uintptr_t, std::string>& 映射)
-    {
-        if (!列表) return;
-        for (auto& 项 : *列表) {
-            项.标题 = 私有_替换指针文本(std::move(项.标题), 映射);
-            项.摘要 = 私有_替换指针文本(std::move(项.摘要), 映射);
-            for (auto& 详情 : 项.详情行) {
-                详情 = 私有_替换指针文本(std::move(详情), 映射);
-            }
-        }
-    }
-
-    void 私有_替换快照内指针文本(结构_控制面板快照* 快照)
-    {
-        if (!快照) return;
-
-        std::unordered_map<std::uintptr_t, std::string> 映射{};
-        for (const auto& 项 : 快照->世界列表) {
-            if (项.节点指针 != 0 && !项.标题.empty()) 映射.try_emplace(项.节点指针, 私有_精简节点标题(项.标题));
-        }
-        for (const auto& 项 : 快照->场景列表) {
-            if (项.节点指针 != 0 && !项.标题.empty()) 映射.try_emplace(项.节点指针, 私有_精简节点标题(项.标题));
-        }
-        for (const auto& 项 : 快照->存在列表) {
-            if (项.节点指针 != 0 && !项.标题.empty()) 映射.try_emplace(项.节点指针, 私有_精简节点标题(项.标题));
-        }
-        for (const auto& 项 : 快照->需求列表) {
-            if (项.节点指针 != 0 && !项.标题.empty()) 映射.try_emplace(项.节点指针, 私有_精简节点标题(项.标题));
-        }
-        for (const auto& 项 : 快照->任务列表) {
-            if (项.节点指针 != 0 && !项.标题.empty()) 映射.try_emplace(项.节点指针, 私有_精简节点标题(项.标题));
-        }
-        for (const auto& 项 : 快照->方法列表) {
-            if (项.节点指针 != 0 && !项.标题.empty()) 映射.try_emplace(项.节点指针, 私有_精简节点标题(项.标题));
-        }
-
-        私有_收集树标题映射(快照->需求树根, &映射);
-        私有_收集树标题映射(快照->任务树根, &映射);
-        私有_收集树标题映射(快照->方法树根, &映射);
-
-        私有_替换列表内指针文本(&快照->世界列表, 映射);
-        私有_替换列表内指针文本(&快照->场景列表, 映射);
-        私有_替换列表内指针文本(&快照->存在列表, 映射);
-        私有_替换列表内指针文本(&快照->需求列表, 映射);
-        私有_替换列表内指针文本(&快照->任务列表, 映射);
-        私有_替换列表内指针文本(&快照->方法列表, 映射);
-        私有_替换列表内指针文本(&快照->因果实例列表, 映射);
-        私有_替换列表内指针文本(&快照->因果模板列表, 映射);
-        私有_替换列表内指针文本(&快照->先天动作动态列表, 映射);
-        私有_替换列表内指针文本(&快照->先天动作因果列表, 映射);
-        私有_替换列表内指针文本(&快照->历史宿主残留列表, 映射);
-
-        私有_替换树内指针文本(&快照->因果信息树根, 映射);
-        私有_替换树内指针文本(&快照->世界树根, 映射);
-        私有_替换树内指针文本(&快照->需求树根, 映射);
-        私有_替换树内指针文本(&快照->任务树根, 映射);
-        私有_替换树内指针文本(&快照->方法树根, 映射);
-
-        快照->自我摘要 = 私有_替换指针文本(std::move(快照->自我摘要), 映射);
-        快照->自我线程摘要 = 私有_替换指针文本(std::move(快照->自我线程摘要), 映射);
-        快照->运行时摘要 = 私有_替换指针文本(std::move(快照->运行时摘要), 映射);
-    }
-
-    std::string 私有_世界类型文本(枚举_世界类型 世界类型)
-    {
-        switch (世界类型) {
-        case 枚举_世界类型::现实世界: return "现实世界";
-        case 枚举_世界类型::内部世界: return "内部世界";
-        case 枚举_世界类型::文本世界: return "文本世界";
-        case 枚举_世界类型::想象世界: return "想象世界";
-        case 枚举_世界类型::记忆世界: return "记忆世界";
-        case 枚举_世界类型::推理世界: return "推理世界";
-        case 枚举_世界类型::虚拟世界: return "虚拟世界";
-        default: return "其它";
-        }
-    }
-
-    std::string 私有_任务状态文本(枚举_任务状态 状态)
+    const char* 私有_任务状态文本(const 枚举_任务状态 状态) noexcept
     {
         switch (状态) {
         case 枚举_任务状态::未启动: return "未启动";
@@ -1443,361 +286,113 @@ namespace {
         }
     }
 
-    std::string 私有_任务节点种类文本(枚举_任务节点种类 种类)
+    const char* 私有_任务树类型文本(const 枚举_任务树类型 类型) noexcept
+    {
+        switch (类型) {
+        case 枚举_任务树类型::编排任务: return "编排任务";
+        case 枚举_任务树类型::叶子任务: return "叶子任务";
+        default: return "未定义";
+        }
+    }
+
+    const char* 私有_任务结果角色文本(const 枚举_任务结果角色 角色) noexcept
+    {
+        switch (角色) {
+        case 枚举_任务结果角色::预测结果: return "预测结果";
+        case 枚举_任务结果角色::实际结果: return "实际结果";
+        default: return "未定义";
+        }
+    }
+
+    const char* 私有_分支选择动作文本(const 枚举_分支选择动作 动作) noexcept
+    {
+        switch (动作) {
+        case 枚举_分支选择动作::继续下一步: return "继续下一步";
+        case 枚举_分支选择动作::回跳重试: return "回跳重试";
+        case 枚举_分支选择动作::生成补条件子任务: return "生成补条件子任务";
+        case 枚举_分支选择动作::转入尝试学习: return "转入尝试学习";
+        case 枚举_分支选择动作::挂起等待: return "挂起等待";
+        default: return "未定义";
+        }
+    }
+
+    const char* 私有_方法节点种类文本(const 枚举_方法节点种类 种类) noexcept
     {
         switch (种类) {
-        case 枚举_任务节点种类::头结点: return "头结点";
-        case 枚举_任务节点种类::步骤节点: return "步骤节点";
-        case 枚举_任务节点种类::结果节点: return "结果节点";
+        case 枚举_方法节点种类::方法首节点: return "方法首节点";
+        case 枚举_方法节点种类::方法条件节点: return "方法条件节点";
+        case 枚举_方法节点种类::方法结果节点: return "方法结果节点";
         default: return "未定义";
         }
     }
 
-    std::string 私有_方法节点种类文本(枚举_方法节点种类 种类)
+    const char* 私有_方法来源文本(const 枚举_方法来源 来源) noexcept
     {
-        switch (种类) {
-        case 枚举_方法节点种类::方法首节点: return "方法首";
-        case 枚举_方法节点种类::方法条件节点: return "方法条件";
-        case 枚举_方法节点种类::方法结果节点: return "方法结果";
+        switch (来源) {
+        case 枚举_方法来源::本能: return "本能";
+        case 枚举_方法来源::外部导入: return "外部导入";
+        case 枚举_方法来源::因果抽象: return "因果抽象";
+        case 枚举_方法来源::观察抽象: return "观察抽象";
+        case 枚举_方法来源::路径提炼: return "路径提炼";
+        case 枚举_方法来源::运行时学习沉淀: return "运行时学习沉淀";
         default: return "未定义";
         }
     }
 
-    std::string 私有_线程生命周期文本(枚举_线程生命周期状态 状态)
+    const char* 私有_方法作用域文本(const 枚举_方法作用域 作用域) noexcept
     {
-        switch (状态) {
-        case 枚举_线程生命周期状态::未启动: return "未启动";
-        case 枚举_线程生命周期状态::启动中: return "启动中";
-        case 枚举_线程生命周期状态::运行中: return "运行中";
-        case 枚举_线程生命周期状态::停止请求中: return "停止请求中";
-        case 枚举_线程生命周期状态::收尾中: return "收尾中";
-        case 枚举_线程生命周期状态::已停止: return "已停止";
-        case 枚举_线程生命周期状态::故障: return "故障";
+        switch (作用域) {
+        case 枚举_方法作用域::任务局部: return "任务局部";
+        case 枚举_方法作用域::主体局部: return "主体局部";
+        case 枚举_方法作用域::通用复用: return "通用复用";
+        case 枚举_方法作用域::跨域复用: return "跨域复用";
         default: return "未定义";
         }
     }
 
-    std::string 私有_动作事件相位文本(枚举_动作事件相位 相位)
+    const char* 私有_动作句柄类型文本(const 枚举_动作句柄类型 类型) noexcept
     {
-        switch (相位) {
-        case 枚举_动作事件相位::开始运行: return "开始运行";
-        case 枚举_动作事件相位::完成: return "完成";
-        case 枚举_动作事件相位::失败: return "失败";
+        switch (类型) {
+        case 枚举_动作句柄类型::本能函数ID: return "本能函数ID";
+        case 枚举_动作句柄类型::外部实现主键: return "外部实现主键";
+        case 枚举_动作句柄类型::动作序列主键: return "动作序列主键";
+        default: return "未设置";
+        }
+    }
+
+    const char* 私有_世界类型文本(const 枚举_世界类型 类型) noexcept
+    {
+        switch (类型) {
+        case 枚举_世界类型::现实世界: return "现实世界";
+        case 枚举_世界类型::文本世界: return "文本世界";
+        case 枚举_世界类型::想象世界: return "想象世界";
+        case 枚举_世界类型::记忆世界: return "记忆世界";
+        case 枚举_世界类型::推理世界: return "推理世界";
+        case 枚举_世界类型::内部世界: return "内部世界";
+        case 枚举_世界类型::虚拟世界: return "虚拟世界";
+        default: return "其它";
+        }
+    }
+
+    const char* 私有_状态域文本(const 枚举_状态域 域) noexcept
+    {
+        switch (域) {
+        case 枚举_状态域::内部状态: return "内部状态";
+        case 枚举_状态域::世界状态: return "世界状态";
         default: return "未定义";
         }
     }
 
-    const 结构_本能方法元信息* 私有_查询内部先天动作元信息(枚举_本能方法ID 本能ID) noexcept
+    const char* 私有_动态来源类型文本(const 枚举_动态来源类型 类型) noexcept
     {
-        const auto* 元信息 = 本能方法类::查询元信息(本能ID);
-        if (!元信息 || 元信息->分类 != 枚举_本能方法分类::内部先天动作) {
-            return nullptr;
-        }
-        return 元信息;
-    }
-
-    const 结构_本能方法元信息* 私有_匹配内部先天动作元信息_按名称(std::string_view 动作名) noexcept
-    {
-        if (动作名.empty()) {
-            return nullptr;
-        }
-
-        constexpr 枚举_本能方法ID 内部先天动作列表[] = {
-            枚举_本能方法ID::自我_服务归零待机保护,
-            枚举_本能方法ID::自我_定时衰减服务值,
-            枚举_本能方法ID::自我_按双值重算服务衰减步长,
-            枚举_本能方法ID::自我_按服务值重算安全增加步长,
-            枚举_本能方法ID::自我_按服务值重算安全减少步长,
-            枚举_本能方法ID::自我_安全低位回升,
-            枚举_本能方法ID::自我_安全高位回落,
-            枚举_本能方法ID::自我_风险安全回归,
-        };
-
-        for (const auto 本能ID : 内部先天动作列表) {
-            const auto* 元信息 = 私有_查询内部先天动作元信息(本能ID);
-            if (元信息 && 元信息->动作名称 && 动作名 == std::string_view{ 元信息->动作名称 }) {
-                return 元信息;
-            }
-        }
-        return nullptr;
-    }
-
-    const 结构_本能方法元信息* 私有_取动态对应内部先天动作元信息(const 动态节点主信息类* 动态主信息) noexcept
-    {
-        if (!动态主信息) {
-            return nullptr;
-        }
-
-        if (const auto* 来源方法 = reinterpret_cast<const 方法类::节点类*>(动态主信息->来源动作.指针)) {
-            const auto& 动作句柄 = 来源方法->主信息.动作句柄;
-            if (动作句柄.类型 == 枚举_动作句柄类型::本能函数ID) {
-                return 私有_查询内部先天动作元信息(static_cast<枚举_本能方法ID>(动作句柄.本能ID));
-            }
-        }
-
-        return 私有_匹配内部先天动作元信息_按名称(私有_安全词(动态主信息->来源动作名));
-    }
-
-    const 结构_本能方法元信息* 私有_取因果对应内部先天动作元信息(const 因果实例主信息类* 因果主信息) noexcept
-    {
-        if (!因果主信息) {
-            return nullptr;
-        }
-
-        if (const auto* 元信息 = 私有_匹配内部先天动作元信息_按名称(因果主信息->动作名称)) {
-            return 元信息;
-        }
-        return 私有_匹配内部先天动作元信息_按名称(私有_安全词(因果主信息->名称));
-    }
-
-    std::string 私有_主键解析后的基础节点标题(const std::string& 主键, const char* 前缀)
-    {
-        if (主键.empty()) {
-            return "无";
-        }
-
-        if (auto* 基础节点 = 世界树.基础信息().查找主键(主键)) {
-            const auto 标题 = 私有_基础节点标题(基础节点);
-            if (!标题.empty()) {
-                return 标题;
-            }
-        }
-        return std::string(前缀) + "#" + 主键;
-    }
-
-    std::string 私有_状态引用标题(const 可解析引用<状态节点类>& 状态引用)
-    {
-        if (状态引用.指针) {
-            return 私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(状态引用.指针));
-        }
-        if (!状态引用.主键.empty()) {
-            return 私有_主键解析后的基础节点标题(状态引用.主键, "状态");
-        }
-        return "无";
-    }
-
-    const 状态节点主信息类* 私有_解析状态主信息(const 可解析引用<状态节点类>& 状态引用) noexcept
-    {
-        if (状态引用.指针) {
-            return 世界树.状态().取状态主信息(状态引用.指针);
-        }
-        if (!状态引用.主键.empty()) {
-            if (const auto* 基础节点 = 世界树.基础信息().查找主键(状态引用.主键)) {
-                if (const auto* 状态节点 = dynamic_cast<const 状态节点类*>(基础节点)) {
-                    return 世界树.状态().取状态主信息(状态节点);
-                }
-            }
-        }
-        return nullptr;
-    }
-
-    std::string 私有_特征引用标题(const 可解析引用<特征节点类>& 特征引用)
-    {
-        const auto 追加区间 = [](std::string 标题, const 特征节点主信息类* 主信息) {
-            if (!主信息) {
-                return 标题;
-            }
-            if (主信息->区间.has_value() && 主信息->区间->有效()) {
-                标题 += " 区间["
-                    + std::to_string(主信息->区间->低值)
-                    + ", "
-                    + std::to_string(主信息->区间->高值)
-                    + "]";
-                return 标题;
-            }
-            if (const auto* 当前值 = std::get_if<I64>(&主信息->当前值)) {
-                标题 += " 为" + std::to_string(*当前值);
-            }
-            return 标题;
-        };
-
-        if (特征引用.指针) {
-            return 追加区间(
-                私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(特征引用.指针)),
-                世界树.基础信息().取主信息<特征节点主信息类>(特征引用.指针));
-        }
-        if (!特征引用.主键.empty()) {
-            if (const auto* 基础节点 = 世界树.基础信息().查找主键(特征引用.主键)) {
-                if (const auto* 特征节点 = dynamic_cast<const 特征节点类*>(基础节点)) {
-                    return 追加区间(
-                        私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(特征节点)),
-                        世界树.基础信息().取主信息<特征节点主信息类>(特征节点));
-                }
-            }
-            return 私有_主键解析后的基础节点标题(特征引用.主键, "特征");
-        }
-        return "无";
-    }
-
-    const 动态节点主信息类* 私有_解析动态主信息(const 可解析引用<动态节点类>& 动态引用) noexcept
-    {
-        if (动态引用.指针) {
-            return 世界树.动态().取动态主信息(动态引用.指针);
-        }
-        if (!动态引用.主键.empty()) {
-            if (const auto* 基础节点 = 世界树.基础信息().查找主键(动态引用.主键)) {
-                if (const auto* 动态节点 = dynamic_cast<const 动态节点类*>(基础节点)) {
-                    return 世界树.动态().取动态主信息(动态节点);
-                }
-            }
-        }
-        return nullptr;
-    }
-
-    const 二次特征主信息类* 私有_解析二次特征主信息(const 可解析引用<二次特征节点类>& 二次特征引用) noexcept
-    {
-        if (二次特征引用.指针) {
-            return 世界树.二次特征().取二次特征主信息(二次特征引用.指针);
-        }
-        if (!二次特征引用.主键.empty()) {
-            if (const auto* 基础节点 = 世界树.基础信息().查找主键(二次特征引用.主键)) {
-                if (const auto* 二次特征节点 = dynamic_cast<const 二次特征节点类*>(基础节点)) {
-                    return 世界树.二次特征().取二次特征主信息(二次特征节点);
-                }
-            }
-        }
-        return nullptr;
-    }
-
-    const 状态节点主信息类* 私有_解析迁移左状态主信息(const 可解析引用<二次特征节点类>& 二次特征引用) noexcept
-    {
-        const auto* 二次特征主信息 = 私有_解析二次特征主信息(二次特征引用);
-        if (!二次特征主信息) {
-            return nullptr;
-        }
-        return 私有_解析状态主信息(
-            可解析引用<状态节点类>{
-                dynamic_cast<状态节点类*>(二次特征主信息->左对象.指针),
-                二次特征主信息->左对象.主键 });
-    }
-
-    const 状态节点主信息类* 私有_解析迁移右状态主信息(const 可解析引用<二次特征节点类>& 二次特征引用) noexcept
-    {
-        const auto* 二次特征主信息 = 私有_解析二次特征主信息(二次特征引用);
-        if (!二次特征主信息) {
-            return nullptr;
-        }
-        return 私有_解析状态主信息(
-            可解析引用<状态节点类>{
-                dynamic_cast<状态节点类*>(二次特征主信息->右对象.指针),
-                二次特征主信息->右对象.主键 });
-    }
-
-    bool 私有_状态迁移引用状态(
-        const 可解析引用<二次特征节点类>& 迁移引用,
-        const 状态节点类* 状态) noexcept
-    {
-        if (!状态) {
-            return false;
-        }
-        const auto* 二次特征主信息 = 私有_解析二次特征主信息(迁移引用);
-        if (!二次特征主信息) {
-            return false;
-        }
-        const auto 匹配状态 = [&](const 可解析引用<基础信息节点类>& 引用) {
-            return (引用.指针 && 引用.指针 == 状态)
-                || (!引用.主键.empty() && 引用.主键 == 状态->获取主键());
-        };
-        return 匹配状态(二次特征主信息->左对象)
-            || 匹配状态(二次特征主信息->右对象);
-    }
-
-    bool 私有_状态引用键一致(
-        const 可解析引用<基础信息节点类>& 左,
-        const 可解析引用<基础信息节点类>& 右) noexcept
-    {
-        if (左.指针 && 右.指针) {
-            return 左.指针 == 右.指针;
-        }
-        if (!左.主键.empty() && !右.主键.empty()) {
-            return 左.主键 == 右.主键;
-        }
-        if (左.指针 && !右.主键.empty()) {
-            return 左.指针->获取主键() == 右.主键;
-        }
-        if (右.指针 && !左.主键.empty()) {
-            return 右.指针->获取主键() == 左.主键;
-        }
-        return false;
-    }
-
-    const 状态节点主信息类* 私有_因果实例结果对应初始状态(
-        const 因果实例主信息类& 主信息,
-        const 状态节点主信息类* 结果状态主信息) noexcept
-    {
-        if (!结果状态主信息) {
-            return nullptr;
-        }
-
-        const 状态节点主信息类* 首个有效条件状态 = nullptr;
-        for (const auto& 状态迁移 : 主信息.状态迁移模板) {
-            const auto* 左状态 = 私有_解析迁移左状态主信息(状态迁移);
-            const auto* 右状态 = 私有_解析迁移右状态主信息(状态迁移);
-            if (!右状态) {
-                continue;
-            }
-            if (!首个有效条件状态 && 左状态) {
-                首个有效条件状态 = 左状态;
-            }
-            if (左状态
-                && 私有_状态引用键一致(左状态->状态主体, 结果状态主信息->状态主体)
-                && 私有_状态引用键一致(左状态->状态特征, 结果状态主信息->状态特征)
-                && 私有_状态引用键一致(右状态->状态主体, 结果状态主信息->状态主体)
-                && 私有_状态引用键一致(右状态->状态特征, 结果状态主信息->状态特征)) {
-                return 左状态;
-            }
-        }
-        return 首个有效条件状态;
-    }
-
-    std::string 私有_因果状态方向文本(
-        const 状态节点主信息类* 初始状态主信息,
-        const 状态节点主信息类* 结果状态主信息)
-    {
-        if (!结果状态主信息) {
-            return "错误: 缺少结果状态";
-        }
-        if (!初始状态主信息) {
-            return "错误: 缺少可比较初始状态";
-        }
-
-        if (const auto* 初始值 = std::get_if<I64>(&初始状态主信息->状态值)) {
-            if (const auto* 结果值 = std::get_if<I64>(&结果状态主信息->状态值)) {
-                if (*结果值 > *初始值) {
-                    return "结果状态比初始状态大";
-                }
-                if (*结果值 < *初始值) {
-                    return "结果状态比初始状态小";
-                }
-                return "结果状态与初始状态相同";
-            }
-        }
-
-        return 结果状态主信息->状态值 == 初始状态主信息->状态值
-            ? "结果状态与初始状态相同"
-            : "结果状态与初始状态不同";
-    }
-
-    std::string 私有_动态结果方向摘要(const 动态节点主信息类* 主信息)
-    {
-        if (!主信息) {
-            return "错误: 缺少动态证据";
-        }
-        return 私有_因果状态方向文本(
-            私有_解析状态主信息(主信息->初始状态),
-            私有_解析状态主信息(主信息->结果状态));
-    }
-
-    const char* 私有_动态来源类型文本(枚举_动态来源类型 来源类型) noexcept
-    {
-        switch (来源类型) {
+        switch (类型) {
         case 枚举_动态来源类型::方法调用: return "方法调用";
         case 枚举_动态来源类型::内部机制动作: return "内部机制动作";
         default: return "未定义";
         }
     }
 
-    const char* 私有_动态业务语义类型文本(枚举_动态业务语义类型 类型) noexcept
+    const char* 私有_动态业务语义类型文本(const 枚举_动态业务语义类型 类型) noexcept
     {
         switch (类型) {
         case 枚举_动态业务语义类型::动作事实动态: return "动作事实动态";
@@ -1809,9 +404,19 @@ namespace {
         }
     }
 
-    const char* 私有_动态聚合方式文本(枚举_动态聚合方式 聚合方式) noexcept
+    const char* 私有_动作事件相位文本(const 枚举_动作事件相位 相位) noexcept
     {
-        switch (聚合方式) {
+        switch (相位) {
+        case 枚举_动作事件相位::开始运行: return "开始运行";
+        case 枚举_动作事件相位::完成: return "完成";
+        case 枚举_动作事件相位::失败: return "失败";
+        default: return "未定义";
+        }
+    }
+
+    const char* 私有_动态聚合方式文本(const 枚举_动态聚合方式 方式) noexcept
+    {
+        switch (方式) {
         case 枚举_动态聚合方式::原子相邻: return "原子相邻";
         case 枚举_动态聚合方式::连续同向段: return "连续同向段";
         case 枚举_动态聚合方式::同类事件段: return "同类事件段";
@@ -1821,998 +426,35 @@ namespace {
         }
     }
 
-    struct 结构_动态聚合项 {
-        std::string 标题{};
-        std::size_t 数量 = 0;
-        std::string 最近摘要{};
-        std::uintptr_t 节点指针 = 0;
-    };
-
-    void 私有_累加动态聚合(
-        std::vector<结构_动态聚合项>* 聚合列表,
-        const std::string& 标题,
-        const std::string& 最近摘要,
-        std::uintptr_t 节点指针)
+    const char* 私有_因果形态文本(const 枚举_因果形态 形态) noexcept
     {
-        if (!聚合列表 || 标题.empty()) {
-            return;
-        }
-
-        for (auto& 项 : *聚合列表) {
-            if (项.标题 == 标题) {
-                ++项.数量;
-                if (项.最近摘要.empty()) {
-                    项.最近摘要 = 最近摘要;
-                }
-                if (项.节点指针 == 0) {
-                    项.节点指针 = 节点指针;
-                }
-                return;
-            }
-        }
-
-        结构_动态聚合项 新项{};
-        新项.标题 = 标题;
-        新项.数量 = 1;
-        新项.最近摘要 = 最近摘要;
-        新项.节点指针 = 节点指针;
-        聚合列表->push_back(std::move(新项));
-    }
-
-    void 私有_导出动态聚合列表(
-        const std::vector<结构_动态聚合项>& 聚合列表,
-        std::vector<结构_控制面板列表项>* 输出列表)
-    {
-        if (!输出列表) {
-            return;
-        }
-
-        for (const auto& 项 : 聚合列表) {
-            结构_控制面板列表项 输出项{};
-            输出项.节点指针 = 项.节点指针;
-            输出项.标题 = 项.标题;
-            输出项.摘要 = "数量=" + std::to_string(项.数量);
-            if (!项.最近摘要.empty()) {
-                输出项.摘要 += " | 最近=" + 项.最近摘要;
-            }
-            输出列表->push_back(std::move(输出项));
+        switch (形态) {
+        case 枚举_因果形态::实例: return "实例";
+        case 枚举_因果形态::抽象: return "抽象";
+        default: return "未定义";
         }
     }
 
-    std::string 私有_任务标题(const 任务类::节点类* 节点);
-    std::string 私有_方法标题(const 方法类::节点类* 节点);
-
-    std::string 私有_动态标题(const 动态节点类* 动态节点, const 动态节点主信息类& 主信息)
-    {
-        const auto 动作名 = 私有_安全词(主信息.来源动作名);
-        if (!动作名.empty()) {
-            return 动作名;
-        }
-        if (主信息.动态特征.指针 && 主信息.动态特征.指针->主信息) {
-            const auto 特征名 = 私有_安全词(主信息.动态特征.指针->主信息->类型);
-            if (!特征名.empty()) {
-                return 特征名;
-            }
-        }
-        return 私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(动态节点));
-    }
-
-    std::string 私有_动态来源方法标题(const 动态节点主信息类& 主信息)
-    {
-        const auto* 来源方法 = reinterpret_cast<const 方法类::节点类*>(主信息.来源动作.指针);
-        return 来源方法 ? 私有_方法标题(来源方法) : std::string("无来源方法");
-    }
-
-    template<class T节点>
-    std::string 私有_引用主键或指针文本(const 可解析引用<T节点>& 引用, const char* 前缀)
-    {
-        if (!引用.主键.empty()) {
-            return std::string(前缀) + "#" + 引用.主键;
-        }
-        if (引用.指针) {
-            return std::string(前缀) + "ptr#" + std::to_string(reinterpret_cast<std::uintptr_t>(引用.指针));
-        }
-        return std::string("无来源") + 前缀;
-    }
-
-    std::string 私有_动态来源任务标题(const 动态节点主信息类& 主信息)
-    {
-        const auto* 来源方法 = reinterpret_cast<const 方法类::节点类*>(主信息.来源动作.指针);
-        return 来源方法
-            ? 私有_引用主键或指针文本(来源方法->主信息.来源任务, "任务")
-            : std::string("无来源任务");
-    }
-
-    std::string 私有_动态来源场景标题(const 动态节点主信息类& 主信息)
-    {
-        const auto* 来源场景 =
-            主信息.来源输出场景.指针
-            ? 主信息.来源输出场景.指针
-            : 主信息.来源输入场景.指针;
-        return 来源场景
-            ? 私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(来源场景))
-            : std::string("无来源场景");
-    }
-
-    std::string 私有_动态树分组标题(const 动态节点主信息类& 主信息)
-    {
-        std::ostringstream 输出;
-        输出 << 私有_动态来源任务标题(主信息)
-            << " -> " << 私有_动态来源方法标题(主信息)
-            << " -> " << 私有_动态来源场景标题(主信息);
-        return 输出.str();
-    }
-
-    std::string 私有_动态摘要(const 动态节点主信息类& 主信息)
-    {
-        std::ostringstream 输出;
-        输出 << "分类=" << 私有_动态业务语义类型文本(主信息.业务语义类型)
-            << " | 来源=" << 私有_动态来源类型文本(主信息.来源类型)
-            << " | 相位=" << 私有_动作事件相位文本(主信息.来源动作相位)
-            << " | 层级=" << 主信息.动态层级
-            << " | 聚合=" << 私有_动态聚合方式文本(主信息.聚合方式);
-
-        if (主信息.初始状态.指针 || !主信息.初始状态.主键.empty()) {
-            输出 << " | 条件=" << 私有_状态引用标题(主信息.初始状态);
-        }
-        if (主信息.结果状态.指针 || !主信息.结果状态.主键.empty()) {
-            输出 << " | 结果=" << 私有_状态引用标题(主信息.结果状态);
-        }
-        if (主信息.动态主体.指针) {
-            输出 << " | 主体="
-                << 私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(主信息.动态主体.指针));
-        }
-        if (主信息.动态特征.指针 && 主信息.动态特征.指针->主信息) {
-            输出 << " | 特征="
-                << 私有_安全文本(私有_安全词(主信息.动态特征.指针->主信息->类型), "未命名特征");
-        }
-        if (主信息.动态路径签名 != 0) {
-            输出 << " | 路径签名=" << 主信息.动态路径签名;
-        }
-        if (!主信息.来源低层动态.empty()) {
-            输出 << " | 低层来源=" << 主信息.来源低层动态.size();
-        }
-        if (主信息.时间.起 != 0 || 主信息.时间.止 != 0) {
-            输出 << " | 时间=" << 主信息.时间.起 << "->" << 主信息.时间.止;
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_先天动作动态摘要(const 动态节点主信息类& 主信息)
-    {
-        std::ostringstream 输出;
-        输出 << "相位 " << 私有_动作事件相位文本(主信息.来源动作相位);
-
-        if (主信息.初始状态.指针 || !主信息.初始状态.主键.empty()) {
-            输出 << " | 条件 " << 私有_状态引用标题(主信息.初始状态);
-        }
-        if (主信息.结果状态.指针 || !主信息.结果状态.主键.empty()) {
-            输出 << " | 结果 " << 私有_状态引用标题(主信息.结果状态);
-        }
-        else {
-            输出 << " | 本轮仅记录动作事实";
-        }
-
-        if (主信息.动态特征.指针 && 主信息.动态特征.指针->主信息) {
-            输出 << " | 特征 "
-                << 私有_安全文本(私有_安全词(主信息.动态特征.指针->主信息->类型), "未命名特征");
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_因果实例条件摘要(const 因果实例主信息类& 主信息);
-    std::string 私有_因果实例动作摘要(const 因果实例主信息类& 主信息);
-    std::string 私有_因果实例结果摘要(const 因果实例主信息类& 主信息);
-    std::string 私有_因果模板条件摘要(const 因果模板主信息类& 主信息);
-    std::string 私有_因果模板动作摘要(const 因果模板主信息类& 主信息);
-    std::string 私有_因果模板结果摘要(const 因果模板主信息类& 主信息);
-
-    std::string 私有_先天动作因果摘要(const 因果实例节点类* 因果节点, const 因果实例主信息类& 主信息)
-    {
-        (void)因果节点;
-        std::ostringstream 输出;
-        输出 << "条件: " << 私有_因果实例条件摘要(主信息)
-            << " | 动作: " << 私有_因果实例动作摘要(主信息)
-            << " | 结果: " << 私有_因果实例结果摘要(主信息);
-        return 输出.str();
-    }
-
-    void 私有_追加阶段事件预览(
-        std::ostringstream& 输出,
-        const std::vector<结构_控制面板线程事件>& 事件列表,
-        std::size_t 上限)
-    {
-        输出 << "自我线程阶段事件\n";
-        if (事件列表.empty()) {
-            输出 << "  - 暂无事件\n";
-            return;
-        }
-
-        const std::size_t 总数 = 事件列表.size();
-        const std::size_t 起点 = 总数 > 上限 ? (总数 - 上限) : 0;
-        for (std::size_t 索引 = 起点; 索引 < 总数; ++索引) {
-            const auto& 事件 = 事件列表[索引];
-            输出 << "  - [" << 事件.时间 << "] "
-                << 私有_线程运行阶段文本(static_cast<枚举_自我线程运行阶段>(事件.阶段));
-            if (!事件.摘要.empty()) {
-                输出 << " | " << 事件.摘要;
-            }
-            输出 << '\n';
-        }
-        if (起点 > 0) {
-            输出 << "  - ... 省略 " << 起点 << " 条较早事件\n";
-        }
-    }
-
-    std::string 私有_线程状态摘要(const 结构_控制面板快照& 快照)
-    {
-        std::ostringstream 输出;
-        输出 << "生命周期=" << 私有_线程生命周期文本(static_cast<枚举_线程生命周期状态>(快照.自我线程生命周期))
-            << " | 健康=" << (快照.自我线程健康运行 ? "是" : "否")
-            << " | 运行中=" << (快照.自我线程运行中 ? "是" : "否")
-            << " | 首轮=" << (快照.自我线程首轮运行已完成 ? "是" : "否")
-            << " | Tick=" << 快照.自我Tick计数
-            << " | 阶段=" << 私有_安全文本(快照.自我线程当前阶段, "无")
-            << " | 去向=" << 私有_安全文本(快照.自我线程当前最终去向, "无");
-        return 输出.str();
-    }
-
-    std::string 私有_线程恢复摘要(const 结构_控制面板快照& 快照)
-    {
-        std::ostringstream 输出;
-        输出 << "启动=" << (快照.自我线程本次启动来自故障恢复 ? "恢复启动" : "普通启动")
-            << " | 故障=" << 快照.自我线程累计故障次数
-            << " | 恢复=" << 快照.自我线程累计恢复次数;
-        if (快照.自我线程最近结算已生成 || !快照.自我线程最近结算摘要.empty()) {
-            输出 << " | 最近结算=" << (快照.自我线程最近结算已生成 ? "有" : "无");
-        }
-        if (快照.自我线程最近已执行固定机制) {
-            输出 << " | 固定机制=已执行";
-        }
-        if (!快照.任务管理恢复点类型.empty()) {
-            输出 << " | 恢复点=" << 快照.任务管理恢复点类型;
-        }
-        if (快照.任务管理恢复存在待消费学习反馈
-            || 快照.任务管理恢复存在待消费学习回流
-            || 快照.任务管理恢复存在待消费外部反馈) {
-            输出 << " | 待消费="
-                << "学习反馈=" << (快照.任务管理恢复存在待消费学习反馈 ? "是" : "否")
-                << "/兼容回流=" << (快照.任务管理恢复存在待消费学习回流 ? "是" : "否")
-                << "/外部反馈=" << (快照.任务管理恢复存在待消费外部反馈 ? "是" : "否");
-        }
-        if (!快照.自我线程最近恢复摘要.empty()) {
-            输出 << " | 最近恢复=" << 快照.自我线程最近恢复摘要;
-        }
-        else if (!快照.任务管理恢复投影摘要.empty()) {
-            输出 << " | 恢复投影=" << 快照.任务管理恢复投影摘要;
-        }
-        if (!快照.自我线程最近固定机制摘要.empty()) {
-            输出 << " | 固定机制摘要=" << 快照.自我线程最近固定机制摘要;
-        }
-        if (!快照.自我线程最近主派发判据摘要.empty()) {
-            输出 << " | 主派发判据=" << 快照.自我线程最近主派发判据摘要;
-        }
-        if (!快照.自我线程最近故障摘要.empty()) {
-            输出 << " | 最近故障=" << 快照.自我线程最近故障摘要;
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_因果实例标题(const 因果实例节点类* 因果节点, const 因果实例主信息类& 主信息)
-    {
-        if (!主信息.动作名称.empty()) {
-            return 主信息.动作名称;
-        }
-
-        if (!主信息.动作语义键.empty()) {
-            return 主信息.动作语义键;
-        }
-
-        const auto 自然语言 = 世界树.因果().生成实例因果自然语言(因果节点);
-        if (!自然语言.empty()) {
-            return 自然语言;
-        }
-        return 私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(因果节点));
-    }
-
-    std::string 私有_因果实例结果方向摘要(const 因果实例主信息类& 主信息);
-
-    std::string 私有_因果实例摘要(const 因果实例节点类* 因果节点, const 因果实例主信息类& 主信息)
-    {
-        (void)因果节点;
-        std::ostringstream 输出;
-        输出 << "条件: " << 私有_因果实例条件摘要(主信息)
-            << " | 动作: " << 私有_因果实例动作摘要(主信息)
-            << " | 结果: " << 私有_因果实例结果摘要(主信息)
-            << " | 方向: " << 私有_因果实例结果方向摘要(主信息);
-        return 输出.str();
-    }
-
-    std::string 私有_因果模板标题(const 因果模板节点类* 因果节点, const 因果模板主信息类& 主信息)
-    {
-        if (!主信息.动作名称.empty()) {
-            return 主信息.动作名称;
-        }
-
-        if (主信息.动作模板.指针) {
-            return 私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(主信息.动作模板.指针));
-        }
-
-        const auto 自然语言 = 世界树.因果().生成抽象因果自然语言(因果节点);
-        if (!自然语言.empty()) {
-            return 自然语言;
-        }
-        return 私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(因果节点));
-    }
-
-    std::string 私有_因果模板结果方向摘要(const 因果模板主信息类& 主信息);
-
-    std::string 私有_因果模板摘要(const 因果模板节点类* 因果节点, const 因果模板主信息类& 主信息)
-    {
-        (void)因果节点;
-        std::ostringstream 输出;
-        输出 << "条件: " << 私有_因果模板条件摘要(主信息)
-            << " | 动作: " << 私有_因果模板动作摘要(主信息)
-            << " | 结果: " << 私有_因果模板结果摘要(主信息)
-            << " | 方向: " << 私有_因果模板结果方向摘要(主信息);
-        return 输出.str();
-    }
-
-    std::string 私有_线程治理摘要(const 结构_控制面板快照& 快照)
-    {
-        std::ostringstream 输出;
-        输出 << "根层=" << 私有_安全文本(快照.任务管理根层重判结果, "无")
-            << " | 门控=" << 私有_安全文本(快照.任务管理执行前门控结果, "无")
-            << " | 缺口=" << 私有_安全文本(快照.任务管理当前缺口, "无")
-            << " | 去向=" << 私有_安全文本(快照.任务管理当前去向, "无")
-            << " | 总控=" << 私有_安全文本(快照.任务管理总控结果, "无");
-        if (!快照.任务管理当前步骤标题.empty()) {
-            输出 << " | 步骤=" << 快照.任务管理当前步骤标题;
-        }
-        if (!快照.任务管理最近结果标题.empty()) {
-            输出 << " | 结果=" << 快照.任务管理最近结果标题;
-        }
-        if (!快照.自我线程最近主派发判据摘要.empty()) {
-            输出 << " | 主派发判据=" << 快照.自我线程最近主派发判据摘要;
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_线程事件摘要(const 结构_控制面板快照& 快照)
-    {
-        std::ostringstream 输出;
-        输出 << "待消费=" << 快照.治理mailbox待消费数;
-        输出 << " | 可恢复=" << 快照.治理mailbox可恢复事件数;
-        if (!快照.治理mailbox类型计数摘要.empty()) {
-            输出 << " | 计数=" << 快照.治理mailbox类型计数摘要;
-        }
-        if (!快照.治理mailbox最老等待摘要.empty()) {
-            输出 << " | 最老等待=" << 快照.治理mailbox最老等待摘要;
-        }
-        if (!快照.治理mailbox待恢复摘要.empty()) {
-            输出 << " | 待回判=" << 快照.治理mailbox待恢复摘要;
-        }
-        if (!快照.治理mailbox最近拦截摘要.empty()) {
-            输出 << " | 最近拦截=" << 快照.治理mailbox最近拦截摘要;
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_线程学习摘要(const 结构_控制面板快照& 快照)
-    {
-        std::ostringstream 输出;
-        输出 << "账本=" << 快照.学习任务总数
-            << " | 挂起=" << 快照.学习任务挂起数
-            << " | 可调度=" << 快照.学习任务可调度数
-            << " | 执行中=" << 快照.学习任务执行中数
-            << " | 触发学习=" << (快照.学习应触发学习 ? "是" : "否")
-            << " | 重试恢复=" << (快照.学习应申请重试恢复 ? "是" : "否")
-            << " | 收束恢复=" << (快照.学习应申请收束恢复 ? "是" : "否")
-            << " | 恢复请求=" << 快照.学习恢复请求数;
-        if (!快照.学习当前阶段.empty() || !快照.学习当前状态.empty()) {
-            输出 << " | 当前="
-                << 私有_安全文本(快照.学习当前阶段, "空")
-                << "/" << 私有_安全文本(快照.学习当前状态, "空");
-        }
-        if (!快照.学习当前任务标题.empty()) {
-            输出 << " | 任务=" << 快照.学习当前任务标题;
-        }
-        if (!快照.学习当前方法标题.empty()) {
-            输出 << " | 方法=" << 快照.学习当前方法标题;
-        }
-        if (!快照.学习最近摘要.empty()) {
-            输出 << " | 当前摘要=" << 快照.学习最近摘要;
-        }
-        if (!快照.学习固定机制观察摘要.empty()) {
-            输出 << " | 固定机制=" << 快照.学习固定机制观察摘要;
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_线程事件内容(const 结构_控制面板快照& 快照)
-    {
-        std::ostringstream 输出;
-        输出 << "自我线程运行态\n";
-        输出 << "  - 状态: " << 私有_线程状态摘要(快照) << '\n';
-        输出 << "  - 恢复: " << 私有_线程恢复摘要(快照) << '\n';
-        输出 << "  - 治理: " << 私有_线程治理摘要(快照) << '\n';
-        输出 << "  - 事件: " << 私有_线程事件摘要(快照) << '\n';
-        输出 << "  - 学习: " << 私有_线程学习摘要(快照) << '\n';
-        if (!快照.运行时车道摘要.empty()) {
-            输出 << "  - 车道: " << 快照.运行时车道摘要 << '\n';
-        }
-        if (!快照.主循环归并摘要.empty()) {
-            输出 << "  - 归并: " << 快照.主循环归并摘要 << '\n';
-        }
-        if (!快照.自我线程动作最近摘要.empty()) {
-            输出 << "  - 最近动作: " << 快照.自我线程动作最近摘要 << '\n';
-        }
-        if (!快照.自我线程解封前验收摘要.empty()) {
-            输出 << "  - 解封前验收: " << 快照.自我线程解封前验收摘要 << '\n';
-        }
-        输出 << '\n';
-
-        输出 << "阶段事件明细\n";
-        if (快照.自我运行阶段事件.empty()) {
-            输出 << "  - 暂无事件\n";
-            return 输出.str();
-        }
-
-        for (const auto& 事件 : 快照.自我运行阶段事件) {
-            输出 << "  - 时间: " << 事件.时间
-                << " | 阶段: " << 私有_线程运行阶段文本(static_cast<枚举_自我线程运行阶段>(事件.阶段));
-            if (!事件.摘要.empty()) {
-                输出 << " | 摘要: " << 事件.摘要;
-            }
-            if (事件.当前主需求 != 0) {
-                输出 << " | 主需求指针: " << 事件.当前主需求;
-            }
-            if (事件.当前主任务 != 0) {
-                输出 << " | 主任务指针: " << 事件.当前主任务;
-            }
-            if (事件.当前主方法 != 0) {
-                输出 << " | 主方法指针: " << 事件.当前主方法;
-            }
-            输出 << '\n';
-        }
-
-        return 输出.str();
-    }
-
-    std::string 私有_线程状态内容(const 结构_控制面板快照& 快照)
-    {
-        std::ostringstream 输出;
-        输出 << "线程状态\n";
-        输出 << "  - 线程数量: " << 快照.线程状态列表.size() << '\n';
-        输出 << '\n';
-
-        if (快照.线程状态列表.empty()) {
-            输出 << "  - 暂无线程状态数据\n";
-            return 输出.str();
-        }
-
-        for (const auto& 项 : 快照.线程状态列表) {
-            输出 << "  - " << 项.标题 << '\n';
-            if (!项.摘要.empty()) {
-                输出 << "    摘要: " << 项.摘要 << '\n';
-            }
-            for (const auto& 详情 : 项.详情行) {
-                输出 << "    * " << 详情 << '\n';
-            }
-            输出 << '\n';
-        }
-
-        return 输出.str();
-    }
-
-    std::string 私有_先天动作内容(const 结构_控制面板快照& 快照)
-    {
-        std::ostringstream 输出;
-        输出 << "先天动作检查\n";
-        输出 << "  - 先天动作动态数量: " << 快照.先天动作动态数 << '\n';
-        输出 << "  - 先天动作因果数量: " << 快照.先天动作因果数 << '\n';
-        输出 << "  - 本轮快照总动态数量: " << 快照.动态数 << '\n';
-        输出 << "  - 本轮快照总抽象因果数量: " << 快照.因果模板数 << '\n';
-        输出 << "  - 本轮快照总证据动态样本数量: " << 快照.因果证据动态样本数 << '\n';
-        输出 << '\n';
-
-        私有_追加列表预览(输出, "先天动作动态预览", 快照.先天动作动态列表, 10);
-        输出 << '\n';
-        私有_追加列表预览(输出, "先天动作因果预览", 快照.先天动作因果列表, 10);
-        输出 << '\n';
-        私有_追加列表预览(输出, "因果证据动态预览", 快照.因果实例列表, 10);
-        输出 << '\n';
-        私有_追加列表预览(输出, "因果模板预览", 快照.因果模板列表, 10);
-        return 输出.str();
-    }
-
-    std::string 私有_特征值文本(const 特征值& 值)
-    {
-        if (const auto* 标量 = std::get_if<I64>(&值)) {
-            return std::to_string(*标量);
-        }
-        if (const auto* 向量句柄 = std::get_if<VecU句柄>(&值)) {
-            return 向量句柄->有效()
-                ? std::string("VecU#") + std::to_string(向量句柄->主信息指针)
-                : "VecU#空";
-        }
-        if (const auto* 指针 = std::get_if<指针句柄>(&值)) {
-            return 指针->有效()
-                ? std::string("ptr#") + std::to_string(指针->指针)
-                : "ptr#空";
-        }
-        return "空";
-    }
-
-    template<class T节点, class T回调>
-    void 私有_枚举子节点(const T节点* 父节点, T回调&& 回调)
-    {
-        if (!父节点 || !父节点->子) return;
-
-        auto* 起点 = static_cast<const T节点*>(父节点->子);
-        auto* 当前 = 起点;
-        do {
-            回调(当前);
-            当前 = static_cast<const T节点*>(当前->下);
-        } while (当前 && 当前 != 起点);
-    }
-
-    template<class T节点, class T回调>
-    void 私有_前序遍历独立树(const T节点* 父节点, T回调&& 回调)
-    {
-        私有_枚举子节点(父节点, [&](const T节点* 子节点) {
-            回调(子节点);
-            私有_前序遍历独立树(子节点, 回调);
-        });
-    }
-
-    template<class T节点>
-    std::size_t 私有_统计独立树节点数(const T节点* 根节点)
-    {
-        std::size_t 数量 = 0;
-        私有_前序遍历独立树(根节点, [&](const T节点*) { ++数量; });
-        return 数量;
-    }
-
-    std::string 私有_需求标题(const 需求类::节点类* 节点)
-    {
-        if (!节点) return "空需求";
-        const auto& 主信息 = 节点->主信息;
-        return 私有_安全文本(私有_安全词(主信息.类型), std::string("需求#") + 节点->获取主键());
-    }
-
-    std::string 私有_需求摘要(const 需求类::节点类* 节点)
-    {
-        if (!节点) return {};
-        const auto& 主信息 = 节点->主信息;
-        std::ostringstream 输出;
-        输出 << "服务权重 " << 主信息.服务权重
-            << " | 安全权重 " << 主信息.安全权重;
-        const auto 相关任务 = 主信息.相关任务.指针
-            ? reinterpret_cast<const 任务类::节点类*>(主信息.相关任务.指针)
-            : nullptr;
-        if (相关任务) {
-            输出 << " | 相关任务 " << 私有_安全文本(私有_安全词(相关任务->主信息.名称), "未命名任务");
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_一步治理动作类型文本(任务运行包::枚举_动作类型 类型)
+    const char* 私有_因果锚点类型文本(const 枚举_因果锚点类型 类型) noexcept
     {
         switch (类型) {
-        case 任务运行包::枚举_动作类型::观察: return "观察";
-        case 任务运行包::枚举_动作类型::解释: return "解释";
-        case 任务运行包::枚举_动作类型::预警: return "预警";
-        case 任务运行包::枚举_动作类型::建议: return "建议";
-        case 任务运行包::枚举_动作类型::执行: return "执行";
-        case 任务运行包::枚举_动作类型::回滚: return "回滚";
-        case 任务运行包::枚举_动作类型::收束: return "收束";
+        case 枚举_因果锚点类型::场景: return "场景";
+        case 枚举_因果锚点类型::存在: return "存在";
         default: return "未定义";
         }
     }
 
-    std::string 私有_运行包状态文本(任务运行包::枚举_包状态 状态)
+    const char* 私有_因果来源类型文本(const 枚举_因果来源类型 类型) noexcept
     {
-        switch (状态) {
-        case 任务运行包::枚举_包状态::草稿: return "草稿";
-        case 任务运行包::枚举_包状态::已封口: return "已封口";
+        switch (类型) {
+        case 枚举_因果来源类型::观察生成: return "观察生成";
+        case 枚举_因果来源类型::执行生成: return "执行生成";
+        case 枚举_因果来源类型::推断生成: return "推断生成";
         default: return "未定义";
         }
     }
 
-    std::string 私有_自然句文本(const 自然句节点类* 节点)
-    {
-        if (!节点 || !节点->主信息) {
-            return "无";
-        }
-
-        const auto* 主信息 = dynamic_cast<const 自然句主信息类*>(节点->主信息);
-        if (!主信息) {
-            return "自然句ptr#" + std::to_string(reinterpret_cast<std::uintptr_t>(节点));
-        }
-        if (!主信息->原始文本.empty()) {
-            return 主信息->原始文本;
-        }
-
-        std::ostringstream 输出;
-        for (const auto& 词引用 : 主信息->词序列) {
-            const auto 文本 = 私有_安全词(词引用.指针);
-            if (文本.empty()) {
-                continue;
-            }
-            输出 << 文本;
-        }
-        if (const auto 文本 = 输出.str(); !文本.empty()) {
-            return 文本;
-        }
-        return "自然句ptr#" + std::to_string(reinterpret_cast<std::uintptr_t>(节点));
-    }
-
-    template<class T节点>
-    std::string 私有_基础引用标题(const 可解析引用<T节点>& 引用, const char* 前缀)
-    {
-        if (引用.指针) {
-            return 私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(引用.指针));
-        }
-        if (!引用.主键.empty()) {
-            return 私有_主键解析后的基础节点标题(引用.主键, 前缀);
-        }
-        return "无";
-    }
-
-    template<class T引用, class T取标题>
-    std::string 私有_拼接引用标题摘要(
-        const std::vector<T引用>& 列表,
-        T取标题&& 取标题,
-        const std::string& 空值文本,
-        std::size_t 上限 = 3)
-    {
-        std::vector<std::string> 片段{};
-        片段.reserve((std::min)(上限, 列表.size()));
-        for (const auto& 项 : 列表) {
-            auto 标题 = 取标题(项);
-            if (标题.empty() || 标题 == "无") {
-                continue;
-            }
-            片段.push_back(std::move(标题));
-            if (片段.size() >= 上限) {
-                break;
-            }
-        }
-
-        if (片段.empty()) {
-            return 空值文本;
-        }
-
-        std::ostringstream 输出;
-        for (std::size_t 索引 = 0; 索引 < 片段.size(); ++索引) {
-            if (索引 != 0) {
-                输出 << "；";
-            }
-            输出 << 片段[索引];
-        }
-        if (列表.size() > 片段.size()) {
-            输出 << " 等" << 列表.size() << "项";
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_因果实例条件摘要(const 因果实例主信息类& 主信息)
-    {
-        return 私有_拼接引用标题摘要(
-            主信息.条件模板,
-            [](const auto& 引用) { return 私有_特征引用标题(引用); },
-            "无");
-    }
-
-    std::string 私有_因果实例动作摘要(const 因果实例主信息类& 主信息)
-    {
-        if (!主信息.动作名称.empty()) {
-            return 主信息.动作名称;
-        }
-        if (!主信息.动作语义键.empty()) {
-            return 主信息.动作语义键;
-        }
-
-        auto 标题 = 私有_基础引用标题(主信息.动作模板, "基础信息");
-        if (!标题.empty() && 标题 != "无") {
-            return 标题;
-        }
-        return "无";
-    }
-
-    std::string 私有_因果实例结果摘要(const 因果实例主信息类& 主信息)
-    {
-        if (主信息.主状态迁移.指针 || !主信息.主状态迁移.主键.empty()) {
-            return 私有_基础引用标题(主信息.主状态迁移, "二次特征");
-        }
-
-        return 私有_拼接引用标题摘要(
-            主信息.状态迁移模板,
-            [](const auto& 引用) { return 私有_基础引用标题(引用, "二次特征"); },
-            "无");
-    }
-
-    std::string 私有_因果实例结果方向摘要(const 因果实例主信息类& 主信息)
-    {
-        const 可解析引用<二次特征节点类>* 主迁移 = nullptr;
-        if (主信息.主状态迁移.指针 || !主信息.主状态迁移.主键.empty()) {
-            主迁移 = &主信息.主状态迁移;
-        }
-        else if (!主信息.状态迁移模板.empty()) {
-            主迁移 = &主信息.状态迁移模板.front();
-        }
-
-        if (!主迁移) {
-            return "错误: 缺少状态迁移";
-        }
-
-        const 状态节点主信息类* 初始状态主信息 = 私有_解析迁移左状态主信息(*主迁移);
-        const 状态节点主信息类* 结果状态主信息 = 私有_解析迁移右状态主信息(*主迁移);
-        if (!初始状态主信息 || !结果状态主信息) {
-            for (const auto& 状态迁移 : 主信息.状态迁移模板) {
-                初始状态主信息 = 私有_解析迁移左状态主信息(状态迁移);
-                结果状态主信息 = 私有_解析迁移右状态主信息(状态迁移);
-                if (初始状态主信息 && 结果状态主信息) {
-                    break;
-                }
-            }
-        }
-        return 私有_因果状态方向文本(初始状态主信息, 结果状态主信息);
-    }
-
-    std::string 私有_因果模板条件摘要(const 因果模板主信息类& 主信息)
-    {
-        return 私有_拼接引用标题摘要(
-            主信息.条件模板,
-            [](const auto& 引用) { return 私有_特征引用标题(引用); },
-            "无");
-    }
-
-    std::string 私有_因果模板动作摘要(const 因果模板主信息类& 主信息)
-    {
-        if (!主信息.动作名称.empty()) {
-            return 主信息.动作名称;
-        }
-        if (!主信息.动作语义键.empty()) {
-            return 主信息.动作语义键;
-        }
-        const auto 标题 = 私有_基础引用标题(主信息.动作模板, "基础信息");
-        return (标题.empty() || 标题 == "无") ? "无" : 标题;
-    }
-
-    std::string 私有_因果模板结果摘要(const 因果模板主信息类& 主信息)
-    {
-        if (主信息.主状态迁移.指针 || !主信息.主状态迁移.主键.empty()) {
-            return 私有_基础引用标题(主信息.主状态迁移, "二次特征");
-        }
-        return 私有_拼接引用标题摘要(
-            主信息.状态迁移模板,
-            [](const auto& 引用) { return 私有_基础引用标题(引用, "二次特征"); },
-            "无");
-    }
-
-    std::string 私有_因果模板结果方向摘要(const 因果模板主信息类& 主信息)
-    {
-        std::unordered_map<std::string, std::size_t> 方向计数{};
-        std::string 最佳方向 = "错误: 抽象因果缺少可比较动态证据";
-        std::size_t 最佳计数 = 0;
-        for (const auto& 证据动态 : 主信息.证据动态样本) {
-            const auto* 动态主信息 = 私有_解析动态主信息(证据动态);
-            if (!动态主信息) {
-                continue;
-            }
-            const auto 方向 = 私有_动态结果方向摘要(动态主信息);
-            if (方向.empty() || 方向.rfind("错误:", 0) == 0) {
-                continue;
-            }
-            const auto 当前计数 = ++方向计数[方向];
-            if (当前计数 > 最佳计数) {
-                最佳计数 = 当前计数;
-                最佳方向 = 方向;
-            }
-        }
-        return 最佳方向;
-    }
-
-    bool 私有_需求节点有有效主信息(const 需求类::节点类* 节点) noexcept
-    {
-        if (!节点) {
-            return false;
-        }
-
-        const auto& 主信息 = 节点->主信息;
-        return 主信息.描述信息 != nullptr
-            || 主信息.类型 != nullptr
-            || 主信息.需求主体.有效()
-            || 主信息.需求场景.有效()
-            || 主信息.被需求存在.有效()
-            || 主信息.需求状态.有效()
-            || 主信息.需求虚拟存在.有效()
-            || 主信息.相关任务.有效()
-            || 主信息.被需求当前状态.有效()
-            || 主信息.需求有效截止 != 0
-            || 主信息.安全权重 != 0
-            || 主信息.服务权重 != 0
-            || 主信息.统计.创建时间 != 0
-            || 主信息.统计.最后观测时间 != 0
-            || 主信息.统计.命中次数 != 0
-            || 主信息.统计.可信度 != 10000;
-    }
-
-    const 需求类::节点类* 私有_父需求节点(const 需求类::节点类* 节点) noexcept
-    {
-        if (!节点 || !节点->父) {
-            return nullptr;
-        }
-
-        const auto* 父需求 = static_cast<const 需求类::节点类*>(节点->父);
-        return 私有_需求节点有有效主信息(父需求) ? 父需求 : nullptr;
-    }
-
-    std::int64_t 私有_需求相关任务权重(const 任务类::节点类* 任务节点) noexcept
-    {
-        if (!任务节点) {
-            return 0;
-        }
-
-        const auto& 主信息 = 任务节点->主信息;
-        if (主信息.调度优先级 != 0) {
-            return 主信息.调度优先级;
-        }
-        if (主信息.基准优先级 != 0) {
-            return 主信息.基准优先级;
-        }
-        if (主信息.来源需求.指针) {
-            const auto* 来源需求 = reinterpret_cast<const 需求类::节点类*>(主信息.来源需求.指针);
-            if (!来源需求) {
-                return 0;
-            }
-            return 来源需求->主信息.服务权重 != 0
-                ? 来源需求->主信息.服务权重
-                : 来源需求->主信息.安全权重;
-        }
-        return 0;
-    }
-
-    void 私有_追加需求来源详情(
-        const 需求类::节点类* 节点,
-        std::vector<std::string>* 详情行,
-        std::string* 来源摘要,
-        std::int64_t* 服务权重汇总,
-        std::int64_t* 安全权重汇总)
-    {
-        if (!节点 || !详情行 || !来源摘要 || !服务权重汇总 || !安全权重汇总) {
-            return;
-        }
-
-        const auto& 主信息 = 节点->主信息;
-        const auto 主服务权重 = 主信息.服务权重;
-        const auto 主安全权重 = 主信息.安全权重;
-        *服务权重汇总 = 主服务权重;
-        *安全权重汇总 = 主安全权重;
-
-        std::vector<std::string> 来源片段{};
-
-        const auto 追加来源 =
-            [&](std::string 名称,
-                std::string 标题,
-                std::int64_t 独立服务权重,
-                std::int64_t 独立安全权重,
-                bool 沿用主权重,
-                bool 计入需求权重汇总) {
-            if (标题.empty() || 标题 == "无") {
-                return;
-            }
-
-            来源片段.push_back(名称 + "=" + 标题);
-
-            std::ostringstream 行;
-            行 << 名称 << "=" << 标题 << " | 服务权重=";
-            if (沿用主权重) {
-                行 << "沿用主服务权重(" << 主服务权重 << ")"
-                    << " | 安全权重=沿用主安全权重(" << 主安全权重 << ")";
-            }
-            else {
-                行 << 独立服务权重
-                    << " | 安全权重=" << 独立安全权重;
-                if (计入需求权重汇总) {
-                    *服务权重汇总 += 独立服务权重;
-                    *安全权重汇总 += 独立安全权重;
-                }
-            }
-            详情行->push_back(行.str());
-        };
-
-        if (const auto* 父需求 = 私有_父需求节点(节点)) {
-            追加来源(
-                "父需求",
-                私有_需求标题(父需求),
-                父需求->主信息.服务权重,
-                父需求->主信息.安全权重,
-                false,
-                true);
-        }
-
-        追加来源("需求主体", 私有_基础引用标题(主信息.需求主体, "存在"), 0, 0, true, false);
-        追加来源("需求场景", 私有_基础引用标题(主信息.需求场景, "场景"), 0, 0, true, false);
-        追加来源("被需求存在", 私有_基础引用标题(主信息.被需求存在, "存在"), 0, 0, true, false);
-
-        const auto* 相关任务 = 主信息.相关任务.指针
-            ? reinterpret_cast<const 任务类::节点类*>(主信息.相关任务.指针)
-            : nullptr;
-        if (相关任务) {
-            追加来源(
-                "相关任务",
-                私有_任务标题(相关任务),
-                私有_需求相关任务权重(相关任务),
-                0,
-                false,
-                false);
-        }
-
-        *来源摘要 = 来源片段.empty() ? std::string("无显式来源") : 私有_拼接摘要片段(来源片段);
-        详情行->push_back(
-            "服务权重汇总=" + std::to_string(*服务权重汇总)
-            + " | 安全权重汇总=" + std::to_string(*安全权重汇总));
-    }
-
-    std::string 私有_任务标题(const 任务类::节点类* 节点)
-    {
-        if (!节点) return "空任务";
-        const auto& 主信息 = 节点->主信息;
-        return 私有_安全文本(私有_安全词(主信息.名称), std::string("任务#") + 节点->获取主键());
-    }
-
-    std::string 私有_任务摘要(const 任务类::节点类* 节点)
-    {
-        if (!节点) return {};
-        const auto& 主信息 = 节点->主信息;
-        std::ostringstream 输出;
-        输出 << 私有_任务状态文本(主信息.状态)
-            << " | " << 私有_任务节点种类文本(主信息.节点种类)
-            << " | 调度优先级 " << 主信息.调度优先级;
-        if (主信息.来源需求.指针) {
-            const auto* 来源需求 = reinterpret_cast<const 需求类::节点类*>(主信息.来源需求.指针);
-            输出 << " | 来源 " << 私有_需求标题(来源需求);
-        }
-        if (主信息.目标状态.指针 || !主信息.目标状态.主键.empty()) {
-            输出 << " | 目标 " << 私有_状态引用标题(主信息.目标状态);
-        }
-        if (主信息.结果状态信息.指针 || !主信息.结果状态信息.主键.empty()) {
-            输出 << " | 结果 " << 私有_状态引用标题(主信息.结果状态信息);
-        }
-        return 输出.str();
-    }
-
-    std::string 私有_方法标题(const 方法类::节点类* 节点)
-    {
-        if (!节点) return "空方法";
-        const auto& 主信息 = 节点->主信息;
-        return 私有_安全文本(私有_安全词(主信息.动作名), std::string("方法#") + 节点->获取主键());
-    }
-
-    std::string 私有_方法摘要(const 方法类::节点类* 节点)
-    {
-        if (!节点) return {};
-        const auto& 主信息 = 节点->主信息;
-        std::ostringstream 输出;
-        输出 << 私有_方法节点种类文本(主信息.节点种类);
-        if (主信息.来源任务.有效()) {
-            输出 << " | 来源 " << 私有_引用主键或指针文本(主信息.来源任务, "任务");
-        }
-        if (主信息.动作句柄.有效()) {
-            输出 << " | 动作句柄已绑定";
-        }
-        return 输出.str();
-    }
-
-    const char* 私有_布尔文本(bool 值) noexcept
-    {
-        return 值 ? "是" : "否";
-    }
-
-    std::string 私有_任务管理功能域文本(枚举_任务管理功能域 域)
+    const char* 私有_任务管理功能域文本(const 枚举_任务管理功能域 域) noexcept
     {
         switch (域) {
         case 枚举_任务管理功能域::筹办: return "筹办";
@@ -2824,9 +466,9 @@ namespace {
         }
     }
 
-    std::string 私有_任务管理缺口文本(枚举_任务管理缺口类型 缺口)
+    const char* 私有_任务管理缺口类型文本(const 枚举_任务管理缺口类型 类型) noexcept
     {
-        switch (缺口) {
+        switch (类型) {
         case 枚举_任务管理缺口类型::无缺口: return "无缺口";
         case 枚举_任务管理缺口类型::治理任务缺失: return "治理任务缺失";
         case 枚举_任务管理缺口类型::宿主任务缺失: return "宿主任务缺失";
@@ -2841,7 +483,7 @@ namespace {
         }
     }
 
-    std::string 私有_任务管理去向文本(枚举_任务管理下一步去向 去向)
+    const char* 私有_任务管理下一步去向文本(const 枚举_任务管理下一步去向 去向) noexcept
     {
         switch (去向) {
         case 枚举_任务管理下一步去向::回到重筹办: return "回到重筹办";
@@ -2854,20 +496,7 @@ namespace {
         }
     }
 
-    std::string 私有_任务管理状态迁移文本(枚举_任务管理治理状态迁移 迁移)
-    {
-        switch (迁移) {
-        case 枚举_任务管理治理状态迁移::回到重筹办: return "回到重筹办";
-        case 枚举_任务管理治理状态迁移::进入挂起: return "进入挂起";
-        case 枚举_任务管理治理状态迁移::进入运行: return "进入运行";
-        case 枚举_任务管理治理状态迁移::保持运行: return "保持运行";
-        case 枚举_任务管理治理状态迁移::保持等待: return "保持等待";
-        case 枚举_任务管理治理状态迁移::进入收束: return "进入收束";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_任务管理总控结果文本(枚举_任务管理总控结果 结果)
+    const char* 私有_任务管理总控结果文本(const 枚举_任务管理总控结果 结果) noexcept
     {
         switch (结果) {
         case 枚举_任务管理总控结果::治理任务已补齐: return "治理任务已补齐";
@@ -2881,4169 +510,3295 @@ namespace {
         }
     }
 
-    std::string 私有_任务管理根层重判结果文本(枚举_任务管理根层重判结果 结果)
-    {
-        switch (结果) {
-        case 枚举_任务管理根层重判结果::允许普通推进: return "允许普通推进";
-        case 枚举_任务管理根层重判结果::待机保持: return "待机保持";
-        case 枚举_任务管理根层重判结果::收束优先: return "收束优先";
-        case 枚举_任务管理根层重判结果::停止退出边界: return "停止退出边界";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_任务管理执行前门控结果文本(枚举_任务管理执行前门控结果 结果)
-    {
-        switch (结果) {
-        case 枚举_任务管理执行前门控结果::允许普通执行: return "允许普通执行";
-        case 枚举_任务管理执行前门控结果::仅允许等待: return "仅允许等待";
-        case 枚举_任务管理执行前门控结果::仅允许收束: return "仅允许收束";
-        case 枚举_任务管理执行前门控结果::禁止继续: return "禁止继续";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_任务管理反馈类型文本(枚举_任务管理反馈类型 类型)
-    {
-        switch (类型) {
-        case 枚举_任务管理反馈类型::治理推进: return "治理推进";
-        case 枚举_任务管理反馈类型::等待维持: return "等待维持";
-        case 枚举_任务管理反馈类型::收束回执: return "收束回执";
-        case 枚举_任务管理反馈类型::重筹办提示: return "重筹办提示";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_任务管理方法来源文本(枚举_任务管理方法来源 来源)
-    {
-        switch (来源) {
-        case 枚举_任务管理方法来源::已挂方法复用: return "已挂方法复用";
-        case 枚举_任务管理方法来源::当前主方法回填: return "当前主方法回填";
-        case 枚举_任务管理方法来源::最近结果回看: return "最近结果回看";
-        case 枚举_任务管理方法来源::方法树首节点候选: return "方法树首节点候选";
-        case 枚举_任务管理方法来源::条件节点筛选通过: return "条件节点筛选通过";
-        case 枚举_任务管理方法来源::默认本能兜底: return "默认本能兜底";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_任务管理方法需求位文本(枚举_任务管理方法需求位 需求位)
-    {
-        switch (需求位) {
-        case 枚举_任务管理方法需求位::补结构: return "补结构";
-        case 枚举_任务管理方法需求位::选择推进: return "选择推进";
-        case 枚举_任务管理方法需求位::分解补条件: return "分解补条件";
-        case 枚举_任务管理方法需求位::求证判定: return "求证判定";
-        case 枚举_任务管理方法需求位::门控转域: return "门控转域";
-        case 枚举_任务管理方法需求位::失败策略: return "失败策略";
-        case 枚举_任务管理方法需求位::收束复盘: return "收束复盘";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_任务管理本能缺口文本(枚举_任务管理本能能力缺口类型 缺口)
-    {
-        switch (缺口) {
-        case 枚举_任务管理本能能力缺口类型::无缺口: return "无缺口";
-        case 枚举_任务管理本能能力缺口类型::缺观察原语: return "缺观察原语";
-        case 枚举_任务管理本能能力缺口类型::缺写回原语: return "缺写回原语";
-        case 枚举_任务管理本能能力缺口类型::缺挂点原语: return "缺挂点原语";
-        case 枚举_任务管理本能能力缺口类型::缺动作边界: return "缺动作边界";
-        case 枚举_任务管理本能能力缺口类型::缺状态差分取证: return "缺状态差分取证";
-        case 枚举_任务管理本能能力缺口类型::缺实例因果取证: return "缺实例因果取证";
-        case 枚举_任务管理本能能力缺口类型::缺抽象因果归纳: return "缺抽象因果归纳";
-        case 枚举_任务管理本能能力缺口类型::需学习补齐: return "需学习补齐";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_任务管理步骤位类型文本(枚举_任务管理步骤位类型 类型)
-    {
-        switch (类型) {
-        case 枚举_任务管理步骤位类型::执行位: return "执行位";
-        case 枚举_任务管理步骤位类型::等待位: return "等待位";
-        case 枚举_任务管理步骤位类型::回接位: return "回接位";
-        case 枚举_任务管理步骤位类型::补条件位: return "补条件位";
-        case 枚举_任务管理步骤位类型::补结构位: return "补结构位";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_线程运行阶段文本(枚举_自我线程运行阶段 阶段)
+    const char* 私有_学习阶段文本(const 枚举_学习阶段 阶段) noexcept
     {
         switch (阶段) {
-        case 枚举_自我线程运行阶段::自我初始化: return "自我初始化";
-        case 枚举_自我线程运行阶段::线程启动中: return "线程启动";
-        case 枚举_自我线程运行阶段::运行态建立: return "运行态建立";
-        case 枚举_自我线程运行阶段::主循环消息归并: return "主循环/消息归并";
-        case 枚举_自我线程运行阶段::主循环初始化补齐: return "主循环/初始化补齐";
-        case 枚举_自我线程运行阶段::主循环主链回填: return "主循环/主链回填";
-        case 枚举_自我线程运行阶段::主循环根层裁决: return "主循环/根层裁决";
-        case 枚举_自我线程运行阶段::主循环任务治理: return "主循环/任务治理";
-        case 枚举_自我线程运行阶段::主循环结果回流: return "主循环/结果回流";
-        case 枚举_自我线程运行阶段::主循环心跳巡检: return "主循环/心跳巡检";
-        case 枚举_自我线程运行阶段::停止请求中: return "停止请求中";
-        case 枚举_自我线程运行阶段::线程收尾: return "线程收尾";
-        case 枚举_自我线程运行阶段::线程停止: return "线程停止";
-        case 枚举_自我线程运行阶段::线程故障: return "线程故障";
+        case 枚举_学习阶段::待适配: return "待适配";
+        case 枚举_学习阶段::待调度: return "待调度";
+        case 枚举_学习阶段::采样: return "采样";
+        case 枚举_学习阶段::更新: return "更新";
+        case 枚举_学习阶段::验证: return "验证";
+        case 枚举_学习阶段::提交: return "提交";
+        case 枚举_学习阶段::回滚: return "回滚";
         default: return "未定义";
         }
     }
 
-    std::string 私有_任务管理步骤语义类型文本(枚举_任务管理步骤语义类型 类型)
+    const char* 私有_学习状态文本(const 枚举_学习状态 状态) noexcept
+    {
+        switch (状态) {
+        case 枚举_学习状态::待创建: return "待创建";
+        case 枚举_学习状态::挂起: return "挂起";
+        case 枚举_学习状态::可调度: return "可调度";
+        case 枚举_学习状态::执行中: return "执行中";
+        case 枚举_学习状态::已提交: return "已提交";
+        case 枚举_学习状态::已回滚: return "已回滚";
+        case 枚举_学习状态::已失败: return "已失败";
+        default: return "未定义";
+        }
+    }
+
+    const char* 私有_主信息类型文本(const 枚举_主信息类型 类型) noexcept
     {
         switch (类型) {
-        case 枚举_任务管理步骤语义类型::治理步骤: return "治理步骤";
-        case 枚举_任务管理步骤语义类型::业务推进步骤: return "业务推进步骤";
-        case 枚举_任务管理步骤语义类型::等待维持步骤: return "等待维持步骤";
-        case 枚举_任务管理步骤语义类型::回接派生步骤: return "回接派生步骤";
-        case 枚举_任务管理步骤语义类型::补条件步骤: return "补条件步骤";
-        case 枚举_任务管理步骤语义类型::补结构步骤: return "补结构步骤";
-        default: return "未定义";
+        case 枚举_主信息类型::特征: return "特征";
+        case 枚举_主信息类型::存在: return "存在";
+        case 枚举_主信息类型::场景: return "场景";
+        case 枚举_主信息类型::状态: return "状态";
+        case 枚举_主信息类型::动态: return "动态";
+        case 枚举_主信息类型::因果: return "因果";
+        case 枚举_主信息类型::二次特征_修饰: return "二次特征";
+        case 枚举_主信息类型::指代: return "指代";
+        default: return "基础信息";
         }
     }
 
-    std::string 私有_任务管理双面比较结果文本(枚举_任务管理双面比较结果 类型)
-    {
-        switch (类型) {
-        case 枚举_任务管理双面比较结果::待补齐: return "待补齐";
-        case 枚举_任务管理双面比较结果::已对齐: return "已对齐";
-        case 枚举_任务管理双面比较结果::存在差额: return "存在差额";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_任务管理后果治理文本(枚举_任务管理后果治理 类型)
-    {
-        switch (类型) {
-        case 枚举_任务管理后果治理::无额外后果: return "无额外后果";
-        case 枚举_任务管理后果治理::补齐双面: return "补齐双面";
-        case 枚举_任务管理后果治理::继续派生业务步骤: return "继续派生业务步骤";
-        case 枚举_任务管理后果治理::保持等待: return "保持等待";
-        case 枚举_任务管理后果治理::回接后保持等待: return "回接后保持等待";
-        case 枚举_任务管理后果治理::回接后继续派生: return "回接后继续派生";
-        case 枚举_任务管理后果治理::进入收束: return "进入收束";
-        default: return "未定义";
-        }
-    }
-
-    std::string 私有_基础节点标题(const 基础信息节点类* 节点)
-    {
-        return 世界树.获取名称(节点);
-    }
-
-    template<class T节点, class T标题Fn>
-    void 私有_构建独立树节点(
-        const T节点* 父节点,
-        结构_控制面板树节点* 输出,
-        std::size_t 当前深度,
-        std::size_t 深度上限,
-        std::size_t 广度上限,
-        T标题Fn&& 标题函数)
-    {
-        if (!输出 || !父节点 || 当前深度 >= 深度上限) return;
-
-        std::size_t 已添加 = 0;
-        std::size_t 已省略 = 0;
-        私有_枚举子节点(父节点, [&](const T节点* 子节点) {
-            if (已添加 >= 广度上限) {
-                ++已省略;
-                return;
-            }
-
-            结构_控制面板树节点 子项{};
-            子项.节点指针 = reinterpret_cast<std::uintptr_t>(子节点);
-            子项.文本 = 标题函数(子节点);
-            私有_构建独立树节点(
-                子节点,
-                &子项,
-                当前深度 + 1,
-                深度上限,
-                广度上限,
-                标题函数);
-            输出->子项.push_back(std::move(子项));
-            ++已添加;
-        });
-
-        if (已省略 > 0) {
-            结构_控制面板树节点 省略项{};
-            省略项.文本 = "... 省略 " + std::to_string(已省略) + " 个节点";
-            输出->子项.push_back(std::move(省略项));
-        }
-    }
-
-    void 私有_构建世界树节点(
-        const 基础信息节点类* 父节点,
-        结构_控制面板树节点* 输出,
-        std::size_t 当前深度,
-        std::size_t 深度上限,
-        std::size_t 广度上限,
-        const 存在节点类* 自我存在)
-    {
-        if (!输出 || !父节点 || 当前深度 >= 深度上限) return;
-
-        const auto 子节点列表 = 世界树.获取子节点(父节点 == 世界树.世界根() ? nullptr : 父节点);
-        std::size_t 已添加 = 0;
-        std::size_t 已过滤历史宿主残留 = 0;
-        for (auto* 子节点 : 子节点列表) {
-            if (私有_判定历史宿主残留类型(子节点, 自我存在) != 枚举_历史宿主残留类型::无) {
-                ++已过滤历史宿主残留;
-                continue;
-            }
-            if (已添加 >= 广度上限) {
-                break;
-            }
-            结构_控制面板树节点 子项{};
-            子项.节点指针 = reinterpret_cast<std::uintptr_t>(子节点);
-            子项.文本 = 私有_基础节点标题(子节点);
-            私有_构建世界树节点(
-                子节点,
-                &子项,
-                当前深度 + 1,
-                深度上限,
-                广度上限,
-                自我存在);
-            输出->子项.push_back(std::move(子项));
-            ++已添加;
-        }
-        if (已过滤历史宿主残留 > 0) {
-            结构_控制面板树节点 过滤项{};
-            过滤项.文本 = "... 已过滤 " + std::to_string(已过滤历史宿主残留) + " 个历史宿主残留节点";
-            输出->子项.push_back(std::move(过滤项));
-        }
-        const auto 已处理节点数 = 已添加 + 已过滤历史宿主残留;
-        if (子节点列表.size() > 已处理节点数) {
-            结构_控制面板树节点 省略项{};
-            省略项.文本 = "... 省略 " + std::to_string(子节点列表.size() - 已处理节点数) + " 个节点";
-            输出->子项.push_back(std::move(省略项));
-        }
-    }
-
-    template<class T节点, class T标题Fn, class T摘要Fn>
-    void 私有_采集独立树列表(
-        const T节点* 根节点,
-        std::vector<结构_控制面板列表项>* 输出,
-        T标题Fn&& 标题函数,
-        T摘要Fn&& 摘要函数)
-    {
-        if (!输出 || !根节点) return;
-
-        私有_前序遍历独立树(根节点, [&](const T节点* 节点) {
-            结构_控制面板列表项 项{};
-            项.节点指针 = reinterpret_cast<std::uintptr_t>(节点);
-            项.标题 = 标题函数(节点);
-            项.摘要 = 摘要函数(节点);
-            输出->push_back(std::move(项));
-        });
-    }
-
-    void 私有_追加树叶节点(结构_控制面板树节点* 父节点, std::string 文本)
-    {
-        if (!父节点) {
-            return;
-        }
-
-        结构_控制面板树节点 子项{};
-        子项.文本 = std::move(文本);
-        父节点->子项.push_back(std::move(子项));
-    }
-
-    const char* 私有_因果锚点类型文本(枚举_因果锚点类型 类型) noexcept
-    {
-        switch (类型) {
-        case 枚举_因果锚点类型::场景: return "场景";
-        case 枚举_因果锚点类型::存在: return "存在";
-        default: return "未定义";
-        }
-    }
-
-    const char* 私有_因果来源类型文本(枚举_因果来源类型 类型) noexcept
-    {
-        switch (类型) {
-        case 枚举_因果来源类型::观察生成: return "观察生成";
-        case 枚举_因果来源类型::执行生成: return "执行生成";
-        case 枚举_因果来源类型::推断生成: return "推断生成";
-        default: return "未定义";
-        }
-    }
-
-    结构_控制面板树节点 私有_构建因果实例树节点(const 因果实例节点类* 节点, const 因果实例主信息类& 主信息)
-    {
-        结构_控制面板树节点 因果树节点{};
-        因果树节点.节点指针 = reinterpret_cast<std::uintptr_t>(节点);
-        因果树节点.文本 = 私有_因果实例摘要(节点, 主信息);
-        if (因果树节点.文本.empty()) {
-            因果树节点.文本 = 节点 ? 节点->获取主键() : "空实例因果";
-        }
-
-        私有_追加树叶节点(&因果树节点, std::string("主键=") + (节点 ? 节点->获取主键() : "空"));
-        私有_追加树叶节点(&因果树节点, std::string("适用锚点类型=") + 私有_因果锚点类型文本(主信息.适用锚点类型));
-        私有_追加树叶节点(&因果树节点, "适用层级=" + std::to_string(主信息.适用层级));
-        私有_追加树叶节点(&因果树节点, "动作名称=" + 私有_安全文本(主信息.动作名称, "无"));
-        私有_追加树叶节点(&因果树节点, "动作模板=" + 私有_基础引用标题(主信息.动作模板, "基础信息"));
-        私有_追加树叶节点(&因果树节点, "主状态迁移=" + 私有_基础引用标题(主信息.主状态迁移, "二次特征"));
-        私有_追加树叶节点(&因果树节点, "结果方向=" + 私有_因果实例结果方向摘要(主信息));
-        私有_追加树叶节点(&因果树节点, std::string("来源类型=") + 私有_因果来源类型文本(主信息.来源类型));
-        私有_追加树叶节点(&因果树节点, "置信度=" + std::to_string(主信息.置信度));
-        私有_追加树叶节点(&因果树节点, std::string("已验证=") + (主信息.已验证 ? "true" : "false"));
-
-        结构_控制面板树节点 条件节点{};
-        条件节点.文本 = "条件模板(" + std::to_string(主信息.条件模板.size()) + ")";
-        for (const auto& 条件模板 : 主信息.条件模板) {
-            私有_追加树叶节点(&条件节点, 私有_特征引用标题(条件模板));
-        }
-        if (条件节点.子项.empty()) {
-            私有_追加树叶节点(&条件节点, "无");
-        }
-        因果树节点.子项.push_back(std::move(条件节点));
-
-        结构_控制面板树节点 结果节点{};
-        结果节点.文本 = "状态迁移模板(" + std::to_string(主信息.状态迁移模板.size()) + ")";
-        for (const auto& 状态迁移 : 主信息.状态迁移模板) {
-            私有_追加树叶节点(&结果节点, 私有_基础引用标题(状态迁移, "二次特征"));
-        }
-        if (结果节点.子项.empty()) {
-            私有_追加树叶节点(&结果节点, "无");
-        }
-        因果树节点.子项.push_back(std::move(结果节点));
-
-        结构_控制面板树节点 证据节点{};
-        证据节点.文本 = "证据动态样本(" + std::to_string(主信息.证据动态样本.size()) + ")";
-        for (const auto& 证据动态 : 主信息.证据动态样本) {
-            const auto* 动态节点 = 证据动态.指针;
-            const auto* 动态主信息 = 私有_解析动态主信息(证据动态);
-            if (动态节点 && 动态主信息) {
-                结构_控制面板树节点 动态证据节点{};
-                动态证据节点.节点指针 = reinterpret_cast<std::uintptr_t>(动态节点);
-                动态证据节点.文本 = 私有_动态标题(动态节点, *动态主信息);
-                私有_追加树叶节点(&动态证据节点, std::string("主键=") + 动态节点->获取主键());
-                私有_追加树叶节点(&动态证据节点, "摘要=" + 私有_动态摘要(*动态主信息));
-                私有_追加树叶节点(&动态证据节点, "初始状态=" + 私有_状态引用标题(动态主信息->初始状态));
-                私有_追加树叶节点(&动态证据节点, "结果状态=" + 私有_状态引用标题(动态主信息->结果状态));
-                私有_追加树叶节点(&动态证据节点, "结果方向=" + 私有_动态结果方向摘要(动态主信息));
-                证据节点.子项.push_back(std::move(动态证据节点));
-            }
-            else {
-                私有_追加树叶节点(&证据节点, 私有_基础引用标题(证据动态, "动态"));
-            }
-        }
-        if (!证据节点.子项.empty()) {
-            因果树节点.子项.push_back(std::move(证据节点));
-        }
-
-        return 因果树节点;
-    }
-
-    结构_控制面板树节点 私有_构建因果模板树节点(const 因果模板节点类* 节点, const 因果模板主信息类& 主信息)
-    {
-        结构_控制面板树节点 因果树节点{};
-        因果树节点.节点指针 = reinterpret_cast<std::uintptr_t>(节点);
-        因果树节点.文本 = 私有_因果模板摘要(节点, 主信息);
-        if (因果树节点.文本.empty()) {
-            因果树节点.文本 = 节点 ? 节点->获取主键() : "空抽象因果";
-        }
-
-        私有_追加树叶节点(&因果树节点, std::string("主键=") + (节点 ? 节点->获取主键() : "空"));
-        私有_追加树叶节点(&因果树节点, std::string("适用锚点类型=") + 私有_因果锚点类型文本(主信息.适用锚点类型));
-        私有_追加树叶节点(&因果树节点, "适用层级=" + std::to_string(主信息.适用层级));
-        私有_追加树叶节点(&因果树节点, "动作名称=" + 私有_安全文本(主信息.动作名称, "无"));
-        私有_追加树叶节点(&因果树节点, "动作模板=" + 私有_基础引用标题(主信息.动作模板, "基础信息"));
-        私有_追加树叶节点(&因果树节点, "主状态迁移=" + 私有_基础引用标题(主信息.主状态迁移, "二次特征"));
-        私有_追加树叶节点(&因果树节点, "结果方向=" + 私有_因果模板结果方向摘要(主信息));
-        私有_追加树叶节点(&因果树节点, "成立次数=" + std::to_string(主信息.成立次数));
-        私有_追加树叶节点(&因果树节点, "失败次数=" + std::to_string(主信息.失败次数));
-        私有_追加树叶节点(&因果树节点, "最近命中时间=" + std::to_string(主信息.最近命中时间));
-        私有_追加树叶节点(&因果树节点, "最近失败时间=" + std::to_string(主信息.最近失败时间));
-        私有_追加树叶节点(&因果树节点, "置信度=" + std::to_string(主信息.置信度));
-        私有_追加树叶节点(&因果树节点, std::string("已验证=") + (主信息.已验证 ? "true" : "false"));
-
-        结构_控制面板树节点 条件模板节点{};
-        条件模板节点.文本 = "条件模板(" + std::to_string(主信息.条件模板.size()) + ")";
-        for (const auto& 条件模板 : 主信息.条件模板) {
-            私有_追加树叶节点(&条件模板节点, 私有_特征引用标题(条件模板));
-        }
-        if (条件模板节点.子项.empty()) {
-            私有_追加树叶节点(&条件模板节点, "无");
-        }
-        因果树节点.子项.push_back(std::move(条件模板节点));
-
-        结构_控制面板树节点 结果模板节点{};
-        结果模板节点.文本 = "状态迁移模板(" + std::to_string(主信息.状态迁移模板.size()) + ")";
-        for (const auto& 结果模板 : 主信息.状态迁移模板) {
-            私有_追加树叶节点(&结果模板节点, 私有_基础引用标题(结果模板, "二次特征"));
-        }
-        if (结果模板节点.子项.empty()) {
-            私有_追加树叶节点(&结果模板节点, "无");
-        }
-        因果树节点.子项.push_back(std::move(结果模板节点));
-
-        结构_控制面板树节点 证据节点{};
-        证据节点.文本 = "证据动态样本(" + std::to_string(主信息.证据动态样本.size()) + ")";
-        for (const auto& 证据动态 : 主信息.证据动态样本) {
-            const auto* 动态节点 = 证据动态.指针;
-            const auto* 动态主信息 = 私有_解析动态主信息(证据动态);
-            if (动态节点 && 动态主信息) {
-                结构_控制面板树节点 动态证据节点{};
-                动态证据节点.节点指针 = reinterpret_cast<std::uintptr_t>(动态节点);
-                动态证据节点.文本 = 私有_动态标题(动态节点, *动态主信息);
-                私有_追加树叶节点(&动态证据节点, std::string("主键=") + 动态节点->获取主键());
-                私有_追加树叶节点(&动态证据节点, "摘要=" + 私有_动态摘要(*动态主信息));
-                私有_追加树叶节点(&动态证据节点, "初始状态=" + 私有_状态引用标题(动态主信息->初始状态));
-                私有_追加树叶节点(&动态证据节点, "结果状态=" + 私有_状态引用标题(动态主信息->结果状态));
-                私有_追加树叶节点(&动态证据节点, "结果方向=" + 私有_动态结果方向摘要(动态主信息));
-                私有_追加树叶节点(&动态证据节点, "来源场景=" + 私有_动态来源场景标题(*动态主信息));
-                证据节点.子项.push_back(std::move(动态证据节点));
-            } else {
-                私有_追加树叶节点(&证据节点, 私有_基础引用标题(证据动态, "动态"));
-            }
-        }
-        if (证据节点.子项.empty()) {
-            私有_追加树叶节点(&证据节点, "无");
-        }
-        因果树节点.子项.push_back(std::move(证据节点));
-
-        return 因果树节点;
-    }
-
-    void 私有_构建需求树节点(
-        const 需求类::节点类* 父节点,
-        结构_控制面板树节点* 输出,
-        std::size_t 当前深度,
-        std::size_t 深度上限,
-        std::size_t 广度上限)
-    {
-        if (!父节点 || !输出 || 当前深度 >= 深度上限) {
-            return;
-        }
-
-        std::size_t 已添加 = 0;
-        std::size_t 已省略 = 0;
-        私有_枚举子节点(父节点, [&](const 需求类::节点类* 需求节点) {
-            if (已添加 >= 广度上限) {
-                ++已省略;
-                return;
-            }
-
-            const auto& 主信息 = 需求节点->主信息;
-            std::vector<std::string> 需求头片段{};
-            私有_追加摘要片段(&需求头片段, "类型", 私有_安全文本(私有_安全词(主信息.类型), "未定义"));
-            私有_追加摘要片段(&需求头片段, "服务权重", std::to_string(主信息.服务权重));
-            私有_追加摘要片段(&需求头片段, "安全权重", std::to_string(主信息.安全权重));
-
-            结构_控制面板树节点 需求树节点{};
-            需求树节点.节点指针 = reinterpret_cast<std::uintptr_t>(需求节点);
-            需求树节点.文本 = 私有_需求标题(需求节点);
-            const auto 头摘要 = 私有_拼接摘要片段(需求头片段);
-            if (!头摘要.empty()) {
-                需求树节点.文本 += " | " + 头摘要;
-            }
-
-            结构_控制面板树节点 字段节点{};
-            字段节点.文本 = "需求主信息字段";
-            私有_追加树叶节点(&字段节点, "描述信息=" + 私有_自然句文本(主信息.描述信息));
-            私有_追加树叶节点(&字段节点, "类型=" + 私有_安全文本(私有_安全词(主信息.类型), "未定义"));
-            私有_追加树叶节点(&字段节点, "统计.创建时间=" + std::to_string(主信息.统计.创建时间));
-            私有_追加树叶节点(&字段节点, "统计.最后观测时间=" + std::to_string(主信息.统计.最后观测时间));
-            私有_追加树叶节点(&字段节点, "统计.命中次数=" + std::to_string(主信息.统计.命中次数));
-            私有_追加树叶节点(&字段节点, "统计.可信度=" + std::to_string(主信息.统计.可信度));
-            私有_追加树叶节点(&字段节点, "需求主体=" + 私有_基础引用标题(主信息.需求主体, "存在"));
-            私有_追加树叶节点(&字段节点, "需求场景=" + 私有_基础引用标题(主信息.需求场景, "场景"));
-            私有_追加树叶节点(&字段节点, "被需求存在=" + 私有_基础引用标题(主信息.被需求存在, "存在"));
-            私有_追加树叶节点(&字段节点, "需求状态=" + 私有_状态引用标题(主信息.需求状态));
-            私有_追加树叶节点(&字段节点, "需求虚拟存在=" + 私有_基础引用标题(主信息.需求虚拟存在, "存在"));
-            私有_追加树叶节点(
-                &字段节点,
-                "相关任务="
-                + (
-                    主信息.相关任务.指针
-                    ? 私有_任务标题(reinterpret_cast<const 任务类::节点类*>(主信息.相关任务.指针))
-                    : 私有_引用主键或指针文本(主信息.相关任务, "任务")
-                ));
-            私有_追加树叶节点(&字段节点, "被需求当前状态=" + 私有_状态引用标题(主信息.被需求当前状态));
-            私有_追加树叶节点(&字段节点, "需求有效截止=" + std::to_string(主信息.需求有效截止));
-            私有_追加树叶节点(&字段节点, "服务权重=" + std::to_string(主信息.服务权重));
-            私有_追加树叶节点(&字段节点, "安全权重=" + std::to_string(主信息.安全权重));
-            需求树节点.子项.push_back(std::move(字段节点));
-
-            std::vector<std::string> 来源详情{};
-            std::string 来源摘要{};
-            std::int64_t 服务权重汇总 = 0;
-            std::int64_t 安全权重汇总 = 0;
-            私有_追加需求来源详情(
-                需求节点,
-                &来源详情,
-                &来源摘要,
-                &服务权重汇总,
-                &安全权重汇总);
-
-            结构_控制面板树节点 来源节点{};
-            来源节点.文本 = "需求来源";
-            私有_追加树叶节点(&来源节点, "来源摘要=" + 来源摘要);
-            for (const auto& 详情 : 来源详情) {
-                私有_追加树叶节点(&来源节点, 详情);
-            }
-            需求树节点.子项.push_back(std::move(来源节点));
-
-            结构_控制面板树节点 子需求节点{};
-            子需求节点.文本 = "子需求";
-            私有_构建需求树节点(
-                需求节点,
-                &子需求节点,
-                当前深度 + 1,
-                深度上限,
-                广度上限);
-            if (子需求节点.子项.empty()) {
-                私有_追加树叶节点(&子需求节点, "无");
-            }
-            需求树节点.子项.push_back(std::move(子需求节点));
-
-            输出->子项.push_back(std::move(需求树节点));
-            ++已添加;
-        });
-
-        if (已省略 > 0) {
-            结构_控制面板树节点 省略项{};
-            省略项.文本 = "... 省略 " + std::to_string(已省略) + " 个需求节点";
-            输出->子项.push_back(std::move(省略项));
-        }
-    }
-
-    void 私有_采集需求队列列表(
-        const 需求类::节点类* 根节点,
-        std::vector<结构_控制面板列表项>* 输出)
-    {
-        if (!根节点 || !输出) {
-            return;
-        }
-
-        std::size_t 队列序号 = 0;
-        私有_前序遍历独立树(根节点, [&](const 需求类::节点类* 节点) {
-            ++队列序号;
-
-            const auto& 主信息 = 节点->主信息;
-            std::vector<std::string> 详情行{};
-            详情行.push_back("特征类型=" + 私有_安全文本(私有_安全词(主信息.类型), "未定义"));
-            详情行.push_back("描述信息=" + 私有_自然句文本(主信息.描述信息));
-            详情行.push_back("主服务权重=" + std::to_string(主信息.服务权重));
-            详情行.push_back("主安全权重=" + std::to_string(主信息.安全权重));
-
-            std::string 来源摘要{};
-            std::int64_t 服务权重汇总 = 0;
-            std::int64_t 安全权重汇总 = 0;
-            私有_追加需求来源详情(
-                节点,
-                &详情行,
-                &来源摘要,
-                &服务权重汇总,
-                &安全权重汇总);
-
-            结构_控制面板列表项 项{};
-            项.节点指针 = reinterpret_cast<std::uintptr_t>(节点);
-            项.标题 = "队列#" + std::to_string(队列序号) + " · " + 私有_需求标题(节点);
-            项.摘要 =
-                "特征类型=" + 私有_安全文本(私有_安全词(主信息.类型), "未定义")
-                + " | 需求来源=" + 来源摘要
-                + " | 服务权重汇总=" + std::to_string(服务权重汇总)
-                + " | 安全权重汇总=" + std::to_string(安全权重汇总);
-            项.详情行 = std::move(详情行);
-            输出->push_back(std::move(项));
-        });
-    }
-
-    void 私有_渲染树前几行(
-        const 结构_控制面板树节点& 节点,
-        std::ostringstream& 输出,
-        std::size_t 深度上限,
-        std::size_t 行数上限,
-        std::size_t 当前深度,
-        std::size_t& 已输出行数)
-    {
-        if (已输出行数 >= 行数上限 || 当前深度 > 深度上限) return;
-
-        输出 << std::string(当前深度 * 2, ' ') << "- " << 节点.文本 << '\n';
-        ++已输出行数;
-        for (const auto& 子项 : 节点.子项) {
-            if (已输出行数 >= 行数上限) break;
-            私有_渲染树前几行(子项, 输出, 深度上限, 行数上限, 当前深度 + 1, 已输出行数);
-        }
-    }
-
-    std::string 私有_列表HTML(const std::vector<结构_控制面板列表项>& 列表, std::size_t 预览上限)
+    std::string 私有_动作句柄文本(const 结构体_动作句柄& 句柄)
     {
         std::ostringstream 输出;
-        输出 << "<table class='data-table'><thead><tr><th>标题</th><th>摘要</th></tr></thead><tbody>";
-        if (列表.empty()) {
-            输出 << "<tr><td colspan='2' class='muted'>暂无数据</td></tr>";
-        }
-        else {
-            const auto 上限 = (std::min)(预览上限, 列表.size());
-            for (std::size_t 索引 = 0; 索引 < 上限; ++索引) {
-                const auto& 项 = 列表[索引];
-                输出 << "<tr><td>" << 私有_转义HTML(项.标题)
-                    << "</td><td>" << 私有_转义HTML(项.摘要) << "</td></tr>";
-            }
-            if (列表.size() > 上限) {
-                输出 << "<tr><td colspan='2' class='muted'>... 省略 "
-                    << (列表.size() - 上限) << " 项</td></tr>";
-            }
-        }
-        输出 << "</tbody></table>";
-        return 输出.str();
-    }
-
-    std::string 私有_线程状态HTML(const std::vector<结构_控制面板列表项>& 列表, std::size_t 预览上限)
-    {
-        std::ostringstream 输出;
-        输出 << "<div class='queue-list'>";
-        if (列表.empty()) {
-            输出 << "<div class='queue-empty'>暂无线程状态数据</div>";
-        }
-        else {
-            const auto 上限 = (std::min)(预览上限, 列表.size());
-            for (std::size_t 索引 = 0; 索引 < 上限; ++索引) {
-                const auto& 项 = 列表[索引];
-                输出 << "<article class='queue-card'>"
-                    << "<div class='queue-index'>" << (索引 + 1) << "</div>"
-                    << "<div class='queue-body'>"
-                    << "<div class='queue-title'>" << 私有_转义HTML(项.标题) << "</div>";
-                if (!项.摘要.empty()) {
-                    输出 << "<div class='queue-summary'>" << 私有_转义HTML(项.摘要) << "</div>";
-                }
-                if (!项.详情行.empty()) {
-                    输出 << "<ul class='queue-detail'>";
-                    for (const auto& 详情 : 项.详情行) {
-                        输出 << "<li>" << 私有_转义HTML(详情) << "</li>";
-                    }
-                    输出 << "</ul>";
-                }
-                输出 << "</div></article>";
-            }
-            if (列表.size() > 上限) {
-                输出 << "<div class='queue-empty'>... 省略 " << (列表.size() - 上限) << " 项</div>";
-            }
-        }
-        输出 << "</div>";
-        return 输出.str();
-    }
-
-    std::string 私有_需求队列HTML(const std::vector<结构_控制面板列表项>& 列表, std::size_t 预览上限)
-    {
-        std::ostringstream 输出;
-        输出 << "<div class='queue-list'>";
-        if (列表.empty()) {
-            输出 << "<div class='queue-empty'>暂无需求数据</div>";
-        }
-        else {
-            const auto 上限 = (std::min)(预览上限, 列表.size());
-            for (std::size_t 索引 = 0; 索引 < 上限; ++索引) {
-                const auto& 项 = 列表[索引];
-                输出 << "<article class='queue-card'>"
-                    << "<div class='queue-index'>" << (索引 + 1) << "</div>"
-                    << "<div class='queue-body'>"
-                    << "<div class='queue-title'>" << 私有_转义HTML(项.标题) << "</div>";
-                if (!项.摘要.empty()) {
-                    输出 << "<div class='queue-summary'>" << 私有_转义HTML(项.摘要) << "</div>";
-                }
-                if (!项.详情行.empty()) {
-                    输出 << "<ul class='queue-detail'>";
-                    for (const auto& 详情 : 项.详情行) {
-                        输出 << "<li>" << 私有_转义HTML(详情) << "</li>";
-                    }
-                    输出 << "</ul>";
-                }
-                输出 << "</div></article>";
-            }
-            if (列表.size() > 上限) {
-                输出 << "<div class='queue-empty'>... 省略 " << (列表.size() - 上限) << " 项</div>";
-            }
-        }
-        输出 << "</div>";
-        return 输出.str();
-    }
-
-    void 私有_追加树HTML(const 结构_控制面板树节点& 节点, std::ostringstream& 输出, bool 默认展开)
-    {
-        输出 << "<li>";
-        if (节点.子项.empty()) {
-            输出 << "<div class='tree-leaf'>" << 私有_转义HTML(节点.文本) << "</div>";
-        }
-        else {
-            输出 << "<details";
-            if (默认展开) {
-                输出 << " open";
-            }
-            输出 << "><summary>" << 私有_转义HTML(节点.文本) << "</summary><ul>";
-            for (const auto& 子项 : 节点.子项) {
-                私有_追加树HTML(子项, 输出, 默认展开);
-            }
-            输出 << "</ul></details>";
-        }
-        输出 << "</li>";
-    }
-
-    std::string 私有_树HTML(const 结构_控制面板树节点& 根节点, bool 默认展开 = true)
-    {
-        std::ostringstream 输出;
-        输出 << "<ul class='tree-root'>";
-        私有_追加树HTML(根节点, 输出, 默认展开);
-        输出 << "</ul>";
-        return 输出.str();
-    }
-
-    结构_控制面板窗口上下文* 私有_取控制面板窗口上下文(HWND 窗口) noexcept
-    {
-        return reinterpret_cast<结构_控制面板窗口上下文*>(GetWindowLongPtrW(窗口, GWLP_USERDATA));
-    }
-
-    void 私有_显示控制面板窗口(HWND 窗口) noexcept
-    {
-        if (!窗口) return;
-        if (IsIconic(窗口)) {
-            ShowWindow(窗口, SW_RESTORE);
-        }
-        else {
-            ShowWindow(窗口, SW_SHOW);
-        }
-        SetForegroundWindow(窗口);
-    }
-
-    void 私有_设置窗口文本(HWND 控件, const std::string& 文本)
-    {
-        if (!控件) return;
-        const auto 宽文本 = 私有_UTF8转宽字串(文本);
-        SetWindowTextW(控件, 宽文本.c_str());
-    }
-
-    bool 私有_页面使用树控件(枚举_控制面板页面 页面) noexcept
-    {
-        (void)页面;
-        return false;
-    }
-
-    const 结构_控制面板树节点* 私有_页面对应树(
-        const 结构_控制面板快照& 快照,
-        枚举_控制面板页面 页面) noexcept
-    {
-        switch (页面) {
-        case 枚举_控制面板页面::世界树:
-            return &快照.世界树根;
-        case 枚举_控制面板页面::需求树:
-            return &快照.需求树根;
-        case 枚举_控制面板页面::任务树:
-            return &快照.任务树根;
-        case 枚举_控制面板页面::方法树:
-            return &快照.方法树根;
+        输出 << 私有_动作句柄类型文本(句柄.类型);
+        switch (句柄.类型) {
+        case 枚举_动作句柄类型::本能函数ID:
+            输出 << " | 本能ID=" << 句柄.本能ID;
+            break;
+        case 枚举_动作句柄类型::外部实现主键:
+            输出 << " | 外部实现主键=" << (句柄.外部实现主键.empty() ? "空" : 句柄.外部实现主键);
+            break;
+        case 枚举_动作句柄类型::动作序列主键:
+            输出 << " | 动作序列主键=" << (句柄.动作序列主键.empty() ? "空" : 句柄.动作序列主键);
+            break;
         default:
-            return nullptr;
-        }
-    }
-
-    HTREEITEM 私有_插入树控件节点(HWND 树控件, HTREEITEM 父项, const 结构_控制面板树节点& 节点)
-    {
-        if (!树控件) return nullptr;
-
-        auto 宽文本 = 私有_UTF8转宽字串(节点.文本);
-        TVINSERTSTRUCTW 插入结构{};
-        插入结构.hParent = 父项 ? 父项 : TVI_ROOT;
-        插入结构.hInsertAfter = TVI_LAST;
-        插入结构.item.mask = TVIF_TEXT;
-        插入结构.item.pszText = 宽文本.empty() ? const_cast<wchar_t*>(L"") : 宽文本.data();
-
-        const HTREEITEM 当前项 = TreeView_InsertItem(树控件, &插入结构);
-        for (const auto& 子项 : 节点.子项) {
-            (void)私有_插入树控件节点(树控件, 当前项, 子项);
-        }
-        if (当前项) {
-            TreeView_Expand(树控件, 当前项, TVE_EXPAND);
-        }
-        return 当前项;
-    }
-
-    void 私有_刷新树控件(HWND 树控件, const 结构_控制面板树节点* 根节点)
-    {
-        if (!树控件) return;
-        TreeView_DeleteAllItems(树控件);
-        if (!根节点) return;
-        const HTREEITEM 根项 = 私有_插入树控件节点(树控件, nullptr, *根节点);
-        if (根项) {
-            TreeView_SelectItem(树控件, 根项);
-            TreeView_EnsureVisible(树控件, 根项);
-        }
-    }
-
-    void 私有_追加树文本(
-        const 结构_控制面板树节点& 节点,
-        std::ostringstream& 输出,
-        const std::string& 前缀,
-        bool 是否最后一个)
-    {
-        输出 << 前缀;
-        if (!前缀.empty()) {
-            输出 << (是否最后一个 ? "└─ " : "├─ ");
-        }
-        输出 << 节点.文本 << '\n';
-
-        const std::string 子前缀 = 前缀 + (前缀.empty() ? "" : (是否最后一个 ? "   " : "│  "));
-        for (std::size_t i = 0; i < 节点.子项.size(); ++i) {
-            私有_追加树文本(
-                节点.子项[i],
-                输出,
-                子前缀,
-                i + 1 == 节点.子项.size());
-        }
-    }
-
-    std::string 私有_渲染树文本(const 结构_控制面板树节点& 根节点)
-    {
-        std::ostringstream 输出;
-        输出 << 根节点.文本 << '\n';
-        for (std::size_t i = 0; i < 根节点.子项.size(); ++i) {
-            私有_追加树文本(
-                根节点.子项[i],
-                输出,
-                "",
-                i + 1 == 根节点.子项.size());
+            break;
         }
         return 输出.str();
     }
 
-    void 私有_追加列表项(
-        std::vector<结构_控制面板列表项>* 列表,
-        std::uintptr_t 节点指针,
-        std::string 标题,
-        std::string 摘要)
+    std::string 私有_存在标题(const 存在节点类* 节点);
+    std::string 私有_需求标题(const 需求节点* 节点);
+    std::string 私有_任务标题(const 任务节点* 节点);
+    std::string 私有_方法标题(const 方法节点* 节点);
+    std::string 私有_基础信息标题(const 基础信息节点类* 节点, const 结构_构建上下文& 上下文);
+
+    template<class T节点>
+    std::string 私有_对象摘要(const T节点* 节点)
     {
-        if (!列表) {
-            return;
+        if (!节点) {
+            return "空";
         }
 
-        结构_控制面板列表项 项{};
-        项.节点指针 = 节点指针;
-        项.标题 = std::move(标题);
-        项.摘要 = std::move(摘要);
-        列表->push_back(std::move(项));
+        if constexpr (requires(const T节点* 值) { 值->获取主键(); }) {
+            std::ostringstream 输出;
+            输出 << "节点#" << 节点->获取主键();
+            return 输出.str();
+        }
+        else {
+            return "引用节点";
+        }
     }
 
-    std::uint64_t 私有_FILETIME转微秒(const FILETIME& 时间) noexcept
+    template<class T节点>
+    std::string 私有_安全节点摘要(const T节点* 节点, const char* 前缀)
     {
-        ULARGE_INTEGER 值{};
-        值.LowPart = 时间.dwLowDateTime;
-        值.HighPart = 时间.dwHighDateTime;
-        return 值.QuadPart / 10ULL;
+        if (!节点) {
+            return "空";
+        }
+
+        std::ostringstream 输出;
+        输出 << 前缀;
+        if constexpr (requires(const T节点* 值) { 值->获取主键(); }) {
+            输出 << "#" << 节点->获取主键();
+        }
+        输出 << " | 地址=" << 私有_十六进制指针(私有_地址(节点));
+        return 输出.str();
     }
 
-    DWORD 私有_取窗口线程ID(const wchar_t* 窗口类名) noexcept
+    template<>
+    std::string 私有_对象摘要<基础信息节点类>(const 基础信息节点类* 节点)
     {
-        if (!窗口类名 || *窗口类名 == L'\0') {
-            return 0;
+        if (!节点) {
+            return "空";
         }
-
-        const HWND 窗口 = FindWindowW(窗口类名, nullptr);
-        if (!窗口) {
-            return 0;
-        }
-
-        DWORD 进程ID = 0;
-        const DWORD 线程ID = GetWindowThreadProcessId(窗口, &进程ID);
-        return 进程ID == GetCurrentProcessId() ? 线程ID : 0;
+        结构_构建上下文 空上下文{};
+        return 私有_基础信息标题(节点, 空上下文);
     }
 
-    std::string 私有_读取线程描述(HANDLE 线程句柄)
+    template<>
+    std::string 私有_对象摘要<需求节点>(const 需求节点* 节点)
     {
-        if (!线程句柄) {
-            return {};
-        }
-
-        using GetThreadDescriptionFn = HRESULT(WINAPI*)(HANDLE, PWSTR*);
-        static const auto 函数 = reinterpret_cast<GetThreadDescriptionFn>(
-            GetProcAddress(GetModuleHandleW(L"Kernel32.dll"), "GetThreadDescription"));
-        if (!函数) {
-            return {};
-        }
-
-        PWSTR 描述缓冲 = nullptr;
-        if (FAILED(函数(线程句柄, &描述缓冲)) || !描述缓冲) {
-            return {};
-        }
-
-        const std::wstring 宽描述(描述缓冲);
-        LocalFree(描述缓冲);
-        return 私有_宽字串转UTF8(宽描述);
+        return 私有_需求标题(节点);
     }
 
-    struct 结构_线程枚举缓存项 {
-        DWORD 线程ID = 0;
-        DWORD 退出码 = STILL_ACTIVE;
-        int 基础优先级 = 0;
-        int 优先级偏移 = 0;
-        int 当前优先级 = THREAD_PRIORITY_ERROR_RETURN;
-        bool 时间可读 = false;
-        FILETIME 创建时间{};
-        FILETIME 内核时间{};
-        FILETIME 用户时间{};
-        std::string 线程描述{};
-    };
-
-    struct 结构_线程角色推断结果 {
-        std::string 名称 = "支撑线程";
-        std::string 发起者 = "运行库/平台";
-        std::string 用途 = "运行库/平台支撑线程";
-    };
-
-    std::string 私有_按线程描述推断用途(const std::string& 线程描述) noexcept
+    template<>
+    std::string 私有_对象摘要<任务节点>(const 任务节点* 节点)
     {
-        if (线程描述.empty()) {
-            return {};
-        }
-        if (线程描述.find("控制面板") != std::string::npos) {
-            return "控制面板线程";
-        }
-        if (线程描述.find("自我线程") != std::string::npos) {
-            return "自我线程";
-        }
-        if (线程描述.find("任务管理工作线程") != std::string::npos
-            || 线程描述.find("工作线程") != std::string::npos) {
-            return "任务管理工作线程";
-        }
-        if (线程描述.find("主程序") != std::string::npos) {
-            return "主程序主线程";
-        }
-        return {};
+        return 私有_任务标题(节点);
     }
 
-    std::string 私有_按线程用途推断发起者(const std::string& 用途) noexcept
+    template<>
+    std::string 私有_对象摘要<方法节点>(const 方法节点* 节点)
     {
-        if (用途 == "控制面板线程" || 用途 == "自我线程") {
-            return "主程序";
-        }
-        if (用途 == "任务管理工作线程") {
-            return "自我线程";
-        }
-        if (用途 == "主程序主线程") {
-            return "进程入口创建";
-        }
-        if (用途 == "运行库/平台支撑线程") {
-            return "运行库/平台";
-        }
-        return "未识别";
+        return 私有_方法标题(节点);
     }
 
-    DWORD 私有_推断主程序主线程ID(const std::vector<结构_线程枚举缓存项>& 线程列表) noexcept
+    template<class T节点>
+    std::string 私有_引用文本(T节点* 指针, const std::string& 主键 = {})
     {
-        DWORD 主程序主线程ID = 0;
-        bool 已命中 = false;
-        std::uint64_t 最早创建时间 = 0;
-        for (const auto& 线程 : 线程列表) {
-            if (!线程.时间可读) {
-                continue;
+        if (!指针 && 主键.empty()) {
+            return "空";
+        }
+
+        std::ostringstream 输出;
+        if (指针) {
+            输出 << 私有_对象摘要(指针);
+        }
+        else {
+            输出 << "主键=" << 主键;
+        }
+
+        bool 主键已体现在对象摘要中 = false;
+        if constexpr (requires(T节点* 值) { 值->获取主键(); }) {
+            主键已体现在对象摘要中 = 指针 && 主键 == 指针->获取主键();
+        }
+
+        if (!主键.empty() && !主键已体现在对象摘要中) {
+            输出 << " | 主键=" << 主键;
+        }
+        if (指针) {
+            输出 << " | 地址=" << 私有_十六进制指针(私有_地址(指针));
+        }
+        return 输出.str();
+    }
+
+    template<class T节点>
+    constexpr std::string_view 私有_结构展开类型() noexcept
+    {
+        using 节点类型 = std::remove_cv_t<T节点>;
+        if constexpr (std::is_same_v<节点类型, 基础信息节点类>) {
+            return "base-node";
+        }
+        else if constexpr (std::is_same_v<节点类型, 需求节点> || std::is_same_v<节点类型, 需求节点类>) {
+            return "need-node";
+        }
+        else if constexpr (std::is_same_v<节点类型, 任务节点> || std::is_same_v<节点类型, 任务节点类>) {
+            return "task-node";
+        }
+        else if constexpr (std::is_same_v<节点类型, 方法节点> || std::is_same_v<节点类型, 方法节点类>) {
+            return "method-node";
+        }
+        else {
+            return "";
+        }
+    }
+
+    template<class T节点>
+    constexpr std::string_view 私有_引用展开类型() noexcept
+    {
+        using 节点类型 = std::remove_cv_t<T节点>;
+        if constexpr (std::is_same_v<节点类型, 基础信息节点类>) {
+            return "base-ref";
+        }
+        else if constexpr (std::is_same_v<节点类型, 需求节点> || std::is_same_v<节点类型, 需求节点类>) {
+            return "need-ref";
+        }
+        else if constexpr (std::is_same_v<节点类型, 任务节点> || std::is_same_v<节点类型, 任务节点类>) {
+            return "task-ref";
+        }
+        else if constexpr (std::is_same_v<节点类型, 方法节点> || std::is_same_v<节点类型, 方法节点类>) {
+            return "method-ref";
+        }
+        else {
+            return "";
+        }
+    }
+
+    template<class T节点>
+    constexpr std::string_view 私有_引用字段类型文本() noexcept
+    {
+        using 节点类型 = std::remove_cv_t<T节点>;
+        if constexpr (std::is_same_v<节点类型, 基础信息节点类>) {
+            return "基础信息指针";
+        }
+        else if constexpr (std::is_same_v<节点类型, 需求节点> || std::is_same_v<节点类型, 需求节点类>) {
+            return "需求指针";
+        }
+        else if constexpr (std::is_same_v<节点类型, 任务节点> || std::is_same_v<节点类型, 任务节点类>) {
+            return "任务指针";
+        }
+        else if constexpr (std::is_same_v<节点类型, 方法节点> || std::is_same_v<节点类型, 方法节点类>) {
+            return "方法指针";
+        }
+        else {
+            return "引用";
+        }
+    }
+
+    std::string 私有_字段显示文本(
+        const std::string& 名称,
+        std::string_view 类型,
+        const std::string& 值)
+    {
+        return 名称 + " | 类型=" + std::string(类型) + " | 值=" + (值.empty() ? "空" : 值);
+    }
+
+    结构_控制面板树节点 私有_新节点(
+        std::string 文本,
+        const std::uintptr_t 节点指针 = 0,
+        const bool 默认展开 = false,
+        const bool 可延迟展开 = false,
+        std::string 展开类型 = {},
+        const std::uintptr_t 附加参数 = 0)
+    {
+        结构_控制面板树节点 节点{};
+        节点.节点指针 = 节点指针;
+        节点.附加参数 = 附加参数;
+        节点.文本 = std::move(文本);
+        节点.默认展开 = 默认展开;
+        节点.可延迟展开 = 可延迟展开;
+        节点.展开类型 = std::move(展开类型);
+        return 节点;
+    }
+
+    void 私有_追加叶字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        const std::string& 值)
+    {
+        父节点.子项.push_back(私有_新节点(私有_字段显示文本(名称, "文本", 值)));
+    }
+
+    void 私有_追加叶字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        const char* 值)
+    {
+        私有_追加叶字段(父节点, 名称, 值 ? std::string(值) : std::string{});
+    }
+
+    void 私有_追加叶字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        const std::int64_t 值)
+    {
+        父节点.子项.push_back(私有_新节点(私有_字段显示文本(名称, "i64", std::to_string(值))));
+    }
+
+    void 私有_追加叶字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        const std::uint64_t 值)
+    {
+        父节点.子项.push_back(私有_新节点(私有_字段显示文本(名称, "u64", std::to_string(值))));
+    }
+
+    void 私有_追加叶字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        const bool 值)
+    {
+        父节点.子项.push_back(私有_新节点(私有_字段显示文本(名称, "bool", 私有_布尔文本(值))));
+    }
+
+    template<class T>
+    requires (std::is_arithmetic_v<T> && !std::is_same_v<std::remove_cv_t<T>, bool>)
+    void 私有_追加叶字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        const T 值)
+    {
+        父节点.子项.push_back(私有_新节点(私有_字段显示文本(名称, "数值", std::to_string(值))));
+    }
+
+    void 私有_追加统计字段(结构_控制面板树节点& 父节点, const 结构_统计& 统计)
+    {
+        auto 统计节点 = 私有_新节点("统计");
+        私有_追加叶字段(统计节点, "创建时间", 私有_时间文本(统计.创建时间));
+        私有_追加叶字段(统计节点, "最后观测时间", 私有_时间文本(统计.最后观测时间));
+        私有_追加叶字段(统计节点, "命中次数", 统计.命中次数);
+        私有_追加叶字段(统计节点, "可信度", 统计.可信度);
+        父节点.子项.push_back(std::move(统计节点));
+    }
+
+    void 私有_追加字符串列表字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        const std::vector<std::string>& 列表,
+        const std::size_t 上限)
+    {
+        auto 列表节点 = 私有_新节点(名称 + " (" + std::to_string(列表.size()) + ")");
+        const auto 实际上限 = (std::min)(上限, 列表.size());
+        for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
+            列表节点.子项.push_back(私有_新节点(std::to_string(索引) + ": " + 列表[索引]));
+        }
+        if (列表.size() > 实际上限) {
+            列表节点.子项.push_back(
+                私有_新节点("... 省略 " + std::to_string(列表.size() - 实际上限) + " 项"));
+        }
+        父节点.子项.push_back(std::move(列表节点));
+    }
+
+    template<class T节点, class T构建器>
+    void 私有_追加指针字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        T节点* 指针,
+        const std::string& 主键,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径,
+        T构建器&& 构建器)
+    {
+        (void)上下文;
+        (void)剩余深度;
+        (void)构建器;
+
+        const auto 展开类型 = std::string(私有_引用展开类型<T节点>());
+        auto 字段节点 = 私有_新节点(
+            私有_字段显示文本(名称, 私有_引用字段类型文本<T节点>(), 私有_引用文本(指针, 主键)),
+            私有_地址(指针),
+            false,
+            指针 != nullptr && !展开类型.empty(),
+            展开类型);
+
+        if (指针) {
+            const auto 地址 = 私有_地址(指针);
+            if (路径.contains(地址)) {
+                字段节点.可延迟展开 = false;
+                字段节点.展开类型.clear();
+                字段节点.子项.push_back(私有_新节点("路径=已在上层路径中"));
             }
-            const auto 创建时间_微秒 = 私有_FILETIME转微秒(线程.创建时间);
-            if (!已命中 || 创建时间_微秒 < 最早创建时间) {
-                已命中 = true;
-                最早创建时间 = 创建时间_微秒;
-                主程序主线程ID = 线程.线程ID;
-            }
         }
-        return 主程序主线程ID;
+        父节点.子项.push_back(std::move(字段节点));
     }
 
-    结构_线程角色推断结果 私有_推断线程角色(
-        const DWORD 线程ID,
-        const std::string& 线程描述,
-        const DWORD 主程序主线程ID,
-        const DWORD 控制面板窗口线程ID,
-        const DWORD WebView2线程ID) noexcept
+    template<class T节点, class T构建器>
+    void 私有_追加引用字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        const 可解析引用<T节点>& 引用,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径,
+        T构建器&& 构建器)
     {
-        结构_线程角色推断结果 结果{};
+        私有_追加指针字段(
+            父节点,
+            名称,
+            引用.指针,
+            引用.主键,
+            上下文,
+            剩余深度,
+            路径,
+            std::forward<T构建器>(构建器));
+    }
 
-        if (线程ID == 主程序主线程ID && 主程序主线程ID != 0) {
-            结果.名称 = "主程序主线程";
-            结果.用途 = "主程序主线程";
-            结果.发起者 = 私有_按线程用途推断发起者(结果.用途);
+    template<class T节点, class T构建器>
+    void 私有_追加引用列表字段(
+        结构_控制面板树节点& 父节点,
+        const std::string& 名称,
+        const std::vector<可解析引用<T节点>>& 列表,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径,
+        T构建器&& 构建器,
+        const std::size_t 上限)
+    {
+        auto 列表节点 = 私有_新节点(名称 + " (" + std::to_string(列表.size()) + ")");
+        const auto 实际上限 = (std::min)(上限, 列表.size());
+        for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
+            私有_追加引用字段(
+                列表节点,
+                std::to_string(索引),
+                列表[索引],
+                上下文,
+                剩余深度,
+                路径,
+                std::forward<T构建器>(构建器));
+        }
+        if (列表.size() > 实际上限) {
+            列表节点.子项.push_back(
+                私有_新节点("... 省略 " + std::to_string(列表.size() - 实际上限) + " 项"));
+        }
+        父节点.子项.push_back(std::move(列表节点));
+    }
+
+    template<class T节点>
+    std::vector<T节点*> 私有_枚举子节点(const T节点* 父节点, const std::size_t 上限)
+    {
+        std::vector<T节点*> 结果{};
+        if (!父节点 || !父节点->子) {
             return 结果;
         }
 
-        if (线程ID == 控制面板窗口线程ID || 线程ID == WebView2线程ID) {
-            结果.名称 = "控制面板窗口线程";
-            结果.用途 = "控制面板线程";
-            结果.发起者 = 私有_按线程用途推断发起者(结果.用途);
-            return 结果;
-        }
-
-        if (const auto 推断用途 = 私有_按线程描述推断用途(线程描述); !推断用途.empty()) {
-            结果.名称 = 推断用途;
-            结果.用途 = 推断用途;
-            结果.发起者 = 私有_按线程用途推断发起者(结果.用途);
-            return 结果;
-        }
-
+        auto* 首节点 = reinterpret_cast<T节点*>(父节点->子);
+        auto* 当前 = 首节点;
+        std::size_t 已收集 = 0;
+        do {
+            结果.push_back(当前);
+            ++已收集;
+            当前 = reinterpret_cast<T节点*>(当前->下);
+        } while (当前 && 当前 != 首节点 && 已收集 < 上限);
         return 结果;
     }
 
-    void 私有_构建线程状态列表(结构_控制面板快照* 快照)
+    template<class T节点, class T回调>
+    void 私有_遍历全部子节点(const T节点* 父节点, T回调&& 回调)
     {
-        if (!快照) {
+        if (!父节点 || !父节点->子) {
             return;
         }
 
-        快照->线程状态列表.clear();
-        const DWORD 控制面板窗口线程ID = 私有_取窗口线程ID(L"鱼巢控制面板独立窗口");
-        const DWORD WebView2线程ID = 私有_取窗口线程ID(L"鱼巢控制面板WebView2窗口");
-        std::vector<结构_线程枚举缓存项> 线程缓存列表{};
+        auto* 当前 = reinterpret_cast<T节点*>(父节点->子);
+        路径集合 已访问{};
+        while (当前) {
+            const auto 地址 = 私有_地址(当前);
+            if (!已访问.insert(地址).second) {
+                break;
+            }
+            回调(当前);
+            当前 = reinterpret_cast<T节点*>(当前->下);
+        }
+    }
 
-        const HANDLE 快照句柄 = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-        if (快照句柄 == INVALID_HANDLE_VALUE) {
-            return;
+    template<class T节点>
+    std::vector<T节点*> 私有_枚举全部子节点(const T节点* 父节点)
+    {
+        std::vector<T节点*> 结果{};
+        私有_遍历全部子节点(父节点, [&](T节点* 子节点) {
+            结果.push_back(子节点);
+        });
+        return 结果;
+    }
+
+    void 私有_累计文本计数(
+        std::vector<std::pair<std::string, std::size_t>>& 统计,
+        std::string 键)
+    {
+        if (键.empty()) {
+            键 = "空";
         }
 
-        const DWORD 进程ID = GetCurrentProcessId();
-        THREADENTRY32 线程项{};
-        线程项.dwSize = sizeof(线程项);
-        if (!Thread32First(快照句柄, &线程项)) {
-            CloseHandle(快照句柄);
-            return;
+        for (auto& [已有键, 数量] : 统计) {
+            if (已有键 == 键) {
+                ++数量;
+                return;
+            }
         }
+        统计.emplace_back(std::move(键), 1);
+    }
 
-        do {
-            if (线程项.th32OwnerProcessID != 进程ID) {
-                continue;
-            }
-
-            HANDLE 线程句柄 = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, FALSE, 线程项.th32ThreadID);
-            DWORD 退出码 = STILL_ACTIVE;
-            int 当前优先级 = THREAD_PRIORITY_ERROR_RETURN;
-            FILETIME 创建时间{};
-            FILETIME 退出时间{};
-            FILETIME 内核时间{};
-            FILETIME 用户时间{};
-            bool 时间可读 = false;
-            std::string 线程描述{};
-
-            if (线程句柄) {
-                (void)GetExitCodeThread(线程句柄, &退出码);
-                当前优先级 = GetThreadPriority(线程句柄);
-                线程描述 = 私有_读取线程描述(线程句柄);
-                时间可读 = GetThreadTimes(
-                    线程句柄,
-                    &创建时间,
-                    &退出时间,
-                    &内核时间,
-                    &用户时间) != FALSE;
-            }
-            结构_线程枚举缓存项 缓存项{};
-            缓存项.线程ID = 线程项.th32ThreadID;
-            缓存项.退出码 = 退出码;
-            缓存项.基础优先级 = 线程项.tpBasePri;
-            缓存项.优先级偏移 = 线程项.tpDeltaPri;
-            缓存项.当前优先级 = 当前优先级;
-            缓存项.时间可读 = 时间可读;
-            缓存项.创建时间 = 创建时间;
-            缓存项.内核时间 = 内核时间;
-            缓存项.用户时间 = 用户时间;
-            缓存项.线程描述 = std::move(线程描述);
-            线程缓存列表.push_back(std::move(缓存项));
-
-            if (线程句柄) {
-                CloseHandle(线程句柄);
-            }
-        } while (Thread32Next(快照句柄, &线程项));
-
-        CloseHandle(快照句柄);
-        const DWORD 主程序主线程ID = 私有_推断主程序主线程ID(线程缓存列表);
-
-        for (const auto& 线程 : 线程缓存列表) {
-            const auto 角色 = 私有_推断线程角色(
-                线程.线程ID,
-                线程.线程描述,
-                主程序主线程ID,
-                控制面板窗口线程ID,
-                WebView2线程ID);
-
-            结构_控制面板列表项 项{};
-            项.节点指针 = static_cast<std::uintptr_t>(线程.线程ID);
-            项.标题 = 角色.名称 + " #" + std::to_string(线程.线程ID);
-
-            std::ostringstream 摘要;
-            摘要 << "发起者=" << 角色.发起者
-                << " | 用途=" << 角色.用途
-                << " | 状态=" << (线程.退出码 == STILL_ACTIVE ? "运行中" : "已退出")
-                << " | 基础优先级=" << 线程.基础优先级;
-            if (线程.当前优先级 != THREAD_PRIORITY_ERROR_RETURN) {
-                摘要 << " | 当前优先级=" << 线程.当前优先级;
-            }
-            项.摘要 = 摘要.str();
-
-            项.详情行.push_back("线程ID=" + std::to_string(线程.线程ID));
-            项.详情行.push_back("名称=" + 角色.名称);
-            项.详情行.push_back("发起者=" + 角色.发起者);
-            项.详情行.push_back("用途=" + 角色.用途);
-            项.详情行.push_back("状态=" + std::string(线程.退出码 == STILL_ACTIVE ? "运行中" : "已退出"));
-            项.详情行.push_back("基础优先级=" + std::to_string(线程.基础优先级));
-            项.详情行.push_back("优先级偏移=" + std::to_string(线程.优先级偏移));
-            if (线程.当前优先级 != THREAD_PRIORITY_ERROR_RETURN) {
-                项.详情行.push_back("当前优先级=" + std::to_string(线程.当前优先级));
-            }
-            if (!线程.线程描述.empty()) {
-                项.详情行.push_back("线程描述=" + 线程.线程描述);
-            }
-            if (线程.时间可读) {
-                项.详情行.push_back("创建时间_微秒=" + std::to_string(私有_FILETIME转微秒(线程.创建时间)));
-                项.详情行.push_back("用户耗时_微秒=" + std::to_string(私有_FILETIME转微秒(线程.用户时间)));
-                项.详情行.push_back("内核耗时_微秒=" + std::to_string(私有_FILETIME转微秒(线程.内核时间)));
-            }
-
-            快照->线程状态列表.push_back(std::move(项));
+    std::string 私有_文本计数摘要(
+        std::vector<std::pair<std::string, std::size_t>> 统计,
+        const std::size_t 展示上限 = 4)
+    {
+        if (统计.empty()) {
+            return {};
         }
 
         std::sort(
-            快照->线程状态列表.begin(),
-            快照->线程状态列表.end(),
-            [](const 结构_控制面板列表项& 左, const 结构_控制面板列表项& 右) {
-                return 左.节点指针 < 右.节点指针;
+            统计.begin(),
+            统计.end(),
+            [](const auto& 左, const auto& 右) {
+                if (左.second != 右.second) {
+                    return 左.second > 右.second;
+                }
+                return 左.first < 右.first;
+            });
+
+        std::ostringstream 输出;
+        std::size_t 已写入 = 0;
+        std::size_t 其余数量 = 0;
+        for (const auto& [键, 数量] : 统计) {
+            if (已写入 < 展示上限) {
+                if (已写入 > 0) {
+                    输出 << "/";
+                }
+                输出 << 键 << 数量;
+                ++已写入;
+            }
+            else {
+                其余数量 += 数量;
+            }
+        }
+        if (其余数量 > 0) {
+            输出 << "/其余" << 其余数量;
+        }
+        return 输出.str();
+    }
+
+    结构_控制面板树节点 私有_创建结构省略节点(
+        const std::string& 展开类型,
+        const std::uintptr_t 父节点指针,
+        const std::size_t 起始偏移,
+        const std::size_t 剩余数量)
+    {
+        return 私有_新节点(
+            "... 省略 " + std::to_string(剩余数量) + " 个结构子节点，双击继续加载",
+            父节点指针,
+            false,
+            true,
+            展开类型,
+            static_cast<std::uintptr_t>(起始偏移));
+    }
+
+    template<class T节点>
+    std::size_t 私有_计数子树节点(const T节点* 根节点)
+    {
+        if (!根节点) {
+            return 0;
+        }
+
+        std::size_t 总数 = 1;
+        if (!根节点->子) {
+            return 总数;
+        }
+
+        auto* 首节点 = reinterpret_cast<const T节点*>(根节点->子);
+        auto* 当前 = 首节点;
+        do {
+            总数 += 私有_计数子树节点(当前);
+            当前 = reinterpret_cast<const T节点*>(当前->下);
+        } while (当前 && 当前 != 首节点);
+        return 总数;
+    }
+
+    template<class T节点>
+    路径集合 私有_构建父链路径(T节点* 节点)
+    {
+        路径集合 路径{};
+        auto* 当前 = 节点;
+        while (当前) {
+            const auto 地址 = 私有_地址(当前);
+            if (!路径.insert(地址).second) {
+                break;
+            }
+            当前 = reinterpret_cast<T节点*>(当前->父);
+        }
+        return 路径;
+    }
+
+    路径集合 私有_合并路径集合(路径集合 左, const 路径集合& 右)
+    {
+        左.insert(右.begin(), 右.end());
+        return 左;
+    }
+
+    std::string 私有_基础信息类别文本(const 基础信息基类* 主信息)
+    {
+        if (!主信息) {
+            return "空";
+        }
+        if (dynamic_cast<const 特征节点主信息类*>(主信息)) return "特征";
+        if (dynamic_cast<const 存在节点主信息类*>(主信息)) return "存在";
+        if (dynamic_cast<const 场景节点主信息类*>(主信息)) return "场景";
+        if (dynamic_cast<const 状态节点主信息类*>(主信息)) return "状态";
+        if (dynamic_cast<const 动态节点主信息类*>(主信息)) return "动态";
+        if (dynamic_cast<const 二次特征主信息类*>(主信息)) return "二次特征";
+        if (dynamic_cast<const 因果主信息类*>(主信息)) return "因果";
+        if (dynamic_cast<const 指代节点主信息类*>(主信息)) return "指代";
+        return 私有_主信息类型文本(主信息->主信息类型);
+    }
+
+    std::string 私有_基础信息子层摘要(const 基础信息节点类* 节点)
+    {
+        std::vector<std::pair<std::string, std::size_t>> 统计{};
+        私有_遍历全部子节点(节点, [&](const 基础信息节点类* 子节点) {
+            私有_累计文本计数(统计, 私有_基础信息类别文本(子节点 ? 子节点->主信息 : nullptr));
+        });
+        return 私有_文本计数摘要(std::move(统计));
+    }
+
+    std::string 私有_需求子层摘要(const 需求节点* 节点)
+    {
+        std::vector<std::pair<std::string, std::size_t>> 统计{};
+        私有_遍历全部子节点(节点, [&](const 需求节点* 子节点) {
+            auto 标签 = 私有_词文本(子节点->主信息.类型);
+            if (标签.empty()) {
+                标签 = "空类型";
+            }
+            私有_累计文本计数(统计, std::move(标签));
+        });
+        return 私有_文本计数摘要(std::move(统计));
+    }
+
+    std::string 私有_任务子层摘要(const 任务节点* 节点)
+    {
+        std::vector<std::pair<std::string, std::size_t>> 统计{};
+        私有_遍历全部子节点(节点, [&](const 任务节点* 子节点) {
+            私有_累计文本计数(统计, 私有_任务节点种类文本(子节点->主信息.节点种类));
+        });
+        return 私有_文本计数摘要(std::move(统计));
+    }
+
+    std::string 私有_方法子层摘要(const 方法节点* 节点)
+    {
+        std::vector<std::pair<std::string, std::size_t>> 统计{};
+        私有_遍历全部子节点(节点, [&](const 方法节点* 子节点) {
+            私有_累计文本计数(统计, 私有_方法节点种类文本(子节点->主信息.节点种类));
+        });
+        return 私有_文本计数摘要(std::move(统计));
+    }
+
+    std::string 私有_基础信息标题(const 基础信息节点类* 节点, const 结构_构建上下文& 上下文)
+    {
+        if (!节点) {
+            return "空节点";
+        }
+
+        const auto* 主信息 = 节点->主信息;
+        if (!主信息 && !节点->父) {
+            return "基础信息仓库根 | 主信息=空";
+        }
+
+        const auto 名称 = 主信息 ? 私有_词文本(主信息->名称) : std::string{};
+        const auto 类型 = 主信息 ? 私有_词文本(主信息->类型) : std::string{};
+
+        std::ostringstream 输出;
+        输出 << "主信息=" << 私有_基础信息类别文本(主信息)
+            << " | "
+            << (!名称.empty() ? 名称 : 节点->获取主键())
+            << " | 子=" << static_cast<std::size_t>(节点->子节点数量)
+            << " | 主键=" << 节点->获取主键();
+        if (!类型.empty()) {
+            输出 << " | 类型=" << 类型;
+        }
+        if (const auto 子层摘要 = 私有_基础信息子层摘要(节点); !子层摘要.empty()) {
+            输出 << " | 子主信息=" << 子层摘要;
+        }
+        if (私有_地址(节点) == 上下文.自我存在指针) {
+            输出 << " | 当前自我存在";
+        }
+        if (私有_地址(节点) == 上下文.自我现实场景指针) {
+            输出 << " | 当前现实场景";
+        }
+        if (私有_地址(节点) == 上下文.自我内部世界指针) {
+            输出 << " | 当前内部世界";
+        }
+        return 输出.str();
+    }
+
+    std::string 私有_需求标题(const 需求节点* 节点)
+    {
+        if (!节点) {
+            return "空需求";
+        }
+
+        std::ostringstream 输出;
+        输出 << "需求"
+            << " | 类型=" << (私有_词文本(节点->主信息.类型).empty() ? "空" : 私有_词文本(节点->主信息.类型))
+            << " | 安全=" << 节点->主信息.安全权重
+            << " | 服务=" << 节点->主信息.服务权重
+            << " | 子=" << static_cast<std::size_t>(节点->子节点数量)
+            << " | 主键=" << 节点->获取主键();
+        if (const auto 子层摘要 = 私有_需求子层摘要(节点); !子层摘要.empty()) {
+            输出 << " | 子类型=" << 子层摘要;
+        }
+        return 输出.str();
+    }
+
+    std::string 私有_任务标题(const 任务节点* 节点)
+    {
+        if (!节点) {
+            return "空任务";
+        }
+
+        const auto 名称 = 私有_词文本(节点->主信息.名称);
+        std::ostringstream 输出;
+        输出 << 私有_任务节点种类文本(节点->主信息.节点种类)
+            << " | " << (名称.empty() ? 节点->获取主键() : 名称)
+            << " | 状态=" << 私有_任务状态文本(节点->主信息.状态)
+            << " | 子=" << static_cast<std::size_t>(节点->子节点数量)
+            << " | 主键=" << 节点->获取主键();
+        if (const auto 子层摘要 = 私有_任务子层摘要(节点); !子层摘要.empty()) {
+            输出 << " | 子种类=" << 子层摘要;
+        }
+        return 输出.str();
+    }
+
+    std::string 私有_方法标题(const 方法节点* 节点)
+    {
+        if (!节点) {
+            return "空方法";
+        }
+
+        std::string 标题 = 私有_词文本(节点->主信息.动作名);
+        if (标题.empty()) {
+            标题 = 私有_词文本(节点->主信息.主结果特征类型);
+        }
+        if (标题.empty()) {
+            标题 = 节点->获取主键();
+        }
+
+        std::ostringstream 输出;
+        输出 << 私有_方法节点种类文本(节点->主信息.节点种类)
+            << " | " << 标题
+            << " | 来源=" << 私有_方法来源文本(节点->主信息.来源)
+            << " | 子=" << static_cast<std::size_t>(节点->子节点数量)
+            << " | 主键=" << 节点->获取主键();
+        if (const auto 子层摘要 = 私有_方法子层摘要(节点); !子层摘要.empty()) {
+            输出 << " | 子种类=" << 子层摘要;
+        }
+        return 输出.str();
+    }
+
+    结构_控制面板树节点 私有_基础信息骨架节点(
+        基础信息节点类* 节点,
+        const 结构_构建上下文& 上下文,
+        const bool 默认展开 = false)
+    {
+        return 私有_新节点(
+            私有_基础信息标题(节点, 上下文),
+            私有_地址(节点),
+            默认展开,
+            节点 != nullptr,
+            "base-node");
+    }
+
+    结构_控制面板树节点 私有_需求骨架节点(
+        需求节点* 节点,
+        const 结构_构建上下文& 上下文,
+        const bool 默认展开 = false)
+    {
+        return 私有_新节点(
+            私有_需求标题(节点),
+            私有_地址(节点),
+            默认展开,
+            节点 != nullptr,
+            "need-node");
+    }
+
+    结构_控制面板树节点 私有_任务骨架节点(
+        任务节点* 节点,
+        const 结构_构建上下文& 上下文,
+        const bool 默认展开 = false)
+    {
+        return 私有_新节点(
+            私有_任务标题(节点),
+            私有_地址(节点),
+            默认展开,
+            节点 != nullptr,
+            "task-node");
+    }
+
+    结构_控制面板树节点 私有_方法骨架节点(
+        方法节点* 节点,
+        const 结构_构建上下文& 上下文,
+        const bool 默认展开 = false)
+    {
+        return 私有_新节点(
+            私有_方法标题(节点),
+            私有_地址(节点),
+            默认展开,
+            节点 != nullptr,
+            "method-node");
+    }
+
+    void 私有_追加基础信息通用字段(
+        结构_控制面板树节点& 字段节点,
+        基础信息节点类* 节点,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径)
+    {
+        if (!节点) {
+            return;
+        }
+
+        私有_追加叶字段(字段节点, "主键", 节点->获取主键());
+        私有_追加叶字段(字段节点, "节点地址", 私有_十六进制指针(私有_地址(节点)));
+        私有_追加叶字段(字段节点, "子节点数量", 节点->子节点数量);
+        私有_追加指针字段(
+            字段节点,
+            "父节点（上级节点）",
+            reinterpret_cast<基础信息节点类*>(节点->父),
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加指针字段(
+            字段节点,
+            "首子节点",
+            reinterpret_cast<基础信息节点类*>(节点->子),
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加指针字段(
+            字段节点,
+            "上同层节点",
+            reinterpret_cast<基础信息节点类*>(节点->上),
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加指针字段(
+            字段节点,
+            "下同层节点",
+            reinterpret_cast<基础信息节点类*>(节点->下),
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+
+        if (const auto* 主信息 = 节点->主信息) {
+            私有_追加叶字段(字段节点, "节点类别", 私有_基础信息类别文本(主信息));
+            私有_追加叶字段(字段节点, "主信息类型", 私有_主信息类型文本(主信息->主信息类型));
+            私有_追加叶字段(字段节点, "主信息运行时基类", "基础信息基类派生");
+            私有_追加叶字段(字段节点, "名称", 私有_词文本(主信息->名称));
+            私有_追加叶字段(字段节点, "类型", 私有_词文本(主信息->类型));
+            私有_追加统计字段(字段节点, 主信息->统计);
+        }
+        else {
+            私有_追加叶字段(字段节点, "节点类别", "仓库根");
+            私有_追加叶字段(字段节点, "主信息类型", "空");
+        }
+    }
+
+    void 私有_追加特征节点字段(
+        结构_控制面板树节点& 字段节点,
+        const 特征节点主信息类& 主信息)
+    {
+        私有_追加叶字段(字段节点, "当前值", 私有_特征值文本(主信息.当前值));
+        私有_追加叶字段(字段节点, "当前稳态索引", 主信息.当前稳态索引);
+        私有_追加叶字段(字段节点, "区间", 私有_可选区间文本(主信息.区间));
+        私有_追加叶字段(字段节点, "稳态数量", static_cast<std::uint64_t>(主信息.稳态列表.size()));
+        私有_追加叶字段(
+            字段节点,
+            "连续测量误差区间",
+            私有_区间文本(主信息.连续测量误差区间));
+    }
+
+    void 私有_追加存在节点字段(
+        结构_控制面板树节点& 字段节点,
+        const 存在节点主信息类& 主信息,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径)
+    {
+        私有_追加引用字段(
+            字段节点,
+            "概念模板",
+            主信息.概念模板,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "内部世界",
+            主信息.内部世界,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加指针字段(
+            字段节点,
+            "需求根节点",
+            主信息.需求根节点,
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [](需求节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建需求树节点(reinterpret_cast<需求节点*>(目标), 局部上下文, 深度, std::move(路径集), false);
+            });
+        私有_追加指针字段(
+            字段节点,
+            "任务根节点",
+            主信息.任务根节点,
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加指针字段(
+            字段节点,
+            "方法根节点",
+            主信息.方法根节点,
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加叶字段(字段节点, "有位置历史", 主信息.有位置历史);
+        私有_追加叶字段(字段节点, "上次观测位置", 私有_向量文本(主信息.上次观测位置_mm));
+        私有_追加叶字段(字段节点, "最近观测位置", 私有_向量文本(主信息.最近观测位置_mm));
+        私有_追加叶字段(字段节点, "最近位移_mm", 主信息.最近位移_mm);
+        私有_追加叶字段(字段节点, "连续静止帧", static_cast<std::uint64_t>(主信息.连续静止帧));
+        私有_追加叶字段(字段节点, "连续未命中帧", static_cast<std::uint64_t>(主信息.连续未命中帧));
+        私有_追加引用列表字段(
+            字段节点,
+            "实例因果",
+            主信息.实例因果,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+    }
+
+    void 私有_追加场景节点字段(
+        结构_控制面板树节点& 字段节点,
+        const 场景节点主信息类& 主信息,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径)
+    {
+        私有_追加引用字段(
+            字段节点,
+            "宿主存在",
+            主信息.宿主存在,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加叶字段(字段节点, "世界类型", 私有_世界类型文本(主信息.世界类型));
+        私有_追加叶字段(字段节点, "来源文章", 主信息.来源文章 ? 主信息.来源文章->获取主键() : "空");
+        私有_追加引用列表字段(
+            字段节点,
+            "状态索引",
+            主信息.状态索引,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用列表字段(
+            字段节点,
+            "动态索引",
+            主信息.动态索引,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用列表字段(
+            字段节点,
+            "关系索引",
+            主信息.关系索引,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用列表字段(
+            字段节点,
+            "二次特征索引",
+            主信息.二次特征索引,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用列表字段(
+            字段节点,
+            "实例因果索引",
+            主信息.实例因果索引,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+    }
+
+    void 私有_追加状态节点字段(
+        结构_控制面板树节点& 字段节点,
+        const 状态节点主信息类& 主信息,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径)
+    {
+        私有_追加叶字段(字段节点, "状态域", 私有_状态域文本(主信息.状态域));
+        私有_追加叶字段(字段节点, "收到时间", 私有_时间文本(主信息.收到时间));
+        私有_追加叶字段(字段节点, "发生时间", 私有_时间文本(主信息.发生时间));
+        私有_追加叶字段(字段节点, "状态值", 私有_特征值文本(主信息.状态值));
+        私有_追加叶字段(字段节点, "是否变化", 主信息.是否变化);
+        私有_追加叶字段(字段节点, "变化原因类别", 主信息.变化原因类别);
+        私有_追加叶字段(字段节点, "变化原因说明", 主信息.变化原因说明);
+        私有_追加引用字段(
+            字段节点,
+            "状态主体",
+            主信息.状态主体,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "状态特征",
+            主信息.状态特征,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "对应信息节点",
+            主信息.对应信息节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
             });
     }
 
-    void 私有_构建任务管理专项快照(结构_控制面板快照* 快照)
+    void 私有_追加动态节点字段(
+        结构_控制面板树节点& 字段节点,
+        const 动态节点主信息类& 主信息,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径)
     {
-        if (!快照) {
-            return;
+        私有_追加叶字段(字段节点, "时间段", 私有_时间段文本(主信息.时间));
+        私有_追加叶字段(字段节点, "来源类型", 私有_动态来源类型文本(主信息.来源类型));
+        私有_追加叶字段(字段节点, "业务语义类型", 私有_动态业务语义类型文本(主信息.业务语义类型));
+        私有_追加叶字段(字段节点, "来源动作名", 私有_词文本(主信息.来源动作名));
+        私有_追加叶字段(字段节点, "来源动作相位", 私有_动作事件相位文本(主信息.来源动作相位));
+        私有_追加叶字段(字段节点, "来源执行成功", 主信息.来源执行成功);
+        私有_追加叶字段(字段节点, "来源错误码", 主信息.来源错误码);
+        私有_追加叶字段(字段节点, "动态路径签名", 主信息.动态路径签名);
+        私有_追加叶字段(字段节点, "动态层级", static_cast<std::uint64_t>(主信息.动态层级));
+        私有_追加叶字段(字段节点, "聚合方式", 私有_动态聚合方式文本(主信息.聚合方式));
+        私有_追加引用字段(
+            字段节点,
+            "初始状态",
+            主信息.初始状态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "结果状态",
+            主信息.结果状态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "动态主体",
+            主信息.动态主体,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "动态特征",
+            主信息.动态特征,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源动作",
+            主信息.来源动作,
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源输入场景",
+            主信息.来源输入场景,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源输出场景",
+            主信息.来源输出场景,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用列表字段(
+            字段节点,
+            "来源低层动态",
+            主信息.来源低层动态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+    }
+
+    void 私有_追加二次特征字段(
+        结构_控制面板树节点& 字段节点,
+        const 二次特征主信息类& 主信息,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径)
+    {
+        私有_追加叶字段(字段节点, "度量签名_链键", 主信息.度量签名_链键);
+        私有_追加叶字段(字段节点, "概念名称", 私有_词文本(主信息.概念名称));
+        私有_追加叶字段(字段节点, "标量区间", 私有_可选区间文本(主信息.标量区间));
+        私有_追加叶字段(字段节点, "标量值", 主信息.标量值);
+        私有_追加叶字段(字段节点, "离散编码", static_cast<std::int64_t>(主信息.离散编码));
+        私有_追加叶字段(字段节点, "离散语义键", 主信息.离散语义键);
+        私有_追加叶字段(字段节点, "是否满足", 主信息.是否满足);
+        私有_追加叶字段(字段节点, "置信度", 主信息.置信度);
+        私有_追加叶字段(字段节点, "分步时长", 私有_时间文本(主信息.分步时长));
+        私有_追加叶字段(字段节点, "总时长", 私有_时间文本(主信息.总时长));
+        私有_追加叶字段(字段节点, "窗口时长", 私有_时间文本(主信息.窗口时长));
+        私有_追加叶字段(字段节点, "来源动态层级", static_cast<std::uint64_t>(主信息.来源动态层级));
+        私有_追加叶字段(字段节点, "来源动态路径签名", 主信息.来源动态路径签名);
+        私有_追加叶字段(字段节点, "来源时间段", 私有_时间段文本(主信息.来源时间段));
+        私有_追加引用字段(
+            字段节点,
+            "概念模板",
+            主信息.概念模板,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "所属场景",
+            主信息.所属场景,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源起始状态",
+            主信息.来源起始状态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源结果状态",
+            主信息.来源结果状态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源动态",
+            主信息.来源动态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源场景",
+            主信息.来源场景,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "主体",
+            主信息.主体,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "客体",
+            主信息.客体,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "左对象",
+            主信息.左对象,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "右对象",
+            主信息.右对象,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+    }
+
+    void 私有_追加因果字段(
+        结构_控制面板树节点& 字段节点,
+        const 因果主信息类& 主信息,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        const 路径集合& 路径)
+    {
+        私有_追加叶字段(字段节点, "形态", 私有_因果形态文本(主信息.形态));
+        私有_追加叶字段(字段节点, "适用锚点类型", 私有_因果锚点类型文本(主信息.适用锚点类型));
+        私有_追加叶字段(字段节点, "适用层级", static_cast<std::uint64_t>(主信息.适用层级));
+        私有_追加叶字段(字段节点, "动作名称", 主信息.动作名称);
+        私有_追加叶字段(字段节点, "动作语义键", 主信息.动作语义键);
+        私有_追加叶字段(字段节点, "来源类型", 私有_因果来源类型文本(主信息.来源类型));
+        私有_追加叶字段(字段节点, "置信度", 主信息.置信度);
+        私有_追加叶字段(字段节点, "已验证", 主信息.已验证);
+        私有_追加叶字段(字段节点, "成立次数", 主信息.成立次数);
+        私有_追加叶字段(字段节点, "失败次数", 主信息.失败次数);
+        私有_追加叶字段(字段节点, "最近命中时间", 私有_时间文本(主信息.最近命中时间));
+        私有_追加叶字段(字段节点, "最近失败时间", 私有_时间文本(主信息.最近失败时间));
+        私有_追加引用字段(
+            字段节点,
+            "动作模板",
+            主信息.动作模板,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用列表字段(
+            字段节点,
+            "条件模板",
+            主信息.条件模板,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用列表字段(
+            字段节点,
+            "状态迁移模板",
+            主信息.状态迁移模板,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用字段(
+            字段节点,
+            "主状态迁移",
+            主信息.主状态迁移,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用列表字段(
+            字段节点,
+            "证据动态样本",
+            主信息.证据动态样本,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+    }
+
+    结构_控制面板树节点 私有_构建基础信息树节点(
+        基础信息节点类* 节点,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        路径集合 路径)
+    {
+        if (!节点) {
+            return 私有_新节点("空基础信息节点");
         }
 
-        const auto 上下文 = 任务管理任务模块::读取任务管理上下文(自我);
-        结构_任务管理正式原语资产概览 正式原语资产{};
-        const bool 有正式原语资产 =
-            任务管理任务模块::读取任务管理正式原语资产概览(
-                自我,
-                &正式原语资产);
-        结构_任务管理结果 最近结果{};
-        const bool 有最近治理结果 = 任务管理任务模块::读取最近治理结果(&最近结果);
-        结构_治理实例堆快照 治理实例堆{};
-        const bool 有治理实例堆 = 任务管理任务模块::读取治理实例堆快照(&治理实例堆);
-        结构_治理恢复快照 治理恢复快照{};
-        const bool 有治理恢复快照 = 任务管理任务模块::读取治理恢复快照(&治理恢复快照);
-        任务管理工作线程::结构_工作线程实例快照 工作线程快照{};
-        const bool 有工作线程快照 =
-            任务管理工作线程::读取任务管理工作线程快照(&工作线程快照);
+        const auto 当前地址 = 私有_地址(节点);
+        if (路径.contains(当前地址)) {
+            return 私有_新节点("基础信息节点 | 路径=已在上层路径中", 当前地址, false);
+        }
+        路径.insert(当前地址);
 
-        if (有工作线程快照) {
-            快照->任务管理工作线程已启动 = 工作线程快照.已启动;
-            快照->任务管理工作线程正在执行 = 工作线程快照.正在执行;
-            快照->任务管理工作线程已收到请求 = 工作线程快照.已收到请求;
-            快照->任务管理工作线程最近任务根ID = 工作线程快照.最近任务根ID;
-            快照->任务管理工作线程累计推进次数 = 工作线程快照.累计推进次数;
-            快照->任务管理工作线程累计收到请求数 = 工作线程快照.累计收到请求数;
-            快照->任务管理工作线程累计收到控制请求数 = 工作线程快照.累计收到控制请求数;
-            快照->任务管理工作线程累计发送上行消息数 = 工作线程快照.累计发送上行消息数;
-            快照->任务管理工作线程最近一次上行消息数 = 工作线程快照.最近一次上行消息数;
-            快照->任务管理工作线程当前排队数 = 工作线程快照.当前排队数;
-            快照->任务管理工作线程最近推进时间 = 工作线程快照.最近推进时间;
+        auto 树节点 = 私有_基础信息骨架节点(节点, 上下文, false);
 
-            std::vector<std::string> 工作线程片段;
-            私有_追加摘要片段(&工作线程片段, "已启动", 私有_布尔文本(工作线程快照.已启动));
-            私有_追加摘要片段(&工作线程片段, "执行中", 私有_布尔文本(工作线程快照.正在执行));
-            私有_追加摘要片段(&工作线程片段, "已收请求", 私有_布尔文本(工作线程快照.已收到请求));
-            私有_追加摘要片段(&工作线程片段, "最近任务根", 工作线程快照.最近任务根ID == 0 ? "空" : std::to_string(工作线程快照.最近任务根ID));
-            私有_追加摘要片段(&工作线程片段, "累计推进", std::to_string(工作线程快照.累计推进次数));
-            私有_追加摘要片段(&工作线程片段, "累计收请求", std::to_string(工作线程快照.累计收到请求数));
-            私有_追加摘要片段(&工作线程片段, "累计收控制", std::to_string(工作线程快照.累计收到控制请求数));
-            私有_追加摘要片段(&工作线程片段, "累计发上行", std::to_string(工作线程快照.累计发送上行消息数));
-            私有_追加摘要片段(&工作线程片段, "最近发上行", std::to_string(工作线程快照.最近一次上行消息数));
-            私有_追加摘要片段(&工作线程片段, "排队", std::to_string(工作线程快照.当前排队数));
-            if (工作线程快照.最近推进时间 != 0) {
-                私有_追加摘要片段(&工作线程片段, "最近推进", std::to_string(工作线程快照.最近推进时间));
-            }
-            if (!工作线程快照.最近摘要.empty()) {
-                私有_追加摘要片段(&工作线程片段, "最近摘要", 工作线程快照.最近摘要, true);
-            }
-            快照->任务管理工作线程摘要 = 私有_拼接摘要片段(工作线程片段);
-
-            结构_控制面板列表项 工作线程项{};
-            工作线程项.标题 = "任务管理工作线程";
-            工作线程项.摘要 = 快照->任务管理工作线程摘要;
-            工作线程项.详情行.emplace_back("已启动=" + std::string(私有_布尔文本(工作线程快照.已启动)));
-            工作线程项.详情行.emplace_back("正在执行=" + std::string(私有_布尔文本(工作线程快照.正在执行)));
-            工作线程项.详情行.emplace_back("已收到请求=" + std::string(私有_布尔文本(工作线程快照.已收到请求)));
-            工作线程项.详情行.emplace_back("最近任务根ID=" + (工作线程快照.最近任务根ID == 0 ? std::string("空") : std::to_string(工作线程快照.最近任务根ID)));
-            工作线程项.详情行.emplace_back("累计推进次数=" + std::to_string(工作线程快照.累计推进次数));
-            工作线程项.详情行.emplace_back("累计收到请求数=" + std::to_string(工作线程快照.累计收到请求数));
-            工作线程项.详情行.emplace_back("累计收到控制请求数=" + std::to_string(工作线程快照.累计收到控制请求数));
-            工作线程项.详情行.emplace_back("累计发送上行消息数=" + std::to_string(工作线程快照.累计发送上行消息数));
-            工作线程项.详情行.emplace_back("最近一次上行消息数=" + std::to_string(工作线程快照.最近一次上行消息数));
-            工作线程项.详情行.emplace_back("当前排队数=" + std::to_string(工作线程快照.当前排队数));
-            工作线程项.详情行.emplace_back("最近推进时间=" + (工作线程快照.最近推进时间 == 0 ? std::string("空") : std::to_string(工作线程快照.最近推进时间)));
-            if (!工作线程快照.最近摘要.empty()) {
-                工作线程项.详情行.emplace_back("最近摘要=" + 工作线程快照.最近摘要);
-            }
-            快照->任务管理工作线程列表.push_back(std::move(工作线程项));
-        } else {
-            快照->任务管理工作线程摘要 = "工作线程壳快照=空";
+        if (剩余深度 == 0) {
+            return 树节点;
         }
 
-        {
-            std::vector<任务类::节点类*> 当前任务实体{};
-            const auto 追加任务实体 = [&](任务类::节点类* 节点) {
-                if (!节点) {
-                    return;
-                }
-                if (std::find(当前任务实体.begin(), 当前任务实体.end(), 节点) != 当前任务实体.end()) {
-                    return;
-                }
-                当前任务实体.push_back(节点);
-            };
+        auto 字段节点 = 私有_新节点("节点字段");
+        私有_追加基础信息通用字段(字段节点, 节点, 上下文, 剩余深度, 路径);
 
-            追加任务实体(上下文.当前管理任务);
-            追加任务实体(上下文.当前宿主任务);
-            追加任务实体(上下文.当前步骤);
-            追加任务实体(上下文.最近结果);
-            if (有最近治理结果) {
-                追加任务实体(最近结果.当前子任务节点);
-                追加任务实体(最近结果.当前步骤节点);
-                追加任务实体(最近结果.最新结果节点);
+        if (const auto* 主信息 = 节点->主信息) {
+            if (const auto* 特征 = dynamic_cast<const 特征节点主信息类*>(主信息)) {
+                私有_追加特征节点字段(字段节点, *特征);
             }
+            else if (const auto* 存在 = dynamic_cast<const 存在节点主信息类*>(主信息)) {
+                私有_追加存在节点字段(字段节点, *存在, 上下文, 剩余深度, 路径);
+            }
+            else if (const auto* 场景 = dynamic_cast<const 场景节点主信息类*>(主信息)) {
+                私有_追加场景节点字段(字段节点, *场景, 上下文, 剩余深度, 路径);
+            }
+            else if (const auto* 状态 = dynamic_cast<const 状态节点主信息类*>(主信息)) {
+                私有_追加状态节点字段(字段节点, *状态, 上下文, 剩余深度, 路径);
+            }
+            else if (const auto* 动态 = dynamic_cast<const 动态节点主信息类*>(主信息)) {
+                私有_追加动态节点字段(字段节点, *动态, 上下文, 剩余深度, 路径);
+            }
+            else if (const auto* 二次特征 = dynamic_cast<const 二次特征主信息类*>(主信息)) {
+                私有_追加二次特征字段(字段节点, *二次特征, 上下文, 剩余深度, 路径);
+            }
+            else if (const auto* 因果 = dynamic_cast<const 因果主信息类*>(主信息)) {
+                私有_追加因果字段(字段节点, *因果, 上下文, 剩余深度, 路径);
+            }
+        }
+        树节点.子项.push_back(std::move(字段节点));
 
-            快照->任务管理任务实体数量 = 当前任务实体.size();
+        const auto 子节点集 = 世界树.基础信息().枚举子节点(节点);
+        const auto 实际上限 = (std::min)(上下文.树广度上限, 子节点集.size());
+        for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
+            树节点.子项.push_back(私有_基础信息骨架节点(子节点集[索引], 上下文, false));
+        }
+        if (子节点集.size() > 实际上限) {
+            树节点.子项.push_back(
+                私有_创建结构省略节点(
+                    "base-node-more",
+                    私有_地址(节点),
+                    实际上限,
+                    子节点集.size() - 实际上限));
+        }
 
-            std::vector<std::pair<枚举_任务状态, std::size_t>> 状态计数{
-                {枚举_任务状态::未启动, 0},
-                {枚举_任务状态::运行中, 0},
-                {枚举_任务状态::挂起, 0},
-                {枚举_任务状态::完成, 0},
-                {枚举_任务状态::失败, 0},
-                {枚举_任务状态::取消, 0},
-                {枚举_任务状态::超时, 0},
-                {枚举_任务状态::就绪, 0},
-                {枚举_任务状态::执行中, 0},
-                {枚举_任务状态::筹办中, 0},
-                {枚举_任务状态::排队中, 0},
-                {枚举_任务状态::等待中, 0},
-                {枚举_任务状态::无法执行, 0},
-                {枚举_任务状态::待重筹办, 0},
-            };
+        return 树节点;
+    }
 
-            for (const auto* 任务节点 : 当前任务实体) {
-                for (auto& [状态, 数量] : 状态计数) {
-                    if (任务节点->主信息.状态 == 状态) {
-                        ++数量;
-                        break;
-                    }
-                }
-            }
+    结构_控制面板树节点 私有_构建需求树节点(
+        需求节点* 节点,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        路径集合 路径,
+        const bool 列表模式)
+    {
+        if (!节点) {
+            return 私有_新节点("空需求节点");
+        }
 
-            std::vector<std::string> 状态分布片段{};
-            for (const auto& [状态, 数量] : 状态计数) {
-                if (数量 == 0) {
-                    continue;
-                }
-                状态分布片段.push_back(私有_任务状态文本(状态) + "=" + std::to_string(数量));
-            }
-            快照->任务管理状态数量摘要 =
-                状态分布片段.empty()
-                ? std::string("空")
-                : 私有_拼接摘要片段(状态分布片段);
+        const auto 当前地址 = 私有_地址(节点);
+        if (路径.contains(当前地址)) {
+            return 私有_新节点("需求节点 | 路径=已在上层路径中", 当前地址, false);
+        }
+        路径.insert(当前地址);
 
-            if (有工作线程快照) {
-                std::vector<std::string> 消息片段{};
-                私有_追加摘要片段(&消息片段, "收请求", std::to_string(工作线程快照.累计收到请求数));
-                私有_追加摘要片段(&消息片段, "收控制", std::to_string(工作线程快照.累计收到控制请求数));
-                私有_追加摘要片段(&消息片段, "发上行", std::to_string(工作线程快照.累计发送上行消息数));
-                私有_追加摘要片段(&消息片段, "最近发上行", std::to_string(工作线程快照.最近一次上行消息数));
-                快照->任务管理消息汇总摘要 = 私有_拼接摘要片段(消息片段);
-            } else {
-                快照->任务管理消息汇总摘要 = "工作线程壳快照=空";
-            }
+        auto 树节点 = 私有_需求骨架节点(节点, 上下文, false);
 
-            {
-                std::vector<std::string> 汇总片段{};
-                私有_追加摘要片段(&汇总片段, "管理任务", 私有_任务标题(上下文.当前管理任务), true);
-                私有_追加摘要片段(&汇总片段, "宿主任务", 私有_任务标题(上下文.当前宿主任务), true);
-                私有_追加摘要片段(
-                    &汇总片段,
-                    "当前去向",
-                    私有_任务管理去向文本(
-                        有最近治理结果 ? 最近结果.当前下一步去向 : 上下文.当前下一步去向));
-                私有_追加摘要片段(&汇总片段, "任务实体", std::to_string(快照->任务管理任务实体数量));
-                私有_追加摘要片段(&汇总片段, "状态分布", 快照->任务管理状态数量摘要, true);
-                私有_追加摘要片段(&汇总片段, "消息", 快照->任务管理消息汇总摘要, true);
-                快照->任务管理专项摘要 = 私有_拼接摘要片段(汇总片段);
-            }
+        if (剩余深度 == 0) {
+            return 树节点;
+        }
 
-            {
-                结构_控制面板列表项 汇总项{};
-                汇总项.标题 = "汇总";
-                汇总项.摘要 = 快照->任务管理专项摘要;
-                快照->任务管理汇总列表.push_back(std::move(汇总项));
+        auto 字段节点 = 私有_新节点("节点字段");
+        私有_追加叶字段(字段节点, "主键", 节点->获取主键());
+        私有_追加叶字段(字段节点, "节点地址", 私有_十六进制指针(私有_地址(节点)));
+        私有_追加叶字段(字段节点, "子节点数量", 节点->子节点数量);
+        私有_追加叶字段(字段节点, "描述信息", 私有_自然句文本(节点->主信息.描述信息));
+        私有_追加叶字段(字段节点, "类型", 私有_词文本(节点->主信息.类型));
+        私有_追加叶字段(字段节点, "需求有效截止", 私有_时间文本(节点->主信息.需求有效截止));
+        私有_追加叶字段(字段节点, "安全权重", 节点->主信息.安全权重);
+        私有_追加叶字段(字段节点, "服务权重", 节点->主信息.服务权重);
+        私有_追加统计字段(字段节点, 节点->主信息.统计);
+        私有_追加指针字段(
+            字段节点,
+            "父需求",
+            reinterpret_cast<需求节点*>(节点->父),
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [列表模式](需求节点* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建需求树节点(目标, 局部上下文, 深度, std::move(路径集), 列表模式);
+            });
+        私有_追加引用字段(
+            字段节点,
+            "需求主体",
+            节点->主信息.需求主体,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "需求场景",
+            节点->主信息.需求场景,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "被需求存在",
+            节点->主信息.被需求存在,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "需求状态",
+            节点->主信息.需求状态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "需求虚拟存在",
+            节点->主信息.需求虚拟存在,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "相关任务",
+            节点->主信息.相关任务,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "被需求当前状态",
+            节点->主信息.被需求当前状态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        树节点.子项.push_back(std::move(字段节点));
+
+        if (!列表模式) {
+            const auto 子节点集 = 私有_枚举子节点(节点, 上下文.树广度上限);
+            for (auto* 子节点 : 子节点集) {
+                树节点.子项.push_back(私有_需求骨架节点(子节点, 上下文, false));
             }
-            {
-                结构_控制面板列表项 实体项{};
-                实体项.标题 = "当前任务管理任务实体数量";
-                实体项.摘要 = std::to_string(快照->任务管理任务实体数量);
-                实体项.详情行.emplace_back("去重统计范围=当前管理任务、当前宿主任务、当前步骤、最近结果、当前派生子任务、当前步骤节点、最新结果节点");
-                快照->任务管理汇总列表.push_back(std::move(实体项));
-            }
-            {
-                结构_控制面板列表项 状态项{};
-                状态项.标题 = "不同状态数量";
-                状态项.摘要 = 快照->任务管理状态数量摘要;
-                for (const auto& [状态, 数量] : 状态计数) {
-                    if (数量 == 0) {
-                        continue;
-                    }
-                    状态项.详情行.emplace_back(私有_任务状态文本(状态) + "=" + std::to_string(数量));
-                }
-                快照->任务管理汇总列表.push_back(std::move(状态项));
-            }
-            {
-                结构_控制面板列表项 消息项{};
-                消息项.标题 = "收发消息情况汇总";
-                消息项.摘要 = 快照->任务管理消息汇总摘要;
-                if (有工作线程快照) {
-                    消息项.详情行.emplace_back("累计收到请求数=" + std::to_string(工作线程快照.累计收到请求数));
-                    消息项.详情行.emplace_back("累计收到控制请求数=" + std::to_string(工作线程快照.累计收到控制请求数));
-                    消息项.详情行.emplace_back("累计发送上行消息数=" + std::to_string(工作线程快照.累计发送上行消息数));
-                    消息项.详情行.emplace_back("最近一次上行消息数=" + std::to_string(工作线程快照.最近一次上行消息数));
-                } else {
-                    消息项.详情行.emplace_back("工作线程壳快照=空");
-                }
-                快照->任务管理汇总列表.push_back(std::move(消息项));
+            if (static_cast<std::size_t>(节点->子节点数量) > 子节点集.size()) {
+                树节点.子项.push_back(
+                    私有_创建结构省略节点(
+                        "need-node-more",
+                        私有_地址(节点),
+                        子节点集.size(),
+                        static_cast<std::size_t>(节点->子节点数量) - 子节点集.size()));
             }
         }
 
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            reinterpret_cast<std::uintptr_t>(上下文.当前主需求),
-            "当前主需求",
-            私有_需求标题(上下文.当前主需求));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            reinterpret_cast<std::uintptr_t>(上下文.当前管理任务),
-            "当前管理任务",
-            私有_任务标题(上下文.当前管理任务));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            reinterpret_cast<std::uintptr_t>(上下文.当前宿主任务),
-            "当前宿主任务",
-            私有_任务标题(上下文.当前宿主任务));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            reinterpret_cast<std::uintptr_t>(上下文.当前方法),
-            "当前方法",
-            私有_方法标题(上下文.当前方法));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            reinterpret_cast<std::uintptr_t>(上下文.当前步骤),
-            "当前步骤",
-            私有_任务标题(上下文.当前步骤));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            reinterpret_cast<std::uintptr_t>(上下文.最近结果),
-            "最近结果",
-            私有_任务标题(上下文.最近结果));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "当前缺口类型",
-            私有_任务管理缺口文本(上下文.当前缺口类型));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "当前下一步去向",
-            私有_任务管理去向文本(上下文.当前下一步去向));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "当前主体ID",
-            上下文.当前主体ID == 0 ? "空" : std::to_string(上下文.当前主体ID));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "当前分身ID",
-            上下文.当前分身ID == 0 ? "空" : std::to_string(上下文.当前分身ID));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "当前方法需求位",
-            私有_任务管理方法需求位文本(上下文.当前方法需求位));
-        if (有正式原语资产) {
-            私有_追加列表项(
-                &快照->任务管理输入列表,
-                0,
-                "正式原语资产",
-                正式原语资产.摘要);
-            私有_追加列表项(
-                &快照->任务管理输入列表,
-                0,
-                "正式原语已具备",
-                正式原语资产.已具备摘要.empty() ? "空" : 正式原语资产.已具备摘要);
-            私有_追加列表项(
-                &快照->任务管理输入列表,
-                0,
-                "正式原语缺失",
-                正式原语资产.缺失摘要.empty() ? "无" : 正式原语资产.缺失摘要);
-        }
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "当前本能能力缺口类型",
-            私有_任务管理本能缺口文本(上下文.当前本能能力缺口类型));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "当前输入条件主键",
-            上下文.当前输入条件主键.empty() ? "空" : 上下文.当前输入条件主键);
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "当前治理态型",
-            上下文.当前治理态型.empty() ? "空" : 上下文.当前治理态型);
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            reinterpret_cast<std::uintptr_t>(上下文.当前方法位专项动态),
-            "当前方法位专项动态",
-            !上下文.当前方法位专项动态标题.empty()
-            ? 上下文.当前方法位专项动态标题
-            : (上下文.当前方法位专项动态 ? "已命中动态" : "空"));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            reinterpret_cast<std::uintptr_t>(上下文.当前最小原语动态),
-            "当前最小原语动态",
-            !上下文.当前最小原语动态标题.empty()
-            ? 上下文.当前最小原语动态标题
-            : (上下文.当前最小原语动态 ? "已命中动态" : "空"));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "最近根层重判结果",
-            私有_任务管理根层重判结果文本(上下文.最近根层重判结果));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "最近执行前门控结果",
-            私有_任务管理执行前门控结果文本(上下文.最近执行前门控结果));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "最近功能域",
-            私有_任务管理功能域文本(上下文.最近功能域));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "最近上层反馈摘要",
-            上下文.最近上层反馈摘要.empty() ? "空" : 上下文.最近上层反馈摘要);
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "最近总控结果",
-            私有_任务管理总控结果文本(上下文.最近总控结果));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "最近反馈类型",
-            私有_任务管理反馈类型文本(上下文.最近反馈类型));
-        私有_追加列表项(
-            &快照->任务管理输入列表,
-            0,
-            "最近反馈摘要",
-            上下文.最近反馈摘要.empty() ? "空" : 上下文.最近反馈摘要);
+        return 树节点;
+    }
 
-        {
-            std::vector<std::string> 片段;
-            私有_追加摘要片段(&片段, "主需求", 私有_需求标题(上下文.当前主需求));
-            私有_追加摘要片段(&片段, "宿主", 私有_任务标题(上下文.当前宿主任务));
-            私有_追加摘要片段(&片段, "方法", 私有_方法标题(上下文.当前方法));
-            if (上下文.当前步骤) {
-                私有_追加摘要片段(&片段, "步骤", 私有_任务标题(上下文.当前步骤), true);
-            }
-            if (上下文.最近结果) {
-                私有_追加摘要片段(&片段, "最近结果", 私有_任务标题(上下文.最近结果), true);
-            }
-            私有_追加摘要片段(&片段, "缺口", 私有_任务管理缺口文本(上下文.当前缺口类型));
-            私有_追加摘要片段(&片段, "去向", 私有_任务管理去向文本(上下文.当前下一步去向));
-            if (上下文.当前主体ID != 0) {
-                私有_追加摘要片段(&片段, "主体ID", std::to_string(上下文.当前主体ID));
-            }
-            if (上下文.当前分身ID != 0) {
-                私有_追加摘要片段(&片段, "分身ID", std::to_string(上下文.当前分身ID));
-            }
-            私有_追加摘要片段(&片段, "需求位", 私有_任务管理方法需求位文本(上下文.当前方法需求位));
-            if (有正式原语资产) {
-                私有_追加摘要片段(
-                    &片段,
-                    "正式原语",
-                    正式原语资产.已全部具备 ? "齐全" : "缺失");
-                if (!正式原语资产.已全部具备) {
-                    私有_追加摘要片段(&片段, "缺失原语", 正式原语资产.缺失摘要, true);
-                }
-            }
-            私有_追加摘要片段(&片段, "本能缺口", 私有_任务管理本能缺口文本(上下文.当前本能能力缺口类型));
-            if (!上下文.当前方法位专项动态标题.empty()) {
-                私有_追加摘要片段(&片段, "方法位动态", 上下文.当前方法位专项动态标题, true);
-            }
-            if (!上下文.当前最小原语动态标题.empty()) {
-                私有_追加摘要片段(&片段, "原语动态", 上下文.当前最小原语动态标题, true);
-            }
-            if (!上下文.当前治理态型.empty()) {
-                私有_追加摘要片段(&片段, "治理态型", 上下文.当前治理态型, true);
-            }
-            快照->任务管理上下文摘要 = 私有_拼接摘要片段(片段);
+    结构_控制面板树节点 私有_构建任务树节点(
+        任务节点* 节点,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        路径集合 路径)
+    {
+        if (!节点) {
+            return 私有_新节点("空任务节点");
         }
 
-        if (有治理实例堆) {
-            std::ostringstream 输出;
-            输出 << "治理实例堆=" << 治理实例堆.总数;
-            if (!治理实例堆.最近摘要.empty()) {
-                输出 << " | 最近=" << 治理实例堆.最近摘要;
-            }
-            快照->任务管理治理实例堆摘要 = 输出.str();
-
-            const auto 实例上限 = (std::min)(std::size_t{ 3 }, 治理实例堆.实例列表.size());
-            for (std::size_t 偏移 = 0; 偏移 < 实例上限; ++偏移) {
-                const auto& 实例 = 治理实例堆.实例列表[治理实例堆.实例列表.size() - 1 - 偏移];
-                私有_追加列表项(
-                    &快照->任务管理输出列表,
-                    0,
-                    "治理实例#" + std::to_string(治理实例堆.总数 - 偏移),
-                    实例.摘要.empty() ? "空摘要" : 实例.摘要);
-            }
+        const auto 当前地址 = 私有_地址(节点);
+        if (路径.contains(当前地址)) {
+            return 私有_新节点("任务节点 | 路径=已在上层路径中", 当前地址, false);
         }
-        else {
-            快照->任务管理治理实例堆摘要 = "治理实例堆=空";
+        路径.insert(当前地址);
+
+        auto 树节点 = 私有_任务骨架节点(节点, 上下文, false);
+
+        if (剩余深度 == 0) {
+            return 树节点;
         }
 
-        if (有治理恢复快照) {
-            std::ostringstream 输出;
-            输出 << "恢复快照=" << 私有_安全文本(治理恢复快照.当前恢复点类型, "未定义");
-            if (!治理恢复快照.摘要.empty()) {
-                输出 << " | 最近=" << 治理恢复快照.摘要;
-            }
-            快照->任务管理恢复快照摘要 = 输出.str();
-            私有_追加列表项(
-                &快照->任务管理输出列表,
-                0,
-                "治理恢复快照",
-                治理恢复快照.摘要.empty() ? "空摘要" : 治理恢复快照.摘要);
-        }
-        else {
-            快照->任务管理恢复快照摘要 = "恢复快照=空";
-        }
+        auto 字段节点 = 私有_新节点("节点字段");
+        私有_追加叶字段(字段节点, "主键", 节点->获取主键());
+        私有_追加叶字段(字段节点, "节点地址", 私有_十六进制指针(私有_地址(节点)));
+        私有_追加叶字段(字段节点, "子节点数量", 节点->子节点数量);
+        私有_追加叶字段(字段节点, "名称", 私有_词文本(节点->主信息.名称));
+        私有_追加叶字段(字段节点, "描述信息", 私有_自然句文本(节点->主信息.描述信息));
+        私有_追加叶字段(字段节点, "类型", 私有_词文本(节点->主信息.类型));
+        私有_追加叶字段(字段节点, "节点种类", 私有_任务节点种类文本(节点->主信息.节点种类));
+        私有_追加叶字段(字段节点, "状态", 私有_任务状态文本(节点->主信息.状态));
+        私有_追加叶字段(字段节点, "创建时间", 私有_时间文本(节点->主信息.创建时间));
+        私有_追加叶字段(字段节点, "基准优先级", 节点->主信息.基准优先级);
+        私有_追加叶字段(字段节点, "局部优先级偏移", 节点->主信息.局部优先级偏移);
+        私有_追加叶字段(字段节点, "调度优先级", 节点->主信息.调度优先级);
+        私有_追加叶字段(字段节点, "任务树类型", 私有_任务树类型文本(节点->主信息.任务树类型));
+        私有_追加叶字段(字段节点, "运行次数", 节点->主信息.运行次数);
+        私有_追加叶字段(字段节点, "成功次数", 节点->主信息.成功次数);
+        私有_追加叶字段(字段节点, "失败次数", 节点->主信息.失败次数);
+        私有_追加叶字段(字段节点, "连续失败次数", 节点->主信息.连续失败次数);
+        私有_追加叶字段(字段节点, "转入学习次数", 节点->主信息.转入学习次数);
+        私有_追加叶字段(字段节点, "最近错误码", 节点->主信息.最近错误码);
+        私有_追加叶字段(字段节点, "最近调度时间", 私有_时间文本(节点->主信息.最近调度时间));
+        私有_追加叶字段(字段节点, "动作句柄", 私有_动作句柄文本(节点->主信息.动作句柄));
+        私有_追加叶字段(字段节点, "启动时间", 私有_时间文本(节点->主信息.启动时间));
+        私有_追加叶字段(字段节点, "完成时间", 私有_时间文本(节点->主信息.完成时间));
+        私有_追加统计字段(字段节点, 节点->主信息.统计);
 
-        std::string 任务管理运行摘要{};
-        {
-            std::vector<std::string> 片段;
-            私有_追加摘要片段(&片段, "根层", 私有_任务管理根层重判结果文本(上下文.最近根层重判结果));
-            私有_追加摘要片段(&片段, "门控", 私有_任务管理执行前门控结果文本(上下文.最近执行前门控结果));
-            私有_追加摘要片段(&片段, "最近域", 私有_任务管理功能域文本(上下文.最近功能域));
-            私有_追加摘要片段(&片段, "mailbox", std::to_string(快照->治理mailbox待消费数));
-            if (有治理实例堆) {
-                私有_追加摘要片段(&片段, "实例堆", std::to_string(治理实例堆.总数));
-            }
-            if (有治理恢复快照) {
-                私有_追加摘要片段(
-                    &片段,
-                    "恢复点",
-                    私有_安全文本(治理恢复快照.当前恢复点类型, "未定义"));
-            }
-            if (!快照->治理mailbox最老等待摘要.empty()) {
-                私有_追加摘要片段(&片段, "最老等待", 快照->治理mailbox最老等待摘要, true);
-            }
-            任务管理运行摘要 = 私有_拼接摘要片段(片段);
-        }
+        私有_追加指针字段(
+            字段节点,
+            "父任务结构父节点",
+            reinterpret_cast<任务节点*>(节点->父),
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "场景",
+            节点->主信息.场景,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "任务虚拟存在",
+            节点->主信息.任务虚拟存在,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源需求",
+            节点->主信息.来源需求,
+            上下文,
+            剩余深度,
+            路径,
+            [](需求节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建需求树节点(reinterpret_cast<需求节点*>(目标), 局部上下文, 深度, std::move(路径集), false);
+            });
+        私有_追加引用字段(
+            字段节点,
+            "父任务",
+            节点->主信息.父任务,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "后续任务",
+            节点->主信息.后续任务,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "执行方法",
+            节点->主信息.执行方法,
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "目标状态",
+            节点->主信息.目标状态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "结果状态信息",
+            节点->主信息.结果状态信息,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
 
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "mailbox待消费",
-            std::to_string(快照->治理mailbox待消费数));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "mailbox类型计数",
-            快照->治理mailbox类型计数摘要.empty() ? "空" : 快照->治理mailbox类型计数摘要);
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "mailbox最老等待",
-            快照->治理mailbox最老等待摘要.empty() ? "0us" : 快照->治理mailbox最老等待摘要);
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "最近拦截事件",
-            快照->治理mailbox最近拦截摘要.empty() ? "无" : 快照->治理mailbox最近拦截摘要);
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "mailbox待回判",
-            快照->治理mailbox待恢复摘要.empty() ? "空" : 快照->治理mailbox待恢复摘要);
-        if (!有最近治理结果) {
-            快照->任务管理输出摘要 = "最近治理结果=空";
-            return;
-        }
-
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "当前功能域",
-            私有_任务管理功能域文本(最近结果.当前功能域));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "当前缺口类型",
-            私有_任务管理缺口文本(最近结果.当前缺口类型));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "当前下一步去向",
-            私有_任务管理去向文本(最近结果.当前下一步去向));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "当前治理状态迁移",
-            私有_任务管理状态迁移文本(最近结果.当前治理状态迁移));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "当前方法来源",
-            私有_任务管理方法来源文本(最近结果.当前方法来源));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "当前步骤位类型",
-            私有_任务管理步骤位类型文本(最近结果.当前步骤位类型));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "当前步骤语义类型",
-            私有_任务管理步骤语义类型文本(最近结果.当前步骤语义类型));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "最近根层重判结果",
-            私有_任务管理根层重判结果文本(最近结果.最近根层重判结果));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "最近执行前门控结果",
-            私有_任务管理执行前门控结果文本(最近结果.最近执行前门控结果));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "最近总控结果",
-            私有_任务管理总控结果文本(最近结果.最近总控结果));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "最近反馈类型",
-            私有_任务管理反馈类型文本(最近结果.最近反馈类型));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "宿主目标结果比较",
-            私有_任务管理双面比较结果文本(最近结果.当前宿主目标结果比较));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "步骤目标结果比较",
-            私有_任务管理双面比较结果文本(最近结果.当前步骤目标结果比较));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "结果目标结果比较",
-            私有_任务管理双面比较结果文本(最近结果.当前结果目标结果比较));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "当前后果治理",
-            私有_任务管理后果治理文本(最近结果.当前后果治理));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            reinterpret_cast<std::uintptr_t>(最近结果.当前子任务节点),
-            "当前派生子任务",
-            私有_任务标题(最近结果.当前子任务节点));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            reinterpret_cast<std::uintptr_t>(最近结果.当前学习方法节点),
-            "当前学习方法",
-            私有_方法标题(最近结果.当前学习方法节点));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            reinterpret_cast<std::uintptr_t>(最近结果.当前步骤节点),
+        私有_追加叶字段(字段节点, "是否真根任务", 节点->主信息.是否真根任务);
+        私有_追加叶字段(字段节点, "是否常驻任务", 节点->主信息.是否常驻任务);
+        私有_追加叶字段(字段节点, "等待学习唤醒", 节点->主信息.等待学习唤醒);
+        私有_追加引用字段(
+            字段节点,
+            "等待学习方法首节点",
+            节点->主信息.等待学习方法首节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "父任务头结点",
+            节点->主信息.父任务头结点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源父结果节点",
+            节点->主信息.来源父结果节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源父步骤节点",
+            节点->主信息.来源父步骤节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
             "当前步骤节点",
-            私有_任务标题(最近结果.当前步骤节点));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            reinterpret_cast<std::uintptr_t>(最近结果.最新结果节点),
-            "最新结果节点",
-            私有_任务标题(最近结果.最新结果节点));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            reinterpret_cast<std::uintptr_t>(最近结果.最新目标状态),
-            "最新目标状态",
-            最近结果.最新目标状态 ? 私有_基础节点标题(reinterpret_cast<const 基础信息节点类*>(最近结果.最新目标状态)) : "无");
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "待学习方法数量",
-            std::to_string(快照->自我待学习方法数量));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "学习账本总数",
-            std::to_string(快照->学习任务总数));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "学习账本挂起数",
-            std::to_string(快照->学习任务挂起数));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "学习账本可调度数",
-            std::to_string(快照->学习任务可调度数));
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "学习账本摘要",
-            快照->学习账本摘要.empty() ? "空" : 快照->学习账本摘要);
-        {
-            std::ostringstream 状态迁移摘要;
-            状态迁移摘要 << 私有_任务状态文本(最近结果.宿主任务旧状态)
-                << " -> " << 私有_任务状态文本(最近结果.宿主任务新状态);
-            私有_追加列表项(
-                &快照->任务管理输出列表,
-                0,
-                "宿主任务状态迁移",
-                状态迁移摘要.str());
+            节点->主信息.当前步骤节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "当前子任务头结点",
+            节点->主信息.当前子任务头结点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "最近实际结果节点",
+            节点->主信息.最近实际结果节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用列表字段(
+            字段节点,
+            "直属子任务头结点列表",
+            节点->主信息.直属子任务头结点列表,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+
+        私有_追加引用字段(
+            字段节点,
+            "所属任务头结点",
+            节点->主信息.所属任务头结点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "可用方法首节点",
+            节点->主信息.可用方法首节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "方法条件节点",
+            节点->主信息.方法条件节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用列表字段(
+            字段节点,
+            "并发前置任务头结点列表",
+            节点->主信息.并发前置任务头结点列表,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用字段(
+            字段节点,
+            "当前前置任务头结点",
+            节点->主信息.当前前置任务头结点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加叶字段(字段节点, "步骤序号", static_cast<std::int64_t>(节点->主信息.步骤序号));
+        私有_追加叶字段(字段节点, "已重试次数", static_cast<std::int64_t>(节点->主信息.已重试次数));
+        私有_追加叶字段(字段节点, "允许重试次数", static_cast<std::int64_t>(节点->主信息.允许重试次数));
+        私有_追加叶字段(字段节点, "超时截止时间", 私有_时间文本(节点->主信息.超时截止时间));
+        私有_追加叶字段(字段节点, "允许切换方法", 节点->主信息.允许切换方法);
+
+        私有_追加叶字段(字段节点, "结果角色", 私有_任务结果角色文本(节点->主信息.结果角色));
+        私有_追加引用字段(
+            字段节点,
+            "来源步骤节点",
+            节点->主信息.来源步骤节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "下一跳步骤节点",
+            节点->主信息.下一跳步骤节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用列表字段(
+            字段节点,
+            "派生子任务头结点列表",
+            节点->主信息.派生子任务头结点列表,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用字段(
+            字段节点,
+            "来源方法首节点",
+            节点->主信息.来源方法首节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "方法结果节点",
+            节点->主信息.方法结果节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "对应方法结果节点",
+            节点->主信息.对应方法结果节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "结果方向二次特征",
+            节点->主信息.结果方向二次特征,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "命中预测结果节点",
+            节点->主信息.命中预测结果节点,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加叶字段(字段节点, "命中后动作", 私有_分支选择动作文本(节点->主信息.命中后动作));
+        私有_追加叶字段(字段节点, "是否预测外结果", 节点->主信息.是否预测外结果);
+        私有_追加叶字段(字段节点, "置信度_Q10000", 节点->主信息.置信度_Q10000);
+        私有_追加叶字段(字段节点, "错误码", 节点->主信息.错误码);
+        私有_追加引用字段(
+            字段节点,
+            "评估摘要存在",
+            节点->主信息.评估摘要存在,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        树节点.子项.push_back(std::move(字段节点));
+
+        const auto 子节点集 = 私有_枚举子节点(节点, 上下文.树广度上限);
+        for (auto* 子节点 : 子节点集) {
+            树节点.子项.push_back(私有_任务骨架节点(子节点, 上下文, false));
         }
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "最近上层反馈摘要",
-            最近结果.最近上层反馈摘要.empty() ? "空" : 最近结果.最近上层反馈摘要);
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "最近反馈摘要",
-            最近结果.最近反馈摘要.empty() ? "空" : 最近结果.最近反馈摘要);
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "治理摘要",
-            最近结果.摘要.empty() ? "空" : 最近结果.摘要);
-
-        私有_追加列表项(&快照->任务管理触发列表, 0, "补齐治理任务", 私有_布尔文本(最近结果.已补齐治理任务));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "选中宿主任务", 私有_布尔文本(最近结果.已选中宿主任务));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "绑定方法挂点", 私有_布尔文本(最近结果.已绑定方法挂点));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "推进任务状态", 私有_布尔文本(最近结果.已推进任务状态));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "创建步骤节点", 私有_布尔文本(最近结果.已创建步骤节点));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "创建结果节点", 私有_布尔文本(最近结果.已创建结果节点));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "创建业务子任务", 私有_布尔文本(最近结果.已创建业务子任务));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "复用业务子任务", 私有_布尔文本(最近结果.已复用业务子任务));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "创建补条件子任务", 私有_布尔文本(最近结果.已创建补条件子任务));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "复用补条件子任务", 私有_布尔文本(最近结果.已复用补条件子任务));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "创建学习子任务", 私有_布尔文本(最近结果.已创建学习子任务));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "复用学习子任务", 私有_布尔文本(最近结果.已复用学习子任务));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "创建学习方法头", 私有_布尔文本(最近结果.已创建学习方法头));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "复用学习方法头", 私有_布尔文本(最近结果.已复用学习方法头));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "创建学习方法条件节点", 私有_布尔文本(最近结果.已创建学习方法条件节点));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "创建学习方法结果节点", 私有_布尔文本(最近结果.已创建学习方法结果节点));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "命中最近结果", 私有_布尔文本(最近结果.已命中最近结果));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "复用当前步骤", 私有_布尔文本(最近结果.已复用当前步骤));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "生成治理证据", 私有_布尔文本(最近结果.已生成治理证据));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "写回目标状态", 私有_布尔文本(最近结果.已写回目标状态));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "由目标差额驱动", 私有_布尔文本(最近结果.已由目标差额驱动));
-        私有_追加列表项(&快照->任务管理触发列表, 0, "受上位输入约束", 私有_布尔文本(最近结果.已受上位输入约束));
-        私有_追加列表项(&快照->任务管理输出列表, 0, "锚点裁决摘要", 私有_安全文本(最近结果.锚点裁决摘要, "空"));
-
-        {
-            std::vector<std::string> 片段;
-            私有_追加摘要片段(
-                &片段,
-                "转向",
-                私有_任务管理功能域文本(最近结果.当前功能域)
-                + " / "
-                + 私有_任务管理缺口文本(最近结果.当前缺口类型)
-                + " -> "
-                + 私有_任务管理去向文本(最近结果.当前下一步去向));
-            私有_追加摘要片段(&片段, "迁移", 私有_任务管理状态迁移文本(最近结果.当前治理状态迁移));
-            私有_追加摘要片段(&片段, "步骤位", 私有_任务管理步骤位类型文本(最近结果.当前步骤位类型));
-            私有_追加摘要片段(&片段, "方法来源", 私有_任务管理方法来源文本(最近结果.当前方法来源));
-            私有_追加摘要片段(&片段, "总控", 私有_任务管理总控结果文本(最近结果.最近总控结果));
-            私有_追加摘要片段(&片段, "反馈", 私有_任务管理反馈类型文本(最近结果.最近反馈类型));
-            if (最近结果.当前子任务节点) {
-                私有_追加摘要片段(&片段, "子任务", 私有_任务标题(最近结果.当前子任务节点), true);
-            }
-            if (最近结果.当前学习方法节点) {
-                私有_追加摘要片段(&片段, "学习方法", 私有_方法标题(最近结果.当前学习方法节点), true);
-            }
-            快照->任务管理输出摘要 = 私有_拼接摘要片段(片段);
+        if (static_cast<std::size_t>(节点->子节点数量) > 子节点集.size()) {
+            树节点.子项.push_back(
+                私有_创建结构省略节点(
+                    "task-node-more",
+                    私有_地址(节点),
+                    子节点集.size(),
+                    static_cast<std::size_t>(节点->子节点数量) - 子节点集.size()));
         }
 
-        (void)任务管理运行摘要;
+        return 树节点;
     }
 
-    void 私有_构建主派发输出快照(结构_控制面板快照* 快照)
+    结构_控制面板树节点 私有_构建方法树节点(
+        方法节点* 节点,
+        const 结构_构建上下文& 上下文,
+        const std::size_t 剩余深度,
+        路径集合 路径)
     {
-        if (!快照) {
-            return;
+        if (!节点) {
+            return 私有_新节点("空方法节点");
         }
 
-        const auto 需求与权重治理输出 = 获取全局自我线程().读取最近需求与权重治理输出快照();
-        const auto 主派发输出 = 获取全局自我线程().读取最近主派发输出快照();
-        const auto 队列治理输出 = 获取全局自我线程().读取最近队列治理输出快照();
-        const auto 结算治理输出 = 获取全局自我线程().读取最近结算治理输出快照();
-        const auto 双值结算账快照 = 获取全局自我线程().读取最近双值结算账快照();
-        const auto 学习恢复接口快照 = 获取全局自我线程().读取最近学习恢复接口快照();
-        const auto 恢复请求分组快照 = 获取全局自我线程().读取最近恢复请求分组快照();
-        const auto 回流结算列表快照 = 获取全局自我线程().读取最近回流结算列表快照();
-        const auto 关键中间状态分组快照 = 获取全局自我线程().读取最近关键中间状态分组快照();
+        const auto 当前地址 = 私有_地址(节点);
+        if (路径.contains(当前地址)) {
+            return 私有_新节点("方法节点 | 路径=已在上层路径中", 当前地址, false);
+        }
+        路径.insert(当前地址);
 
-        {
-            std::ostringstream 输出;
-            输出 << "已生成=" << (需求与权重治理输出.已生成 ? "是" : "否")
-                << " | 已更新=" << (需求与权重治理输出.已完成需求与权重更新 ? "是" : "否")
-                << " | 主导需求=" << 私有_安全文本(需求与权重治理输出.主导需求候选, "无")
-                << " | 主导任务=" << 需求与权重治理输出.主导任务候选主键
-                << " | 需求候选=" << 需求与权重治理输出.需求候选列表.size()
-                << " | 权重候选=" << 需求与权重治理输出.任务权重候选列表.size()
-                << " | 依赖候选=" << 需求与权重治理输出.父子依赖权重候选列表.size()
-                << " | 方法禁止项=" << 需求与权重治理输出.方法禁止项列表.size();
-            if (!需求与权重治理输出.摘要.empty()) {
-                输出 << " | 摘要=" << 需求与权重治理输出.摘要;
-            }
-            快照->需求与权重治理输出摘要 = 输出.str();
+        auto 树节点 = 私有_方法骨架节点(节点, 上下文, false);
+
+        if (剩余深度 == 0) {
+            return 树节点;
         }
 
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "需求与权重治理输出摘要",
-            快照->需求与权重治理输出摘要);
+        auto 字段节点 = 私有_新节点("节点字段");
+        私有_追加叶字段(字段节点, "主键", 节点->获取主键());
+        私有_追加叶字段(字段节点, "节点地址", 私有_十六进制指针(私有_地址(节点)));
+        私有_追加叶字段(字段节点, "子节点数量", 节点->子节点数量);
+        私有_追加叶字段(字段节点, "描述信息", 私有_自然句文本(节点->主信息.描述信息));
+        私有_追加叶字段(字段节点, "节点种类", 私有_方法节点种类文本(节点->主信息.节点种类));
+        私有_追加叶字段(字段节点, "动作名", 私有_词文本(节点->主信息.动作名));
+        私有_追加叶字段(字段节点, "动作句柄", 私有_动作句柄文本(节点->主信息.动作句柄));
+        私有_追加叶字段(字段节点, "来源", 私有_方法来源文本(节点->主信息.来源));
+        私有_追加叶字段(字段节点, "作用域", 私有_方法作用域文本(节点->主信息.作用域));
+        私有_追加叶字段(字段节点, "最近执行时间", 私有_时间文本(节点->主信息.最近执行时间));
+        私有_追加叶字段(字段节点, "最近完成时间", 私有_时间文本(节点->主信息.最近完成时间));
+        私有_追加叶字段(字段节点, "条件主键", 节点->主信息.条件主键);
+        私有_追加叶字段(字段节点, "时间起", 私有_时间文本(节点->主信息.时间起));
+        私有_追加叶字段(字段节点, "时间止", 私有_时间文本(节点->主信息.时间止));
+        私有_追加叶字段(字段节点, "条件场景模板主键", 节点->主信息.条件场景模板主键);
+        私有_追加叶字段(字段节点, "主结果特征类型", 私有_词文本(节点->主信息.主结果特征类型));
+        私有_追加叶字段(字段节点, "结果主键", 节点->主信息.结果主键);
+        私有_追加统计字段(字段节点, 节点->主信息.统计);
+        私有_追加字符串列表字段(字段节点, "影响度量签名", 节点->主信息.影响度量签名, 上下文.树广度上限);
 
-        {
-            std::ostringstream 输出;
-            输出 << "已生成=" << (主派发输出.已生成 ? "是" : "否")
-                << " | 去向=" << 私有_安全文本(主派发输出.当前去向, "无")
-                << " | 入口=" << (主派发输出.允许任务入口实例化 ? "开" : "关")
-                << " | 推进=" << (主派发输出.允许工作线程推进 ? "开" : "关")
-                << " | 来源需求候选=" << 主派发输出.来源需求候选数
-                << " | 来源方法禁止项=" << 主派发输出.来源方法禁止项数
-                << " | 绝对禁止=" << 主派发输出.绝对禁止项数
-                << " | 已验证降根=" << 主派发输出.已验证降根禁止项数
-                << " | 目标反向=" << 主派发输出.目标反向禁止项数
-                << " | 负区间=" << 主派发输出.负区间禁止项数
-                << " | 需求联合压力=" << 主派发输出.需求联合压力值
-                << " | 禁止联合压力=" << 主派发输出.禁止联合压力值
-                << " | 短期收益=" << 主派发输出.短期收益估计值
-                << " | 根方向收益=" << 主派发输出.根方向收益估计值
-                << " | 风险付出=" << 主派发输出.风险付出值
-                << " | 恢复付出=" << 主派发输出.恢复付出值
-                << " | 收益估计=" << 主派发输出.收益估计值
-                << " | 禁止付出=" << 主派发输出.禁止付出值
-                << " | 优先级层=" << 私有_安全文本(主派发输出.优先级链命中层, "无")
-                << " | 升格建议=" << (主派发输出.命中需求升格建议 ? "是" : "否")
-                << " | 新入口建议=" << (主派发输出.命中新任务入口建议 ? "是" : "否")
-                << " | 命中绝对禁止=" << (主派发输出.命中绝对禁止项 ? "是" : "否")
-                << " | 命中已验证降根=" << (主派发输出.命中已验证降根禁止项 ? "是" : "否")
-                << " | 命中目标反向=" << (主派发输出.命中目标反向禁止项 ? "是" : "否")
-                << " | 硬阻断=" << (主派发输出.命中方法硬阻断 ? "是" : "否")
-                << " | 绝对边界层=" << (主派发输出.命中绝对边界优先层 ? "是" : "否")
-                << " | 长期根方向否决层=" << (主派发输出.命中长期根方向否决层 ? "是" : "否")
-                << " | 收益放行层=" << (主派发输出.命中收益放行层 ? "是" : "否")
-                << " | 禁止降级层=" << (主派发输出.命中禁止降级层 ? "是" : "否")
-                << " | 常规放行层=" << (主派发输出.命中常规放行层 ? "是" : "否")
-                << " | 需求-需求冲突=" << (主派发输出.命中需求需求冲突 ? "是" : "否")
-                << " | 需求-禁止项冲突=" << (主派发输出.命中需求禁止项冲突 ? "是" : "否")
-                << " | 禁止项-禁止项冲突=" << (主派发输出.命中禁止项禁止项冲突 ? "是" : "否")
-                << " | 可改路由证据=" << (主派发输出.命中可改路由证据 ? "是" : "否")
-                << " | 仅能降级证据=" << (主派发输出.命中仅能降级证据 ? "是" : "否")
-                << " | 收益恢复放行=" << (主派发输出.命中收益恢复放行 ? "是" : "否")
-                << " | 继续提交级=" << (主派发输出.命中继续提交级路由 ? "是" : "否")
-                << " | 重筹办级=" << (主派发输出.命中重筹办级路由 ? "是" : "否")
-                << " | 待机级=" << (主派发输出.命中待机级路由 ? "是" : "否")
-                << " | 收束级=" << (主派发输出.命中收束级路由 ? "是" : "否")
-                << " | 细则允继续提交=" << (主派发输出.细则允许继续提交级 ? "是" : "否")
-                << " | 细则允重筹办=" << (主派发输出.细则允许重筹办级 ? "是" : "否")
-                << " | 细则允待机=" << (主派发输出.细则允许待机级 ? "是" : "否")
-                << " | 细则允收束=" << (主派发输出.细则允许收束级 ? "是" : "否")
-                << " | 绝对覆盖规则=" << (主派发输出.命中绝对证据覆盖规则 ? "是" : "否")
-                << " | 长期根方向覆盖规则=" << (主派发输出.命中长期根方向覆盖规则 ? "是" : "否")
-                << " | 收益恢复覆盖规则=" << (主派发输出.命中收益恢复覆盖规则 ? "是" : "否")
-                << " | 已验证降根覆盖规则=" << (主派发输出.命中已验证降根覆盖规则 ? "是" : "否")
-                << " | 目标反向仅降级规则=" << (主派发输出.命中目标反向仅降级规则 ? "是" : "否")
-                << " | 冲突仅降级规则=" << (主派发输出.命中冲突仅降级规则 ? "是" : "否")
-                << " | 联合需求主导规则=" << (主派发输出.命中联合需求主导规则 ? "是" : "否")
-                << " | 联合禁止主导规则=" << (主派发输出.命中联合禁止主导规则 ? "是" : "否")
-                << " | 联合收益恢复规则=" << (主派发输出.命中联合收益恢复规则 ? "是" : "否")
-                << " | 联合僵持重筹办规则=" << (主派发输出.命中联合僵持重筹办规则 ? "是" : "否")
-                << " | 联合需求阈值=" << 主派发输出.联合需求主导阈值
-                << " | 联合禁止阈值=" << 主派发输出.联合禁止主导阈值
-                << " | 联合收益恢复裕量阈值=" << 主派发输出.联合收益恢复裕量阈值
-                << " | 联合僵持差值阈值=" << 主派发输出.联合僵持差值阈值
-                << " | 局部收益不可覆盖长期根方向="
-                << (主派发输出.局部收益不可覆盖长期根方向 ? "是" : "否")
-                << " | 收益覆盖禁止付出=" << (主派发输出.收益覆盖禁止付出 ? "是" : "否")
-                << " | 动作=" << 主派发输出.派发动作列表.size()
-                << " | 队列裁决=" << 主派发输出.队列裁决列表.size()
-                << " | 任务包=" << 主派发输出.一步治理任务包集.size()
-                << " | 占用=" << 主派发输出.派发占用登记集.size()
-                << " | 回执=" << 主派发输出.派发回执集.size();
-            if (!主派发输出.决定性需求候选摘要.empty()) {
-                输出 << " | 决定性需求=" << 主派发输出.决定性需求候选摘要;
-            }
-            if (!主派发输出.决定性方法禁止项摘要.empty()) {
-                输出 << " | 决定性禁止=" << 主派发输出.决定性方法禁止项摘要;
-            }
-            if (!主派发输出.联合需求候选摘要.empty()) {
-                输出 << " | 联合需求=" << 主派发输出.联合需求候选摘要;
-            }
-            if (!主派发输出.联合方法禁止项摘要.empty()) {
-                输出 << " | 联合禁止=" << 主派发输出.联合方法禁止项摘要;
-            }
-            if (!主派发输出.冲突消解摘要.empty()) {
-                输出 << " | 冲突消解=" << 主派发输出.冲突消解摘要;
-            }
-            if (!主派发输出.逐类覆盖摘要.empty()) {
-                输出 << " | 逐类覆盖=" << 主派发输出.逐类覆盖摘要;
-            }
-            if (!主派发输出.逐类路由摘要.empty()) {
-                输出 << " | 逐类路由=" << 主派发输出.逐类路由摘要;
-            }
-            if (!主派发输出.逐类路由细则摘要.empty()) {
-                输出 << " | 路由细则=" << 主派发输出.逐类路由细则摘要;
-            }
-            if (!主派发输出.多证据覆盖摘要.empty()) {
-                输出 << " | 多证据覆盖=" << 主派发输出.多证据覆盖摘要;
-            }
-            if (!主派发输出.多证据联合裁决摘要.empty()) {
-                输出 << " | 联合裁决=" << 主派发输出.多证据联合裁决摘要;
-            }
-            if (!主派发输出.联合阈值细则摘要.empty()) {
-                输出 << " | 联合阈值=" << 主派发输出.联合阈值细则摘要;
-            }
-            if (!主派发输出.覆盖优先细则摘要.empty()) {
-                输出 << " | 覆盖优先细则=" << 主派发输出.覆盖优先细则摘要;
-            }
-            if (!主派发输出.根层判定摘要.empty()) {
-                输出 << " | 根层=" << 主派发输出.根层判定摘要;
-            }
-            if (!主派发输出.主派发判定二次特征摘要.empty()) {
-                输出 << " | 主派发判据=" << 主派发输出.主派发判定二次特征摘要;
-            }
-            if (!主派发输出.主派发摘要.empty()) {
-                输出 << " | 摘要=" << 主派发输出.主派发摘要;
-            }
-            快照->主派发输出摘要 = 输出.str();
+        私有_追加指针字段(
+            字段节点,
+            "父方法结构父节点",
+            reinterpret_cast<方法节点*>(节点->父),
+            {},
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "方法虚拟存在",
+            节点->主信息.方法虚拟存在,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "条件场景",
+            节点->主信息.条件场景,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "结果场景",
+            节点->主信息.结果场景,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "来源任务",
+            节点->主信息.来源任务,
+            上下文,
+            剩余深度,
+            路径,
+            [](任务节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建任务树节点(reinterpret_cast<任务节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "父方法",
+            节点->主信息.父方法,
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "前置方法",
+            节点->主信息.前置方法,
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用字段(
+            字段节点,
+            "后续方法",
+            节点->主信息.后续方法,
+            上下文,
+            剩余深度,
+            路径,
+            [](方法节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建方法树节点(reinterpret_cast<方法节点*>(目标), 局部上下文, 深度, std::move(路径集));
+            });
+        私有_追加引用列表字段(
+            字段节点,
+            "结果初始状态",
+            节点->主信息.结果初始状态,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用列表字段(
+            字段节点,
+            "条件判定索引",
+            节点->主信息.条件判定索引,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        私有_追加引用列表字段(
+            字段节点,
+            "结果摘要索引",
+            节点->主信息.结果摘要索引,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            上下文.树广度上限);
+        树节点.子项.push_back(std::move(字段节点));
+
+        const auto 子节点集 = 私有_枚举子节点(节点, 上下文.树广度上限);
+        for (auto* 子节点 : 子节点集) {
+            树节点.子项.push_back(私有_方法骨架节点(子节点, 上下文, false));
+        }
+        if (static_cast<std::size_t>(节点->子节点数量) > 子节点集.size()) {
+            树节点.子项.push_back(
+                私有_创建结构省略节点(
+                    "method-node-more",
+                    私有_地址(节点),
+                    子节点集.size(),
+                    static_cast<std::size_t>(节点->子节点数量) - 子节点集.size()));
         }
 
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "主派发输出摘要",
-            快照->主派发输出摘要);
-
-        {
-            std::ostringstream 输出;
-            输出 << "已生成=" << (队列治理输出.已生成 ? "是" : "否")
-                << " | 队列数=" << 队列治理输出.队列状态列表.size();
-            if (!队列治理输出.摘要.empty()) {
-                输出 << " | 摘要=" << 队列治理输出.摘要;
-            }
-            快照->队列治理输出摘要 = 输出.str();
-        }
-
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "队列治理输出摘要",
-            快照->队列治理输出摘要);
-
-        {
-            std::ostringstream 输出;
-            输出 << "已生成=" << (结算治理输出.已生成 ? "是" : "否")
-                << " | 有效推进=" << (结算治理输出.是否有效推进 ? "是" : "否")
-                << " | 固定机制=" << (结算治理输出.已执行固定机制 ? "已执行" : "未执行")
-                << " | 服务净变化=" << 结算治理输出.服务净变化
-                << " | 安全净变化=" << 结算治理输出.安全净变化
-                << " | 唤醒=" << 私有_安全文本(结算治理输出.下一轮唤醒原因, "无")
-                << " | 恢复请求=" << 恢复请求分组快照.size()
-                << " | 回流=" << 回流结算列表快照.size()
-                << " | 否定=" << 结算治理输出.否定项列表.size()
-                << " | 学习=" << 结算治理输出.学习触发列表.size()
-                << " | 关键状态=" << 结算治理输出.关键中间状态列表.size()
-                << " | 关键状态分组=" << 关键中间状态分组快照.size();
-            if (!结算治理输出.固定机制摘要.empty()) {
-                输出 << " | 固定机制摘要=" << 结算治理输出.固定机制摘要;
-            }
-            if (!结算治理输出.摘要.empty()) {
-                输出 << " | 摘要=" << 结算治理输出.摘要;
-            }
-            快照->结算治理输出摘要 = 输出.str();
-        }
-
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "结算治理输出摘要",
-            快照->结算治理输出摘要);
-
-        快照->双值结算账摘要 =
-            双值结算账快照.摘要.empty()
-            ? "暂无双值结算账"
-            : 双值结算账快照.摘要;
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "双值结算账摘要",
-            快照->双值结算账摘要);
-
-        快照->学习恢复接口摘要 =
-            学习恢复接口快照.摘要.empty()
-            ? "暂无学习恢复接口"
-            : 学习恢复接口快照.摘要;
-        私有_追加列表项(
-            &快照->任务管理输出列表,
-            0,
-            "学习恢复接口摘要",
-            快照->学习恢复接口摘要);
-        for (std::size_t 索引 = 0; 索引 < 需求与权重治理输出.需求候选列表.size(); ++索引) {
-            const auto& 候选 = 需求与权重治理输出.需求候选列表[索引];
-            std::ostringstream 摘要;
-            摘要 << 私有_安全文本(候选.候选类型, "未命名候选")
-                << " | 来源=" << 私有_安全文本(候选.来源消息类型, "无")
-                << " | 方法=" << 私有_安全文本(候选.当前方法主键, "无")
-                << " | 任务=" << 候选.关联任务主键
-                << " | 升格=" << (候选.建议升格为正式需求 ? "是" : "否")
-                << " | 新入口=" << (候选.建议新任务入口 ? "是" : "否")
-                << " | 外部支撑=" << (候选.需要外部支撑 ? "是" : "否")
-                << " | 影响父任务=" << (候选.影响父任务推进 ? "是" : "否");
-            if (!候选.摘要.empty()) {
-                摘要 << " | " << 候选.摘要;
-            }
-            const auto 标题 = "需求候选#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->需求候选列表, 0, 标题, 摘要.str());
-            if (索引 < 2) {
-                私有_追加列表项(&快照->任务管理输出列表, 0, 标题, 摘要.str());
-            }
-        }
-        for (std::size_t 索引 = 0; 索引 < 需求与权重治理输出.任务权重候选列表.size(); ++索引) {
-            const auto& 候选 = 需求与权重治理输出.任务权重候选列表[索引];
-            std::ostringstream 摘要;
-            摘要 << 私有_安全文本(候选.对象类型, "未命名对象")
-                << " | 主键=" << 候选.对象主键
-                << " | 原值=" << 候选.原值
-                << " | 候选值=" << 候选.候选值
-                << " | 变化量=" << 候选.变化量;
-            if (!候选.摘要.empty()) {
-                摘要 << " | " << 候选.摘要;
-            }
-            const auto 标题 = "任务权重候选#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->任务权重候选列表, 0, 标题, 摘要.str());
-        }
-        for (std::size_t 索引 = 0; 索引 < 需求与权重治理输出.父子依赖权重候选列表.size(); ++索引) {
-            const auto& 候选 = 需求与权重治理输出.父子依赖权重候选列表[索引];
-            std::ostringstream 摘要;
-            摘要 << "父任务=" << 候选.父任务主键
-                << " | 子任务=" << 候选.子任务主键
-                << " | 候选值=" << 候选.候选值
-                << " | 变化量=" << 候选.变化量
-                << " | 父任务处理=" << (候选.需要父任务处理 ? "是" : "否");
-            if (!候选.摘要.empty()) {
-                摘要 << " | " << 候选.摘要;
-            }
-            const auto 标题 = "父子依赖权重候选#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->父子依赖权重候选列表, 0, 标题, 摘要.str());
-        }
-        for (std::size_t 索引 = 0; 索引 < 需求与权重治理输出.方法禁止项列表.size(); ++索引) {
-            const auto& 禁止项 = 需求与权重治理输出.方法禁止项列表[索引];
-            std::ostringstream 摘要;
-            摘要 << 私有_安全文本(禁止项.方法主键, "未命名方法")
-                << " | 来源=" << 私有_安全文本(禁止项.来源消息类型, "无")
-                << " | 类别=" << 私有_安全文本(禁止项.禁止项类别, "无")
-                << " | 区间=" << 私有_安全文本(禁止项.方向区间, "无")
-                << " | 级别=" << 禁止项.严重级别
-                << " | 阻断=" << (禁止项.是否阻断 ? "是" : "否")
-                << " | 已验证=" << (禁止项.是否已验证 ? "是" : "否")
-                << " | 恢复后解除=" << (禁止项.是否建议恢复后解除 ? "是" : "否")
-                << " | 反项独立验证=" << (禁止项.反项需独立验证 ? "是" : "否");
-            if (!禁止项.原因摘要.empty()) {
-                摘要 << " | 原因=" << 禁止项.原因摘要;
-            }
-            const auto 标题 = "方法禁止项#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->方法禁止项列表, 0, 标题, 摘要.str());
-            if (索引 < 2) {
-                私有_追加列表项(&快照->任务管理输出列表, 0, 标题, 摘要.str());
-            }
-        }
-        for (std::size_t 索引 = 0; 索引 < 恢复请求分组快照.size(); ++索引) {
-            const auto& 请求 = 恢复请求分组快照[索引];
-            std::ostringstream 摘要;
-            摘要 << 私有_安全文本(请求.请求类型, "未命名请求")
-                << " | 已触发=" << (请求.已触发 ? "是" : "否")
-                << " | 请求数=" << 请求.请求数
-                << " | 目标任务=" << 请求.首目标任务主键
-                << " | 关联包=" << 请求.首关联包主键
-                << " | 唤醒=" << 私有_安全文本(请求.唤醒原因, "无");
-            if (!请求.摘要.empty()) {
-                摘要 << " | " << 请求.摘要;
-            }
-            const auto 标题 = "恢复请求#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->结算治理恢复请求列表, 0, 标题, 摘要.str());
-            if (索引 < 2) {
-                私有_追加列表项(&快照->任务管理输出列表, 0, 标题, 摘要.str());
-            }
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 主派发输出.派发动作列表.size(); ++索引) {
-            const auto& 动作 = 主派发输出.派发动作列表[索引];
-            std::ostringstream 摘要;
-            摘要 << 动作.动作类型
-                << " | 任务根=" << 动作.任务根ID
-                << " | 并发=" << (动作.允许并发 ? "是" : "否")
-                << " | 并发组=" << 动作.并发组
-                << " | 队列=" << 私有_安全文本(动作.目标队列, "无");
-            if (!动作.摘要.empty()) {
-                摘要 << " | " << 动作.摘要;
-            }
-
-            const auto 标题 = "主派发动作#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->主派发动作列表, 0, 标题, 摘要.str());
-            if (索引 < 3) {
-                私有_追加列表项(&快照->任务管理输出列表, 0, 标题, 摘要.str());
-            }
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 主派发输出.队列裁决列表.size(); ++索引) {
-            const auto& 裁决 = 主派发输出.队列裁决列表[索引];
-            std::ostringstream 摘要;
-            摘要 << (裁决.已命中 ? "命中" : "未命中")
-                << " | 变更=" << 裁决.变更数量
-                << " | 裁决=" << 私有_安全文本(裁决.裁决, "无");
-            if (!裁决.摘要.empty()) {
-                摘要 << " | " << 裁决.摘要;
-            }
-
-            const auto 标题 = "队列裁决#" + std::to_string(索引 + 1) + " " + 私有_安全文本(裁决.队列名称, "未命名队列");
-            私有_追加列表项(&快照->主派发队列裁决列表, 0, 标题, 摘要.str());
-            if (索引 < 3) {
-                私有_追加列表项(&快照->任务管理输出列表, 0, 标题, 摘要.str());
-            }
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 队列治理输出.队列状态列表.size(); ++索引) {
-            const auto& 状态 = 队列治理输出.队列状态列表[索引];
-            std::ostringstream 摘要;
-            摘要 << (状态.当前活跃 ? "活跃" : "非活跃")
-                << " | 可见=" << 状态.当前可见数量
-                << " | 峰值=" << 状态.历史峰值数量
-                << " | 连续活跃轮=" << 状态.连续活跃轮数
-                << " | 来源分类=" << 私有_安全文本(状态.成员来源分类摘要, "空")
-                << " | 来源动作=" << 私有_安全文本(状态.成员来源摘要, "空");
-            if (!状态.摘要.empty()) {
-                摘要 << " | " << 状态.摘要;
-            }
-
-            const auto 标题 = "队列治理#" + std::to_string(索引 + 1) + " " + 私有_安全文本(状态.队列名称, "未命名队列");
-            私有_追加列表项(&快照->队列治理状态列表, 0, 标题, 摘要.str());
-            if (索引 < 3) {
-                私有_追加列表项(&快照->任务管理输出列表, 0, 标题, 摘要.str());
-            }
-
-            const auto 成员上限 = (std::min)(std::size_t{ 3 }, 状态.当前成员列表.size());
-            for (std::size_t 成员索引 = 0; 成员索引 < 成员上限; ++成员索引) {
-                const auto& 成员 = 状态.当前成员列表[成员索引];
-                std::ostringstream 成员摘要;
-                成员摘要 << "稳定键=" << 私有_安全文本(成员.成员稳定键, "空")
-                    << " | 来源分类=" << 私有_安全文本(成员.来源分类, "空")
-                    << " | 来源动作=" << 私有_安全文本(成员.来源动作, "空")
-                    << " | 首次入队=" << 成员.首次入队时间
-                    << " | 最近入队=" << 成员.最近入队时间;
-                if (!成员.最近事件摘要.empty()) {
-                    成员摘要 << " | 事件=" << 成员.最近事件摘要;
-                }
-
-                const auto 成员标题 =
-                    私有_安全文本(状态.队列名称, "未命名队列")
-                    + "/成员#" + std::to_string(成员索引 + 1)
-                    + "/任务根=" + std::to_string(成员.任务根ID);
-                私有_追加列表项(&快照->队列治理成员列表, 0, 成员标题, 成员摘要.str());
-                if (索引 < 2 && 成员索引 < 2) {
-                    私有_追加列表项(&快照->任务管理输出列表, 0, 成员标题, 成员摘要.str());
-                }
-            }
-
-            const auto 事件上限 = (std::min)(std::size_t{ 2 }, 状态.最近成员事件列表.size());
-            for (std::size_t 事件索引 = 0; 事件索引 < 事件上限; ++事件索引) {
-                const auto& 事件 = 状态.最近成员事件列表[事件索引];
-                std::ostringstream 事件摘要;
-                事件摘要 << (事件.是否入队 ? "入队" : "离队")
-                    << " | 任务根=" << 事件.任务根ID
-                    << " | 稳定键=" << 私有_安全文本(事件.成员稳定键, "空")
-                    << " | 来源分类=" << 私有_安全文本(事件.来源分类, "空")
-                    << " | 来源动作=" << 私有_安全文本(事件.来源动作, "空")
-                    << " | 时间=" << 事件.发生时间;
-                if (!事件.摘要.empty()) {
-                    事件摘要 << " | " << 事件.摘要;
-                }
-
-                const auto 事件标题 =
-                    私有_安全文本(状态.队列名称, "未命名队列")
-                    + "/事件#" + std::to_string(事件索引 + 1);
-                私有_追加列表项(&快照->队列治理成员事件列表, 0, 事件标题, 事件摘要.str());
-                if (索引 == 0) {
-                    私有_追加列表项(&快照->任务管理输出列表, 0, 事件标题, 事件摘要.str());
-                }
-            }
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 回流结算列表快照.size(); ++索引) {
-            const auto& 回流 = 回流结算列表快照[索引];
-            std::ostringstream 摘要;
-            摘要 << "任务根=" << 回流.任务根ID
-                << " | 包=" << 回流.包主键
-                << " | 父任务=" << 回流.父任务主键
-                << " | 结果节点=" << 回流.结果节点主键
-                << " | 已封口=" << (回流.已封口 ? "是" : "否")
-                << " | 有效推进=" << (回流.是否有效推进 ? "是" : "否")
-                << " | 父协调=" << (回流.需要父任务协调 ? "是" : "否")
-                << " | 回流键=" << 私有_安全文本(回流.回流队列键, "空")
-                << " | 协调键=" << 私有_安全文本(回流.父任务协调键, "空")
-                << " | 协调阶段=" << 私有_安全文本(回流.父任务协调阶段, "无")
-                << " | 结论=" << 私有_安全文本(回流.结算结论摘要, "待结算")
-                << " | 恢复=" << 私有_安全文本(回流.恢复建议摘要, "无")
-                << " | 唤醒=" << 私有_安全文本(回流.下一轮唤醒原因, "无");
-            if (!回流.父任务局部更新摘要.empty()) {
-                摘要 << " | 局部更新=" << 回流.父任务局部更新摘要;
-            }
-            if (!回流.学习摘要.empty()) {
-                摘要 << " | 学习=" << 回流.学习摘要;
-            }
-            if (!回流.故障摘要.empty()) {
-                摘要 << " | 故障=" << 回流.故障摘要;
-            }
-            if (!回流.摘要.empty()) {
-                摘要 << " | " << 回流.摘要;
-            }
-            const auto 标题 = "结算回流#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->结算治理回流列表, 0, 标题, 摘要.str());
-            if (索引 < 2) {
-                私有_追加列表项(&快照->任务管理输出列表, 0, 标题, 摘要.str());
-            }
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 结算治理输出.否定项列表.size(); ++索引) {
-            const auto& 否定项 = 结算治理输出.否定项列表[索引];
-            std::ostringstream 摘要;
-            摘要 << "任务=" << 否定项.目标任务主键
-                << " | 风险=" << 否定项.风险等级
-                << " | 时间=" << 否定项.发生时间;
-            if (!否定项.原因摘要.empty()) {
-                摘要 << " | 原因=" << 否定项.原因摘要;
-            }
-            const auto 标题 = "否定项#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->结算治理否定项列表, 0, 标题, 摘要.str());
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 结算治理输出.学习触发列表.size(); ++索引) {
-            const auto& 学习 = 结算治理输出.学习触发列表[索引];
-            std::ostringstream 摘要;
-            摘要 << "锚点=" << 学习.锚点主键
-                << " | 任务=" << 学习.来源任务主键
-                << " | 方法=" << 学习.来源方法主键
-                << " | 类别=" << 私有_安全文本(学习.样本类别, "无")
-                << " | 置信度=" << 学习.置信度;
-            const auto 标题 = "学习触发#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->结算治理学习触发列表, 0, 标题, 摘要.str());
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 结算治理输出.关键中间状态列表.size(); ++索引) {
-            const auto& 关键状态 = 结算治理输出.关键中间状态列表[索引];
-            std::ostringstream 摘要;
-            摘要 << "动作主体=" << 关键状态.动作主体主键
-                << " | 变化主体=" << 关键状态.变化主体主键
-                << " | 特征=" << 关键状态.特征主键
-                << " | 特征类型=" << 私有_安全文本(关键状态.特征类型摘要, "空")
-                << " | 沉淀键=" << 私有_安全文本(关键状态.特征沉淀键, "空")
-                << " | 变化=" << 私有_安全文本(关键状态.变化摘要, "空")
-                << " | 已恢复=" << (关键状态.已恢复 ? "是" : "否")
-                << " | 动作=" << 私有_安全文本(关键状态.动作语义键, "无")
-                << " | 来源=" << 私有_安全文本(关键状态.来源消息类型, "空");
-            const auto 标题 = "关键中间状态#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->结算治理关键状态列表, 0, 标题, 摘要.str());
-        }
-        for (std::size_t 索引 = 0; 索引 < 关键中间状态分组快照.size(); ++索引) {
-            const auto& 分组 = 关键中间状态分组快照[索引];
-            std::ostringstream 摘要;
-            摘要 << "沉淀键=" << 私有_安全文本(分组.特征沉淀键, "空")
-                << " | 特征类型=" << 私有_安全文本(分组.特征类型摘要, "空")
-                << " | 条目数=" << 分组.条目数
-                << " | 未恢复=" << 分组.未恢复数
-                << " | 最近动作=" << 私有_安全文本(分组.最近动作语义键, "无")
-                << " | 来源=" << 私有_安全文本(分组.来源消息类型, "空");
-            if (!分组.摘要.empty()) {
-                摘要 << " | " << 分组.摘要;
-            }
-            const auto 标题 = "关键状态分组#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->结算治理关键状态分组列表, 0, 标题, 摘要.str());
-            if (索引 < 2) {
-                私有_追加列表项(&快照->任务管理输出列表, 0, 标题, 摘要.str());
-            }
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 主派发输出.一步治理任务包集.size(); ++索引) {
-            const auto& 任务包 = 主派发输出.一步治理任务包集[索引];
-            std::ostringstream 摘要;
-            摘要 << "动作=" << 私有_一步治理动作类型文本(任务包.动作类型)
-                << " | 任务语义=" << 私有_安全文本(任务包.任务语义键, "空")
-                << " | 来源任务=" << 任务包.来源任务主键
-                << " | 目标主体=" << 任务包.目标主体主键
-                << " | 包状态=" << 私有_运行包状态文本(任务包.包头.包状态);
-            if (任务包.选定方法.has_value()) {
-                摘要 << " | 选定方法=" << 任务包.选定方法->方法主键;
-            }
-
-            const auto 标题 = "任务包#" + std::to_string(任务包.包头.包主键 == 0 ? (索引 + 1) : 任务包.包头.包主键);
-            私有_追加列表项(&快照->主派发任务包列表, 0, 标题, 摘要.str());
-            if (索引 < 2) {
-                私有_追加列表项(&快照->任务管理输出列表, 0, 标题, 摘要.str());
-            }
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 主派发输出.派发占用登记集.size(); ++索引) {
-            const auto& 占用 = 主派发输出.派发占用登记集[索引];
-            std::ostringstream 摘要;
-            摘要 << 占用.动作类型
-                << " | 队列=" << 私有_安全文本(占用.占用队列, "无")
-                << " | 任务根=" << 占用.任务根ID
-                << " | 包=" << 占用.包主键
-                << " | 已登记=" << (占用.已登记占用 ? "是" : "否")
-                << " | 已派投影=" << (占用.已下发控制投影 ? "是" : "否")
-                << " | 已释放=" << (占用.已释放占用 ? "是" : "否");
-            if (!占用.控制投影摘要.empty()) {
-                摘要 << " | 投影=" << 占用.控制投影摘要;
-            }
-
-            const auto 标题 = "派发占用#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->主派发占用登记列表, 0, 标题, 摘要.str());
-        }
-
-        for (std::size_t 索引 = 0; 索引 < 主派发输出.派发回执集.size(); ++索引) {
-            const auto& 回执 = 主派发输出.派发回执集[索引];
-            std::ostringstream 摘要;
-            摘要 << 回执.动作类型
-                << " | 任务根=" << 回执.任务根ID
-                << " | 包=" << 回执.包主键
-                << " | 已生成=" << (回执.已生成任务包 ? "是" : "否")
-                << " | 已封口=" << (回执.已封口任务包 ? "是" : "否")
-                << " | 已派发=" << (回执.已实际派发 ? "是" : "否")
-                << " | 已回流=" << (回执.已形成回流 ? "是" : "否");
-            if (!回执.错误摘要.empty()) {
-                摘要 << " | 错误=" << 回执.错误摘要;
-            }
-
-            const auto 标题 = "派发回执#" + std::to_string(索引 + 1);
-            私有_追加列表项(&快照->主派发回执列表, 0, 标题, 摘要.str());
-        }
-
+        return 树节点;
     }
 
-    void 私有_构建学习专项快照(结构_控制面板快照* 快照)
+    结构_控制面板树节点 私有_构建基础信息根链骨架(
+        基础信息节点类* 节点,
+        const 结构_构建上下文& 上下文)
     {
-        if (!快照) {
-            return;
+        if (!节点) {
+            return 私有_新节点("空基础信息节点");
         }
 
-        const auto 学习任务列表 = 学习任务模块::枚举学习任务实体();
-        const auto 学习调度快照 = 学习调度模块::构建学习调度快照();
+        auto 树节点 = 私有_基础信息骨架节点(
+            节点,
+            上下文,
+            !节点->父 || 上下文.世界默认展开路径.contains(私有_地址(节点)));
 
-        快照->学习就绪队列数 = 学习调度快照.就绪队列数;
-        快照->学习等待表数 = 学习调度快照.等待表数;
-        快照->学习调度摘要 = 学习调度快照.摘要;
-        快照->学习任务执行中数 = 学习调度快照.执行中数;
-        快照->学习因兜底切换进入就绪数 = 学习调度快照.因兜底切换进入就绪数;
-        快照->学习首个兜底切换就绪摘要 = 学习调度快照.首个兜底切换就绪摘要;
-        快照->学习因兜底切换进入采样数 = 学习调度快照.因兜底切换进入采样数;
-        快照->学习首个兜底切换采样摘要 = 学习调度快照.首个兜底切换采样摘要;
-
-        std::size_t 已完成数 = 0;
-        std::string 首个活跃影响面{};
-        const 结构_学习任务实体* 主学习实体 = nullptr;
-        for (const auto& 实体 : 学习任务列表) {
-            if (实体.当前状态 == 枚举_学习状态::已提交
-                || 实体.当前状态 == 枚举_学习状态::已回滚
-                || 实体.当前状态 == 枚举_学习状态::已失败) {
-                ++已完成数;
+        const auto 子节点集 = 世界树.基础信息().枚举子节点(节点);
+        const auto 实际上限 = (std::min)(上下文.树广度上限, 子节点集.size());
+        for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
+            auto* 子节点 = 子节点集[索引];
+            if (!子节点 || !上下文.世界默认展开路径.contains(私有_地址(子节点))) {
+                continue;
             }
-            else if (首个活跃影响面.empty()) {
-                首个活跃影响面 = 学习任务模块::学习影响面文本(实体.当前影响面);
-            }
-            if (!主学习实体
-                || (主学习实体->当前状态 != 枚举_学习状态::执行中
-                    && 实体.当前状态 == 枚举_学习状态::执行中)
-                || (主学习实体->当前状态 == 枚举_学习状态::挂起
-                    && 实体.当前状态 == 枚举_学习状态::可调度)) {
-                主学习实体 = &实体;
-            }
-            if (快照->学习当前影响面.empty()
-                && 实体.当前状态 == 枚举_学习状态::执行中) {
-                快照->学习当前影响面 = 学习任务模块::学习影响面文本(实体.当前影响面);
-            }
-
-            结构_控制面板列表项 项{};
-            项.节点指针 = reinterpret_cast<std::uintptr_t>(实体.学习子任务);
-            项.标题 = 私有_学习任务主标题(实体);
-            项.摘要 = 私有_学习任务主摘要(实体);
-            项.详情行 = 私有_学习任务详情行(实体);
-            快照->学习任务列表.push_back(std::move(项));
+            树节点.子项.push_back(私有_构建基础信息根链骨架(子节点, 上下文));
         }
-        快照->学习任务已完成数 = 已完成数;
-        if (快照->学习当前影响面.empty()) {
-            快照->学习当前影响面 = std::move(首个活跃影响面);
-        }
-        if (主学习实体) {
-            if (快照->学习当前阶段.empty()) {
-                快照->学习当前阶段 = 私有_学习阶段简文本(主学习实体->当前阶段);
-            }
-            if (快照->学习当前状态.empty()) {
-                快照->学习当前状态 = 私有_学习状态简文本(主学习实体->当前状态);
-            }
-            if (快照->学习当前任务标题.empty()) {
-                快照->学习当前任务标题 = 私有_安全文本(主学习实体->学习子任务标题, "空学习任务");
-            }
-            if (快照->学习当前方法标题.empty()) {
-                快照->学习当前方法标题 = 私有_学习任务主标题(*主学习实体);
-            }
-            if (快照->学习最近摘要.empty()) {
-                快照->学习最近摘要 = 私有_学习任务主摘要(*主学习实体);
-            }
-        }
-
-        for (const auto& 调度项 : 学习调度快照.就绪队列) {
-            结构_控制面板列表项 项{};
-            项.节点指针 = reinterpret_cast<std::uintptr_t>(调度项.实体.学习子任务);
-            项.标题 = 私有_学习任务主标题(调度项.实体);
-            项.摘要 = 私有_学习任务主摘要(调度项.实体);
-            项.详情行 = 私有_学习任务详情行(调度项.实体);
-            if (!调度项.摘要.empty()) {
-                项.详情行.push_back("调度摘要=" + 调度项.摘要);
-            }
-            快照->学习就绪列表.push_back(std::move(项));
-        }
-
-        for (const auto& 调度项 : 学习调度快照.等待表) {
-            结构_控制面板列表项 项{};
-            项.节点指针 = reinterpret_cast<std::uintptr_t>(调度项.实体.学习子任务);
-            项.标题 = 私有_学习任务主标题(调度项.实体);
-            项.摘要 = 私有_学习任务主摘要(调度项.实体);
-            项.详情行 = 私有_学习任务详情行(调度项.实体);
-            if (!调度项.摘要.empty()) {
-                项.详情行.push_back("调度摘要=" + 调度项.摘要);
-            }
-            快照->学习等待列表.push_back(std::move(项));
-        }
-
-        if (快照->学习当前阶段.empty() && !快照->学习就绪列表.empty()) {
-            快照->学习当前阶段 = "待调度";
-        }
-        if (快照->学习当前状态.empty() && !快照->学习就绪列表.empty()) {
-            快照->学习当前状态 = "可调度";
-        }
-
-        std::ostringstream 输出;
-        输出 << "学习账本=" << 快照->学习任务总数
-            << " | 就绪=" << 快照->学习就绪队列数
-            << " | 等待=" << 快照->学习等待表数
-            << " | 执行中=" << 快照->学习任务执行中数
-            << " | 已完成=" << 快照->学习任务已完成数
-            << " | 触发学习=" << (快照->学习应触发学习 ? "是" : "否")
-            << " | 重试恢复=" << (快照->学习应申请重试恢复 ? "是" : "否")
-            << " | 收束恢复=" << (快照->学习应申请收束恢复 ? "是" : "否")
-            << " | 恢复请求=" << 快照->学习恢复请求数
-            << " | 线程阶段=" << 私有_安全文本(快照->学习当前阶段, "空")
-            << " | 线程状态=" << 私有_安全文本(快照->学习当前状态, "空");
-        if (!快照->学习当前影响面.empty()) {
-            输出 << " | 当前影响面=" << 快照->学习当前影响面;
-        }
-        if (!快照->学习当前任务标题.empty()) {
-            输出 << " | 当前任务=" << 快照->学习当前任务标题;
-        }
-        if (!快照->学习当前方法标题.empty()) {
-            输出 << " | 当前方法=" << 快照->学习当前方法标题;
-        }
-        if (主学习实体) {
-            if (!主学习实体->当前学习目标.摘要.empty()) {
-                输出 << " | 当前目标=" << 主学习实体->当前学习目标.摘要;
-            }
-            const auto 学习需求摘要 = 私有_学习需求集合简摘要(主学习实体->当前学习需求集合);
-            if (!学习需求摘要.empty()) {
-                输出 << " | 当前需求=" << 学习需求摘要;
-            }
-            const auto 学习动作摘要 = 私有_学习动作集合简摘要(主学习实体->当前学习动作集合);
-            if (!学习动作摘要.empty()) {
-                输出 << " | 当前动作=" << 学习动作摘要;
-            }
-            const auto 原函数需求摘要 = 私有_学习原函数集合简摘要(主学习实体->当前原函数需求集合);
-            if (!原函数需求摘要.empty()) {
-                输出 << " | 原函数需求=" << 原函数需求摘要;
-            }
-            输出 << " | 当前方法可执行=" << (主学习实体->当前选中学习方法已可执行 ? "是" : "否")
-                << " | 可直接进入学习=" << (主学习实体->可直接进入学习 ? "是" : "否");
-            if (!主学习实体->当前学习方法选择摘要.empty()) {
-                输出 << " | 方法选择=" << 主学习实体->当前学习方法选择摘要;
-            }
-            if (主学习实体->当前候选学习程序.当前裁决 != 枚举_学习程序决策::未定义) {
-                输出 << " | 候选程序="
-                    << 私有_学习程序决策简文本(主学习实体->当前候选学习程序.当前裁决);
-            }
-        }
-        if (!快照->学习最近摘要.empty()) {
-            输出 << " | 最近摘要=" << 快照->学习最近摘要;
-        }
-        if (!快照->学习最近失败摘要.empty()) {
-            输出 << " | 最近失败=" << 快照->学习最近失败摘要;
-        }
-        if (!快照->学习最近反馈摘要.empty()) {
-            输出 << " | 最近反馈=" << 快照->学习最近反馈摘要;
-        }
-        if (!快照->学习最近回流摘要.empty()) {
-            输出 << " | 兼容回流=" << 快照->学习最近回流摘要;
-        }
-        if (!快照->学习最近回放摘要.empty()) {
-            输出 << " | 最近回放=" << 快照->学习最近回放摘要;
-        }
-        if (!快照->学习固定机制观察摘要.empty()) {
-            输出 << " | 固定机制=" << 快照->学习固定机制观察摘要;
-        }
-        if (!快照->学习调度摘要.empty()) {
-            输出 << " | 调度=" << 快照->学习调度摘要;
-        }
-        if (快照->学习因兜底切换进入就绪数 > 0) {
-            输出 << " | 兜底切就绪=" << 快照->学习因兜底切换进入就绪数;
-        }
-        if (!快照->学习首个兜底切换就绪摘要.empty()) {
-            输出 << " | 首兜底切换=" << 快照->学习首个兜底切换就绪摘要;
-        }
-        if (快照->学习因兜底切换进入采样数 > 0) {
-            输出 << " | 兜底切采样=" << 快照->学习因兜底切换进入采样数;
-        }
-        if (!快照->学习首个兜底切换采样摘要.empty()) {
-            输出 << " | 首兜底采样=" << 快照->学习首个兜底切换采样摘要;
-        }
-        快照->学习专项摘要 = 输出.str();
+        return 树节点;
     }
 
-    void 私有_追加列表预览(
-        std::ostringstream& 输出,
-        std::string_view 标题,
-        const std::vector<结构_控制面板列表项>& 列表,
-        std::size_t 上限)
+    结构_控制面板树节点 私有_构建需求根链骨架(
+        需求节点* 节点,
+        const 结构_构建上下文& 上下文)
     {
-        输出 << 标题 << ":\n";
-        if (列表.empty()) {
-            输出 << "  - 暂无数据\n";
-            return;
+        if (!节点) {
+            return 私有_新节点("空需求节点");
         }
 
-        const auto 数量 = (std::min)(上限, 列表.size());
-        for (std::size_t i = 0; i < 数量; ++i) {
-            输出 << "  - " << 列表[i].标题;
-            if (!列表[i].摘要.empty()) {
-                输出 << " | " << 列表[i].摘要;
+        auto 树节点 = 私有_需求骨架节点(
+            节点,
+            上下文,
+            !节点->父 || 上下文.需求默认展开路径.contains(私有_地址(节点)));
+
+        const auto 子节点集 = 私有_枚举子节点(节点, 上下文.树广度上限);
+        for (auto* 子节点 : 子节点集) {
+            if (!子节点 || !上下文.需求默认展开路径.contains(私有_地址(子节点))) {
+                continue;
             }
-            输出 << '\n';
+            树节点.子项.push_back(私有_构建需求根链骨架(子节点, 上下文));
         }
-        if (列表.size() > 数量) {
-            输出 << "  - ... 省略 " << (列表.size() - 数量) << " 项\n";
-        }
+        return 树节点;
     }
 
-    std::wstring 私有_页面标题(枚举_控制面板页面 页面, const 结构_控制面板快照& 快照)
+    结构_控制面板树节点 私有_构建任务根链骨架(
+        任务节点* 节点,
+        const 结构_构建上下文& 上下文)
     {
-        switch (页面) {
-        case 枚举_控制面板页面::概览:
-            return L"概览与自我信息";
-        case 枚举_控制面板页面::世界树:
-            return L"世界树";
-        case 枚举_控制面板页面::需求树:
-            return 私有_UTF8转宽字串("自我需求树 (" + std::to_string(快照.需求数) + ")");
-        case 枚举_控制面板页面::需求列表:
-            return 私有_UTF8转宽字串("自我需求列表 (" + std::to_string(快照.需求列表.size()) + ")");
-        case 枚举_控制面板页面::任务树:
-            return 私有_UTF8转宽字串("自我任务树 (" + std::to_string(快照.任务数) + ")");
-        case 枚举_控制面板页面::方法树:
-            return 私有_UTF8转宽字串("自我方法树 (" + std::to_string(快照.方法数) + ")");
-        case 枚举_控制面板页面::线程状态:
-            return 私有_UTF8转宽字串("线程状态 (" + std::to_string(快照.线程状态列表.size()) + ")");
-        case 枚举_控制面板页面::线程事件:
-            return 私有_UTF8转宽字串("自我线程事件 (" + std::to_string(快照.自我运行阶段事件.size()) + ")");
-        case 枚举_控制面板页面::先天动作:
-            return 私有_UTF8转宽字串(
-                "先天动作检查 (动态 "
-                + std::to_string(快照.先天动作动态数)
-                + " / 因果 "
-                + std::to_string(快照.先天动作因果数)
-                + ")");
-        default:
-            return L"控制面板";
+        if (!节点) {
+            return 私有_新节点("空任务节点");
         }
+
+        auto 树节点 = 私有_任务骨架节点(
+            节点,
+            上下文,
+            !节点->父 || 上下文.任务默认展开路径.contains(私有_地址(节点)));
+
+        const auto 子节点集 = 私有_枚举子节点(节点, 上下文.树广度上限);
+        for (auto* 子节点 : 子节点集) {
+            if (!子节点 || !上下文.任务默认展开路径.contains(私有_地址(子节点))) {
+                continue;
+            }
+            树节点.子项.push_back(私有_构建任务根链骨架(子节点, 上下文));
+        }
+        return 树节点;
     }
 
-    std::string 私有_常驻摘要文本(const 结构_控制面板快照& 快照)
+    结构_控制面板树节点 私有_构建方法根链骨架(
+        方法节点* 节点,
+        const 结构_构建上下文& 上下文)
+    {
+        if (!节点) {
+            return 私有_新节点("空方法节点");
+        }
+
+        auto 树节点 = 私有_方法骨架节点(
+            节点,
+            上下文,
+            !节点->父 || 上下文.方法默认展开路径.contains(私有_地址(节点)));
+
+        const auto 子节点集 = 私有_枚举子节点(节点, 上下文.树广度上限);
+        for (auto* 子节点 : 子节点集) {
+            if (!子节点 || !上下文.方法默认展开路径.contains(私有_地址(子节点))) {
+                continue;
+            }
+            树节点.子项.push_back(私有_构建方法根链骨架(子节点, 上下文));
+        }
+        return 树节点;
+    }
+
+    std::string 私有_任务管理摘要文本(
+        const 任务管理工作线程::结构_工作线程实例快照& 工作线程快照,
+        const std::optional<结构_任务管理结果>& 治理结果,
+        const std::optional<结构_治理恢复快照>& 恢复快照)
     {
         std::ostringstream 输出;
-        输出 << "自我: " << 快照.自我摘要 << '\n';
-        输出 << "自我线程: " << 快照.自我线程摘要 << '\n';
-        输出 << "运行时: " << 快照.运行时摘要 << '\n';
-        输出 << "场景: 现实=" << 私有_安全文本(快照.自我现实场景名称, "无")
-            << " | 内部=" << 私有_安全文本(快照.自我内部世界名称, "无") << '\n';
-        输出 << "统计: 状态=" << 快照.状态数
-            << " | 动态=" << 快照.动态数
-            << " | 因果总观察量=" << (快照.因果证据动态样本数 + 快照.因果模板数)
-            << " | 先天动作动态=" << 快照.先天动作动态数
-            << " | 先天动作因果=" << 快照.先天动作因果数
-            << " | 世界树节点=" << 快照.世界树活跃节点数
-            << " | 历史残留=" << 快照.历史宿主残留节点数
-            << " | 需求=" << 快照.需求数
-            << " | 任务=" << 快照.任务数
-            << " | 方法=" << 快照.方法数;
+        输出 << "工作线程=启动:" << 私有_布尔文本(工作线程快照.已启动)
+            << " / 执行:" << 私有_布尔文本(工作线程快照.正在执行)
+            << " / 收到请求:" << 私有_布尔文本(工作线程快照.已收到请求)
+            << " / 推进次数:" << 工作线程快照.累计推进次数
+            << " / 排队:" << 工作线程快照.当前排队数
+            << " | 因果链=" << (工作线程快照.最近因果链状态.empty() ? "空" : 工作线程快照.最近因果链状态)
+            << " | 缺口=" << (工作线程快照.最近缺口归类.empty() ? "空" : 工作线程快照.最近缺口归类)
+            << " | 变化=" << 工作线程快照.最近特征变化数;
+        if (治理结果.has_value()) {
+            输出 << " | 功能域=" << 私有_任务管理功能域文本(治理结果->最近功能域)
+                << " | 去向=" << 私有_任务管理下一步去向文本(治理结果->当前下一步去向)
+                << " | 总控=" << 私有_任务管理总控结果文本(治理结果->最近总控结果);
+        }
+        if (恢复快照.has_value() && !恢复快照->摘要.empty()) {
+            输出 << " | 恢复快照=" << 恢复快照->摘要;
+        }
         return 输出.str();
     }
 
-    std::string 私有_概览内容(const 结构_控制面板快照& 快照)
+    std::vector<THREADENTRY32> 私有_枚举当前进程线程()
+    {
+        std::vector<THREADENTRY32> 线程集{};
+        HANDLE 快照 = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+        if (快照 == INVALID_HANDLE_VALUE) {
+            return 线程集;
+        }
+
+        const DWORD 进程ID = GetCurrentProcessId();
+        THREADENTRY32 条目{};
+        条目.dwSize = sizeof(条目);
+        if (Thread32First(快照, &条目)) {
+            do {
+                if (条目.th32OwnerProcessID == 进程ID) {
+                    线程集.push_back(条目);
+                }
+                条目.dwSize = sizeof(条目);
+            } while (Thread32Next(快照, &条目));
+        }
+        CloseHandle(快照);
+        return 线程集;
+    }
+
+    结构_控制面板树节点 私有_构建线程状态树(
+        const 结构_控制面板快照& 快照,
+        const 任务管理工作线程::结构_工作线程实例快照& 工作线程快照)
+    {
+        auto 根节点 = 私有_新节点(
+            "线程状态 | 系统线程=" + std::to_string(快照.线程数)
+                + " | 自我线程=" + 快照.自我线程当前阶段,
+            0,
+            true);
+
+        auto 自我线程节点 = 私有_新节点(
+            std::string("自我线程 | 生命周期=")
+                + 私有_线程生命周期文本(static_cast<枚举_线程生命周期状态>(快照.自我线程生命周期))
+                + " | 阶段=" + (快照.自我线程当前阶段.empty() ? std::string("暂无数据") : 快照.自我线程当前阶段)
+                + " | Tick=" + std::to_string(快照.自我Tick计数),
+            私有_线程详情_自我,
+            false,
+            false,
+            "thread-self");
+        根节点.子项.push_back(std::move(自我线程节点));
+
+        auto 工作线程节点 = 私有_新节点(
+            std::string("任务管理工作线程 | 启动=")
+                + 私有_布尔文本(工作线程快照.已启动)
+                + " | 执行=" + std::string(私有_布尔文本(工作线程快照.正在执行))
+                + " | 排队=" + std::to_string(工作线程快照.当前排队数)
+                + " | 推进=" + std::to_string(工作线程快照.累计推进次数),
+            私有_线程详情_工作,
+            false,
+            false,
+            "thread-worker");
+        根节点.子项.push_back(std::move(工作线程节点));
+
+        auto 系统线程节点 = 私有_新节点(
+            std::string("系统线程摘要 | 当前进程线程数=") + std::to_string(快照.线程数),
+            私有_线程详情_系统,
+            false,
+            false,
+            "thread-system");
+        根节点.子项.push_back(std::move(系统线程节点));
+
+        return 根节点;
+    }
+
+    std::string 私有_转义HTML(std::string_view 文本)
+    {
+        std::string 输出;
+        输出.reserve(文本.size() + 16);
+        for (const char 字符 : 文本) {
+            switch (字符) {
+            case '&': 输出 += "&amp;"; break;
+            case '<': 输出 += "&lt;"; break;
+            case '>': 输出 += "&gt;"; break;
+            case '"': 输出 += "&quot;"; break;
+            case '\'': 输出 += "&#39;"; break;
+            default: 输出.push_back(字符); break;
+            }
+        }
+        return 输出;
+    }
+
+    void 私有_追加JSON字符串(std::ostringstream& 输出, std::string_view 文本)
+    {
+        输出 << '"';
+        for (const char 字符 : 文本) {
+            switch (字符) {
+            case '\\': 输出 << "\\\\"; break;
+            case '"': 输出 << "\\\""; break;
+            case '\n': 输出 << "\\n"; break;
+            case '\r': 输出 << "\\r"; break;
+            case '\t': 输出 << "\\t"; break;
+            default:
+                if (static_cast<unsigned char>(字符) < 0x20) {
+                    输出 << "\\u" << std::hex << std::setw(4) << std::setfill('0')
+                        << static_cast<int>(static_cast<unsigned char>(字符))
+                        << std::dec << std::setfill(' ');
+                }
+                else {
+                    输出 << 字符;
+                }
+                break;
+            }
+        }
+        输出 << '"';
+    }
+
+    void 私有_追加树节点JSON(std::ostringstream& 输出, const 结构_控制面板树节点& 节点)
+    {
+        输出 << "{";
+        输出 << "\"ptr\":" << 节点.节点指针 << ",";
+        输出 << "\"arg\":" << 节点.附加参数 << ",";
+        输出 << "\"text\":";
+        私有_追加JSON字符串(输出, 节点.文本);
+        输出 << ",";
+        输出 << "\"open\":" << (节点.默认展开 ? "true" : "false") << ",";
+        输出 << "\"lazy\":" << (节点.可延迟展开 ? "true" : "false") << ",";
+        输出 << "\"expandType\":";
+        私有_追加JSON字符串(输出, 节点.展开类型);
+        输出 << ",";
+        输出 << "\"children\":[";
+        for (std::size_t 索引 = 0; 索引 < 节点.子项.size(); ++索引) {
+            if (索引 > 0) {
+                输出 << ",";
+            }
+            私有_追加树节点JSON(输出, 节点.子项[索引]);
+        }
+        输出 << "]";
+        输出 << "}";
+    }
+
+    std::string 私有_树节点JSON(const 结构_控制面板树节点& 节点)
     {
         std::ostringstream 输出;
-        输出 << "自我信息\n";
-        输出 << "  - 已初始化: " << (快照.自我已初始化 ? "是" : "否") << '\n';
-        输出 << "  - 自我存在已建立: " << (快照.自我存在已建立 ? "是" : "否") << '\n';
-        输出 << "  - 自我内部世界已建立: " << (快照.自我内部世界已建立 ? "是" : "否") << '\n';
-        输出 << "  - 待机状态: " << (快照.自我待机状态 ? "是" : "否") << '\n';
-        输出 << "  - 物理安全值: " << 快照.自我物理安全值 << '\n';
-        输出 << "  - 风险安全值: " << 快照.自我风险安全值 << '\n';
-        输出 << "  - 待学习方法数量: " << 快照.自我待学习方法数量 << '\n';
-        输出 << "  - 安全根方向差值: " << 快照.自我安全根方向差值 << '\n';
-        输出 << "  - 时序正向步长: " << 快照.自我时序正向步长 << '\n';
-        输出 << "  - 时序反向步长: " << 快照.自我时序反向步长 << '\n';
-        输出 << "  - 服务时序衰减步长: " << 快照.自我服务时序衰减步长 << '\n';
-        输出 << "  - 现实场景: " << 私有_安全文本(快照.自我现实场景名称, "无") << '\n';
-        输出 << "  - 内部世界: " << 私有_安全文本(快照.自我内部世界名称, "无") << '\n';
-        输出 << '\n';
-
-        输出 << "自我线程\n";
-        输出 << "  - 状态: " << 私有_线程状态摘要(快照) << '\n';
-        输出 << "  - 恢复: " << 私有_线程恢复摘要(快照) << '\n';
-        输出 << "  - 治理: " << 私有_线程治理摘要(快照) << '\n';
-        输出 << "  - 事件: " << 私有_线程事件摘要(快照) << '\n';
-        输出 << "  - 学习: " << 私有_线程学习摘要(快照) << '\n';
-        if (!快照.运行时车道摘要.empty()) {
-            输出 << "  - 车道: " << 快照.运行时车道摘要 << '\n';
-        }
-        if (!快照.主循环归并摘要.empty()) {
-            输出 << "  - 归并: " << 快照.主循环归并摘要 << '\n';
-        }
-        if (!快照.自我线程动作最近摘要.empty()) {
-            输出 << "  - 最近动作: " << 快照.自我线程动作最近摘要 << '\n';
-        }
-        if (!快照.自我线程解封前验收摘要.empty()) {
-            输出 << "  - 解封前验收: " << 快照.自我线程解封前验收摘要 << '\n';
-        }
-        输出 << '\n';
-
-        输出 << "主要统计\n";
-        输出 << "  - 场景数量: " << 快照.场景数 << '\n';
-        输出 << "  - 存在数量: " << 快照.存在数 << '\n';
-        输出 << "  - 特征数量: " << 快照.特征数 << '\n';
-        输出 << "  - 状态数量: " << 快照.状态数 << '\n';
-        输出 << "  - 动态数量: " << 快照.动态数 << '\n';
-        输出 << "  - 抽象因果数量: " << 快照.因果模板数 << '\n';
-        输出 << "  - 因果证据动态样本数量: " << 快照.因果证据动态样本数 << '\n';
-        输出 << "  - 因果总观察量: " << (快照.因果证据动态样本数 + 快照.因果模板数) << '\n';
-        输出 << "  - 先天动作动态数量: " << 快照.先天动作动态数 << '\n';
-        输出 << "  - 先天动作因果数量: " << 快照.先天动作因果数 << '\n';
-        输出 << "  - 世界根子节点数量: " << 快照.世界根子节点数 << '\n';
-        输出 << "  - 世界树基础信息节点数量: " << 快照.基础信息节点数 << '\n';
-        输出 << "  - 世界树活跃节点数量: " << 快照.世界树活跃节点数 << '\n';
-        输出 << "  - 历史宿主残留节点数量: " << 快照.历史宿主残留节点数
-            << "（特征 " << 快照.历史宿主残留特征数
-            << " / 状态 " << 快照.历史宿主残留状态数
-            << " / 动态 " << 快照.历史宿主残留动态数
-            << " / 因果 " << 快照.历史宿主残留因果数 << "）\n";
-        输出 << "  - 自我需求树节点数量: " << 快照.需求数 << '\n';
-        输出 << "  - 自我任务树节点数量: " << 快照.任务数 << '\n';
-        输出 << "  - 自我方法树节点数量: " << 快照.方法数 << '\n';
-        输出 << '\n';
-
-        私有_追加列表预览(输出, "场景预览", 快照.场景列表, 6);
-        输出 << '\n';
-        私有_追加列表预览(输出, "存在预览", 快照.存在列表, 6);
-        输出 << '\n';
-        私有_追加列表预览(输出, "需求预览", 快照.需求列表, 6);
-        输出 << '\n';
-        私有_追加列表预览(输出, "任务预览", 快照.任务列表, 6);
-        输出 << '\n';
-        私有_追加列表预览(输出, "方法预览", 快照.方法列表, 6);
-        输出 << '\n';
-        私有_追加列表预览(输出, "先天动作动态预览", 快照.先天动作动态列表, 6);
-        输出 << '\n';
-        私有_追加列表预览(输出, "先天动作因果预览", 快照.先天动作因果列表, 6);
-        输出 << '\n';
-        私有_追加阶段事件预览(输出, 快照.自我运行阶段事件, 6);
-
+        私有_追加树节点JSON(输出, 节点);
         return 输出.str();
     }
 
-    std::string 私有_需求列表内容(const 结构_控制面板快照& 快照)
+    std::string 私有_树节点子项JSON(const 结构_控制面板树节点& 节点)
     {
         std::ostringstream 输出;
-        输出 << "需求列表队列\n";
-        输出 << "  - 需求数量: " << 快照.需求列表.size() << '\n';
-        输出 << "  - 当前主需求指针: " << 快照.当前主需求指针 << '\n';
-        输出 << '\n';
-
-        if (快照.需求列表.empty()) {
-            输出 << "  - 暂无需求数据\n";
-            return 输出.str();
-        }
-
-        for (const auto& 项 : 快照.需求列表) {
-            输出 << "  - " << 项.标题 << '\n';
-            if (!项.摘要.empty()) {
-                输出 << "    摘要: " << 项.摘要 << '\n';
+        输出 << "[";
+        for (std::size_t 索引 = 0; 索引 < 节点.子项.size(); ++索引) {
+            if (索引 > 0) {
+                输出 << ",";
             }
-            for (const auto& 详情 : 项.详情行) {
-                输出 << "    * " << 详情 << '\n';
-            }
-            输出 << '\n';
+            私有_追加树节点JSON(输出, 节点.子项[索引]);
         }
-
+        输出 << "]";
         return 输出.str();
     }
 
-    std::string 私有_页面内容(const 结构_控制面板快照& 快照, 枚举_控制面板页面 页面)
+    std::string 私有_树节点列表JSON(const std::vector<结构_控制面板树节点>& 节点列表)
     {
-        switch (页面) {
-        case 枚举_控制面板页面::概览:
-            return 私有_概览内容(快照);
-        case 枚举_控制面板页面::世界树:
-            return 私有_渲染树文本(快照.世界树根);
-        case 枚举_控制面板页面::需求树:
-            return 私有_渲染树文本(快照.需求树根);
-        case 枚举_控制面板页面::需求列表:
-            return 私有_需求列表内容(快照);
-        case 枚举_控制面板页面::任务树:
-            return 私有_渲染树文本(快照.任务树根);
-        case 枚举_控制面板页面::方法树:
-            return 私有_渲染树文本(快照.方法树根);
-        case 枚举_控制面板页面::线程状态:
-            return 私有_线程状态内容(快照);
-        case 枚举_控制面板页面::线程事件:
-            return 私有_线程事件内容(快照);
-        case 枚举_控制面板页面::先天动作:
-            return 私有_先天动作内容(快照);
-        default:
-            return {};
-        }
-    }
-
-    void 私有_更新导航按钮状态(结构_控制面板窗口上下文* 上下文) noexcept
-    {
-        if (!上下文) return;
-        const BOOL 概览启用 = 上下文->当前页面 != 枚举_控制面板页面::概览;
-        const BOOL 世界树启用 = 上下文->当前页面 != 枚举_控制面板页面::世界树;
-        const BOOL 需求树启用 = 上下文->当前页面 != 枚举_控制面板页面::需求树;
-        const BOOL 需求列表启用 = 上下文->当前页面 != 枚举_控制面板页面::需求列表;
-        const BOOL 任务树启用 = 上下文->当前页面 != 枚举_控制面板页面::任务树;
-        const BOOL 方法树启用 = 上下文->当前页面 != 枚举_控制面板页面::方法树;
-        const BOOL 线程状态启用 = 上下文->当前页面 != 枚举_控制面板页面::线程状态;
-        const BOOL 线程事件启用 = 上下文->当前页面 != 枚举_控制面板页面::线程事件;
-        const BOOL 先天动作启用 = 上下文->当前页面 != 枚举_控制面板页面::先天动作;
-        if (上下文->导航概览按钮) EnableWindow(上下文->导航概览按钮, 概览启用);
-        if (上下文->导航世界树按钮) EnableWindow(上下文->导航世界树按钮, 世界树启用);
-        if (上下文->导航需求树按钮) EnableWindow(上下文->导航需求树按钮, 需求树启用);
-        if (上下文->导航需求列表按钮) EnableWindow(上下文->导航需求列表按钮, 需求列表启用);
-        if (上下文->导航任务树按钮) EnableWindow(上下文->导航任务树按钮, 任务树启用);
-        if (上下文->导航方法树按钮) EnableWindow(上下文->导航方法树按钮, 方法树启用);
-        if (上下文->导航线程状态按钮) EnableWindow(上下文->导航线程状态按钮, 线程状态启用);
-        if (上下文->导航线程事件按钮) EnableWindow(上下文->导航线程事件按钮, 线程事件启用);
-        if (上下文->导航先天动作按钮) EnableWindow(上下文->导航先天动作按钮, 先天动作启用);
-    }
-
-    void 私有_布局控制面板窗口(HWND 窗口, int 宽度, int 高度) noexcept
-    {
-        auto* 上下文 = 私有_取控制面板窗口上下文(窗口);
-        if (!上下文) return;
-
-        constexpr int 边距 = 12;
-        constexpr int 左侧导航宽度 = 136;
-        constexpr int 导航按钮宽度 = 112;
-        constexpr int 导航按钮高度 = 34;
-        constexpr int 导航间距 = 8;
-        constexpr int 刷新按钮宽度 = 96;
-        constexpr int 标题高度 = 30;
-        constexpr int 摘要高度 = 108;
-        constexpr int 区块间距 = 10;
-
-        const int 左侧 = 边距;
-        int y = 边距;
-        const HWND 导航按钮列表[] = {
-            上下文->导航概览按钮,
-            上下文->导航世界树按钮,
-            上下文->导航需求树按钮,
-            上下文->导航需求列表按钮,
-            上下文->导航任务树按钮,
-            上下文->导航方法树按钮,
-            上下文->导航线程状态按钮,
-            上下文->导航线程事件按钮,
-            上下文->导航先天动作按钮,
-        };
-
-        for (HWND 按钮 : 导航按钮列表) {
-            if (!按钮) continue;
-            MoveWindow(按钮, 左侧, y, 导航按钮宽度, 导航按钮高度, TRUE);
-            y += 导航按钮高度 + 导航间距;
-        }
-
-        if (上下文->刷新按钮) {
-            MoveWindow(
-                上下文->刷新按钮,
-                左侧,
-                y + 6,
-                刷新按钮宽度,
-                导航按钮高度,
-                TRUE);
-        }
-
-        const int 内容左侧 = 左侧导航宽度 + 边距 * 2;
-        const int 内容宽度 = (std::max)(宽度 - 内容左侧 - 边距, 180);
-        const int 标题顶部 = 边距;
-        if (上下文->页面标题) {
-            MoveWindow(
-                上下文->页面标题,
-                内容左侧,
-                标题顶部,
-                内容宽度,
-                标题高度,
-                TRUE);
-        }
-
-        const int 摘要顶部 = 标题顶部 + 标题高度 + 4;
-        if (上下文->摘要文本框) {
-            MoveWindow(
-                上下文->摘要文本框,
-                内容左侧,
-                摘要顶部,
-                内容宽度,
-                摘要高度,
-                TRUE);
-        }
-
-        const int 内容顶部 = 摘要顶部 + 摘要高度 + 区块间距;
-        if (上下文->内容文本框) {
-            MoveWindow(
-                上下文->内容文本框,
-                内容左侧,
-                内容顶部,
-                内容宽度,
-                (std::max)(高度 - 内容顶部 - 边距, 120),
-                TRUE);
-        }
-        if (上下文->树控件) {
-            MoveWindow(
-                上下文->树控件,
-                内容左侧,
-                内容顶部,
-                内容宽度,
-                (std::max)(高度 - 内容顶部 - 边距, 120),
-                TRUE);
-        }
-    }
-
-    void 私有_应用控制面板页面(HWND 窗口)
-    {
-        auto* 上下文 = 私有_取控制面板窗口上下文(窗口);
-        if (!上下文 || !上下文->已加载快照) return;
-
-        SetWindowTextW(上下文->页面标题, 私有_页面标题(上下文->当前页面, 上下文->当前快照).c_str());
-        私有_设置窗口文本(上下文->摘要文本框, 私有_常驻摘要文本(上下文->当前快照));
-        const bool 使用树控件 = 私有_页面使用树控件(上下文->当前页面) && 上下文->树控件 != nullptr;
-        if (上下文->内容文本框) {
-            ShowWindow(上下文->内容文本框, 使用树控件 ? SW_HIDE : SW_SHOW);
-        }
-        if (上下文->树控件) {
-            ShowWindow(上下文->树控件, 使用树控件 ? SW_SHOW : SW_HIDE);
-        }
-        if (使用树控件) {
-            私有_刷新树控件(上下文->树控件, 私有_页面对应树(上下文->当前快照, 上下文->当前页面));
-        }
-        else {
-            私有_设置窗口文本(上下文->内容文本框, 私有_页面内容(上下文->当前快照, 上下文->当前页面));
-        }
-        私有_更新导航按钮状态(上下文);
-
-        std::wstring 标题 = L"鱼巢控制面板";
-        标题 += L"  状态 ";
-        标题 += std::to_wstring(上下文->当前快照.状态数);
-        标题 += L"  动态 ";
-        标题 += std::to_wstring(上下文->当前快照.动态数);
-        标题 += L"  因果 ";
-        标题 += std::to_wstring(上下文->当前快照.因果证据动态样本数 + 上下文->当前快照.因果模板数);
-        SetWindowTextW(窗口, 标题.c_str());
-    }
-
-    void 私有_刷新控制面板窗口内容(HWND 窗口, bool 强制刷新快照)
-    {
-        auto* 上下文 = 私有_取控制面板窗口上下文(窗口);
-        if (!上下文) return;
-
-        if (强制刷新快照 || !上下文->已加载快照) {
-            if (!自我.已初始化()) {
-                (void)初始化自我环境("控制面板窗口/刷新");
+        std::ostringstream 输出;
+        输出 << "[";
+        for (std::size_t 索引 = 0; 索引 < 节点列表.size(); ++索引) {
+            if (索引 > 0) {
+                输出 << ",";
             }
-            上下文->当前快照 = 读取控制面板快照(8, 20);
-            上下文->已加载快照 = true;
+            私有_追加树节点JSON(输出, 节点列表[索引]);
+        }
+        输出 << "]";
+        return 输出.str();
+    }
+
+    void 私有_移除节点字段子项(结构_控制面板树节点& 节点)
+    {
+        节点.子项.erase(
+            std::remove_if(
+                节点.子项.begin(),
+                节点.子项.end(),
+                [](const 结构_控制面板树节点& 子项) {
+                    return 子项.文本 == "节点字段";
+                }),
+            节点.子项.end());
+    }
+
+    std::vector<结构_控制面板树节点> 私有_提取节点字段详情(const 结构_控制面板树节点& 节点)
+    {
+        std::vector<结构_控制面板树节点> 结果{};
+        for (const auto& 子项 : 节点.子项) {
+            if (子项.文本 == "节点字段") {
+                结果.push_back(子项);
+            }
+        }
+        return 结果;
+    }
+
+    std::string 私有_页面摘要(const std::string& 文本)
+    {
+        return 文本.empty() ? "暂无数据" : 文本;
+    }
+
+    std::string 私有_截断文本(const std::string& 文本, const std::size_t 上限 = 160)
+    {
+        if (文本.size() <= 上限) {
+            return 文本;
+        }
+        return 文本.substr(0, 上限) + "...";
+    }
+
+    结构_构建上下文 私有_创建构建上下文(const std::size_t 树广度上限)
+    {
+        结构_构建上下文 上下文{};
+        上下文.树深度上限 = 1;
+        上下文.树广度上限 = (std::min)((std::max<std::size_t>)(1, 树广度上限), std::size_t{16});
+        上下文.引用展开深度上限 = 1;
+        上下文.自我存在指针 = 私有_地址(自我.获取自我存在());
+        上下文.自我现实场景指针 = 私有_地址(自我.获取自我现实场景());
+        上下文.自我内部世界指针 = 私有_地址(自我.获取自我内部世界());
+        上下文.世界默认展开路径 = 私有_合并路径集合(
+            私有_构建父链路径(自我.获取自我现实场景()),
+            私有_构建父链路径(自我.获取自我内部世界()));
+        上下文.世界默认展开路径 = 私有_合并路径集合(
+            std::move(上下文.世界默认展开路径),
+            私有_构建父链路径(自我.获取自我存在()));
+        return 上下文;
+    }
+
+    struct 结构_需求列表分页结果 {
+        std::vector<需求节点*> 节点集{};
+        bool 还有更多 = false;
+        std::size_t 已遍历数量 = 0;
+    };
+
+    结构_需求列表分页结果 私有_读取需求列表分页(
+        需求节点* 根节点,
+        const std::size_t 起始偏移,
+        const std::size_t 每页数量)
+    {
+        结构_需求列表分页结果 结果{};
+        if (!根节点 || 每页数量 == 0) {
+            return 结果;
         }
 
-        私有_应用控制面板页面(窗口);
-    }
+        std::vector<需求节点*> 栈{};
+        栈.push_back(根节点);
+        while (!栈.empty()) {
+            auto* 当前 = 栈.back();
+            栈.pop_back();
 
-    void 私有_切换控制面板页面(HWND 窗口, 枚举_控制面板页面 页面)
-    {
-        auto* 上下文 = 私有_取控制面板窗口上下文(窗口);
-        if (!上下文) return;
-        上下文->当前页面 = 页面;
-        私有_刷新控制面板窗口内容(窗口, false);
-    }
-
-    LRESULT CALLBACK 私有_控制面板窗口过程(HWND 窗口, UINT 消息, WPARAM wParam, LPARAM lParam)
-    {
-        switch (消息) {
-        case WM_CREATE: {
-            auto* 上下文 = new(std::nothrow) 结构_控制面板窗口上下文{};
-            if (!上下文) {
-                return -1;
-            }
-
-            SetWindowLongPtrW(窗口, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(上下文));
-            const auto 实例 = GetModuleHandleW(nullptr);
-
-            上下文->导航概览按钮 = CreateWindowExW(0, L"BUTTON", L"概览", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_导航概览按钮)), 实例, nullptr);
-            上下文->导航世界树按钮 = CreateWindowExW(0, L"BUTTON", L"世界树", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_导航世界树按钮)), 实例, nullptr);
-            上下文->导航需求树按钮 = CreateWindowExW(0, L"BUTTON", L"需求树", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_导航需求树按钮)), 实例, nullptr);
-            上下文->导航需求列表按钮 = CreateWindowExW(0, L"BUTTON", L"需求列表", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_导航需求列表按钮)), 实例, nullptr);
-            上下文->导航任务树按钮 = CreateWindowExW(0, L"BUTTON", L"任务树", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_导航任务树按钮)), 实例, nullptr);
-            上下文->导航方法树按钮 = CreateWindowExW(0, L"BUTTON", L"方法树", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_导航方法树按钮)), 实例, nullptr);
-            上下文->导航线程状态按钮 = CreateWindowExW(0, L"BUTTON", L"线程状态", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_导航线程状态按钮)), 实例, nullptr);
-            上下文->导航线程事件按钮 = CreateWindowExW(0, L"BUTTON", L"线程事件", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_导航线程事件按钮)), 实例, nullptr);
-            上下文->导航先天动作按钮 = CreateWindowExW(0, L"BUTTON", L"先天动作", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_导航先天动作按钮)), 实例, nullptr);
-            上下文->刷新按钮 = CreateWindowExW(0, L"BUTTON", L"刷新", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_刷新按钮)), 实例, nullptr);
-
-            上下文->页面标题 = CreateWindowExW(0, L"STATIC", L"", WS_CHILD | WS_VISIBLE | SS_LEFT,
-                0, 0, 0, 0, 窗口, reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_页面标题)), 实例, nullptr);
-
-            上下文->摘要文本框 = CreateWindowExW(
-                WS_EX_CLIENTEDGE,
-                L"EDIT",
-                L"",
-                WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY,
-                0, 0, 0, 0,
-                窗口,
-                reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_摘要文本框)),
-                实例,
-                nullptr);
-
-            上下文->内容文本框 = CreateWindowExW(
-                WS_EX_CLIENTEDGE,
-                L"EDIT",
-                L"",
-                WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL |
-                ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_READONLY,
-                0, 0, 0, 0,
-                窗口,
-                reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_内容文本框)),
-                实例,
-                nullptr);
-
-            上下文->树控件 = CreateWindowExW(
-                WS_EX_CLIENTEDGE,
-                WC_TREEVIEWW,
-                L"",
-                WS_CHILD | WS_VISIBLE | WS_TABSTOP | TVS_HASLINES | TVS_LINESATROOT |
-                TVS_HASBUTTONS | TVS_SHOWSELALWAYS,
-                0, 0, 0, 0,
-                窗口,
-                reinterpret_cast<HMENU>(static_cast<INT_PTR>(私有_ID_树控件)),
-                实例,
-                nullptr);
-
-            if (!上下文->导航概览按钮 || !上下文->导航世界树按钮 || !上下文->导航需求树按钮 ||
-                !上下文->导航需求列表按钮 ||
-                !上下文->导航任务树按钮 || !上下文->导航方法树按钮 ||
-                !上下文->导航线程状态按钮 || !上下文->导航线程事件按钮 ||
-                !上下文->导航先天动作按钮 ||
-                !上下文->刷新按钮 ||
-                !上下文->页面标题 || !上下文->摘要文本框 || !上下文->内容文本框) {
-                return -1;
-            }
-
-            上下文->文本字体 = CreateFontW(
-                -18, 0, 0, 0,
-                FW_NORMAL,
-                FALSE, FALSE, FALSE,
-                DEFAULT_CHARSET,
-                OUT_DEFAULT_PRECIS,
-                CLIP_DEFAULT_PRECIS,
-                CLEARTYPE_QUALITY,
-                FIXED_PITCH | FF_MODERN,
-                L"Consolas");
-
-            上下文->标题字体 = CreateFontW(
-                -24, 0, 0, 0,
-                FW_BOLD,
-                FALSE, FALSE, FALSE,
-                DEFAULT_CHARSET,
-                OUT_DEFAULT_PRECIS,
-                CLIP_DEFAULT_PRECIS,
-                CLEARTYPE_QUALITY,
-                DEFAULT_PITCH | FF_DONTCARE,
-                L"Microsoft YaHei UI");
-
-            const HWND 全部控件[] = {
-                上下文->导航概览按钮,
-                上下文->导航世界树按钮,
-                上下文->导航需求树按钮,
-                上下文->导航需求列表按钮,
-                上下文->导航任务树按钮,
-                上下文->导航方法树按钮,
-                上下文->导航线程状态按钮,
-                上下文->导航线程事件按钮,
-                上下文->导航先天动作按钮,
-                上下文->刷新按钮,
-                上下文->摘要文本框,
-                上下文->内容文本框,
-                上下文->树控件,
-            };
-
-            if (上下文->文本字体) {
-                for (HWND 控件 : 全部控件) {
-                    if (控件) {
-                        SendMessageW(控件, WM_SETFONT, reinterpret_cast<WPARAM>(上下文->文本字体), TRUE);
-                    }
+            if (当前 != 根节点) {
+                if (结果.已遍历数量 >= 起始偏移 && 结果.节点集.size() < 每页数量) {
+                    结果.节点集.push_back(当前);
                 }
-            }
-            if (上下文->标题字体) {
-                SendMessageW(上下文->页面标题, WM_SETFONT, reinterpret_cast<WPARAM>(上下文->标题字体), TRUE);
+                ++结果.已遍历数量;
             }
 
-            私有_刷新控制面板窗口内容(窗口, true);
-            return 0;
-        }
-        case WM_SIZE:
-            私有_布局控制面板窗口(窗口, LOWORD(lParam), HIWORD(lParam));
-            return 0;
-        case WM_COMMAND:
-            if (HIWORD(wParam) == BN_CLICKED) {
-                switch (LOWORD(wParam)) {
-                case 私有_ID_刷新按钮:
-                    私有_刷新控制面板窗口内容(窗口, true);
-                    return 0;
-                case 私有_ID_导航概览按钮:
-                    私有_切换控制面板页面(窗口, 枚举_控制面板页面::概览);
-                    return 0;
-                case 私有_ID_导航世界树按钮:
-                    私有_切换控制面板页面(窗口, 枚举_控制面板页面::世界树);
-                    return 0;
-                case 私有_ID_导航需求树按钮:
-                    私有_切换控制面板页面(窗口, 枚举_控制面板页面::需求树);
-                    return 0;
-                case 私有_ID_导航需求列表按钮:
-                    私有_切换控制面板页面(窗口, 枚举_控制面板页面::需求列表);
-                    return 0;
-                case 私有_ID_导航任务树按钮:
-                    私有_切换控制面板页面(窗口, 枚举_控制面板页面::任务树);
-                    return 0;
-                case 私有_ID_导航方法树按钮:
-                    私有_切换控制面板页面(窗口, 枚举_控制面板页面::方法树);
-                    return 0;
-                case 私有_ID_导航线程状态按钮:
-                    私有_切换控制面板页面(窗口, 枚举_控制面板页面::线程状态);
-                    return 0;
-                case 私有_ID_导航线程事件按钮:
-                    私有_切换控制面板页面(窗口, 枚举_控制面板页面::线程事件);
-                    return 0;
-                case 私有_ID_导航先天动作按钮:
-                    私有_切换控制面板页面(窗口, 枚举_控制面板页面::先天动作);
-                    return 0;
-                default:
-                    break;
-                }
+            const auto 子节点集 = 私有_枚举全部子节点(当前);
+            for (auto it = 子节点集.rbegin(); it != 子节点集.rend(); ++it) {
+                栈.push_back(*it);
             }
-            break;
-        case 私有_WM_刷新控制面板窗口:
-            私有_刷新控制面板窗口内容(窗口, true);
-            私有_显示控制面板窗口(窗口);
-            return 0;
-        case WM_CLOSE:
-            DestroyWindow(窗口);
-            return 0;
-        case WM_DESTROY: {
-            auto* 上下文 = 私有_取控制面板窗口上下文(窗口);
-            if (上下文) {
-                if (上下文->文本字体) {
-                    DeleteObject(上下文->文本字体);
-                }
-                if (上下文->标题字体) {
-                    DeleteObject(上下文->标题字体);
-                }
-                delete 上下文;
-                SetWindowLongPtrW(窗口, GWLP_USERDATA, 0);
+
+            if (结果.节点集.size() >= 每页数量 && !栈.empty()) {
+                结果.还有更多 = true;
+                break;
             }
-            私有_控制面板窗口句柄.store(nullptr);
-            PostQuitMessage(0);
-            return 0;
         }
-        default:
-            break;
+
+        if (!结果.还有更多) {
+            结果.还有更多 = !栈.empty();
         }
-        return DefWindowProcW(窗口, 消息, wParam, lParam);
+        return 结果;
     }
 
-    bool 私有_确保控制面板通用控件已初始化() noexcept
+    结构_控制面板树节点 私有_创建需求列表加载更多节点(const std::size_t 下一个偏移)
     {
-        static std::once_flag 一次{};
-        static bool 已初始化 = false;
-
-        std::call_once(一次, []() {
-            INITCOMMONCONTROLSEX 初始化结构{};
-            初始化结构.dwSize = sizeof(初始化结构);
-            初始化结构.dwICC = ICC_TREEVIEW_CLASSES | ICC_STANDARD_CLASSES;
-            已初始化 = InitCommonControlsEx(&初始化结构) != FALSE;
-        });
-
-        return 已初始化;
-    }
-
-    bool 私有_确保控制面板窗口类已注册() noexcept
-    {
-        static std::once_flag 一次{};
-        static bool 已注册 = false;
-
-        std::call_once(一次, []() {
-            WNDCLASSEXW 窗口类{};
-            窗口类.cbSize = sizeof(窗口类);
-            窗口类.style = CS_HREDRAW | CS_VREDRAW;
-            窗口类.lpfnWndProc = 私有_控制面板窗口过程;
-            窗口类.hInstance = GetModuleHandleW(nullptr);
-            窗口类.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-            窗口类.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
-            窗口类.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
-            窗口类.lpszClassName = 私有_控制面板窗口类名;
-
-            const ATOM 结果 = RegisterClassExW(&窗口类);
-            已注册 = (结果 != 0) || (GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
-        });
-
-        return 已注册;
-    }
-
-    void 私有_控制面板窗口线程主体(std::promise<bool> 启动结果) noexcept
-    {
-        try {
-            私有_控制面板启动诊断码.store(1);
-            (void)私有_确保控制面板通用控件已初始化();
-            if (!私有_确保控制面板窗口类已注册()) {
-                私有_控制面板启动诊断码.store(2);
-                启动结果.set_value(false);
-                return;
-            }
-
-            auto* 现有窗口 = 私有_控制面板窗口句柄.load();
-            if (现有窗口 && IsWindow(现有窗口)) {
-                私有_控制面板启动诊断码.store(3);
-                PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
-                启动结果.set_value(true);
-                return;
-            }
-
-            私有_控制面板启动诊断码.store(4);
-            HWND 窗口 = CreateWindowExW(
-                WS_EX_APPWINDOW,
-                私有_控制面板窗口类名,
-                L"鱼巢控制面板",
-                WS_OVERLAPPEDWINDOW,
-                CW_USEDEFAULT, CW_USEDEFAULT,
-                980, 720,
-                nullptr,
-                nullptr,
-                GetModuleHandleW(nullptr),
-                nullptr);
-
-            if (!窗口) {
-                私有_控制面板启动诊断码.store(5);
-                启动结果.set_value(false);
-                return;
-            }
-
-            私有_控制面板启动诊断码.store(6);
-            私有_控制面板窗口句柄.store(窗口);
-            ShowWindow(窗口, SW_SHOW);
-            UpdateWindow(窗口);
-            启动结果.set_value(true);
-
-            MSG 消息{};
-            while (GetMessageW(&消息, nullptr, 0, 0) > 0) {
-                TranslateMessage(&消息);
-                DispatchMessageW(&消息);
-            }
-        }
-        catch (...) {
-            私有_控制面板启动诊断码.store(9);
-            try {
-                启动结果.set_value(false);
-            }
-            catch (...) {
-            }
-        }
+        return 私有_新节点(
+            "继续加载需求列表 | 下一段起点=" + std::to_string(下一个偏移)
+                + " | 每次=" + std::to_string(私有_列表分页大小) + " 项",
+            下一个偏移,
+            false,
+            true,
+            "need-list-more");
     }
 }
 
 结构_控制面板快照 读取控制面板快照(
-    std::size_t 树深度上限,
-    std::size_t 树广度上限)
+    const std::size_t 树深度上限,
+    const std::size_t 树广度上限)
 {
     结构_控制面板快照 快照{};
-    const auto 全部动态 = 世界树.动态().枚举全部动态();
-    const auto 全部因果模板 = 世界树.因果().枚举因果模板();
-    std::vector<动态节点类*> 全部因果证据动态{};
 
-    快照.世界树已初始化 = 世界树.世界根() != nullptr;
+    快照.世界树已初始化 = 世界树.基础信息().世界根() != nullptr;
     快照.自我已初始化 = 自我.已初始化();
-    快照.基础信息节点数 = 世界树.基础信息().枚举全部节点().size();
-    快照.场景数 = 世界树.场景().枚举全部场景().size();
-    快照.存在数 = 世界树.存在().枚举全部存在().size();
+    快照.自我存在已建立 = 自我.获取自我存在() != nullptr;
+    快照.自我内部世界已建立 = 自我.获取自我内部世界() != nullptr;
+    快照.自我待机状态 = 自我.是否待机状态();
+    快照.自我安全值 = 自我.获取安全值();
+    快照.自我服务值 = 自我.获取服务值();
+    快照.自我风险安全值 = 自我.获取风险安全值();
+
+    auto& 自我线程 = 获取全局自我线程();
+    const auto 生命周期 = 自我线程.读取生命周期状态();
+    const auto 当前阶段 = 自我线程.读取最近运行阶段();
+    const auto 当前去向 = 自我线程.读取最近最终去向();
+
+    快照.自我线程已初始化 = true;
+    快照.自我线程运行中 =
+        生命周期 == 枚举_线程生命周期状态::启动中
+        || 生命周期 == 枚举_线程生命周期状态::运行中
+        || 生命周期 == 枚举_线程生命周期状态::停止请求中
+        || 生命周期 == 枚举_线程生命周期状态::收尾中;
+    快照.自我线程健康运行 = 生命周期 != 枚举_线程生命周期状态::故障;
+    快照.自我线程生命周期 = static_cast<std::uint8_t>(生命周期);
+    快照.自我Tick计数 = 自我线程.读取Tick计数();
+    快照.自我线程累计故障次数 = 自我线程.读取累计故障次数();
+    快照.自我线程累计恢复次数 = 自我线程.读取累计恢复次数();
+    快照.自我线程当前阶段 = 私有_线程运行阶段文本(当前阶段);
+    快照.自我线程当前最终去向 = 私有_线程最终去向文本(当前去向);
+    快照.自我线程最近运行摘要 = 自我线程.读取最近运行摘要();
+    快照.自我线程最近恢复摘要 = 自我线程.读取最近恢复摘要();
+    快照.自我线程最近故障摘要 = 自我线程.读取最近故障摘要();
+
+    快照.自我存在指针 = 私有_地址(自我.获取自我存在());
+    快照.自我存在标题 = 私有_安全节点摘要(自我.获取自我存在(), "自我存在");
+
+    const auto 全部基础节点 = 世界树.基础信息().枚举全部节点();
+    快照.基础信息节点数 = 全部基础节点.size();
+    快照.场景数 = 世界树.基础信息().枚举节点_按类型<场景节点主信息类>().size();
+    快照.存在数 = 世界树.基础信息().枚举节点_按类型<存在节点主信息类>().size();
     快照.特征数 = 世界树.基础信息().枚举节点_按类型<特征节点主信息类>().size();
-    快照.状态数 = 世界树.状态().枚举全部状态().size();
-    快照.动态数 = 全部动态.size();
-    快照.因果实例数 = 世界树.因果().枚举因果实例().size();
-    快照.因果模板数 = 全部因果模板.size();
-    快照.因果证据动态样本数 = 0;
-    快照.世界根子节点数 = 世界树.获取子节点(nullptr).size();
+    快照.状态数 = 世界树.基础信息().枚举节点_按类型<状态节点主信息类>().size();
+    快照.动态数 = 世界树.基础信息().枚举节点_按类型<动态节点主信息类>().size();
 
-    std::size_t 动态来源_未定义 = 0;
-    std::size_t 动态来源_方法调用 = 0;
-    std::size_t 动态来源_内部机制动作 = 0;
-    std::size_t 动态分类_动作事实 = 0;
-    std::size_t 动态分类_状态变化 = 0;
-    std::size_t 动态分类_被动记账 = 0;
-    std::size_t 动态分类_治理过程 = 0;
-    std::size_t 动态分类_边界结束 = 0;
-    std::vector<结构_动态聚合项> 动态来源聚合{};
-    std::vector<结构_动态聚合项> 动态分类聚合{};
-    std::vector<结构_动态聚合项> 动态方法聚合{};
-    std::vector<结构_动态聚合项> 动态任务聚合{};
-    std::vector<结构_动态聚合项> 动态场景聚合{};
-    std::vector<结构_动态聚合项> 动态树聚合{};
-    结构_控制面板树节点 未归纳实例因果树节点{};
-    快照.因果信息树根.文本 = "因果信息";
-    快照.因果信息树根.子项.clear();
-    std::unordered_set<std::string> 已归纳实例因果主键{};
-
-    for (auto* 动态节点 : 全部动态) {
-        const auto* 动态主信息 = 世界树.动态().取动态主信息(动态节点);
-        if (!动态主信息) {
+    const auto 因果节点集 = 世界树.基础信息().枚举节点_按类型<因果主信息类>();
+    std::size_t 因果模板数 = 0;
+    std::size_t 因果证据动态样本数 = 0;
+    for (auto* 因果节点 : 因果节点集) {
+        const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
+        if (!主信息) {
             continue;
         }
-
-        switch (动态主信息->来源类型) {
-        case 枚举_动态来源类型::方法调用:
-            ++动态来源_方法调用;
-            break;
-        case 枚举_动态来源类型::内部机制动作:
-            ++动态来源_内部机制动作;
-            break;
-        default:
-            ++动态来源_未定义;
-            break;
+        if (主信息->是抽象因果()) {
+            ++因果模板数;
         }
-
-        switch (动态主信息->业务语义类型) {
-        case 枚举_动态业务语义类型::动作事实动态:
-            ++动态分类_动作事实;
-            break;
-        case 枚举_动态业务语义类型::状态变化动态:
-            ++动态分类_状态变化;
-            break;
-        case 枚举_动态业务语义类型::被动记账动态:
-            ++动态分类_被动记账;
-            break;
-        case 枚举_动态业务语义类型::治理过程动态:
-            ++动态分类_治理过程;
-            break;
-        case 枚举_动态业务语义类型::边界结束动态:
-            ++动态分类_边界结束;
-            break;
-        default:
-            break;
-        }
-
-        结构_控制面板列表项 动态项{};
-        动态项.节点指针 = reinterpret_cast<std::uintptr_t>(动态节点);
-        动态项.标题 = 私有_动态标题(动态节点, *动态主信息);
-        动态项.摘要 = 私有_动态摘要(*动态主信息);
-        快照.动态列表.push_back(std::move(动态项));
-        私有_累加动态聚合(
-            &动态来源聚合,
-            私有_动态来源类型文本(动态主信息->来源类型),
-            私有_动态摘要(*动态主信息),
-            reinterpret_cast<std::uintptr_t>(动态节点));
-        私有_累加动态聚合(
-            &动态分类聚合,
-            私有_动态业务语义类型文本(动态主信息->业务语义类型),
-            私有_动态标题(动态节点, *动态主信息),
-            reinterpret_cast<std::uintptr_t>(动态节点));
-        私有_累加动态聚合(
-            &动态方法聚合,
-            私有_动态来源方法标题(*动态主信息),
-            私有_动态标题(动态节点, *动态主信息),
-            reinterpret_cast<std::uintptr_t>(动态节点));
-        私有_累加动态聚合(
-            &动态任务聚合,
-            私有_动态来源任务标题(*动态主信息),
-            私有_动态标题(动态节点, *动态主信息),
-            reinterpret_cast<std::uintptr_t>(动态节点));
-        私有_累加动态聚合(
-            &动态场景聚合,
-            私有_动态来源场景标题(*动态主信息),
-            私有_动态标题(动态节点, *动态主信息),
-            reinterpret_cast<std::uintptr_t>(动态节点));
-        私有_累加动态聚合(
-            &动态树聚合,
-            私有_动态树分组标题(*动态主信息),
-            私有_动态标题(动态节点, *动态主信息),
-            reinterpret_cast<std::uintptr_t>(动态节点));
-
-        const auto* 元信息 = 私有_取动态对应内部先天动作元信息(动态主信息);
-        if (!动态主信息 || !元信息) {
-            continue;
-        }
-
-        结构_控制面板列表项 项{};
-        项.节点指针 = reinterpret_cast<std::uintptr_t>(动态节点);
-        项.标题 = 私有_安全文本(
-            元信息->动作名称 ? std::string(元信息->动作名称) : 私有_安全词(动态主信息->来源动作名),
-            "未命名先天动作");
-        项.摘要 = 私有_先天动作动态摘要(*动态主信息);
-        快照.先天动作动态列表.push_back(std::move(项));
+        因果证据动态样本数 += 主信息->证据动态样本.size();
     }
-    std::reverse(快照.动态列表.begin(), 快照.动态列表.end());
-    std::reverse(快照.先天动作动态列表.begin(), 快照.先天动作动态列表.end());
-    快照.先天动作动态数 = 快照.先天动作动态列表.size();
-    私有_导出动态聚合列表(动态来源聚合, &快照.动态来源列表);
-    私有_导出动态聚合列表(动态分类聚合, &快照.动态分类列表);
-    私有_导出动态聚合列表(动态方法聚合, &快照.动态方法列表);
-    私有_导出动态聚合列表(动态任务聚合, &快照.动态任务列表);
-    私有_导出动态聚合列表(动态场景聚合, &快照.动态场景列表);
-    私有_导出动态聚合列表(动态树聚合, &快照.动态树列表);
-    {
-        std::ostringstream 输出;
-        输出 << "总=" << 快照.动态数
-            << " | 方法调用=" << 动态来源_方法调用
-            << " | 内部机制动作=" << 动态来源_内部机制动作
-            << " | 未定义=" << 动态来源_未定义;
-        if (!快照.动态列表.empty()) {
-            输出 << " | 最近=" << 快照.动态列表.front().标题;
-        }
-        快照.动态来源摘要 = 输出.str();
-    }
-    {
-        std::ostringstream 输出;
-        输出 << "动作=" << 动态分类_动作事实
-            << " | 状态变化=" << 动态分类_状态变化
-            << " | 被动记账=" << 动态分类_被动记账
-            << " | 治理=" << 动态分类_治理过程
-            << " | 边界=" << 动态分类_边界结束;
-        if (!快照.动态分类列表.empty()) {
-            输出 << " | 首项=" << 快照.动态分类列表.front().标题;
-        }
-        快照.动态分类摘要 = 输出.str();
-    }
-    {
-        std::ostringstream 输出;
-        输出 << "来源方法数=" << 快照.动态方法列表.size();
-        if (!快照.动态方法列表.empty()) {
-            输出 << " | 最高频=" << 快照.动态方法列表.front().标题
-                << " | " << 快照.动态方法列表.front().摘要;
-        }
-        快照.动态方法摘要 = 输出.str();
-    }
-    {
-        std::ostringstream 输出;
-        输出 << "来源任务数=" << 快照.动态任务列表.size();
-        if (!快照.动态任务列表.empty()) {
-            输出 << " | 最高频=" << 快照.动态任务列表.front().标题
-                << " | " << 快照.动态任务列表.front().摘要;
-        }
-        快照.动态任务摘要 = 输出.str();
-    }
-    {
-        std::ostringstream 输出;
-        输出 << "来源场景数=" << 快照.动态场景列表.size();
-        if (!快照.动态场景列表.empty()) {
-            输出 << " | 首项=" << 快照.动态场景列表.front().标题
-                << " | " << 快照.动态场景列表.front().摘要;
-        }
-        快照.动态场景摘要 = 输出.str();
-    }
-    {
-        std::ostringstream 输出;
-        输出 << "树分组数=" << 快照.动态树列表.size();
-        if (!快照.动态树列表.empty()) {
-            输出 << " | 首项=" << 快照.动态树列表.front().标题
-                << " | " << 快照.动态树列表.front().摘要;
-        }
-        快照.动态树摘要 = 输出.str();
-    }
-
-    for (auto* 模板节点 : 全部因果模板) {
-        const auto* 模板主信息 = 世界树.因果().取模板主信息(模板节点);
-        if (!模板主信息) {
-            continue;
-        }
-
-        结构_控制面板列表项 项{};
-        项.节点指针 = reinterpret_cast<std::uintptr_t>(模板节点);
-        项.标题 = 私有_因果模板标题(模板节点, *模板主信息);
-        项.摘要 = 私有_因果模板摘要(模板节点, *模板主信息);
-        快照.因果模板列表.push_back(std::move(项));
-        for (const auto& 证据动态 : 模板主信息->证据动态样本) {
-            if (!证据动态.指针) {
-                continue;
-            }
-            const auto 动态主键 = 证据动态.指针->获取主键();
-            if (!动态主键.empty() && 已归纳实例因果主键.contains(动态主键)) {
-                continue;
-            }
-            已归纳实例因果主键.insert(动态主键);
-            全部因果证据动态.push_back(证据动态.指针);
-        }
-        快照.因果信息树根.子项.push_back(私有_构建因果模板树节点(模板节点, *模板主信息));
-    }
-    快照.因果证据动态样本数 = 全部因果证据动态.size();
-    for (auto* 动态节点 : 全部因果证据动态) {
-        const auto* 动态主信息 = 世界树.动态().取动态主信息(动态节点);
-        if (!动态主信息) {
-            continue;
-        }
-        结构_控制面板列表项 证据项{};
-        证据项.节点指针 = reinterpret_cast<std::uintptr_t>(动态节点);
-        证据项.标题 = 私有_动态标题(动态节点, *动态主信息);
-        证据项.摘要 = 私有_动态摘要(*动态主信息);
-        快照.因果实例列表.push_back(std::move(证据项));
-    }
-    std::reverse(快照.因果实例列表.begin(), 快照.因果实例列表.end());
-    std::reverse(快照.因果模板列表.begin(), 快照.因果模板列表.end());
-    std::reverse(快照.先天动作因果列表.begin(), 快照.先天动作因果列表.end());
-    快照.先天动作因果数 = 快照.先天动作因果列表.size();
-
-    std::size_t 未归纳实例因果总数 = 0;
-    std::size_t 已追加未归纳实例因果 = 0;
-    if (!未归纳实例因果树节点.子项.empty() || 未归纳实例因果总数 > 0) {
-        未归纳实例因果树节点.文本 =
-            "未归纳实例因果(最多50条 / 总数 " + std::to_string(未归纳实例因果总数) + ")";
-        if (未归纳实例因果总数 > 已追加未归纳实例因果) {
-            私有_追加树叶节点(
-                &未归纳实例因果树节点,
-                "... 省略 " + std::to_string(未归纳实例因果总数 - 已追加未归纳实例因果) + " 条实例因果");
-        }
-    }
-    if (!未归纳实例因果树节点.子项.empty() || !未归纳实例因果树节点.文本.empty()) {
-        快照.因果信息树根.子项.push_back(std::move(未归纳实例因果树节点));
-    }
+    快照.因果模板数 = 因果模板数;
+    快照.因果证据动态样本数 = 因果证据动态样本数;
 
     auto* 自我存在 = 自我.获取自我存在();
-    auto* 自我现实场景 = 自我.获取自我现实场景();
-    auto* 自我内部世界 = 自我.获取自我内部世界();
-    auto* 当前主需求 = 自我.获取当前主需求();
-    auto* 当前主任务 = 自我.获取当前主任务();
-    auto* 当前主方法 = 自我.获取当前主方法();
+    auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
+    auto* 任务根节点 = 自我存在 ? 世界树.存在().获取任务根节点(自我存在) : nullptr;
+    auto* 方法根节点 = 自我存在 ? 世界树.存在().获取方法根节点(自我存在) : nullptr;
 
-    快照.自我存在已建立 = 自我存在 != nullptr;
-    快照.自我内部世界已建立 = 自我内部世界 != nullptr;
-    快照.自我待机状态 = 自我.是否待机状态();
-    快照.自我存在指针 = reinterpret_cast<std::uintptr_t>(自我存在);
-    快照.自我现实场景指针 = reinterpret_cast<std::uintptr_t>(自我现实场景);
-    快照.自我内部世界指针 = reinterpret_cast<std::uintptr_t>(自我内部世界);
-    快照.当前主需求指针 = reinterpret_cast<std::uintptr_t>(当前主需求);
-    快照.当前主任务指针 = reinterpret_cast<std::uintptr_t>(当前主任务);
-    快照.当前主方法指针 = reinterpret_cast<std::uintptr_t>(当前主方法);
+    快照.需求数 = 需求根节点 ? (私有_计数子树节点(需求根节点) - 1) : 0;
+    快照.任务数 = 任务根节点 ? (私有_计数子树节点(任务根节点) - 1) : 0;
+    快照.方法数 = 方法根节点 ? (私有_计数子树节点(方法根节点) - 1) : 0;
 
-    结构_任务管理结果 最近治理结果{};
-    if (任务管理任务模块::读取最近治理结果(&最近治理结果)) {
-        快照.任务管理当前步骤指针 = reinterpret_cast<std::uintptr_t>(最近治理结果.当前步骤节点);
-        快照.任务管理最近结果指针 = reinterpret_cast<std::uintptr_t>(最近治理结果.最新结果节点);
-        快照.任务管理上层反馈摘要 = 最近治理结果.最近上层反馈摘要;
-        快照.任务管理锚点裁决摘要 = 最近治理结果.锚点裁决摘要;
-        快照.任务管理反馈摘要 = 最近治理结果.最近反馈摘要;
-        快照.任务管理目标结果摘要 = 最近治理结果.目标结果差额摘要;
-        快照.任务管理当前步骤标题 = 最近治理结果.当前步骤节点
-            ? 私有_任务标题(最近治理结果.当前步骤节点)
-            : std::string{};
-        快照.任务管理最近结果标题 = 最近治理结果.最新结果节点
-            ? 私有_任务标题(最近治理结果.最新结果节点)
-            : std::string{};
-        快照.任务管理总控结果 = 最近治理结果.摘要;
-    }
+    结构_学习账本快照 学习账本{};
+    (void)学习任务模块::读取学习账本快照(&学习账本);
+    const auto 学习调度快照 = 学习调度模块::构建学习调度快照();
+    const auto 学习承接快照 = 读取学习承接快照_最小_v0(自我, &自我线程);
+    const auto 最近结算快照 = 自我线程.读取最近结算治理输出快照();
 
-    结构_治理恢复快照 治理恢复快照{};
-    if (任务管理任务模块::读取治理恢复快照(&治理恢复快照)) {
-        快照.任务管理恢复点类型 = 治理恢复快照.当前恢复点类型;
-        快照.任务管理恢复投影摘要 = 治理恢复快照.摘要;
-        快照.任务管理恢复存在待消费学习反馈 = 治理恢复快照.存在待消费学习反馈;
-        快照.任务管理恢复存在待消费学习回流 = 治理恢复快照.存在待消费学习回流;
-        快照.任务管理恢复存在待消费外部反馈 = 治理恢复快照.存在待消费外部反馈;
-        快照.治理mailbox可恢复事件数 = 治理恢复快照.待恢复治理事件数;
-        快照.治理mailbox待恢复摘要 = 治理恢复快照.待恢复治理事件摘要;
-    }
-
-    const auto 自我恢复快照 = 生成自我恢复快照_最小_v0(自我, &获取全局自我线程());
-    快照.自我线程最近结算已生成 = 自我恢复快照.最近结算已生成;
-    快照.自我线程最近已执行固定机制 = 自我恢复快照.最近已执行固定机制;
-    快照.自我线程最近结算摘要 = 自我恢复快照.最近结算摘要;
-    快照.自我线程最近固定机制摘要 = 自我恢复快照.最近固定机制摘要;
-    快照.自我线程最近主派发判据摘要 = 自我恢复快照.最近主派发判定二次特征摘要;
-
-    const auto 学习承接快照 = 读取学习承接快照_最小_v0(自我, &获取全局自我线程());
+    快照.自我待学习方法数量 = 学习承接快照.待学习方法数量;
+    快照.学习任务总数 = 学习账本.总数;
+    快照.学习任务活跃数 = 学习账本.活跃数;
+    快照.学习任务可调度数 = 学习账本.可调度数;
+    快照.学习恢复请求数 = 学习承接快照.恢复请求数;
+    快照.学习因兜底切换进入就绪数 = 学习调度快照.因兜底切换进入就绪数;
+    快照.学习因兜底切换进入采样数 = 学习调度快照.因兜底切换进入采样数;
     快照.学习应触发学习 = 学习承接快照.应触发学习;
     快照.学习应申请重试恢复 = 学习承接快照.应申请重试恢复;
     快照.学习应申请收束恢复 = 学习承接快照.应申请收束恢复;
-    快照.学习恢复请求数 = 学习承接快照.恢复请求数;
-    快照.学习最近反馈摘要 =
-        !快照.学习最近反馈摘要.empty()
-        ? 快照.学习最近反馈摘要
-        : 学习承接快照.最近学习反馈摘要;
-    快照.学习最近回流摘要 =
-        !快照.学习最近回流摘要.empty()
-        ? 快照.学习最近回流摘要
-        : 学习承接快照.最近恢复摘要;
-    快照.学习固定机制观察摘要 = 自我恢复快照.最近固定机制摘要;
-
-    {
-        结构_学习账本快照 学习快照{};
-        if (学习任务模块::读取学习账本快照(&学习快照)) {
-            快照.学习任务总数 = 学习快照.总数;
-            快照.学习任务活跃数 = 学习快照.活跃数;
-            快照.学习任务挂起数 = 学习快照.挂起数;
-            快照.学习任务可调度数 = 学习快照.可调度数;
-            快照.学习任务执行中数 = 学习快照.执行中数;
-            快照.学习任务已完成数 = 学习快照.已完成数;
-            快照.学习因兜底切换进入采样数 = 学习快照.因兜底切换进入采样数;
-            快照.学习首个兜底切换采样摘要 = 学习快照.首个兜底切换采样摘要;
-            快照.学习账本摘要 = 学习快照.最近摘要;
-        }
+    快照.学习调度摘要 = 学习调度快照.摘要;
+    快照.学习最近摘要 = 学习账本.最近摘要;
+    快照.学习最近失败摘要 = 学习账本.任务列表.empty() ? std::string{} : 学习账本.任务列表.front().最近失败摘要;
+    快照.学习最近反馈摘要 = 学习承接快照.最近学习反馈摘要;
+    快照.学习最近回流摘要 = 学习账本.任务列表.empty() ? std::string{} : 学习账本.任务列表.front().最近回流摘要;
+    快照.学习固定机制观察摘要 = 最近结算快照.固定机制摘要;
+    快照.学习首个兜底切换就绪摘要 = 学习调度快照.首个兜底切换就绪摘要;
+    快照.学习首个兜底切换采样摘要 = 学习调度快照.首个兜底切换采样摘要;
+    if (!学习账本.任务列表.empty()) {
+        const auto& 当前学习任务 = 学习账本.任务列表.front();
+        快照.学习当前阶段 = 私有_学习阶段文本(当前学习任务.当前阶段);
+        快照.学习当前状态 = 私有_学习状态文本(当前学习任务.当前状态);
+        快照.学习当前任务标题 = 当前学习任务.学习子任务标题;
+        快照.学习当前方法标题 = !当前学习任务.当前选中学习方法标题.empty()
+            ? 当前学习任务.当前选中学习方法标题
+            : 当前学习任务.学习方法标题;
     }
 
-    if (自我.已初始化()) {
-        快照.自我安全值 = 自我.获取安全值();
-        快照.自我服务值 = 自我.获取服务值();
-        快照.自我物理安全值 = 自我.获取物理安全值();
-        快照.自我风险安全值 = 自我.获取风险安全值();
-        (void)自我.读取自我I64特征当前值(
-            自我特征定义类::类型_自我_待学习方法数量(),
-            快照.自我待学习方法数量,
-            "控制面板::读取控制面板快照/待学习方法数量");
-        快照.自我安全根方向差值 = 自我.安全根方向差值();
-        快照.自我时序正向步长 = 自我.时序正向步长();
-        快照.自我时序反向步长 = 自我.时序反向步长();
-        快照.自我服务时序衰减步长 = 自我.服务时序衰减步长();
+    任务管理工作线程::结构_工作线程实例快照 工作线程快照{};
+    (void)任务管理工作线程::读取任务管理工作线程快照(&工作线程快照);
+    快照.任务管理工作线程已启动 = 工作线程快照.已启动;
+    快照.任务管理工作线程正在执行 = 工作线程快照.正在执行;
+    快照.任务管理工作线程已收到请求 = 工作线程快照.已收到请求;
+    快照.任务管理工作线程累计推进次数 = 工作线程快照.累计推进次数;
+    快照.任务管理工作线程当前排队数 = 工作线程快照.当前排队数;
+    快照.任务管理工作线程最近因果链状态 = 工作线程快照.最近因果链状态;
+    快照.任务管理工作线程最近缺口归类 = 工作线程快照.最近缺口归类;
+    快照.任务管理工作线程最近特征变化数 = 工作线程快照.最近特征变化数;
+
+    std::optional<结构_任务管理结果> 最近治理结果{};
+    结构_任务管理结果 治理结果{};
+    if (任务管理任务模块::读取最近治理结果(&治理结果)) {
+        最近治理结果 = 治理结果;
+        快照.任务管理最近功能域 = 私有_任务管理功能域文本(治理结果.最近功能域);
+        快照.任务管理最近缺口类型 = 私有_任务管理缺口类型文本(治理结果.当前缺口类型);
+        快照.任务管理最近下一步去向 = 私有_任务管理下一步去向文本(治理结果.当前下一步去向);
+        快照.任务管理最近总控结果 = 私有_任务管理总控结果文本(治理结果.最近总控结果);
     }
 
-    if (const auto* 场景主信息 = 世界树.场景().取场景主信息(自我现实场景)) {
-        快照.自我现实场景名称 = 私有_安全文本(私有_安全词(场景主信息->名称), "未命名现实场景");
-    }
-    if (const auto* 场景主信息 = 世界树.场景().取场景主信息(自我内部世界)) {
-        快照.自我内部世界名称 = 私有_安全文本(私有_安全词(场景主信息->名称), "未命名内部世界");
-    }
-
-    const auto 历史宿主残留分析 = 私有_分析历史宿主残留(自我存在);
-    快照.历史宿主残留提示数 = 历史宿主残留分析.提示数;
-    快照.历史宿主残留告警数 = 历史宿主残留分析.告警数;
-    快照.历史宿主残留阻断数 = 历史宿主残留分析.阻断数;
-    快照.历史宿主残留需要阻断 =
-        历史宿主残留分析.总体级别 == 枚举_历史宿主残留严重级别::阻断;
-    快照.历史宿主残留严重级别 =
-        私有_历史宿主残留严重级别文本(历史宿主残留分析.总体级别);
-    快照.历史宿主残留阻断摘要 = 历史宿主残留分析.阻断摘要;
-
-    for (auto* 基础节点 : 世界树.基础信息().枚举全部节点()) {
-        const auto 残留类型 = 私有_判定历史宿主残留类型(基础节点, 自我存在);
-        if (残留类型 == 枚举_历史宿主残留类型::无) {
-            continue;
-        }
-
-        ++快照.历史宿主残留节点数;
-        switch (残留类型) {
-        case 枚举_历史宿主残留类型::特征:
-            ++快照.历史宿主残留特征数;
-            break;
-        case 枚举_历史宿主残留类型::状态:
-            ++快照.历史宿主残留状态数;
-            break;
-        case 枚举_历史宿主残留类型::动态:
-            ++快照.历史宿主残留动态数;
-            break;
-        case 枚举_历史宿主残留类型::因果实例:
-        case 枚举_历史宿主残留类型::因果模板:
-            ++快照.历史宿主残留因果数;
-            break;
-        default:
-            break;
-        }
-
-        结构_控制面板列表项 项{};
-        项.节点指针 = reinterpret_cast<std::uintptr_t>(基础节点);
-        项.标题 = 私有_基础节点标题(基础节点);
-        auto 节点级别 = 枚举_历史宿主残留严重级别::无;
-        if (const auto 迭代 = 历史宿主残留分析.节点级别.find(基础节点);
-            迭代 != 历史宿主残留分析.节点级别.end()) {
-            节点级别 = 迭代->second;
-        }
-        项.摘要 = 私有_历史宿主残留严重级别文本(节点级别)
-            + " | " + 私有_历史宿主残留类型文本(残留类型)
-            + " | " + 私有_历史宿主残留摘要(基础节点, 残留类型);
-        快照.历史宿主残留列表.push_back(std::move(项));
-    }
-    快照.世界树活跃节点数 = 快照.基础信息节点数 >= 快照.历史宿主残留节点数
-        ? (快照.基础信息节点数 - 快照.历史宿主残留节点数)
-        : 0;
-
-    {
-        std::ostringstream 输出;
-        输出 << "初始化=" << (快照.自我已初始化 ? "是" : "否")
-            << " | 存在=" << (快照.自我存在已建立 ? "已建立" : "未建立")
-            << " | 待机=" << (快照.自我待机状态 ? "是" : "否")
-            << " | 风险安全=" << 快照.自我风险安全值
-            << " | 物理安全=" << 快照.自我物理安全值
-            << " | 待学习方法=" << 快照.自我待学习方法数量;
-        快照.自我摘要 = 输出.str();
+    std::optional<结构_治理恢复快照> 最近恢复快照{};
+    结构_治理恢复快照 恢复快照{};
+    if (任务管理任务模块::读取治理恢复快照(&恢复快照)) {
+        最近恢复快照 = 恢复快照;
+        快照.任务管理最近恢复摘要 = 恢复快照.摘要;
     }
 
-    {
-        std::ostringstream 输出;
-        输出 << "状态=" << 私有_线程状态摘要(快照)
-            << " | 恢复=" << 私有_线程恢复摘要(快照)
-            << " | 治理=" << 私有_线程治理摘要(快照)
-            << " | 事件=" << 私有_线程事件摘要(快照);
-        if (快照.学习任务总数 > 0) {
-            输出 << " | 学习=" << 快照.学习任务总数
-                << "/" << 快照.学习任务挂起数
-                << "/" << 快照.学习任务可调度数
-                << "/" << 快照.学习任务执行中数;
-        }
-        if (!快照.自我线程最近故障摘要.empty()) {
-            输出 << " | 最近故障=" << 快照.自我线程最近故障摘要;
-        }
-        快照.自我线程摘要 = 输出.str();
-    }
+    快照.线程数 = 私有_枚举当前进程线程().size();
 
-    {
-        std::ostringstream 输出;
-        输出 << "主需求="
-            << (当前主需求 ? 私有_需求标题(当前主需求) : std::string("空"))
-            << " | 主任务=" << (当前主任务 ? 私有_任务标题(当前主任务) : std::string("空"))
-            << " | 主方法=" << (当前主方法 ? 私有_方法标题(当前主方法) : std::string("空"))
-            << " | 根层重判=" << 私有_安全文本(快照.任务管理根层重判结果, "无")
-            << " | 门控=" << 私有_安全文本(快照.任务管理执行前门控结果, "无")
-            << " | 锚点裁决=" << 私有_安全文本(快照.任务管理锚点裁决摘要, "空")
-            << " | 缺口=" << 私有_安全文本(快照.任务管理当前缺口, "无")
-            << " | 去向=" << 私有_安全文本(快照.任务管理当前去向, "无")
-            << " | 总控=" << 私有_安全文本(快照.任务管理总控结果, "无")
-            << " | 反馈=" << 私有_安全文本(快照.任务管理反馈类型, "无")
-            << " | 方法来源=" << 私有_安全文本(快照.任务管理方法来源, "无")
-            << " | 步骤位=" << 私有_安全文本(快照.任务管理步骤位, "无")
-            << " | 语义=" << 私有_安全文本(快照.任务管理步骤语义, "无")
-            << " | 当前步骤=" << 私有_安全文本(快照.任务管理当前步骤标题, "空")
-            << " | 最近结果=" << 私有_安全文本(快照.任务管理最近结果标题, "空")
-            << " | 最终去向=" << 私有_安全文本(快照.自我线程当前最终去向, "无")
-            << " | 生命周期=" << 私有_线程生命周期文本(static_cast<枚举_线程生命周期状态>(快照.自我线程生命周期))
-            << " | Tick=" << 快照.自我Tick计数
-            << " | 待学习方法=" << 快照.自我待学习方法数量
-            << " | 学习账本=" << 快照.学习任务总数 << "/" << 快照.学习任务挂起数 << "/" << 快照.学习任务可调度数;
-        if (!快照.学习当前阶段.empty()) {
-            输出 << " | 学习阶段=" << 快照.学习当前阶段;
-        }
-        if (!快照.学习当前状态.empty()) {
-            输出 << " | 学习状态=" << 快照.学习当前状态;
-        }
-        if (!快照.任务管理恢复点类型.empty()) {
-            输出 << " | 恢复点=" << 快照.任务管理恢复点类型;
-        }
-        if (快照.任务管理恢复存在待消费学习反馈
-            || 快照.任务管理恢复存在待消费学习回流
-            || 快照.任务管理恢复存在待消费外部反馈) {
-            输出 << " | 待消费="
-                << "学习反馈=" << (快照.任务管理恢复存在待消费学习反馈 ? "是" : "否")
-                << "/兼容回流=" << (快照.任务管理恢复存在待消费学习回流 ? "是" : "否")
-                << "/外部反馈=" << (快照.任务管理恢复存在待消费外部反馈 ? "是" : "否");
-        }
-        if (!快照.任务管理上层反馈摘要.empty()) {
-            输出 << " | 上层反馈=" << 快照.任务管理上层反馈摘要;
-        }
-        if (!快照.任务管理反馈摘要.empty()) {
-            输出 << " | 反馈摘要=" << 快照.任务管理反馈摘要;
-        }
-        if (!快照.任务管理目标结果摘要.empty()) {
-            输出 << " | 双面=" << 快照.任务管理目标结果摘要;
-        }
-        if (!快照.主循环归并摘要.empty()) {
-            输出 << " | 归并=" << 快照.主循环归并摘要;
-        }
-        if (!快照.运行时车道摘要.empty()) {
-            输出 << " | 车道=" << 快照.运行时车道摘要;
-        }
-        快照.运行时摘要 = 输出.str();
-    }
+    结构_构建上下文 上下文{};
+    上下文.树深度上限 = (std::min)((std::max<std::size_t>)(1, 树深度上限), std::size_t{6});
+    上下文.树广度上限 = (std::min)((std::max<std::size_t>)(1, 树广度上限), std::size_t{16});
+    上下文.引用展开深度上限 = 2;
+    上下文.自我存在指针 = 私有_地址(自我存在);
+    上下文.自我现实场景指针 = 私有_地址(自我.获取自我现实场景());
+    上下文.自我内部世界指针 = 私有_地址(自我.获取自我内部世界());
+    上下文.世界默认展开路径 = 私有_合并路径集合(
+        私有_构建父链路径(自我.获取自我现实场景()),
+        私有_构建父链路径(自我.获取自我内部世界()));
+    上下文.世界默认展开路径 = 私有_合并路径集合(
+        std::move(上下文.世界默认展开路径),
+        私有_构建父链路径(自我存在));
 
-    私有_构建任务管理专项快照(&快照);
-    私有_构建主派发输出快照(&快照);
-    私有_构建学习专项快照(&快照);
-    私有_构建线程状态列表(&快照);
+    快照.线程状态树根 = 私有_构建线程状态树(快照, 工作线程快照);
 
-    if (!快照.主派发输出摘要.empty()) {
-        if (!快照.自我线程摘要.empty()) {
-            快照.自我线程摘要 += " | 主派发=" + 快照.主派发输出摘要;
-        }
-        if (!快照.运行时摘要.empty()) {
-            快照.运行时摘要 += " | 主派发=" + 快照.主派发输出摘要;
-        }
-    }
-    if (!快照.队列治理输出摘要.empty()) {
-        if (!快照.自我线程摘要.empty()) {
-            快照.自我线程摘要 += " | 队列治理=" + 快照.队列治理输出摘要;
-        }
-        if (!快照.运行时摘要.empty()) {
-            快照.运行时摘要 += " | 队列治理=" + 快照.队列治理输出摘要;
-        }
-    }
-    if (!快照.结算治理输出摘要.empty()) {
-        if (!快照.自我线程摘要.empty()) {
-            快照.自我线程摘要 += " | 结算治理=" + 快照.结算治理输出摘要;
-        }
-        if (!快照.运行时摘要.empty()) {
-            快照.运行时摘要 += " | 结算治理=" + 快照.结算治理输出摘要;
-        }
-    }
-
-    for (auto* 世界节点 : 世界树.获取子节点(nullptr)) {
-        结构_控制面板列表项 项{};
-        项.节点指针 = reinterpret_cast<std::uintptr_t>(世界节点);
-        项.标题 = 私有_基础节点标题(世界节点);
-        项.摘要 = "子节点数 " + std::to_string(世界树.获取子节点(世界节点).size());
-        快照.世界列表.push_back(std::move(项));
-    }
-
-    for (auto* 场景节点 : 世界树.场景().枚举全部场景()) {
-        const auto* 场景主信息 = 世界树.场景().取场景主信息(场景节点);
-        if (!场景主信息) continue;
-
-        结构_控制面板列表项 项{};
-        项.节点指针 = reinterpret_cast<std::uintptr_t>(场景节点);
-        项.标题 = 私有_安全文本(私有_安全词(场景主信息->名称), "未命名场景");
-        项.摘要 = 私有_世界类型文本(场景主信息->世界类型)
-            + " | 状态索引 " + std::to_string(场景主信息->状态索引.size())
-            + " | 动态索引 " + std::to_string(场景主信息->动态索引.size())
-            + " | 因果索引 " + std::to_string(场景主信息->实例因果索引.size());
-        快照.场景列表.push_back(std::move(项));
-    }
-
-    for (auto* 存在节点 : 世界树.存在().枚举全部存在()) {
-        const auto* 存在主信息 = 世界树.存在().取存在主信息(存在节点);
-        if (!存在主信息) continue;
-
-        结构_控制面板列表项 项{};
-        项.节点指针 = reinterpret_cast<std::uintptr_t>(存在节点);
-        项.标题 = 私有_安全文本(私有_安全词(存在主信息->名称), "未命名存在");
-        const auto 类型 = 私有_安全词(存在主信息->类型);
-        项.摘要 = (类型.empty() ? std::string("无类型") : 类型)
-            + " | 需求根=" + (存在主信息->需求根节点 ? std::string("是") : "否")
-            + " | 任务根=" + (存在主信息->任务根节点 ? std::string("是") : "否")
-            + " | 方法根=" + (存在主信息->方法根节点 ? std::string("是") : "否");
-        快照.存在列表.push_back(std::move(项));
-    }
-
-    const auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
-    const auto* 任务根节点 = 自我存在 ? 世界树.存在().获取任务根节点(自我存在) : nullptr;
-    const auto* 方法根节点 = 自我存在 ? 世界树.存在().获取方法根节点(自我存在) : nullptr;
-
-    快照.需求数 = 私有_统计独立树节点数(需求根节点);
-    快照.任务数 = 私有_统计独立树节点数(任务根节点);
-    快照.方法数 = 私有_统计独立树节点数(方法根节点);
-
-    私有_采集需求队列列表(需求根节点, &快照.需求列表);
-    私有_采集独立树列表(
-        任务根节点,
-        &快照.任务列表,
-        [](const auto* 节点) { return 私有_任务标题(节点); },
-        [](const auto* 节点) { return 私有_任务摘要(节点); });
-    私有_采集独立树列表(
-        方法根节点,
-        &快照.方法列表,
-        [](const auto* 节点) { return 私有_方法标题(节点); },
-        [](const auto* 节点) { return 私有_方法摘要(节点); });
-
-    快照.世界树根.文本 = "世界树（活跃节点 "
-        + std::to_string(快照.世界树活跃节点数)
-        + " / 已过滤历史残留 "
-        + std::to_string(快照.历史宿主残留节点数) + "）";
-    私有_构建世界树节点(
-        世界树.世界根(),
-        &快照.世界树根,
+    auto 世界树根 = 私有_新节点(
+        std::string("世界树 | 节点仓库=基础信息类")
+            + " | 基础节点=" + std::to_string(快照.基础信息节点数)
+            + " | 场景=" + std::to_string(快照.场景数)
+            + " | 存在=" + std::to_string(快照.存在数),
         0,
-        树深度上限,
-        树广度上限,
-        自我存在);
+        true);
+    if (auto* 世界根节点 = 世界树.基础信息().世界根()) {
+        世界树根.子项.push_back(
+            私有_构建基础信息根链骨架(世界根节点, 上下文));
+    }
+    else {
+        世界树根.子项.push_back(私有_新节点("基础信息仓库根为空"));
+    }
+    快照.世界树根 = std::move(世界树根);
 
-    快照.需求树根.文本 = "需求树 (" + std::to_string(快照.需求数) + ")";
-    私有_构建需求树节点(
-        需求根节点,
-        &快照.需求树根,
+    auto 需求树根 = 私有_新节点(
+        "需求树 | 需求数=" + std::to_string(快照.需求数),
         0,
-        树深度上限,
-        树广度上限);
+        true);
+    if (需求根节点) {
+        需求树根.子项.push_back(
+            私有_构建需求根链骨架(需求根节点, 上下文));
+    }
+    else {
+        需求树根.子项.push_back(私有_新节点("需求根为空"));
+    }
+    快照.需求树根 = std::move(需求树根);
 
-    快照.任务树根.文本 = "任务树 (" + std::to_string(快照.任务数) + ")";
-    私有_构建独立树节点(
-        任务根节点,
-        &快照.任务树根,
+    auto 需求列表树根 = 私有_新节点(
+        "需求列表 | 需求数=" + std::to_string(快照.需求数),
         0,
-        树深度上限,
-        树广度上限,
-        [](const auto* 节点) { return 私有_任务标题(节点) + " | " + 私有_任务摘要(节点); });
+        true);
+    if (需求根节点) {
+        const auto 分页结果 = 私有_读取需求列表分页(需求根节点, 0, 私有_列表分页大小);
+        for (auto* 节点 : 分页结果.节点集) {
+            需求列表树根.子项.push_back(私有_需求骨架节点(节点, 上下文, false));
+        }
+        if (分页结果.还有更多) {
+            需求列表树根.子项.push_back(私有_创建需求列表加载更多节点(分页结果.已遍历数量));
+        }
+    }
+    if (需求列表树根.子项.empty()) {
+        需求列表树根.子项.push_back(私有_新节点("暂无需求列表项"));
+    }
+    快照.需求列表树根 = std::move(需求列表树根);
 
-    快照.方法树根.文本 = "方法树 (" + std::to_string(快照.方法数) + ")";
-    私有_构建独立树节点(
-        方法根节点,
-        &快照.方法树根,
+    auto 任务树根 = 私有_新节点(
+        "任务树 | 任务数=" + std::to_string(快照.任务数),
         0,
-        树深度上限,
-        树广度上限,
-        [](const auto* 节点) { return 私有_方法标题(节点) + " | " + 私有_方法摘要(节点); });
+        true);
+    if (任务根节点) {
+        任务树根.子项.push_back(
+            私有_构建任务根链骨架(任务根节点, 上下文));
+    }
+    else {
+        任务树根.子项.push_back(私有_新节点("任务根为空"));
+    }
+    快照.任务树根 = std::move(任务树根);
 
-    私有_替换快照内指针文本(&快照);
+    auto 方法树根 = 私有_新节点(
+        "方法树 | 方法数=" + std::to_string(快照.方法数),
+        0,
+        true);
+    if (方法根节点) {
+        方法树根.子项.push_back(
+            私有_构建方法根链骨架(方法根节点, 上下文));
+    }
+    else {
+        方法树根.子项.push_back(私有_新节点("方法根为空"));
+    }
+    快照.方法树根 = std::move(方法树根);
 
     return 快照;
 }
 
+std::string 读取控制面板节点子项JSON(
+    std::string_view 展开类型,
+    const std::uintptr_t 节点指针,
+    const std::size_t 树广度上限,
+    const std::uintptr_t 附加参数)
+{
+    const auto 上下文 = 私有_创建构建上下文(树广度上限);
+
+    if (展开类型 == "base-node") {
+        auto 节点 = 私有_构建基础信息树节点(
+            reinterpret_cast<基础信息节点类*>(节点指针),
+            上下文,
+            1,
+            {});
+        私有_移除节点字段子项(节点);
+        return 私有_树节点子项JSON(节点);
+    }
+    if (展开类型 == "need-node") {
+        auto 节点 = 私有_构建需求树节点(
+            reinterpret_cast<需求节点*>(节点指针),
+            上下文,
+            1,
+            {},
+            false);
+        私有_移除节点字段子项(节点);
+        return 私有_树节点子项JSON(节点);
+    }
+    if (展开类型 == "task-node") {
+        auto 节点 = 私有_构建任务树节点(
+            reinterpret_cast<任务节点*>(节点指针),
+            上下文,
+            1,
+            {});
+        私有_移除节点字段子项(节点);
+        return 私有_树节点子项JSON(节点);
+    }
+    if (展开类型 == "method-node") {
+        auto 节点 = 私有_构建方法树节点(
+            reinterpret_cast<方法节点*>(节点指针),
+            上下文,
+            1,
+            {});
+        私有_移除节点字段子项(节点);
+        return 私有_树节点子项JSON(节点);
+    }
+    if (展开类型 == "base-ref") {
+        结构_控制面板树节点 容器 = 私有_新节点("引用展开");
+        auto 目标节点 = 私有_构建基础信息树节点(
+            reinterpret_cast<基础信息节点类*>(节点指针),
+            上下文,
+            1,
+            {});
+        私有_移除节点字段子项(目标节点);
+        容器.子项.push_back(std::move(目标节点));
+        return 私有_树节点子项JSON(容器);
+    }
+    if (展开类型 == "need-ref") {
+        结构_控制面板树节点 容器 = 私有_新节点("引用展开");
+        auto 目标节点 = 私有_构建需求树节点(
+            reinterpret_cast<需求节点*>(节点指针),
+            上下文,
+            1,
+            {},
+            false);
+        私有_移除节点字段子项(目标节点);
+        容器.子项.push_back(std::move(目标节点));
+        return 私有_树节点子项JSON(容器);
+    }
+    if (展开类型 == "task-ref") {
+        结构_控制面板树节点 容器 = 私有_新节点("引用展开");
+        auto 目标节点 = 私有_构建任务树节点(
+            reinterpret_cast<任务节点*>(节点指针),
+            上下文,
+            1,
+            {});
+        私有_移除节点字段子项(目标节点);
+        容器.子项.push_back(std::move(目标节点));
+        return 私有_树节点子项JSON(容器);
+    }
+    if (展开类型 == "method-ref") {
+        结构_控制面板树节点 容器 = 私有_新节点("引用展开");
+        auto 目标节点 = 私有_构建方法树节点(
+            reinterpret_cast<方法节点*>(节点指针),
+            上下文,
+            1,
+            {});
+        私有_移除节点字段子项(目标节点);
+        容器.子项.push_back(std::move(目标节点));
+        return 私有_树节点子项JSON(容器);
+    }
+    if (展开类型 == "base-node-more") {
+        结构_控制面板树节点 容器 = 私有_新节点("继续加载基础信息结构子节点");
+        auto* 父节点 = reinterpret_cast<基础信息节点类*>(节点指针);
+        const auto 子节点集 = 父节点 ? 世界树.基础信息().枚举子节点(父节点) : std::vector<基础信息节点类*>{};
+        const auto 起始偏移 = (std::min)(static_cast<std::size_t>(附加参数), 子节点集.size());
+        const auto 结束偏移 = (std::min)(起始偏移 + 上下文.树广度上限, 子节点集.size());
+        for (std::size_t 索引 = 起始偏移; 索引 < 结束偏移; ++索引) {
+            容器.子项.push_back(私有_基础信息骨架节点(子节点集[索引], 上下文, false));
+        }
+        if (子节点集.size() > 结束偏移) {
+            容器.子项.push_back(
+                私有_创建结构省略节点(
+                    "base-node-more",
+                    私有_地址(父节点),
+                    结束偏移,
+                    子节点集.size() - 结束偏移));
+        }
+        return 私有_树节点子项JSON(容器);
+    }
+    if (展开类型 == "need-node-more") {
+        结构_控制面板树节点 容器 = 私有_新节点("继续加载需求结构子节点");
+        auto* 父节点 = reinterpret_cast<需求节点*>(节点指针);
+        const auto 子节点集 = 私有_枚举全部子节点(父节点);
+        const auto 起始偏移 = (std::min)(static_cast<std::size_t>(附加参数), 子节点集.size());
+        const auto 结束偏移 = (std::min)(起始偏移 + 上下文.树广度上限, 子节点集.size());
+        for (std::size_t 索引 = 起始偏移; 索引 < 结束偏移; ++索引) {
+            容器.子项.push_back(私有_需求骨架节点(子节点集[索引], 上下文, false));
+        }
+        if (子节点集.size() > 结束偏移) {
+            容器.子项.push_back(
+                私有_创建结构省略节点(
+                    "need-node-more",
+                    私有_地址(父节点),
+                    结束偏移,
+                    子节点集.size() - 结束偏移));
+        }
+        return 私有_树节点子项JSON(容器);
+    }
+    if (展开类型 == "task-node-more") {
+        结构_控制面板树节点 容器 = 私有_新节点("继续加载任务结构子节点");
+        auto* 父节点 = reinterpret_cast<任务节点*>(节点指针);
+        const auto 子节点集 = 私有_枚举全部子节点(父节点);
+        const auto 起始偏移 = (std::min)(static_cast<std::size_t>(附加参数), 子节点集.size());
+        const auto 结束偏移 = (std::min)(起始偏移 + 上下文.树广度上限, 子节点集.size());
+        for (std::size_t 索引 = 起始偏移; 索引 < 结束偏移; ++索引) {
+            容器.子项.push_back(私有_任务骨架节点(子节点集[索引], 上下文, false));
+        }
+        if (子节点集.size() > 结束偏移) {
+            容器.子项.push_back(
+                私有_创建结构省略节点(
+                    "task-node-more",
+                    私有_地址(父节点),
+                    结束偏移,
+                    子节点集.size() - 结束偏移));
+        }
+        return 私有_树节点子项JSON(容器);
+    }
+    if (展开类型 == "method-node-more") {
+        结构_控制面板树节点 容器 = 私有_新节点("继续加载方法结构子节点");
+        auto* 父节点 = reinterpret_cast<方法节点*>(节点指针);
+        const auto 子节点集 = 私有_枚举全部子节点(父节点);
+        const auto 起始偏移 = (std::min)(static_cast<std::size_t>(附加参数), 子节点集.size());
+        const auto 结束偏移 = (std::min)(起始偏移 + 上下文.树广度上限, 子节点集.size());
+        for (std::size_t 索引 = 起始偏移; 索引 < 结束偏移; ++索引) {
+            容器.子项.push_back(私有_方法骨架节点(子节点集[索引], 上下文, false));
+        }
+        if (子节点集.size() > 结束偏移) {
+            容器.子项.push_back(
+                私有_创建结构省略节点(
+                    "method-node-more",
+                    私有_地址(父节点),
+                    结束偏移,
+                    子节点集.size() - 结束偏移));
+        }
+        return 私有_树节点子项JSON(容器);
+    }
+    if (展开类型 == "need-list-more") {
+        结构_控制面板树节点 容器 = 私有_新节点("需求列表分页");
+        auto* 自我存在 = 自我.获取自我存在();
+        if (auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr) {
+            const auto 分页结果 = 私有_读取需求列表分页(
+                需求根节点,
+                static_cast<std::size_t>(节点指针),
+                私有_列表分页大小);
+            for (auto* 节点 : 分页结果.节点集) {
+                容器.子项.push_back(私有_需求骨架节点(节点, 上下文, false));
+            }
+            if (分页结果.还有更多) {
+                容器.子项.push_back(私有_创建需求列表加载更多节点(分页结果.已遍历数量));
+            }
+        }
+        return 私有_树节点子项JSON(容器);
+    }
+
+    return "[]";
+}
+
+std::string 读取控制面板节点详情JSON(
+    std::string_view 展开类型,
+    const std::uintptr_t 节点指针,
+    const std::size_t 树广度上限)
+{
+    const auto 上下文 = 私有_创建构建上下文(树广度上限);
+
+    if (展开类型 == "base-node") {
+        const auto 节点 = 私有_构建基础信息树节点(
+            reinterpret_cast<基础信息节点类*>(节点指针),
+            上下文,
+            1,
+            {});
+        return 私有_树节点列表JSON(私有_提取节点字段详情(节点));
+    }
+    if (展开类型 == "need-node") {
+        const auto 节点 = 私有_构建需求树节点(
+            reinterpret_cast<需求节点*>(节点指针),
+            上下文,
+            1,
+            {},
+            false);
+        return 私有_树节点列表JSON(私有_提取节点字段详情(节点));
+    }
+    if (展开类型 == "task-node") {
+        const auto 节点 = 私有_构建任务树节点(
+            reinterpret_cast<任务节点*>(节点指针),
+            上下文,
+            1,
+            {});
+        return 私有_树节点列表JSON(私有_提取节点字段详情(节点));
+    }
+    if (展开类型 == "method-node") {
+        const auto 节点 = 私有_构建方法树节点(
+            reinterpret_cast<方法节点*>(节点指针),
+            上下文,
+            1,
+            {});
+        return 私有_树节点列表JSON(私有_提取节点字段详情(节点));
+    }
+    if (展开类型 == "thread-self" || 展开类型 == "thread-worker" || 展开类型 == "thread-system") {
+        const auto 快照 = 读取控制面板快照(1, 16);
+        任务管理工作线程::结构_工作线程实例快照 工作线程快照{};
+        (void)任务管理工作线程::读取任务管理工作线程快照(&工作线程快照);
+
+        auto 字段节点 = 私有_新节点("节点字段");
+        if (展开类型 == "thread-self") {
+            私有_追加叶字段(字段节点, "生命周期", 私有_线程生命周期文本(static_cast<枚举_线程生命周期状态>(快照.自我线程生命周期)));
+            私有_追加叶字段(字段节点, "当前阶段", 快照.自我线程当前阶段);
+            私有_追加叶字段(字段节点, "当前最终去向", 快照.自我线程当前最终去向);
+            私有_追加叶字段(字段节点, "Tick计数", 快照.自我Tick计数);
+            私有_追加叶字段(字段节点, "累计故障次数", 快照.自我线程累计故障次数);
+            私有_追加叶字段(字段节点, "累计恢复次数", 快照.自我线程累计恢复次数);
+            私有_追加叶字段(字段节点, "最近运行摘要", 私有_截断文本(快照.自我线程最近运行摘要, 160));
+            私有_追加叶字段(字段节点, "最近恢复摘要", 私有_截断文本(快照.自我线程最近恢复摘要, 160));
+            私有_追加叶字段(字段节点, "最近故障摘要", 私有_截断文本(快照.自我线程最近故障摘要, 160));
+        }
+        else if (展开类型 == "thread-worker") {
+            std::vector<任务管理工作线程::结构_工作线程界面回报记录> 界面回报列表{};
+            (void)任务管理工作线程::读取任务管理工作线程界面回报列表(&界面回报列表, 8);
+            私有_追加叶字段(字段节点, "已启动", 工作线程快照.已启动);
+            私有_追加叶字段(字段节点, "正在执行", 工作线程快照.正在执行);
+            私有_追加叶字段(字段节点, "已收到请求", 工作线程快照.已收到请求);
+            私有_追加叶字段(字段节点, "最近任务根ID", 工作线程快照.最近任务根ID);
+            私有_追加叶字段(字段节点, "最近请求ID", 工作线程快照.最近请求ID);
+            私有_追加叶字段(字段节点, "最近宿主任务主键", 工作线程快照.最近宿主任务主键);
+            私有_追加叶字段(字段节点, "累计推进次数", 工作线程快照.累计推进次数);
+            私有_追加叶字段(字段节点, "当前排队数", 工作线程快照.当前排队数);
+            私有_追加叶字段(字段节点, "最近推进时间", 私有_时间文本(工作线程快照.最近推进时间));
+            私有_追加叶字段(字段节点, "最近步骤主键", 工作线程快照.最近步骤主键);
+            私有_追加叶字段(字段节点, "最近方法主键", 工作线程快照.最近方法主键);
+            私有_追加叶字段(字段节点, "最近结果主键", 工作线程快照.最近结果主键);
+            私有_追加叶字段(字段节点, "最近下一步去向", 工作线程快照.最近下一步去向);
+            私有_追加叶字段(字段节点, "最近总控结果", 工作线程快照.最近总控结果);
+            私有_追加叶字段(字段节点, "最近因果链状态", 工作线程快照.最近因果链状态);
+            私有_追加叶字段(字段节点, "最近缺口归类", 工作线程快照.最近缺口归类);
+            私有_追加叶字段(字段节点, "最近筹办承接", 工作线程快照.最近筹办承接);
+            私有_追加叶字段(字段节点, "最近等待原因", 工作线程快照.最近等待原因);
+            私有_追加叶字段(字段节点, "最近特征变化数", 工作线程快照.最近特征变化数);
+
+            auto 回报节点 = 私有_新节点(
+                "界面展示回报 (" + std::to_string(界面回报列表.size()) + ")");
+            if (界面回报列表.empty()) {
+                回报节点.子项.push_back(私有_新节点("暂无执行回报"));
+            }
+            else {
+                for (std::size_t 索引 = 0; 索引 < 界面回报列表.size(); ++索引) {
+                    const auto& 回报 = 界面回报列表[索引];
+                    auto 记录节点 = 私有_新节点(
+                        std::to_string(索引 + 1)
+                            + " | 请求ID=" + std::to_string(回报.请求ID)
+                            + " | 步骤=" + (回报.步骤主键.empty() ? std::string("空") : 回报.步骤主键)
+                            + " | 方法=" + (回报.方法主键.empty() ? std::string("空") : 回报.方法主键)
+                            + " | 去向=" + (回报.下一步去向.empty() ? std::string("未定义") : 回报.下一步去向));
+                    私有_追加叶字段(记录节点, "回报时间", 私有_时间文本(回报.回报时间));
+                    私有_追加叶字段(记录节点, "请求ID", 回报.请求ID);
+                    私有_追加叶字段(记录节点, "任务根ID", 回报.任务根ID);
+                    私有_追加叶字段(记录节点, "宿主任务主键", 回报.宿主任务主键);
+                    私有_追加叶字段(记录节点, "步骤主键", 回报.步骤主键);
+                    私有_追加叶字段(记录节点, "方法主键", 回报.方法主键);
+                    私有_追加叶字段(记录节点, "结果主键", 回报.结果主键);
+                    私有_追加叶字段(记录节点, "下一步去向", 回报.下一步去向);
+                    私有_追加叶字段(记录节点, "总控结果", 回报.总控结果);
+                    私有_追加叶字段(记录节点, "因果链状态", 回报.因果链状态);
+                    私有_追加叶字段(记录节点, "缺口归类", 回报.缺口归类);
+                    私有_追加叶字段(记录节点, "筹办承接", 回报.筹办承接);
+                    私有_追加叶字段(记录节点, "等待原因", 回报.等待原因);
+                    私有_追加叶字段(记录节点, "推进事件数", 回报.推进事件数);
+                    私有_追加叶字段(记录节点, "上行消息数", 回报.上行消息数);
+                    auto 特征变化节点 = 私有_新节点(
+                        "特征变化 (" + std::to_string(回报.特征变化列表.size()) + ")");
+                    if (回报.特征变化列表.empty()) {
+                        特征变化节点.子项.push_back(私有_新节点("暂无特征变化"));
+                    }
+                    else {
+                        for (std::size_t 变化索引 = 0; 变化索引 < 回报.特征变化列表.size(); ++变化索引) {
+                            const auto& 变化 = 回报.特征变化列表[变化索引];
+                            auto 变化节点 = 私有_新节点(
+                                std::to_string(变化索引 + 1)
+                                    + " | 特征="
+                                    + (变化.特征类型摘要.empty() ? std::string("空") : 变化.特征类型摘要)
+                                    + " | 差值="
+                                    + (变化.差值.empty() ? std::string("空") : 变化.差值));
+                            私有_追加叶字段(变化节点, "来源", 变化.来源);
+                            私有_追加叶字段(变化节点, "变化主体主键", 变化.变化主体主键);
+                            私有_追加叶字段(变化节点, "变化主体类型", 变化.变化主体类型摘要);
+                            私有_追加叶字段(变化节点, "特征类型", 变化.特征类型摘要);
+                            私有_追加叶字段(变化节点, "特征标签", 变化.特征标签);
+                            私有_追加叶字段(
+                                变化节点,
+                                "变化前值",
+                                "类型=" + std::string(变化.变化前值类型.empty() ? 私有_特征值类型文本(特征值{}) : 变化.变化前值类型)
+                                    + " | 值=" + (变化.变化前值.empty() ? std::string("空") : 变化.变化前值));
+                            私有_追加叶字段(
+                                变化节点,
+                                "变化后值",
+                                "类型=" + std::string(变化.变化后值类型.empty() ? 私有_特征值类型文本(特征值{}) : 变化.变化后值类型)
+                                    + " | 值=" + (变化.变化后值.empty() ? std::string("空") : 变化.变化后值));
+                            私有_追加叶字段(变化节点, "差值", 变化.差值);
+                            私有_追加叶字段(变化节点, "变化原因", 变化.变化原因键);
+                            私有_追加叶字段(变化节点, "已确认生效", 变化.已确认生效);
+                            私有_追加叶字段(变化节点, "关键中间状态", 变化.是否关键中间状态);
+                            特征变化节点.子项.push_back(std::move(变化节点));
+                        }
+                    }
+                    记录节点.子项.push_back(std::move(特征变化节点));
+                    回报节点.子项.push_back(std::move(记录节点));
+                }
+            }
+            字段节点.子项.push_back(std::move(回报节点));
+        }
+        else {
+            私有_追加叶字段(字段节点, "当前进程线程数", 快照.线程数);
+            私有_追加叶字段(字段节点, "说明", "重构版先保留稳定摘要，逐线程探测后续再补。");
+        }
+        return 私有_树节点列表JSON({ std::move(字段节点) });
+    }
+
+    return "[]";
+}
+
 std::string 渲染控制面板摘要(
     const 结构_控制面板快照& 快照,
-    std::size_t 树层数上限,
-    std::size_t 列表预览上限)
+    std::size_t,
+    std::size_t)
 {
     std::ostringstream 输出;
-    输出 << "控制面板摘要\n";
-    输出 << "世界树: 初始化=" << (快照.世界树已初始化 ? "是" : "否")
-        << " | 世界根子项=" << 快照.世界根子节点数
-        << " | 基础信息=" << 快照.基础信息节点数
-        << " | 活跃基础信息=" << 快照.世界树活跃节点数
-        << " | 历史宿主残留=" << 快照.历史宿主残留节点数
-        << " | 级别=" << 私有_安全文本(快照.历史宿主残留严重级别, "无")
+    输出 << "控制面板摘要\n"
+        << "  - 自我: 初始化=" << 私有_布尔文本(快照.自我已初始化)
+        << " | 存在=" << 私有_布尔文本(快照.自我存在已建立)
+        << " | 内部世界=" << 私有_布尔文本(快照.自我内部世界已建立)
+        << " | 待机=" << 私有_布尔文本(快照.自我待机状态)
+        << " | 安全=" << 快照.自我安全值
+        << " | 服务=" << 快照.自我服务值
+        << " | 风险安全=" << 快照.自我风险安全值
+        << '\n'
+        << "  - 自我线程: 生命周期="
+        << 私有_线程生命周期文本(static_cast<枚举_线程生命周期状态>(快照.自我线程生命周期))
+        << " | 阶段=" << 私有_页面摘要(快照.自我线程当前阶段)
+        << " | 去向=" << 私有_页面摘要(快照.自我线程当前最终去向)
+        << " | Tick=" << 快照.自我Tick计数
+        << " | 故障=" << 快照.自我线程累计故障次数
+        << " | 恢复=" << 快照.自我线程累计恢复次数
+        << '\n'
+        << "  - 树规模: 基础节点=" << 快照.基础信息节点数
         << " | 场景=" << 快照.场景数
         << " | 存在=" << 快照.存在数
-        << " | 特征=" << 快照.特征数
         << " | 状态=" << 快照.状态数
         << " | 动态=" << 快照.动态数
-        << " | 抽象因果=" << 快照.因果模板数
-        << " | 证据动态样本=" << 快照.因果证据动态样本数 << '\n';
-    输出 << "自我: " << 快照.自我摘要 << '\n';
-    输出 << "自我线程: " << 快照.自我线程摘要 << '\n';
-    输出 << "解封前验收: "
-        << 私有_安全文本(
-            快照.自我线程解封前验收摘要,
-            快照.自我线程解封前验收通过
-                ? "已通过，当前仍保持重外部输入封闭"
-                : "未通过，继续保持重外部输入封闭")
-        << '\n';
-    if (!快照.自我线程动作最近摘要.empty()) {
-        输出 << "最近动作结果: " << 快照.自我线程动作最近摘要 << '\n';
-    }
-    输出 << "运行时: " << 快照.运行时摘要 << '\n';
-    输出 << "任务管理: " << 私有_安全文本(快照.任务管理输出摘要, "暂无最近治理结果缓存") << '\n';
-    输出 << "需求与权重治理: " << 私有_安全文本(快照.需求与权重治理输出摘要, "暂无需求与权重治理输出") << '\n';
-    输出 << "主派发: " << 私有_安全文本(快照.主派发输出摘要, "暂无主派发输出") << '\n';
-    输出 << "队列治理: " << 私有_安全文本(快照.队列治理输出摘要, "暂无队列治理输出") << '\n';
-    输出 << "结算治理: " << 私有_安全文本(快照.结算治理输出摘要, "暂无结算治理输出") << '\n';
-    输出 << "双值结算账: " << 私有_安全文本(快照.双值结算账摘要, "暂无双值结算账") << '\n';
-    输出 << "学习恢复接口: " << 私有_安全文本(快照.学习恢复接口摘要, "暂无学习恢复接口") << '\n';
-    输出 << "治理实例堆: " << 私有_安全文本(快照.任务管理治理实例堆摘要, "治理实例堆=空") << '\n';
-    输出 << "恢复快照: " << 私有_安全文本(快照.任务管理恢复快照摘要, "恢复快照=空") << '\n';
-    输出 << "学习账本: 总=" << 快照.学习任务总数
-        << " | 活跃=" << 快照.学习任务活跃数
-        << " | 挂起=" << 快照.学习任务挂起数
-        << " | 可调度=" << 快照.学习任务可调度数
-        << " | 执行中=" << 快照.学习任务执行中数
-        << " | 已完成=" << 快照.学习任务已完成数;
-    if (!快照.学习账本摘要.empty()) {
-        输出 << " | 最近=" << 快照.学习账本摘要;
-    }
-    输出 << '\n';
-    输出 << "场景: 现实="
-        << 私有_安全文本(快照.自我现实场景名称, "无")
-        << " | 内部="
-        << 私有_安全文本(快照.自我内部世界名称, "无") << '\n';
-    输出 << "三棵树: 需求=" << 快照.需求数
+        << " | 需求=" << 快照.需求数
         << " | 任务=" << 快照.任务数
-        << " | 方法=" << 快照.方法数 << '\n';
-    输出 << "先天动作: 动态=" << 快照.先天动作动态数
-        << " | 因果=" << 快照.先天动作因果数 << '\n';
-    输出 << "动态观察: " << 私有_安全文本(快照.动态来源摘要, "暂无动态来源摘要") << '\n';
-    输出 << "动态分类: " << 私有_安全文本(快照.动态分类摘要, "暂无动态分类摘要") << '\n';
-    输出 << "动态方法: " << 私有_安全文本(快照.动态方法摘要, "暂无动态方法摘要") << '\n';
-    输出 << "动态任务: " << 私有_安全文本(快照.动态任务摘要, "暂无动态任务摘要") << '\n';
-    输出 << "动态场景: " << 私有_安全文本(快照.动态场景摘要, "暂无动态场景摘要") << '\n';
-    输出 << "动态树: " << 私有_安全文本(快照.动态树摘要, "暂无动态树摘要") << '\n';
-
-    const auto 渲染列表 = [&](std::string_view 标题, const std::vector<结构_控制面板列表项>& 列表) {
-        输出 << 标题 << ":\n";
-        if (列表.empty()) {
-            输出 << "  - 暂无数据\n";
-            return;
-        }
-        const auto 上限 = 列表.size();
-        for (std::size_t 索引 = 0; 索引 < 上限; ++索引) {
-            const auto& 项 = 列表[索引];
-            输出 << "  - " << 项.标题;
-            if (!项.摘要.empty()) {
-                输出 << " | " << 项.摘要;
-            }
-            输出 << '\n';
-        }
-    };
-
-    渲染列表("需求列表", 快照.需求列表);
-    渲染列表("任务列表", 快照.任务列表);
-    渲染列表("方法列表", 快照.方法列表);
-    渲染列表("动态列表", 快照.动态列表);
-    渲染列表("动态来源列表", 快照.动态来源列表);
-    渲染列表("动态分类列表", 快照.动态分类列表);
-    渲染列表("动态方法列表", 快照.动态方法列表);
-    渲染列表("动态任务列表", 快照.动态任务列表);
-    渲染列表("动态场景列表", 快照.动态场景列表);
-    渲染列表("动态树列表", 快照.动态树列表);
-    渲染列表("因果证据动态列表", 快照.因果实例列表);
-    渲染列表("因果模板列表", 快照.因果模板列表);
-    渲染列表("先天动作动态", 快照.先天动作动态列表);
-    渲染列表("先天动作因果", 快照.先天动作因果列表);
-    私有_追加阶段事件预览(输出, 快照.自我运行阶段事件, 列表预览上限);
-
-    输出 << "世界树预览:\n";
-    std::size_t 已输出世界树行数 = 0;
-    私有_渲染树前几行(
-        快照.世界树根,
-        输出,
-        树层数上限,
-        列表预览上限,
-        0,
-        已输出世界树行数);
-
-    输出 << "需求树预览:\n";
-    std::size_t 已输出需求树行数 = 0;
-    私有_渲染树前几行(
-        快照.需求树根,
-        输出,
-        树层数上限,
-        列表预览上限,
-        0,
-        已输出需求树行数);
-
-    输出 << "任务树预览:\n";
-    std::size_t 已输出任务树行数 = 0;
-    私有_渲染树前几行(
-        快照.任务树根,
-        输出,
-        树层数上限,
-        列表预览上限,
-        0,
-        已输出任务树行数);
-
-    输出 << "方法树预览:\n";
-    std::size_t 已输出方法树行数 = 0;
-    私有_渲染树前几行(
-        快照.方法树根,
-        输出,
-        树层数上限,
-        列表预览上限,
-        0,
-        已输出方法树行数);
-
+        << " | 方法=" << 快照.方法数
+        << '\n'
+        << "  - 学习: 待学习方法=" << 快照.自我待学习方法数量
+        << " | 账本总数=" << 快照.学习任务总数
+        << " | 活跃=" << 快照.学习任务活跃数
+        << " | 可调度=" << 快照.学习任务可调度数
+        << " | 恢复请求=" << 快照.学习恢复请求数
+        << '\n'
+        << "  - 任务管理: 工作线程="
+        << 私有_布尔文本(快照.任务管理工作线程已启动)
+        << " | 执行=" << 私有_布尔文本(快照.任务管理工作线程正在执行)
+        << " | 排队=" << 快照.任务管理工作线程当前排队数
+        << " | 因果链=" << 私有_页面摘要(快照.任务管理工作线程最近因果链状态)
+        << " | 缺口=" << 私有_页面摘要(快照.任务管理工作线程最近缺口归类)
+        << " | 特征变化=" << 快照.任务管理工作线程最近特征变化数
+        << '\n';
     return 输出.str();
 }
 
 std::string 渲染任务管理摘要(
     const 结构_控制面板快照& 快照,
-    std::size_t 列表预览上限)
+    std::size_t)
 {
     std::ostringstream 输出;
-    输出 << "任务管理页面\n";
-    输出 << "第一部分: 任务管理任务界面信息\n";
-    输出 << "汇总: " << 私有_安全文本(快照.任务管理专项摘要, "暂无任务管理专项数据") << '\n';
-    输出 << "当前任务管理任务实体数量: " << 快照.任务管理任务实体数量 << '\n';
-    输出 << "不同状态数量: " << 私有_安全文本(快照.任务管理状态数量摘要, "空") << '\n';
-    输出 << "收发消息情况汇总: " << 私有_安全文本(快照.任务管理消息汇总摘要, "空") << '\n';
-
-    const auto 渲染列表 = [&](std::string_view 标题, const std::vector<结构_控制面板列表项>& 列表) {
-        输出 << 标题 << ":\n";
-        if (列表.empty()) {
-            输出 << "  - 暂无数据\n";
-            return;
-        }
-        const auto 上限 = (std::min)(列表预览上限, 列表.size());
-        for (std::size_t 索引 = 0; 索引 < 上限; ++索引) {
-            const auto& 项 = 列表[索引];
-            输出 << "  - " << 项.标题;
-            if (!项.摘要.empty()) {
-                输出 << " | " << 项.摘要;
-            }
-            输出 << '\n';
-        }
-        if (列表.size() > 上限) {
-            输出 << "  - ... 省略 " << (列表.size() - 上限) << " 项\n";
-        }
-    };
-
-    渲染列表("任务管理汇总", 快照.任务管理汇总列表);
-    输出 << "第二部分: 工作线程列表\n";
-    渲染列表("任务管理工作线程", 快照.任务管理工作线程列表);
+    输出 << "任务管理摘要\n"
+        << "  - 自我线程: 阶段=" << 私有_页面摘要(快照.自我线程当前阶段)
+        << " | 去向=" << 私有_页面摘要(快照.自我线程当前最终去向)
+        << " | 最近运行=" << 私有_页面摘要(快照.自我线程最近运行摘要)
+        << '\n'
+        << "  - 工作线程: 已启动=" << 私有_布尔文本(快照.任务管理工作线程已启动)
+        << " | 正在执行=" << 私有_布尔文本(快照.任务管理工作线程正在执行)
+        << " | 已收到请求=" << 私有_布尔文本(快照.任务管理工作线程已收到请求)
+        << " | 推进次数=" << 快照.任务管理工作线程累计推进次数
+        << " | 当前排队=" << 快照.任务管理工作线程当前排队数
+        << '\n'
+        << "  - 最近治理: 功能域=" << 私有_页面摘要(快照.任务管理最近功能域)
+        << " | 缺口=" << 私有_页面摘要(快照.任务管理最近缺口类型)
+        << " | 去向=" << 私有_页面摘要(快照.任务管理最近下一步去向)
+        << " | 总控=" << 私有_页面摘要(快照.任务管理最近总控结果)
+        << '\n'
+        << "  - 恢复快照=" << 私有_页面摘要(快照.任务管理最近恢复摘要)
+        << '\n';
     return 输出.str();
 }
 
 std::string 渲染学习摘要(
     const 结构_控制面板快照& 快照,
-    std::size_t 列表预览上限)
+    std::size_t)
 {
     std::ostringstream 输出;
-    输出 << "学习专项摘要\n";
-    输出 << "专项总览: " << 私有_安全文本(快照.学习专项摘要, "暂无学习专项数据") << '\n';
-    输出 << "调度摘要: " << 私有_安全文本(快照.学习调度摘要, "暂无学习调度数据") << '\n';
-    输出 << "当前阶段: " << 私有_安全文本(快照.学习当前阶段, "空")
-        << " | 当前状态: " << 私有_安全文本(快照.学习当前状态, "空")
-        << " | 当前影响面: " << 私有_安全文本(快照.学习当前影响面, "空")
-        << " | 当前任务: " << 私有_安全文本(快照.学习当前任务标题, "空")
-        << " | 当前方法: " << 私有_安全文本(快照.学习当前方法标题, "空") << '\n';
-    if (!快照.学习最近摘要.empty()) {
-        输出 << "最近摘要: " << 快照.学习最近摘要 << '\n';
-    }
-    if (!快照.学习最近失败摘要.empty()) {
-        输出 << "最近失败: " << 快照.学习最近失败摘要 << '\n';
-    }
-    if (!快照.学习最近反馈摘要.empty()) {
-        输出 << "最近反馈: " << 快照.学习最近反馈摘要 << '\n';
-    }
-    if (!快照.学习最近回流摘要.empty()) {
-        输出 << "兼容回流: " << 快照.学习最近回流摘要 << '\n';
-    }
-    if (!快照.学习最近回放摘要.empty()) {
-        输出 << "最近回放: " << 快照.学习最近回放摘要 << '\n';
-    }
-    输出 << "学习桥: 触发学习=" << (快照.学习应触发学习 ? "是" : "否")
-        << " | 重试恢复=" << (快照.学习应申请重试恢复 ? "是" : "否")
-        << " | 收束恢复=" << (快照.学习应申请收束恢复 ? "是" : "否")
-        << " | 恢复请求=" << 快照.学习恢复请求数 << '\n';
-    if (!快照.学习固定机制观察摘要.empty()) {
-        输出 << "固定机制观察: " << 快照.学习固定机制观察摘要 << '\n';
-    }
-
-    const auto 渲染列表 = [&](std::string_view 标题, const std::vector<结构_控制面板列表项>& 列表) {
-        输出 << 标题 << ":\n";
-        if (列表.empty()) {
-            输出 << "  - 暂无数据\n";
-            return;
-        }
-        const auto 上限 = (std::min)(列表预览上限, 列表.size());
-        for (std::size_t 索引 = 0; 索引 < 上限; ++索引) {
-            const auto& 项 = 列表[索引];
-            输出 << "  - " << 项.标题;
-            if (!项.摘要.empty()) {
-                输出 << " | " << 项.摘要;
-            }
-            输出 << '\n';
-            for (const auto& 详情 : 项.详情行) {
-                输出 << "    * " << 详情 << '\n';
-            }
-        }
-        if (列表.size() > 上限) {
-            输出 << "  - ... 省略 " << (列表.size() - 上限) << " 项\n";
-        }
-    };
-
-    渲染列表("学习工单", 快照.学习任务列表);
-    渲染列表("可调度工单", 快照.学习就绪列表);
-    渲染列表("等待工单", 快照.学习等待列表);
+    输出 << "学习摘要\n"
+        << "  - 账本: 总数=" << 快照.学习任务总数
+        << " | 活跃=" << 快照.学习任务活跃数
+        << " | 可调度=" << 快照.学习任务可调度数
+        << " | 恢复请求=" << 快照.学习恢复请求数
+        << '\n'
+        << "  - 判定: 应触发学习=" << 私有_布尔文本(快照.学习应触发学习)
+        << " | 应申请重试恢复=" << 私有_布尔文本(快照.学习应申请重试恢复)
+        << " | 应申请收束恢复=" << 私有_布尔文本(快照.学习应申请收束恢复)
+        << '\n'
+        << "  - 当前: 阶段=" << 私有_页面摘要(快照.学习当前阶段)
+        << " | 状态=" << 私有_页面摘要(快照.学习当前状态)
+        << " | 任务=" << 私有_页面摘要(快照.学习当前任务标题)
+        << " | 方法=" << 私有_页面摘要(快照.学习当前方法标题)
+        << '\n'
+        << "  - 调度=" << 私有_页面摘要(快照.学习调度摘要)
+        << '\n'
+        << "  - 最近摘要=" << 私有_页面摘要(快照.学习最近摘要)
+        << '\n'
+        << "  - 最近反馈=" << 私有_页面摘要(快照.学习最近反馈摘要)
+        << '\n'
+        << "  - 最近回流=" << 私有_页面摘要(快照.学习最近回流摘要)
+        << '\n'
+        << "  - 固定机制观察=" << 私有_页面摘要(快照.学习固定机制观察摘要)
+        << '\n';
     return 输出.str();
 }
 
 std::string 渲染历史宿主残留摘要(
-    const 结构_控制面板快照& 快照,
-    std::size_t 列表预览上限)
+    const 结构_控制面板快照&,
+    std::size_t)
 {
-    std::ostringstream 输出;
-    输出 << "历史宿主残留摘要\n";
-    输出 << "活跃世界树节点: " << 快照.世界树活跃节点数
-        << " | 原始基础信息: " << 快照.基础信息节点数
-        << " | 历史宿主残留: " << 快照.历史宿主残留节点数 << '\n';
-    输出 << "总体级别=" << 私有_安全文本(快照.历史宿主残留严重级别, "无")
-        << " | 是否阻断=" << (快照.历史宿主残留需要阻断 ? "是" : "否") << '\n';
-    输出 << "特征=" << 快照.历史宿主残留特征数
-        << " | 状态=" << 快照.历史宿主残留状态数
-        << " | 动态=" << 快照.历史宿主残留动态数
-        << " | 因果=" << 快照.历史宿主残留因果数 << '\n';
-    输出 << "提示=" << 快照.历史宿主残留提示数
-        << " | 告警=" << 快照.历史宿主残留告警数
-        << " | 阻断=" << 快照.历史宿主残留阻断数 << '\n';
-
-    if (!快照.历史宿主残留阻断摘要.empty()) {
-        输出 << "阻断原因:\n";
-        const auto 阻断上限 = (std::min)(列表预览上限, 快照.历史宿主残留阻断摘要.size());
-        for (std::size_t 索引 = 0; 索引 < 阻断上限; ++索引) {
-            输出 << "  - " << 快照.历史宿主残留阻断摘要[索引] << '\n';
-        }
-        if (快照.历史宿主残留阻断摘要.size() > 阻断上限) {
-            输出 << "  - ... 省略 "
-                << (快照.历史宿主残留阻断摘要.size() - 阻断上限) << " 项\n";
-        }
-    }
-
-    if (快照.历史宿主残留列表.empty()) {
-        输出 << "残留清单: 暂无数据\n";
-        return 输出.str();
-    }
-
-    输出 << "残留清单:\n";
-    const auto 上限 = (std::min)(列表预览上限, 快照.历史宿主残留列表.size());
-    for (std::size_t 索引 = 0; 索引 < 上限; ++索引) {
-        const auto& 项 = 快照.历史宿主残留列表[索引];
-        输出 << "  - " << 项.标题;
-        if (!项.摘要.empty()) {
-            输出 << " | " << 项.摘要;
-        }
-        输出 << '\n';
-    }
-    if (快照.历史宿主残留列表.size() > 上限) {
-        输出 << "  - ... 省略 " << (快照.历史宿主残留列表.size() - 上限) << " 项\n";
-    }
-    return 输出.str();
+    return "历史宿主残留摘要\n  - 重构版控制面板暂未实现该专项操作。\n";
 }
 
 std::string 生成控制面板HTML(
     const 结构_控制面板快照& 快照,
-    std::size_t 列表预览上限)
+    std::size_t)
 {
+    const auto 线程树JSON = 私有_树节点JSON(快照.线程状态树根);
+    const auto 世界树JSON = 私有_树节点JSON(快照.世界树根);
+    const auto 需求树JSON = 私有_树节点JSON(快照.需求树根);
+    const auto 需求列表JSON = 私有_树节点JSON(快照.需求列表树根);
+    const auto 任务树JSON = 私有_树节点JSON(快照.任务树根);
+    const auto 方法树JSON = 私有_树节点JSON(快照.方法树根);
+
+    const auto 树交互提示 = 私有_转义HTML(
+        "单击节点查看右侧详情，双击只展开或折叠结构子节点；节点字段会在右侧按需加载。");
+    const auto 顶部说明 = 私有_转义HTML(
+        "当前页面围绕你要求的 6 个核心观察面重构：线程状态、世界树、需求树、需求列表、任务树、方法树。"
+        "左侧切页面，中间看结构树，右侧看当前选中节点的主信息详细信息和节点字段。");
+    const auto 线程页摘要 = 私有_转义HTML(
+        "自我线程阶段=" + 私有_页面摘要(快照.自我线程当前阶段)
+        + " | 去向=" + 私有_页面摘要(快照.自我线程当前最终去向)
+        + " | 工作线程已启动=" + std::string(私有_布尔文本(快照.任务管理工作线程已启动))
+        + " | 系统线程数=" + std::to_string(快照.线程数));
+    const auto 世界页摘要 = 私有_转义HTML(
+        "节点仓库=基础信息类 | 基础节点=" + std::to_string(快照.基础信息节点数)
+        + " | 场景=" + std::to_string(快照.场景数)
+        + " | 存在=" + std::to_string(快照.存在数)
+        + " | 状态=" + std::to_string(快照.状态数)
+        + " | 动态=" + std::to_string(快照.动态数)
+        + " | 因果模板=" + std::to_string(快照.因果模板数));
+    const auto 需求树摘要 = 私有_转义HTML(
+        "需求数=" + std::to_string(快照.需求数));
+    const auto 需求列表摘要 = 私有_转义HTML(
+        "需求数=" + std::to_string(快照.需求数)
+        + " | 列表页每次先加载前 100 项，继续点击即可追加后续分段。");
+    const auto 任务树摘要 = 私有_转义HTML(
+        "任务数=" + std::to_string(快照.任务数)
+        + " | 功能域=" + 私有_页面摘要(快照.任务管理最近功能域)
+        + " | 去向=" + 私有_页面摘要(快照.任务管理最近下一步去向));
+    const auto 方法树摘要 = 私有_转义HTML(
+        "方法数=" + std::to_string(快照.方法数)
+        + " | 学习调度=" + 私有_页面摘要(快照.学习调度摘要));
+    const auto 自我卡片值 = 私有_转义HTML(快照.自我存在已建立 ? "已建立" : "未建立");
+    const auto 自我卡片说明 = 私有_转义HTML(
+        "安全=" + std::to_string(快照.自我安全值)
+        + " | 服务=" + std::to_string(快照.自我服务值)
+        + " | 风险安全=" + std::to_string(快照.自我风险安全值)
+        + " | 待学习方法=" + std::to_string(快照.自我待学习方法数量));
+    const auto 线程卡片值 = 私有_转义HTML(快照.自我线程当前阶段.empty() ? "未启动" : 快照.自我线程当前阶段);
+    const auto 线程卡片说明 = 私有_转义HTML(
+        std::string("生命周期=")
+        + 私有_线程生命周期文本(static_cast<枚举_线程生命周期状态>(快照.自我线程生命周期))
+        + " | 去向=" + 快照.自我线程当前最终去向
+        + " | Tick=" + std::to_string(快照.自我Tick计数));
+    const auto 学习卡片说明 = 私有_转义HTML(
+        "活跃=" + std::to_string(快照.学习任务活跃数)
+        + " | 可调度=" + std::to_string(快照.学习任务可调度数)
+        + " | 恢复请求=" + std::to_string(快照.学习恢复请求数));
+
     std::ostringstream 输出;
-    输出 << R"(<!DOCTYPE html>
+    输出 << R"HTML(<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -7051,138 +3806,82 @@ std::string 生成控制面板HTML(
   <title>鱼巢控制面板</title>
   <style>
     :root{
-      --bg:#f4efe6;
-      --ink:#1f2a2c;
-      --muted:#5b6b6e;
-      --line:#d7c7ae;
+      --bg:#f3efe8;
       --card:#fffaf2;
-      --accent:#b85c38;
-      --accent-soft:#f0d7c2;
-      --shadow:0 16px 32px rgba(76, 47, 32, .08);
+      --line:#d6c8b2;
+      --ink:#1f2b2f;
+      --muted:#66767a;
+      --accent:#0f766e;
+      --accent-soft:#d8efe8;
+      --shadow:0 16px 32px rgba(48,58,60,.08);
     }
     *{box-sizing:border-box}
-    ::selection{
-      background:rgba(184,92,56,.24);
-      color:var(--ink);
-    }
     body{
       margin:0;
-      font-family:"Microsoft YaHei UI","Source Han Sans SC","PingFang SC",sans-serif;
       color:var(--ink);
+      font-family:"Microsoft YaHei UI","PingFang SC","Source Han Sans SC",sans-serif;
       background:
-        radial-gradient(circle at top right, rgba(184,92,56,.18), transparent 24%),
-        linear-gradient(180deg, #fff8ed 0%, var(--bg) 100%);
-      -webkit-user-select:text;
-      user-select:text;
+        radial-gradient(circle at top right, rgba(15,118,110,.12), transparent 24%),
+        linear-gradient(180deg, #fffdf8 0%, var(--bg) 100%);
     }
-    h1,.panel h2,.panel h3,.lead,.label,.value,.sub,.summary,.toolbar-title,.toolbar-sub,
-    .data-table th,.data-table td,.tree-leaf,details>summary,li,.footer{
-      -webkit-user-select:text;
-      user-select:text;
-    }
-    .shell{max-width:1680px;margin:0 auto;padding:24px 20px 42px}
+    .shell{max-width:1680px;margin:0 auto;padding:24px 20px 36px}
     .layout{
       display:grid;
-      grid-template-columns:240px minmax(0,1fr);
+      grid-template-columns:260px minmax(0,1fr);
       gap:18px;
       align-items:start;
     }
     .rail{
       position:sticky;
       top:16px;
-      background:rgba(255,250,242,.92);
-      border:1px solid rgba(91,107,110,.12);
-      border-radius:24px;
-      box-shadow:var(--shadow);
       padding:18px 16px;
-      backdrop-filter:blur(8px);
+      border:1px solid rgba(31,43,47,.08);
+      border-radius:24px;
+      background:rgba(255,250,242,.92);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
     }
-    .brand{
-      font-size:13px;
-      letter-spacing:.08em;
-      color:var(--muted);
-      text-transform:uppercase;
-    }
-    .rail-title{
-      margin:10px 0 0;
-      font-size:24px;
-      font-weight:700;
-      line-height:1.3;
-    }
-    .rail-sub{
-      margin:10px 0 0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.7;
-    }
-    .nav{
-      margin-top:18px;
-      display:grid;
-      gap:8px;
-    }
-    .menu-item,.menu-refresh,.toolbar-btn{
+    .brand{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+    .rail h1{margin:10px 0 0;font-size:28px;line-height:1.2}
+    .rail p{margin:10px 0 0;color:var(--muted);font-size:13px;line-height:1.7}
+    .nav{margin-top:18px;display:grid;gap:8px}
+    .menu-item,.toolbar-btn{
       border:none;
       border-radius:14px;
-      padding:11px 12px;
-      font-size:14px;
       cursor:pointer;
-      transition:transform .12s ease, background .12s ease, color .12s ease;
+      transition:transform .12s ease,background .12s ease,color .12s ease;
       -webkit-user-select:none;
       user-select:none;
     }
     .menu-item{
+      width:100%;
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      width:100%;
-      background:rgba(184,92,56,.08);
+      padding:11px 12px;
+      background:rgba(15,118,110,.08);
       color:var(--ink);
       text-align:left;
-    }
-    .menu-item:hover,.menu-refresh:hover,.toolbar-btn:hover{
-      transform:translateY(-1px);
-    }
-    .menu-item:hover{
-      background:rgba(184,92,56,.16);
     }
     .menu-item.active{
       background:var(--accent);
       color:#fffaf2;
       font-weight:700;
-      box-shadow:0 10px 22px rgba(184,92,56,.18);
+      box-shadow:0 10px 20px rgba(15,118,110,.18);
     }
-    .menu-label{
-      min-width:0;
-      flex:1 1 auto;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
+    .menu-item:hover,.toolbar-btn:hover{transform:translateY(-1px)}
     .menu-badge{
-      flex:0 0 auto;
       border-radius:999px;
       padding:3px 9px;
       font-size:12px;
-      line-height:1.4;
-      background:rgba(31,42,44,.08);
+      background:rgba(31,43,47,.08);
       color:var(--muted);
       white-space:nowrap;
     }
     .menu-item.active .menu-badge{
       background:rgba(255,250,242,.2);
       color:#fffaf2;
-    }
-    .rail-actions{
-      margin-top:16px;
-      padding-top:16px;
-      border-top:1px solid rgba(91,107,110,.12);
-    }
-    .menu-refresh{
-      width:100%;
-      background:linear-gradient(135deg, var(--accent), #cb7a58);
-      color:#fffaf2;
-      font-weight:700;
     }
     .content{min-width:0}
     .toolbar{
@@ -7194,227 +3893,337 @@ std::string 生成控制面板HTML(
       justify-content:space-between;
       gap:16px;
       padding:18px 20px;
-      background:rgba(255,250,242,.9);
-      border:1px solid rgba(91,107,110,.12);
+      border:1px solid rgba(31,43,47,.08);
       border-radius:22px;
+      background:rgba(255,250,242,.92);
       box-shadow:var(--shadow);
       backdrop-filter:blur(10px);
     }
-    .toolbar-kicker{
-      font-size:12px;
-      letter-spacing:.08em;
-      color:var(--muted);
-      text-transform:uppercase;
-    }
-    .toolbar-title{
-      margin-top:6px;
-      font-size:28px;
-      font-weight:700;
-      line-height:1.2;
-    }
-    .toolbar-sub{
-      margin-top:8px;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.6;
-    }
-    .toolbar-actions{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-shrink:0;
-    }
+    .toolbar-kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .toolbar-title{margin-top:6px;font-size:30px;font-weight:700;line-height:1.2}
+    .toolbar-sub{margin-top:8px;color:var(--muted);font-size:14px;line-height:1.6}
+    .toolbar-actions{display:flex;gap:10px}
     .toolbar-btn{
-      min-width:112px;
-      background:linear-gradient(135deg, var(--accent), #cb7a58);
+      min-width:120px;
+      padding:12px 16px;
+      background:linear-gradient(135deg, var(--accent), #15958b);
       color:#fffaf2;
       font-weight:700;
     }
     .toolbar-btn.secondary{
-      background:rgba(184,92,56,.08);
-      border:1px solid rgba(184,92,56,.18);
+      background:rgba(15,118,110,.08);
+      border:1px solid rgba(15,118,110,.18);
       color:var(--ink);
-      font-weight:600;
-    }
-    .page-stack{margin-top:18px}
-    .page{
-      display:none;
-      animation:panel-in .18s ease;
-    }
-    .page.active{display:block}
-    @keyframes panel-in{
-      from{opacity:0;transform:translateY(6px)}
-      to{opacity:1;transform:translateY(0)}
     }
     .hero{
-      background:linear-gradient(135deg, rgba(184,92,56,.12), rgba(59,85,88,.08));
-      border:1px solid rgba(184,92,56,.18);
+      margin-top:18px;
+      border:1px solid rgba(15,118,110,.16);
       border-radius:28px;
       padding:28px;
+      background:linear-gradient(135deg, rgba(15,118,110,.12), rgba(82,140,136,.04));
       box-shadow:var(--shadow);
     }
-    h1{margin:0;font-size:36px;letter-spacing:.04em}
-    .lead{margin:12px 0 0;color:var(--muted);font-size:15px;line-height:1.7}
+    .hero h2{margin:0;font-size:34px;line-height:1.2}
+    .lead{margin-top:12px;color:var(--muted);font-size:15px;line-height:1.8}
     .cards{
       margin-top:20px;
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
       gap:14px;
     }
     .card,.panel{
-      background:var(--card);
-      border:1px solid rgba(91,107,110,.12);
+      border:1px solid rgba(31,43,47,.08);
       border-radius:22px;
+      background:var(--card);
       box-shadow:var(--shadow);
     }
     .card{padding:18px}
-    .label{font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
-    .value{margin-top:8px;font-size:26px;font-weight:700}
-    .sub{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
-    .grid{
-      display:grid;
-      grid-template-columns:1.15fr 1fr;
-      gap:18px;
-      margin-top:18px;
-    }
-    .triple{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:18px;
-      margin-top:18px;
-    }
-    .task-mgmt-columns{
-      display:grid;
-      grid-template-columns:minmax(240px,.95fr) minmax(240px,.92fr) minmax(340px,1.45fr);
-      gap:18px;
-      margin-top:18px;
-      align-items:start;
-    }
-    .task-mgmt-column{min-width:0}
-    .task-mgmt-column .data-table{
-      table-layout:fixed;
-    }
-    .task-mgmt-column .data-table th,
-    .task-mgmt-column .data-table td{
-      word-break:break-word;
-    }
-    .task-mgmt-column.input .data-table th:first-child,
-    .task-mgmt-column.input .data-table td:first-child{
-      width:112px;
-    }
-    .task-mgmt-column.trigger .data-table th:first-child,
-    .task-mgmt-column.trigger .data-table td:first-child{
-      width:124px;
-    }
-    .task-mgmt-column.trigger .data-table th:nth-child(2),
-    .task-mgmt-column.trigger .data-table td:nth-child(2){
-      width:72px;
-    }
-    .task-mgmt-column.output .data-table th:first-child,
-    .task-mgmt-column.output .data-table td:first-child{
-      width:126px;
-    }
+    .label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .value{margin-top:8px;font-size:24px;font-weight:700}
+    .sub{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.7}
+    .page{display:none;margin-top:18px}
+    .page.active{display:block}
     .panel{padding:20px}
-    .panel h2{margin:0 0 14px;font-size:22px}
-    .panel h3{margin:0 0 12px;font-size:16px}
+    .panel h3{margin:0 0 10px;font-size:22px}
+    .panel-topline{
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
     .summary{
-      white-space:pre-wrap;
+      margin-top:12px;
+      padding:14px 16px;
+      border:1px dashed rgba(15,118,110,.28);
+      border-radius:16px;
+      background:rgba(15,118,110,.05);
+      color:var(--ink);
       font-size:14px;
       line-height:1.8;
-      color:var(--ink);
-      background:rgba(184,92,56,.06);
-      border:1px dashed rgba(184,92,56,.28);
-      border-radius:16px;
-      padding:14px 16px;
+      white-space:pre-wrap;
     }
-    .notice{
+    .workspace{
+      display:grid;
+      grid-template-columns:minmax(0,1.2fr) minmax(320px,420px);
+      gap:18px;
+      align-items:start;
+    }
+    .tree-panel,.detail-panel{
+      min-width:0;
+      height:100%;
+    }
+    .tree-toolbar{
       margin-top:14px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .tree-hint{
+      color:var(--muted);
       font-size:13px;
       line-height:1.7;
-      color:var(--ink);
-      background:rgba(255,245,224,.92);
-      border:1px solid rgba(184,92,56,.24);
-      border-radius:16px;
-      padding:12px 14px;
     }
-    .muted{color:var(--muted)}
-    .data-table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:14px;
-    }
-    .data-table th,.data-table td{
-      text-align:left;
-      vertical-align:top;
-      border-top:1px solid rgba(91,107,110,.12);
-      padding:10px 8px;
-    }
-    .data-table th{
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      color:var(--muted);
-      border-top:none;
-      padding-top:0;
-    }
-    ul{margin:0;padding-left:18px}
-    li{margin:4px 0}
-    details>summary{cursor:pointer;color:var(--accent);font-weight:600}
-    .tree-root,.tree-root ul{list-style:none;padding-left:16px}
-    .tree-root{padding-left:0}
-    .tree-leaf{padding:4px 0;line-height:1.5}
-    .queue-list{
-      display:grid;
-      gap:14px;
-    }
-    .queue-card{
-      display:grid;
-      grid-template-columns:72px minmax(0,1fr);
-      gap:14px;
-      padding:16px 18px;
-      border:1px solid rgba(91,107,110,.12);
-      border-radius:18px;
-      background:linear-gradient(180deg, rgba(255,250,242,.98), rgba(244,239,230,.92));
-      box-shadow:var(--shadow);
-    }
-    .queue-index{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:56px;
-      border-radius:16px;
-      background:rgba(184,92,56,.1);
-      color:var(--accent);
-      font-size:22px;
-      font-weight:700;
-    }
-    .queue-body{min-width:0}
-    .queue-title{
-      font-size:18px;
-      font-weight:700;
-      line-height:1.4;
-    }
-    .queue-summary{
-      margin-top:8px;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.7;
-    }
-    .queue-detail{
-      margin:12px 0 0;
-      padding-left:18px;
-      color:var(--ink);
-    }
-    .queue-detail li{
-      margin:6px 0;
-      line-height:1.6;
-    }
-    .queue-empty{
+    .tree-shell{
+      margin-top:14px;
       padding:18px;
       border-radius:18px;
-      border:1px dashed rgba(91,107,110,.2);
+      background:linear-gradient(180deg, rgba(255,250,242,.98), rgba(245,241,232,.92));
+      border:1px solid rgba(31,43,47,.08);
+      min-height:440px;
+      max-height:calc(100vh - 240px);
+      overflow:auto;
+    }
+    .tree-root,.tree-root ul{list-style:none;margin:0;padding-left:20px}
+    .tree-root{padding-left:0}
+    .tree-row{
+      position:relative;
+      margin:4px 0;
+      padding:8px 10px 8px 26px;
+      border-radius:12px;
+      line-height:1.6;
+      cursor:default;
+      user-select:text;
+      transition:background .12s ease, box-shadow .12s ease;
+    }
+    .tree-row:hover{background:rgba(15,118,110,.05)}
+    .tree-row.selected{
+      background:rgba(15,118,110,.14);
+      box-shadow:inset 0 0 0 1px rgba(15,118,110,.18);
+    }
+    .tree-row.branch{cursor:pointer}
+    .tree-row.branch::before{
+      content:"▸";
+      position:absolute;
+      left:8px;
+      top:8px;
+      color:var(--accent);
+      transition:transform .12s ease;
+    }
+    .tree-row.branch.open::before{transform:rotate(90deg)}
+    .tree-row.loading{opacity:.65}
+    .tree-children[hidden]{display:none}
+    .detail-panel{
+      position:sticky;
+      top:110px;
+    }
+    .detail-kicker{
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
       color:var(--muted);
-      background:rgba(255,250,242,.72);
+    }
+    .detail-title{
+      margin-top:8px;
+      font-size:24px;
+      font-weight:700;
+      line-height:1.4;
+      word-break:break-word;
+    }
+    .detail-note{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+    }
+    .breadcrumbs{
+      margin-top:14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .breadcrumb{
+      border:none;
+      border-radius:999px;
+      padding:6px 12px;
+      background:rgba(15,118,110,.08);
+      color:var(--ink);
+      font-size:12px;
+      cursor:pointer;
+    }
+    .breadcrumb.current{
+      background:var(--accent);
+      color:#fffaf2;
+      cursor:default;
+    }
+    .chips{
+      margin-top:14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .chip{
+      padding:5px 10px;
+      border-radius:999px;
+      background:rgba(31,43,47,.08);
+      color:var(--ink);
+      font-size:12px;
+      line-height:1.4;
+    }
+    .detail-grid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:108px minmax(0,1fr);
+      gap:12px 14px;
+    }
+    .detail-key{
+      color:var(--muted);
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .detail-value{
+      font-size:14px;
+      line-height:1.7;
+      word-break:break-word;
+    }
+    .detail-actions{
+      margin-top:18px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .detail-btn{
+      border:none;
+      border-radius:14px;
+      padding:11px 14px;
+      cursor:pointer;
+      font-weight:700;
+      background:linear-gradient(135deg, var(--accent), #15958b);
+      color:#fffaf2;
+    }
+    .detail-btn.secondary{
+      background:rgba(15,118,110,.08);
+      border:1px solid rgba(15,118,110,.18);
+      color:var(--ink);
+    }
+    .detail-list{
+      margin-top:16px;
+      display:grid;
+      gap:10px;
+    }
+    .detail-tree{
+      margin-top:18px;
+      display:grid;
+      gap:12px;
+    }
+    .detail-node{
+      border:1px solid rgba(31,43,47,.08);
+      border-radius:16px;
+      background:rgba(255,250,242,.9);
+      padding:12px 14px;
+    }
+    .detail-group-head,.detail-field-row{
+      display:grid;
+      gap:10px;
+      align-items:start;
+    }
+    .detail-group-head{
+      grid-template-columns:minmax(0,1fr) auto;
+    }
+    .detail-group-title{
+      font-size:14px;
+      font-weight:700;
+      line-height:1.6;
+      word-break:break-word;
+    }
+    .detail-group-meta{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.7;
+      word-break:break-word;
+    }
+    .detail-field-row{
+      grid-template-columns:minmax(120px,1fr) minmax(80px,.6fr) minmax(0,1.6fr) auto;
+    }
+    .detail-field-name{
+      font-weight:700;
+      line-height:1.6;
+      word-break:break-word;
+    }
+    .detail-field-type{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.8;
+      word-break:break-word;
+    }
+    .detail-field-value{
+      font-size:13px;
+      line-height:1.7;
+      word-break:break-word;
+    }
+    .detail-inline-actions{
+      display:flex;
+      justify-content:flex-end;
+    }
+    .detail-mini-btn{
+      border:none;
+      border-radius:10px;
+      padding:7px 10px;
+      cursor:pointer;
+      font-size:12px;
+      font-weight:700;
+      background:rgba(15,118,110,.1);
+      color:var(--ink);
+    }
+    .detail-mini-btn:disabled{
+      cursor:default;
+      opacity:.65;
+    }
+    .detail-node-children{
+      margin-top:10px;
+      padding-left:14px;
+      border-left:2px solid rgba(15,118,110,.14);
+      display:grid;
+      gap:10px;
+    }
+    .detail-item{
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(255,250,242,.9);
+      border:1px solid rgba(31,43,47,.08);
+      font-size:13px;
+      line-height:1.7;
+      word-break:break-word;
+    }
+    .detail-raw{
+      margin-top:18px;
+      padding:14px 16px;
+      border:1px dashed rgba(15,118,110,.28);
+      border-radius:16px;
+      background:rgba(15,118,110,.05);
+      font-size:13px;
+      line-height:1.8;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .detail-empty{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.8;
     }
     .footer{
       margin-top:18px;
@@ -7422,524 +4231,1030 @@ std::string 生成控制面板HTML(
       font-size:13px;
       text-align:right;
     }
-    @media (max-width: 1100px){
-      .layout{grid-template-columns:1fr}
-      .rail{position:static}
-      .toolbar{position:static}
-      .grid,.triple,.task-mgmt-columns{grid-template-columns:1fr}
-      h1{font-size:30px}
+    @media (max-width:1350px){
+      .workspace{grid-template-columns:1fr}
+      .detail-panel{position:static}
+      .tree-shell{max-height:none}
     }
-    @media (max-width: 720px){
-      .toolbar{
-        flex-direction:column;
-        align-items:flex-start;
-      }
-      .toolbar-actions{
-        width:100%;
-      }
-      .toolbar-btn{
-        width:100%;
-      }
+    @media (max-width:1100px){
+      .layout{grid-template-columns:1fr}
+      .rail,.toolbar{position:static}
+    }
+    @media (max-width:720px){
+      .toolbar{flex-direction:column;align-items:flex-start}
+      .toolbar-actions{width:100%}
+      .toolbar-btn{width:100%}
+      .detail-grid{grid-template-columns:1fr}
+      .detail-field-row{grid-template-columns:1fr}
+      .detail-inline-actions{justify-content:flex-start}
     }
   </style>
-</head>
-<body>
+</head>)HTML";
+    输出 << R"HTML(<body>
   <div class="shell">
     <div class="layout">
       <aside class="rail">
         <div class="brand">WebView2 控制面板</div>
-        <div class="rail-title">鱼巢</div>
-        <div class="rail-sub">左侧为菜单栏，中间为单页内容区；每次刷新都直接重新抓取当前工程快照。</div>
+        <h1>鱼巢</h1>
+        <p>重构版控制面板保留最重要的 6 个页面。初始只展开根链；中间树区只放结构节点，右侧详情区按需加载主信息详细信息。</p>
         <nav class="nav" aria-label="控制面板菜单">
-)";
-
-    const auto 追加菜单项 = [&](std::string_view 页面键, std::string_view 标签, std::string_view 徽标, bool 当前页 = false) {
-        输出 << "<button class='menu-item";
-        if (当前页) {
-            输出 << " active";
-        }
-        输出 << "' type='button' data-page='" << 私有_转义HTML(页面键) << "'>"
-            << "<span class='menu-label'>" << 私有_转义HTML(标签) << "</span>";
-        if (!徽标.empty()) {
-            输出 << "<span class='menu-badge'>" << 私有_转义HTML(徽标) << "</span>";
-        }
-        输出 << "</button>";
-    };
-
-    追加菜单项("overview", "概览", "状态 " + std::to_string(快照.状态数), true);
-    追加菜单项(
-        "task-mgmt",
-        "任务管理",
-        std::to_string(快照.任务管理任务实体数量) + "/" + std::to_string(快照.任务管理工作线程列表.size()));
-    追加菜单项("learning", "学习任务",
-        std::to_string(快照.学习任务总数) + "/" + std::to_string(快照.学习就绪队列数));
-    追加菜单项("causal-info", "因果信息",
-        std::to_string(快照.因果模板数) + "/" + std::to_string(快照.因果证据动态样本数));
-    追加菜单项("innate-actions", "先天动作",
-        std::to_string(快照.先天动作动态数) + "/" + std::to_string(快照.先天动作因果数));
-    追加菜单项("need-tree", "需求树", std::to_string(快照.需求数));
-    追加菜单项("need-list", "需求列表", std::to_string(快照.需求列表.size()));
-    追加菜单项("task-tree", "任务树", std::to_string(快照.任务数));
-    追加菜单项("method-tree", "方法树", std::to_string(快照.方法数));
-    追加菜单项("world-tree", "世界树", std::to_string(快照.世界树活跃节点数));
-    追加菜单项("scene-entity", "场景与存在",
-        std::to_string(快照.场景数) + "/" + std::to_string(快照.存在数));
-    追加菜单项("thread-status", "线程状态", std::to_string(快照.线程状态列表.size()));
-    追加菜单项("thread-events", "线程事件", std::to_string(快照.自我运行阶段事件.size()));
-
-    输出 << R"(
+          <button class="menu-item active" type="button" data-page="thread-status"><span>线程状态</span><span class="menu-badge">)HTML"
+        << 快照.线程数
+        << R"HTML(</span></button>
+          <button class="menu-item" type="button" data-page="world-tree"><span>世界树</span><span class="menu-badge">)HTML"
+        << 快照.基础信息节点数
+        << R"HTML(</span></button>
+          <button class="menu-item" type="button" data-page="need-tree"><span>需求树</span><span class="menu-badge">)HTML"
+        << 快照.需求数
+        << R"HTML(</span></button>
+          <button class="menu-item" type="button" data-page="need-list"><span>需求列表</span><span class="menu-badge">)HTML"
+        << 快照.需求数
+        << R"HTML(</span></button>
+          <button class="menu-item" type="button" data-page="task-tree"><span>任务树</span><span class="menu-badge">)HTML"
+        << 快照.任务数
+        << R"HTML(</span></button>
+          <button class="menu-item" type="button" data-page="method-tree"><span>方法树</span><span class="menu-badge">)HTML"
+        << 快照.方法数
+        << R"HTML(</span></button>
         </nav>
-        <div class="rail-actions">
-          <button class="menu-refresh js-refresh" type="button">刷新当前快照</button>
-        </div>
       </aside>
       <main class="content">
         <div class="toolbar">
-          <div class="toolbar-meta">
+          <div>
             <div class="toolbar-kicker">控制面板</div>
-            <div class="toolbar-title" id="page-title">概览</div>
-            <div class="toolbar-sub" id="page-subtitle">自我总览、运行时与主要统计。</div>
+            <div class="toolbar-title" id="page-title">线程状态</div>
+            <div class="toolbar-sub" id="page-subtitle">查看自我线程、任务管理工作线程和进程内线程原始状态。</div>
           </div>
           <div class="toolbar-actions">
-            <button class="toolbar-btn secondary js-copy-page" type="button">复制当前页</button>
-            <button class="toolbar-btn js-refresh" type="button">刷新</button>
+            <button class="toolbar-btn secondary" type="button" id="copy-page">复制当前页</button>
+            <button class="toolbar-btn" type="button" id="refresh-page">刷新</button>
           </div>
         </div>
-        <div class="page-stack">
-          <section class="page active" data-page="overview" data-title="概览" data-subtitle="自我总览、运行时与主要统计。">
-            <section class="hero">
-              <h1>鱼巢控制面板</h1>
-              <div class="lead">当前工程参照旧版控制面板迁移了最小显示链，优先展示这套代码真实存在的世界树、自我核心值和三棵独立信息树。</div>
-              <div class="cards">
-)";
 
-    const auto 追加卡片 = [&](std::string_view 标签, std::string_view 值, std::string_view 补充 = {}) {
-        输出 << "<div class='card'><div class='label'>" << 私有_转义HTML(标签)
-            << "</div><div class='value'>" << 私有_转义HTML(值)
-            << "</div>";
-        if (!补充.empty()) {
-            输出 << "<div class='sub'>" << 私有_转义HTML(补充) << "</div>";
-        }
-        输出 << "</div>";
-    };
-
-    追加卡片("自我状态", 快照.自我待机状态 ? "待机" : "活动", 快照.自我摘要);
-    追加卡片("自我线程", 私有_线程生命周期文本(static_cast<枚举_线程生命周期状态>(快照.自我线程生命周期)), 快照.自我线程摘要);
-    追加卡片("线程恢复", 快照.自我线程本次启动来自故障恢复 ? "恢复启动" : "普通启动",
-        "故障 " + std::to_string(快照.自我线程累计故障次数) + " / 恢复 " + std::to_string(快照.自我线程累计恢复次数));
-    追加卡片("安全根方向差值", std::to_string(快照.自我安全根方向差值), "越大说明越偏离根安全目标");
-    追加卡片("先天动作", std::to_string(快照.先天动作动态数) + " 动态 / " + std::to_string(快照.先天动作因果数) + " 因果",
-        "线程每周期被动触发的本能动作事实与因果");
-    追加卡片("世界树节点", std::to_string(快照.世界树活跃节点数),
-        "原始 " + std::to_string(快照.基础信息节点数)
-        + " / 历史残留 " + std::to_string(快照.历史宿主残留节点数));
-    追加卡片("三棵树", "需求 " + std::to_string(快照.需求数) + " / 任务 " + std::to_string(快照.任务数) + " / 方法 " + std::to_string(快照.方法数),
-        "当前主需求指针 " + std::to_string(快照.当前主需求指针));
-
-    输出 << R"(
-              </div>
-            </section>
-
-            <div class="grid">
-              <section class="panel">
-                <h2>自我与运行时</h2>
-        <div class="summary">)"
-        << 私有_转义HTML(快照.自我线程摘要 + "\n" + 快照.运行时摘要) << R"(</div>
-        <div class="cards" style="margin-top:16px">
-)";
-    追加卡片("现实场景", 私有_安全文本(快照.自我现实场景名称, "无"), "指针 " + std::to_string(快照.自我现实场景指针));
-    追加卡片("内部世界", 私有_安全文本(快照.自我内部世界名称, "无"), "指针 " + std::to_string(快照.自我内部世界指针));
-    追加卡片("待学习方法", std::to_string(快照.自我待学习方法数量), "需求 " + std::to_string(快照.需求数));
-    追加卡片("学习账本", std::to_string(快照.学习任务总数) + " 总 / " + std::to_string(快照.学习任务可调度数) + " 可调度",
-        "挂起 " + std::to_string(快照.学习任务挂起数));
-    追加卡片("正向步长", std::to_string(快照.自我时序正向步长), "反向步长 " + std::to_string(快照.自我时序反向步长));
-    追加卡片("服务衰减", std::to_string(快照.自我服务时序衰减步长), "存在指针 " + std::to_string(快照.自我存在指针));
-    追加卡片("线程Tick", std::to_string(快照.自我Tick计数), "最近Tick " + std::to_string(快照.自我最近Tick时间));
-    输出 << R"(
-                </div>
-              </section>
-
-              <section class="panel">
-                <h2>仓库统计</h2>
-        <div class="cards" style="margin-top:0">
-)";
-    追加卡片("世界根子项", std::to_string(快照.世界根子节点数));
-    追加卡片("特征", std::to_string(快照.特征数));
-    追加卡片("状态", std::to_string(快照.状态数));
-    追加卡片("动态", std::to_string(快照.动态数));
-    追加卡片("抽象因果", std::to_string(快照.因果模板数));
-    追加卡片("证据动态样本", std::to_string(快照.因果证据动态样本数));
-    追加卡片("先天动作动态", std::to_string(快照.先天动作动态数));
-    追加卡片("先天动作因果", std::to_string(快照.先天动作因果数));
-    输出 << R"(
-                </div>
-              </section>
+        <section class="hero">
+          <h2>鱼巢控制面板</h2>
+          <div class="lead">)HTML"
+        << 顶部说明
+        << R"HTML(</div>
+          <div class="cards">
+            <div class="card">
+              <div class="label">自我</div>
+              <div class="value">)HTML"
+        << 自我卡片值
+        << R"HTML(</div>
+              <div class="sub">)HTML"
+        << 自我卡片说明
+        << R"HTML(</div>
             </div>
-          </section>
+            <div class="card">
+              <div class="label">自我线程</div>
+              <div class="value">)HTML"
+        << 线程卡片值
+        << R"HTML(</div>
+              <div class="sub">)HTML"
+        << 线程卡片说明
+        << R"HTML(</div>
+            </div>
+            <div class="card">
+              <div class="label">学习</div>
+              <div class="value">)HTML"
+        << 快照.学习任务总数
+        << R"HTML(</div>
+              <div class="sub">)HTML"
+        << 学习卡片说明
+        << R"HTML(</div>
+            </div>
+          </div>
+        </section>
 
-          <section class="page" data-page="task-mgmt" data-title="任务管理" data-subtitle="第一部分显示任务管理汇总，第二部分显示工作线程列表。">
-            <section class="panel">
-              <h2>第一部分：任务管理任务界面信息</h2>
-      <div class="summary">)"
-        << 私有_转义HTML(快照.任务管理专项摘要.empty() ? std::string("暂无任务管理专项数据") : 快照.任务管理专项摘要)
-        << R"(</div>
-      <div class="notice">这里聚焦当前任务管理任务的汇总信息：实体数量、状态分布、收发消息情况，以及当前总体转向。</div>
-)"
-        << 私有_列表HTML(快照.任务管理汇总列表, 列表预览上限)
-        << R"(
+        <section class="page active" data-page="thread-status" data-title="线程状态" data-subtitle="查看自我线程、任务管理工作线程和进程内线程原始状态。">
+          <div class="workspace">
+            <section class="panel tree-panel">
+              <div class="panel-topline">原始树视图</div>
+              <h3>线程状态</h3>
+              <div class="summary">)HTML"
+        << 线程页摘要
+        << R"HTML(</div>
+              <div class="tree-toolbar"><div class="tree-hint">)HTML"
+        << 树交互提示
+        << R"HTML(</div></div>
+              <div class="tree-shell"><div id="tree-thread-status"></div></div>
             </section>
-            <section class="panel">
-              <h2>第二部分：工作线程列表</h2>
-      <div class="summary">)"
-        << 私有_转义HTML(快照.任务管理工作线程摘要.empty() ? std::string("暂无任务管理工作线程快照") : 快照.任务管理工作线程摘要)
-        << R"(</div>
-      <div class="notice">这里显示任务管理工作线程壳的运行态、排队和最近一次推进摘要。</div>
-)"
-        << 私有_列表HTML(快照.任务管理工作线程列表, 列表预览上限)
-        << R"(
-            </section>
-          </section>
+            <aside class="panel detail-panel"><div id="detail-thread-status" class="detail-host"></div></aside>
+          </div>
+        </section>
 
-          <section class="page" data-page="learning" data-title="学习任务" data-subtitle="查看待学习方法、结构缺口、候选学习程序与当前工单去向。">
-            <section class="panel">
-              <h2>学习专项摘要</h2>
-      <div class="summary">)"
-        << 私有_转义HTML(快照.学习专项摘要.empty() ? std::string("暂无学习专项数据") : 快照.学习专项摘要)
-        << R"(</div>
-      <div class="triple" style="margin-top:16px">
-        <div>
-          <h3>学习工单</h3>
-)"
-        << 私有_需求队列HTML(快照.学习任务列表, 列表预览上限)
-        << R"(        </div>
-        <div>
-          <h3>可调度工单</h3>
-)"
-        << 私有_需求队列HTML(快照.学习就绪列表, 列表预览上限)
-        << R"(        </div>
-        <div>
-          <h3>等待工单</h3>
-)"
-        << 私有_需求队列HTML(快照.学习等待列表, 列表预览上限)
-        << R"(        </div>
-      </div>
+        <section class="page" data-page="world-tree" data-title="世界树" data-subtitle="查看基础信息类仓库中的世界结构；树节点统一是基础信息节点类，主信息才是派生类型。">
+          <div class="workspace">
+            <section class="panel tree-panel">
+              <div class="panel-topline">原始树视图</div>
+              <h3>世界树</h3>
+              <div class="summary">)HTML"
+        << 世界页摘要
+        << R"HTML(</div>
+              <div class="tree-toolbar"><div class="tree-hint">)HTML"
+        << 树交互提示
+        << R"HTML(</div></div>
+              <div class="tree-shell"><div id="tree-world-tree"></div></div>
             </section>
-          </section>
+            <aside class="panel detail-panel"><div id="detail-world-tree" class="detail-host"></div></aside>
+          </div>
+        </section>
 
-          <section class="page" data-page="causal-info" data-title="因果信息" data-subtitle="优先查看抽象因果模板；证据动态样本作为下级证据展开查看。">
-            <section class="panel">
-              <h2>因果信息</h2>
-      <div class="summary">)"
-        << 私有_转义HTML(
-            "抽象因果模板 " + std::to_string(快照.因果模板数)
-            + " | 证据动态样本 " + std::to_string(快照.因果证据动态样本数)
-            + " | 先天动作因果 " + std::to_string(快照.先天动作因果数))
-        << R"(        </div>
-      <div style="margin-top:16px">)"
-        << 私有_树HTML(快照.因果信息树根, false)
-        << R"(</div>
+        <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="按真实父子关系查看需求树；双击只展开结构子节点，字段放到右侧。">
+          <div class="workspace">
+            <section class="panel tree-panel">
+              <div class="panel-topline">原始树视图</div>
+              <h3>需求树</h3>
+              <div class="summary">)HTML"
+        << 需求树摘要
+        << R"HTML(</div>
+              <div class="tree-toolbar"><div class="tree-hint">)HTML"
+        << 树交互提示
+        << R"HTML(</div></div>
+              <div class="tree-shell"><div id="tree-need-tree"></div></div>
             </section>
-          </section>
+            <aside class="panel detail-panel"><div id="detail-need-tree" class="detail-host"></div></aside>
+          </div>
+        </section>
 
-          <section class="page" data-page="innate-actions" data-title="先天动作" data-subtitle="检查自我线程每周期自动触发的先天动作动态与因果。">
-            <section class="panel">
-              <h2>先天动作检查</h2>
-      <div class="summary">)"
-        << 私有_转义HTML(
-            "先天动作动态 " + std::to_string(快照.先天动作动态数)
-            + " | 先天动作因果 " + std::to_string(快照.先天动作因果数)
-            + " | 总动态 " + std::to_string(快照.动态数)
-            + " | 总证据动态样本 " + std::to_string(快照.因果证据动态样本数))
-        << R"(</div>
-      <div class="grid" style="margin-top:16px">
-        <div>
-          <h3>先天动作动态</h3>
-)"
-        << 私有_列表HTML(快照.先天动作动态列表, 列表预览上限)
-        << R"(        </div>
-        <div>
-          <h3>先天动作因果</h3>
-)"
-        << 私有_列表HTML(快照.先天动作因果列表, 列表预览上限)
-        << R"(        </div>
-      </div>
+        <section class="page" data-page="need-list" data-title="需求列表" data-subtitle="按前序顺序平铺需求列表；先加载 100 项，继续点击可追加后续分段。">
+          <div class="workspace">
+            <section class="panel tree-panel">
+              <div class="panel-topline">原始树视图</div>
+              <h3>需求列表</h3>
+              <div class="summary">)HTML"
+        << 需求列表摘要
+        << R"HTML(</div>
+              <div class="tree-toolbar"><div class="tree-hint">)HTML"
+        << 树交互提示
+        << R"HTML(</div></div>
+              <div class="tree-shell"><div id="tree-need-list"></div></div>
             </section>
-          </section>
+            <aside class="panel detail-panel"><div id="detail-need-list" class="detail-host"></div></aside>
+          </div>
+        </section>
 
-          <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="按树形层级查看需求节点，并展开需求主信息全部字段。">
-            <section class="panel">
-              <h2>需求树</h2>
-)";
-    输出 << 私有_树HTML(快照.需求树根);
-    输出 << R"(
+        <section class="page" data-page="task-tree" data-title="任务树" data-subtitle="按真实任务父子关系查看任务树；双击只展开结构子节点，字段放到右侧。">
+          <div class="workspace">
+            <section class="panel tree-panel">
+              <div class="panel-topline">原始树视图</div>
+              <h3>任务树</h3>
+              <div class="summary">)HTML"
+        << 任务树摘要
+        << R"HTML(</div>
+              <div class="tree-toolbar"><div class="tree-hint">)HTML"
+        << 树交互提示
+        << R"HTML(</div></div>
+              <div class="tree-shell"><div id="tree-task-tree"></div></div>
             </section>
-          </section>
+            <aside class="panel detail-panel"><div id="detail-task-tree" class="detail-host"></div></aside>
+          </div>
+        </section>
 
-          <section class="page" data-page="need-list" data-title="需求列表" data-subtitle="按队列查看需求特征类型、需求来源、来源权重和权重汇总。">
-            <section class="panel">
-              <h2>需求列表</h2>
-              <div class="summary">)"
-        << 私有_转义HTML(
-            "需求数量 " + std::to_string(快照.需求列表.size())
-            + " | 当前主需求指针 " + std::to_string(快照.当前主需求指针)
-            + " | 队列按独立树前序顺序展开")
-        << R"(</div>
-              <div style="margin-top:16px">)"
-        << 私有_需求队列HTML(快照.需求列表, 列表预览上限)
-        << R"(</div>
+        <section class="page" data-page="method-tree" data-title="方法树" data-subtitle="按真实方法树关系查看方法树；双击只展开结构子节点，字段放到右侧。">
+          <div class="workspace">
+            <section class="panel tree-panel">
+              <div class="panel-topline">原始树视图</div>
+              <h3>方法树</h3>
+              <div class="summary">)HTML"
+        << 方法树摘要
+        << R"HTML(</div>
+              <div class="tree-toolbar"><div class="tree-hint">)HTML"
+        << 树交互提示
+        << R"HTML(</div></div>
+              <div class="tree-shell"><div id="tree-method-tree"></div></div>
             </section>
-          </section>
+            <aside class="panel detail-panel"><div id="detail-method-tree" class="detail-host"></div></aside>
+          </div>
+        </section>
 
-          <section class="page" data-page="task-tree" data-title="任务树" data-subtitle="查看自我的任务树与治理链。">
-            <section class="panel">
-              <h2>任务树</h2>
-)";
-    输出 << 私有_树HTML(快照.任务树根);
-    输出 << "<div style='margin-top:16px'>" << 私有_列表HTML(快照.任务列表, 列表预览上限) << "</div>";
-    输出 << R"(
-            </section>
-          </section>
-
-          <section class="page" data-page="method-tree" data-title="方法树" data-subtitle="查看本能方法与当前方法树结构。">
-            <section class="panel">
-              <h2>方法树</h2>
-)";
-    输出 << 私有_树HTML(快照.方法树根);
-    输出 << "<div style='margin-top:16px'>" << 私有_列表HTML(快照.方法列表, 列表预览上限) << "</div>";
-    输出 << R"(
-            </section>
-          </section>
-
-          <section class="page" data-page="world-tree" data-title="世界树" data-subtitle="查看当前世界树的层级结构。">
-            <section class="panel">
-              <h2>世界树</h2>
-              <div class="notice">当前活跃读写已按任务侧宿主收口。若任务管理状态仍显示在“自我内部世界”下，应先按“历史宿主兼容残留或观测场景表现”解释，再结合任务账本与主体桥接字段判定真实归属。</div>
-              <div class="summary">)"
-        << 私有_转义HTML(
-            "原始基础信息节点 " + std::to_string(快照.基础信息节点数)
-            + " | 活跃树节点 " + std::to_string(快照.世界树活跃节点数)
-            + " | 已识别历史宿主残留 " + std::to_string(快照.历史宿主残留节点数)
-            + " | 总体级别 " + 私有_安全文本(快照.历史宿主残留严重级别, "无")
-            + "（特征 " + std::to_string(快照.历史宿主残留特征数)
-            + " / 状态 " + std::to_string(快照.历史宿主残留状态数)
-            + " / 动态 " + std::to_string(快照.历史宿主残留动态数)
-            + " / 因果 " + std::to_string(快照.历史宿主残留因果数)
-            + "；提示 " + std::to_string(快照.历史宿主残留提示数)
-            + " / 告警 " + std::to_string(快照.历史宿主残留告警数)
-            + " / 阻断 " + std::to_string(快照.历史宿主残留阻断数)
-            + "）。下方世界树已默认过滤这些残留；如需回看，直接看下面的残留清单。")
-        << R"(</div>
-              <div style="margin-top:16px"><h3>活跃世界树</h3>
-)";
-    输出 << 私有_树HTML(快照.世界树根);
-    输出 << R"(
-              </div>
-              <div style="margin-top:16px"><h3>历史宿主残留清单</h3>)"
-        << 私有_列表HTML(快照.历史宿主残留列表, 列表预览上限)
-        << R"(</div>
-            </section>
-          </section>
-
-          <section class="page" data-page="scene-entity" data-title="场景与存在" data-subtitle="查看世界、场景和存在列表摘要。">
-            <section class="panel">
-              <h2>场景与存在</h2>
-        <div class="summary">)"
-        << 私有_转义HTML("世界列表 " + std::to_string(快照.世界列表.size())
-            + " | 场景列表 " + std::to_string(快照.场景列表.size())
-            + " | 存在列表 " + std::to_string(快照.存在列表.size()))
-        << R"(</div>
-        <div style="margin-top:16px"><h3>场景列表</h3>)"
-        << 私有_列表HTML(快照.场景列表, 列表预览上限)
-        << R"(</div>
-        <div style="margin-top:16px"><h3>存在列表</h3>)"
-        << 私有_列表HTML(快照.存在列表, 列表预览上限)
-        << R"(</div>
-            </section>
-          </section>
-
-          <section class="page" data-page="thread-status" data-title="线程状态" data-subtitle="查看当前进程内线程的自身状态字段。">
-            <section class="panel">
-              <h2>线程状态</h2>
-              <div class="summary">)"
-        << 私有_转义HTML(
-            "线程数量 " + std::to_string(快照.线程状态列表.size()))
-        << R"(</div>
-              <div style="margin-top:16px">)"
-        << 私有_线程状态HTML(快照.线程状态列表, 列表预览上限)
-        << R"(</div>
-            </section>
-          </section>
-
-          <section class="page" data-page="thread-events" data-title="线程事件" data-subtitle="查看自我线程阶段事件与最近摘要。">
-            <section class="panel">
-              <h2>自我线程阶段事件</h2>
-      <div class="summary">)";
-    if (快照.自我运行阶段事件.empty()) {
-        输出 << "暂无事件";
-    }
-    else {
-        const std::size_t 起点 = 快照.自我运行阶段事件.size() > 列表预览上限
-            ? (快照.自我运行阶段事件.size() - 列表预览上限)
-            : 0;
-        for (std::size_t 索引 = 起点; 索引 < 快照.自我运行阶段事件.size(); ++索引) {
-            const auto& 事件 = 快照.自我运行阶段事件[索引];
-            输出 << 私有_转义HTML(
-                "[" + std::to_string(事件.时间) + "] "
-                + 私有_线程运行阶段文本(static_cast<枚举_自我线程运行阶段>(事件.阶段))
-                + (事件.摘要.empty() ? std::string{} : std::string(" | ") + 事件.摘要));
-            if (索引 + 1 < 快照.自我运行阶段事件.size()) {
-                输出 << "\n";
-            }
-        }
-    }
-    输出 << R"(</div>
-            </section>
-          </section>
-        </div>
-
-        <div class="footer">当前页面由现工程快照直接生成；左侧菜单切换内容页，刷新按钮会重新抓取最新运行快照。</div>
+        <div class="footer">左侧切页面，中间看结构树，右侧看节点详情；单击按需加载主信息详细信息，双击展开结构子节点。</div>
       </main>
     </div>
-  </div>
+  </div>)HTML";
+    输出 << R"HTML(
   <script>
-    (() => {
-      const 菜单项列表 = Array.from(document.querySelectorAll('.menu-item'));
-      const 页面列表 = Array.from(document.querySelectorAll('.page'));
-      const 标题节点 = document.getElementById('page-title');
-      const 副标题节点 = document.getElementById('page-subtitle');
-      const 页面别名 = {
-        'runtime': 'overview',
-        'stats': 'overview'
-      };
+    const 展开类型标签 = {
+      'base-node': '基础信息节点',
+      'need-node': '需求节点',
+      'task-node': '任务节点',
+      'method-node': '方法节点',
+      'base-node-more': '更多基础信息子节点',
+      'need-node-more': '更多需求子节点',
+      'task-node-more': '更多任务子节点',
+      'method-node-more': '更多方法子节点',
+      'thread-self': '自我线程',
+      'thread-worker': '任务管理工作线程',
+      'thread-system': '系统线程摘要',
+      'need-list-more': '需求列表分页',
+      'base-ref': '基础信息节点引用',
+      'need-ref': '需求节点引用',
+      'task-ref': '任务节点引用',
+      'method-ref': '方法节点引用'
+    };
 
-      const 刷新页面 = () => {
-        if (window.chrome && window.chrome.webview) {
-          window.chrome.webview.postMessage('refresh');
-        } else {
-          location.reload();
+    const 页面配置 = {
+      'thread-status': {
+        treeHost: 'tree-thread-status',
+        detailHost: 'detail-thread-status',
+        detailHint: '线程页树上只保留线程摘要；单击后右侧再按需加载该线程的原始字段。'
+      },
+      'world-tree': {
+        treeHost: 'tree-world-tree',
+        detailHost: 'detail-world-tree',
+        detailHint: '世界树页展示的是基础信息类仓库；树上只看节点摘要和子层统计，主信息详细信息与父/子/上/下字段都放到右侧。'
+      },
+      'need-tree': {
+        treeHost: 'tree-need-tree',
+        detailHost: 'detail-need-tree',
+        detailHint: '需求树页会保留真实父子关系；当前选中节点的主信息详细信息会在右侧按需加载。'
+      },
+      'need-list': {
+        treeHost: 'tree-need-list',
+        detailHost: 'detail-need-list',
+        detailHint: '需求列表页按前序顺序分段加载；右侧查看当前选中需求的主信息详细信息与节点字段。'
+      },
+      'task-tree': {
+        treeHost: 'tree-task-tree',
+        detailHost: 'detail-task-tree',
+        detailHint: '任务树页适合看调度结构；右侧再按需加载任务原始字段与引用信息。'
+      },
+      'method-tree': {
+        treeHost: 'tree-method-tree',
+        detailHost: 'detail-method-tree',
+        detailHint: '方法树页先看结构，再在右侧按需加载方法节点、条件和结果等详细字段。'
+      }
+    };
+
+    const 页面树数据 = {
+      "thread-status": )HTML"
+        << 线程树JSON
+        << R"HTML(,
+      "world-tree": )HTML"
+        << 世界树JSON
+        << R"HTML(,
+      "need-tree": )HTML"
+        << 需求树JSON
+        << R"HTML(,
+      "need-list": )HTML"
+        << 需求列表JSON
+        << R"HTML(,
+      "task-tree": )HTML"
+        << 任务树JSON
+        << R"HTML(,
+      "method-tree": )HTML"
+        << 方法树JSON
+        << R"HTML(
+    };
+)HTML";
+    输出 << R"HTML(
+    
+    const 菜单项列表 = Array.from(document.querySelectorAll('.menu-item'));
+    const 页面列表 = Array.from(document.querySelectorAll('.page'));
+    const 页面标题节点 = document.getElementById('page-title');
+    const 页面副标题节点 = document.getElementById('page-subtitle');
+    const 页面选中节点 = new Map();
+    const 挂起展开 = new Map();
+    const 挂起详情 = new Map();
+    let 展开请求号 = 1;
+    let 详情请求号 = 1;
+    let 节点流水号 = 1;
+
+    function 规范化节点(page, node, parent = null) {
+      if (!node || typeof node !== 'object') return;
+      if (!node.__id) {
+        node.__id = `${page}-node-${节点流水号++}`;
+      }
+      node.__page = page;
+      node.__parent = parent;
+      node.text = typeof node.text === 'string' ? node.text : '';
+      node.open = !!node.open;
+      node.lazy = !!node.lazy;
+      node.expandType = typeof node.expandType === 'string' ? node.expandType : '';
+      node.ptr = Number(node.ptr || 0);
+      node.arg = Number(node.arg || 0);
+      node.__loaded = !!node.__loaded;
+      node.__loading = !!node.__loading;
+      node.__detailLoaded = !!node.__detailLoaded;
+      node.__detailLoading = !!node.__detailLoading;
+      if (!Array.isArray(node.details)) {
+        node.details = [];
+      }
+      if (!Array.isArray(node.children)) {
+        node.children = [];
+      }
+      node.children.forEach((child) => 规范化节点(page, child, node));
+    }
+
+    function 查找节点(node, id) {
+      if (!node) return null;
+      if (node.__id === id) return node;
+      for (const child of Array.isArray(node.children) ? node.children : []) {
+        const 命中 = 查找节点(child, id);
+        if (命中) return 命中;
+      }
+      return null;
+    }
+
+    function 取页面根(page) {
+      return 页面树数据[page] || null;
+    }
+
+    function 取当前页面节点(page) {
+      const 根节点 = 取页面根(page);
+      if (!根节点) return null;
+      const 选中ID = 页面选中节点.get(page) || 根节点.__id;
+      const 节点 = 查找节点(根节点, 选中ID) || 根节点;
+      页面选中节点.set(page, 节点.__id);
+      return 节点;
+    }
+
+    function 转义HTML(text) {
+      return String(text ?? '').replace(/[&<>"]/g, (ch) => (
+        ch === '&' ? '&amp;'
+          : ch === '<' ? '&lt;'
+            : ch === '>' ? '&gt;'
+              : '&quot;'
+      ));
+    }
+
+    function 解析节点文本(text) {
+      const 原始文本 = String(text || '');
+      const 类型标记 = ' | 类型=';
+      const 值标记 = ' | 值=';
+      const 类型位置 = 原始文本.indexOf(类型标记);
+      const 值位置 = 类型位置 >= 0 ? 原始文本.indexOf(值标记, 类型位置 + 类型标记.length) : -1;
+      if (类型位置 >= 0 && 值位置 >= 0) {
+        return {
+          标题: 原始文本.slice(0, 类型位置),
+          类型: 原始文本.slice(类型位置 + 类型标记.length, 值位置),
+          值: 原始文本.slice(值位置 + 值标记.length),
+          附加: []
+        };
+      }
+
+      const 片段 = 原始文本.split(' | ');
+      return {
+        标题: 片段[0] || 原始文本,
+        类型: '',
+        值: '',
+        附加: 片段.slice(1)
+      };
+    }
+
+    function 取节点标题(node) {
+      const 解析结果 = 解析节点文本(node ? node.text : '');
+      return 解析结果.标题 || (node ? node.text : '') || '未命名节点';
+    }
+
+    function 构建节点路径(node) {
+      const 路径 = [];
+      let 当前 = node || null;
+      while (当前) {
+        路径.push(当前);
+        当前 = 当前.__parent || null;
+      }
+      return 路径.reverse();
+    }
+
+    function 格式化指针(ptr) {
+      const 数值 = Number(ptr || 0);
+      if (!数值) {
+        return '空';
+      }
+      return '0x' + 数值.toString(16).toUpperCase();
+    }
+
+    function 是否可展开(node) {
+      return !!(node && (node.lazy || (Array.isArray(node.children) && node.children.length > 0)));
+    }
+
+    function 是否引用节点(node) {
+      return !!(node && typeof node.expandType === 'string' && node.expandType.endsWith('-ref'));
+    }
+
+    function 推断节点角色(node) {
+      if (!node) return '空';
+      if (node.expandType && 展开类型标签[node.expandType]) {
+        return 展开类型标签[node.expandType];
+      }
+      const 解析结果 = 解析节点文本(node.text);
+      if (解析结果.类型) {
+        return 是否引用节点(node) ? '字段引用' : '原始字段';
+      }
+      return 是否可展开(node) ? '结构节点' : '摘要节点';
+    }
+
+    function 推断字段类型(node) {
+      const 解析结果 = 解析节点文本(node ? node.text : '');
+      if (解析结果.类型) {
+        return 解析结果.类型;
+      }
+      return 是否可展开(node) ? '结构节点' : '文本';
+    }
+
+    function 推断字段值(node) {
+      const 解析结果 = 解析节点文本(node ? node.text : '');
+      if (解析结果.值) {
+        return 解析结果.值;
+      }
+      if (解析结果.附加.length > 0) {
+        return 解析结果.附加.join(' | ');
+      }
+      if (Array.isArray(node?.children) && node.children.length > 0) {
+        return `已挂接 ${node.children.length} 个子项`;
+      }
+      return '空';
+    }
+
+    function 节点状态文本(node) {
+      if (!node) return '空';
+      if (node.__loading) return '正在加载';
+      if (node.lazy && !node.__loaded) return '待延迟展开';
+      if (node.open) return '已展开';
+      if (是否可展开(node)) return '可展开';
+      return '静态';
+    }
+
+    function 子项摘要(node) {
+      if (!node) return '空';
+      const 数量 = Array.isArray(node.children) ? node.children.length : 0;
+      if (node.lazy && !node.__loaded) {
+        return 数量 > 0 ? `${数量} 个预置结构子项，展开时会补齐完整子节点` : '展开时加载结构子项';
+      }
+      return `${数量} 个已挂接子项`;
+    }
+
+    function 更新选中样式(page, row) {
+      const 配置 = 页面配置[page];
+      const host = 配置 ? document.getElementById(配置.treeHost) : null;
+      if (!host) return;
+      host.querySelectorAll('.tree-row.selected').forEach((item) => item.classList.remove('selected'));
+      if (row) {
+        row.classList.add('selected');
+        return;
+      }
+      const 当前节点 = 取当前页面节点(page);
+      if (!当前节点) return;
+      const 目标 = host.querySelector(`.tree-row[data-node-id="${当前节点.__id}"]`);
+      if (目标) {
+        目标.classList.add('selected');
+      }
+    }
+
+    function 添加详情行(container, key, value) {
+      const keyNode = document.createElement('div');
+      keyNode.className = 'detail-key';
+      keyNode.textContent = key;
+      const valueNode = document.createElement('div');
+      valueNode.className = 'detail-value';
+      valueNode.textContent = value;
+      container.appendChild(keyNode);
+      container.appendChild(valueNode);
+    }
+
+    function 是否可请求详情(node) {
+      return !!(
+        node
+        && node.ptr
+        && node.expandType
+        && !node.expandType.endsWith('-more')
+        && !node.expandType.endsWith('-ref')
+      );
+    }
+
+    function 规范化详情节点(page, node, parent = null) {
+      if (!node || typeof node !== 'object') return;
+      node.__page = page;
+      node.__parent = parent;
+      node.text = typeof node.text === 'string' ? node.text : '';
+      node.open = !!node.open;
+      node.lazy = !!node.lazy;
+      node.expandType = typeof node.expandType === 'string' ? node.expandType : '';
+      node.ptr = Number(node.ptr || 0);
+      node.arg = Number(node.arg || 0);
+      node.__loaded = !!node.__loaded;
+      node.__loading = !!node.__loading;
+      if (!Array.isArray(node.children)) {
+        node.children = [];
+      }
+      node.children.forEach((child) => 规范化详情节点(page, child, node));
+    }
+
+    function 替换分页节点(node, 子项列表) {
+      const parent = node ? node.__parent : null;
+      if (!parent || !Array.isArray(parent.children)) {
+        return false;
+      }
+      const 索引 = parent.children.findIndex((child) => child && child.__id === node.__id);
+      if (索引 < 0) {
+        return false;
+      }
+      const 新子项 = Array.isArray(子项列表) ? 子项列表 : [];
+      新子项.forEach((child) => 规范化节点(node.__page, child, parent));
+      parent.children.splice(索引, 1, ...新子项);
+      if (新子项.length > 0 && node.__page) {
+        页面选中节点.set(node.__page, 新子项[0].__id);
+      }
+      return true;
+    }
+
+    function 请求节点详情(page, node, 完成回调) {
+      if (!(window.chrome && window.chrome.webview) || !page || !是否可请求详情(node)) {
+        return false;
+      }
+      if (node.__detailLoading || node.__detailLoaded) {
+        return true;
+      }
+
+      const 请求号 = 详情请求号++;
+      node.__detailLoading = true;
+      挂起详情.set(请求号, { page, node, 完成回调 });
+      window.chrome.webview.postMessage(`detail:${请求号}:${node.expandType}:${node.ptr}`);
+      更新详情面板(page);
+      return true;
+    }
+)HTML";
+    输出 << R"HTML(
+
+    function 请求节点展开(node, 完成回调) {
+      if (!(window.chrome && window.chrome.webview) || !node || !node.lazy || !node.ptr || !node.expandType) {
+        return false;
+      }
+      if (node.__loading) {
+        return true;
+      }
+
+      const 请求号 = 展开请求号++;
+      node.__loading = true;
+      挂起展开.set(请求号, { page: node.__page, node, 完成回调 });
+      window.chrome.webview.postMessage(`expand:${请求号}:${node.expandType}:${node.ptr}:${Number(node.arg || 0)}`);
+      if (node.__page) {
+        更新详情面板(node.__page);
+      }
+      return true;
+    }
+
+    window.__panelApplyDetail = function(请求号, 详情列表) {
+      const 记录 = 挂起详情.get(Number(请求号));
+      if (!记录) return;
+      记录.node.details = Array.isArray(详情列表) ? 详情列表 : [];
+      记录.node.__detailLoaded = true;
+      记录.node.__detailLoading = false;
+      记录.node.details.forEach((item) => 规范化详情节点(记录.page, item, 记录.node));
+      挂起详情.delete(Number(请求号));
+      if (typeof 记录.完成回调 === 'function') {
+        记录.完成回调(记录.node);
+      }
+      更新详情面板(记录.page);
+    };
+
+    window.__panelApplyExpand = function(请求号, 子项列表) {
+      const 记录 = 挂起展开.get(Number(请求号));
+      if (!记录) return;
+      if (记录.node.expandType.endsWith('-more') && 替换分页节点(记录.node, 子项列表)) {
+        记录.node.__loading = false;
+        挂起展开.delete(Number(请求号));
+        if (typeof 记录.完成回调 === 'function') {
+          记录.完成回调(记录.node.__parent || null);
         }
-      };
+        渲染页面树(记录.page);
+        return;
+      }
+      记录.node.children = Array.isArray(子项列表) ? 子项列表 : [];
+      记录.node.__loaded = true;
+      记录.node.__loading = false;
+      记录.node.children.forEach((child) => 规范化节点(记录.page, child, 记录.node));
+      挂起展开.delete(Number(请求号));
+      if (typeof 记录.完成回调 === 'function') {
+        记录.完成回调(记录.node);
+      }
+      渲染页面树(记录.page);
+    };
 
-      const 复制按钮列表 = Array.from(document.querySelectorAll('.js-copy-page'));
-      let 复制反馈计时器 = 0;
+    function 选择节点(page, node, row) {
+      if (!page || !node) return;
+      页面选中节点.set(page, node.__id);
+      更新选中样式(page, row);
+      请求节点详情(page, node);
+      更新详情面板(page);
+    }
 
-      const 设置复制按钮文本 = (文本) => {
-        复制按钮列表.forEach((按钮) => {
-          按钮.textContent = 文本;
-        });
-      };
+    function 切换节点展开(page, node) {
+      if (!page || !node) return;
+      if (node.open) {
+        node.open = false;
+        渲染页面树(page);
+        return;
+      }
 
-      const 读取当前页文本 = () => {
-        const 当前页面 = 页面列表.find((页面) => 页面.classList.contains('active')) || 页面列表[0];
-        if (!当前页面) return '';
-
-        const 标题 = 当前页面.dataset.title || '';
-        const 副标题 = 当前页面.dataset.subtitle || '';
-        const 正文 = (当前页面.innerText || '').trim();
-        return [标题, 副标题, 正文].filter(Boolean).join('\n\n').trim();
-      };
-
-      const 回退复制文本 = (文本) => {
-        const 文本框 = document.createElement('textarea');
-        文本框.value = 文本;
-        文本框.setAttribute('readonly', 'readonly');
-        文本框.style.position = 'fixed';
-        文本框.style.opacity = '0';
-        文本框.style.pointerEvents = 'none';
-        document.body.appendChild(文本框);
-        文本框.focus();
-        文本框.select();
-        let 成功 = false;
-        try {
-          成功 = document.execCommand('copy');
-        } catch (_) {
-          成功 = false;
-        }
-        文本框.remove();
-        return 成功;
-      };
-
-      const 复制当前页 = async () => {
-        const 文本 = 读取当前页文本();
-        if (!文本) {
-          设置复制按钮文本('无可复制内容');
-          clearTimeout(复制反馈计时器);
-          复制反馈计时器 = window.setTimeout(() => 设置复制按钮文本('复制当前页'), 1200);
+      if (node.lazy && !node.__loaded) {
+        if (请求节点展开(node, (目标节点) => {
+          目标节点.open = true;
+        })) {
+          更新详情面板(page);
           return;
         }
+      }
 
-        let 成功 = false;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          try {
-            await navigator.clipboard.writeText(文本);
-            成功 = true;
-          } catch (_) {
-            成功 = false;
-          }
-        }
-        if (!成功) {
-          成功 = 回退复制文本(文本);
-        }
+      node.open = true;
+      渲染页面树(page);
+    }
 
-        设置复制按钮文本(成功 ? '已复制当前页' : '复制失败');
-        clearTimeout(复制反馈计时器);
-        复制反馈计时器 = window.setTimeout(() => 设置复制按钮文本('复制当前页'), 1400);
+    function 跳到引用目标(page, node) {
+      if (!page || !node) return;
+
+      const 完成 = (当前节点) => {
+        当前节点.open = true;
+        if (Array.isArray(当前节点.children) && 当前节点.children.length > 0) {
+          页面选中节点.set(page, 当前节点.children[0].__id);
+        } else {
+          页面选中节点.set(page, 当前节点.__id);
+        }
       };
 
-      const 归一化页面键 = (键) => {
-        if (!键) return 'overview';
-        return 页面别名[键] || 键;
-      };
-
-      const 切换页面 = (键, 是否同步地址栏) => {
-        const 目标键 = 归一化页面键(键);
-        const 目标页面 = 页面列表.find((页面) => 页面.dataset.page === 目标键) || 页面列表[0];
-        if (!目标页面) return;
-
-        页面列表.forEach((页面) => {
-          页面.classList.toggle('active', 页面 === 目标页面);
-        });
-        菜单项列表.forEach((菜单项) => {
-          菜单项.classList.toggle('active', 菜单项.dataset.page === 目标页面.dataset.page);
-        });
-
-        if (标题节点) {
-          标题节点.textContent = 目标页面.dataset.title || '控制面板';
+      if (node.lazy && !node.__loaded) {
+        if (请求节点展开(node, 完成)) {
+          更新详情面板(page);
+          return;
         }
-        if (副标题节点) {
-          副标题节点.textContent = 目标页面.dataset.subtitle || '';
-        }
+      }
 
-        if (是否同步地址栏) {
-          const 新哈希 = '#' + 目标页面.dataset.page;
-          if (location.hash !== 新哈希) {
-            history.replaceState(null, '', 新哈希);
-          }
-        }
+      完成(node);
+      渲染页面树(page);
+      const host = document.getElementById(页面配置[page].treeHost);
+      const 当前行 = host ? host.querySelector('.tree-row.selected') : null;
+      if (当前行) {
+        当前行.scrollIntoView({ block: 'nearest' });
+      }
+    }
 
-        window.scrollTo(0, 0);
-      };
+    function 创建树节点(page, node) {
+      const li = document.createElement('li');
+      const row = document.createElement('div');
+      row.className = 'tree-row';
+      row.dataset.nodeId = node.__id;
+      row.textContent = node.text || '';
+      if (页面选中节点.get(page) === node.__id) {
+        row.classList.add('selected');
+      }
 
-      菜单项列表.forEach((菜单项) => {
-        菜单项.addEventListener('click', () => 切换页面(菜单项.dataset.page, true));
+      const 有子节点 = Array.isArray(node.children) && node.children.length > 0;
+      row.classList.toggle('branch', !!node.lazy || 有子节点);
+      row.classList.toggle('loading', !!node.__loading);
+      row.classList.toggle('open', !!node.open);
+
+      row.addEventListener('click', (event) => {
+        event.stopPropagation();
+        选择节点(page, node, row);
       });
-      document.querySelectorAll('.js-refresh').forEach((按钮) => {
-        按钮.addEventListener('click', 刷新页面);
+
+      row.addEventListener('dblclick', (event) => {
+        event.stopPropagation();
+        选择节点(page, node, row);
+        切换节点展开(page, node);
       });
-      复制按钮列表.forEach((按钮) => {
-        按钮.addEventListener('click', () => {
-          void 复制当前页();
+
+      li.appendChild(row);
+      if (node.open) {
+        const children = document.createElement('ul');
+        children.className = 'tree-children';
+        (Array.isArray(node.children) ? node.children : []).forEach((child) => {
+          children.appendChild(创建树节点(page, child));
         });
-      });
-      window.addEventListener('hashchange', () => {
-        切换页面(location.hash.slice(1), false);
-      });
+        li.appendChild(children);
+      }
+      return li;
+    }
 
-      切换页面(location.hash.slice(1), false);
-    })();
+    function 渲染页面树(page) {
+      const 配置 = 页面配置[page];
+      const 根节点 = 取页面根(page);
+      const host = 配置 ? document.getElementById(配置.treeHost) : null;
+      if (!host || !根节点) return;
+      if (!页面选中节点.has(page)) {
+        页面选中节点.set(page, 根节点.__id);
+      }
+      const root = document.createElement('ul');
+      root.className = 'tree-root';
+      root.appendChild(创建树节点(page, 根节点));
+      host.replaceChildren(root);
+      更新选中样式(page);
+      const 当前节点 = 取当前页面节点(page);
+      if (当前节点) {
+        请求节点详情(page, 当前节点);
+      }
+      更新详情面板(page);
+    }
+
+    function 切换页面(page) {
+      const 目标页面 = 页面列表.find((item) => item.dataset.page === page) || 页面列表[0];
+      页面列表.forEach((item) => item.classList.toggle('active', item === 目标页面));
+      菜单项列表.forEach((item) => item.classList.toggle('active', item.dataset.page === 目标页面.dataset.page));
+      页面标题节点.textContent = 目标页面.dataset.title || '控制面板';
+      页面副标题节点.textContent = 目标页面.dataset.subtitle || '';
+      渲染页面树(目标页面.dataset.page);
+      if (location.hash !== '#' + 目标页面.dataset.page) {
+        history.replaceState(null, '', '#' + 目标页面.dataset.page);
+      }
+      window.scrollTo(0, 0);
+    }
+)HTML";
+    输出 << R"HTML(
+
+    function 创建详情节点(page, node) {
+      const 解析结果 = 解析节点文本(node?.text || '');
+      const 容器 = document.createElement('div');
+      容器.className = 解析结果.类型 ? 'detail-node detail-field-node' : 'detail-node detail-group-node';
+
+      if (解析结果.类型) {
+        const row = document.createElement('div');
+        row.className = 'detail-field-row';
+
+        const name = document.createElement('div');
+        name.className = 'detail-field-name';
+        name.textContent = 解析结果.标题 || '未命名字段';
+        row.appendChild(name);
+
+        const type = document.createElement('div');
+        type.className = 'detail-field-type';
+        type.textContent = 解析结果.类型 || '文本';
+        row.appendChild(type);
+
+        const value = document.createElement('div');
+        value.className = 'detail-field-value';
+        value.textContent = 解析结果.值 || (解析结果.附加.length > 0 ? 解析结果.附加.join(' | ') : '空');
+        row.appendChild(value);
+
+        if (是否可展开(node)) {
+          const actions = document.createElement('div');
+          actions.className = 'detail-inline-actions';
+          const toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'detail-mini-btn';
+          toggle.disabled = !!node.__loading;
+          toggle.textContent = node.__loading
+            ? '加载中'
+            : (node.open ? '收起引用' : (node.lazy && !node.__loaded ? '展开引用' : '展开子项'));
+          toggle.addEventListener('click', () => 切换节点展开(page, node));
+          actions.appendChild(toggle);
+          row.appendChild(actions);
+        }
+
+        容器.appendChild(row);
+      } else {
+        const head = document.createElement('div');
+        head.className = 'detail-group-head';
+
+        const title = document.createElement('div');
+        title.className = 'detail-group-title';
+        title.textContent = 解析结果.标题 || node.text || '未命名分组';
+        head.appendChild(title);
+
+        if (是否可展开(node)) {
+          const toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'detail-mini-btn';
+          toggle.disabled = !!node.__loading;
+          toggle.textContent = node.__loading
+            ? '加载中'
+            : (node.open ? '收起子节点' : (node.lazy && !node.__loaded ? '加载子节点' : '展开子节点'));
+          toggle.addEventListener('click', () => 切换节点展开(page, node));
+          head.appendChild(toggle);
+        }
+
+        容器.appendChild(head);
+
+        if (解析结果.附加.length > 0) {
+          const meta = document.createElement('div');
+          meta.className = 'detail-group-meta';
+          meta.textContent = 解析结果.附加.join(' | ');
+          容器.appendChild(meta);
+        }
+      }
+
+      const 显示子项 = Array.isArray(node?.children) && node.children.length > 0 && (!node.lazy || node.open);
+      if (显示子项) {
+        const children = document.createElement('div');
+        children.className = 'detail-node-children';
+        node.children.forEach((child) => {
+          children.appendChild(创建详情节点(page, child));
+        });
+        容器.appendChild(children);
+      }
+
+      return 容器;
+    }
+
+    function 更新详情面板(page) {
+      const 配置 = 页面配置[page];
+      const 当前页面 = 页面列表.find((item) => item.dataset.page === page) || null;
+      const host = 配置 ? document.getElementById(配置.detailHost) : null;
+      const 节点 = 取当前页面节点(page);
+      if (!host) return;
+
+      host.replaceChildren();
+      if (!节点) {
+        const 空状态 = document.createElement('div');
+        空状态.className = 'detail-empty';
+        空状态.textContent = '当前页面没有节点可显示。';
+        host.appendChild(空状态);
+        return;
+      }
+
+      const 解析结果 = 解析节点文本(节点.text);
+      const 路径 = 构建节点路径(节点);
+      const kicker = document.createElement('div');
+      kicker.className = 'detail-kicker';
+      kicker.textContent = (当前页面?.dataset.title || '当前页面') + ' / 节点详情';
+      host.appendChild(kicker);
+
+      const title = document.createElement('div');
+      title.className = 'detail-title';
+      title.textContent = 解析结果.标题 || 节点.text || '未命名节点';
+      host.appendChild(title);
+
+      const note = document.createElement('div');
+      note.className = 'detail-note';
+      note.textContent = 配置?.detailHint || '单击节点后，这里会按需加载主信息详细信息和节点字段。';
+      host.appendChild(note);
+
+      const breadcrumbs = document.createElement('div');
+      breadcrumbs.className = 'breadcrumbs';
+      路径.forEach((item, index) => {
+        const isCurrent = index === 路径.length - 1;
+        const node = document.createElement(isCurrent ? 'span' : 'button');
+        node.className = isCurrent ? 'breadcrumb current' : 'breadcrumb';
+        node.textContent = 取节点标题(item);
+        if (!isCurrent) {
+          node.type = 'button';
+          node.addEventListener('click', () => {
+            页面选中节点.set(page, item.__id);
+            更新选中样式(page);
+            请求节点详情(page, item);
+            更新详情面板(page);
+          });
+        }
+        breadcrumbs.appendChild(node);
+      });
+      host.appendChild(breadcrumbs);
+
+      const chips = document.createElement('div');
+      chips.className = 'chips';
+      [
+        推断节点角色(节点),
+        '状态=' + 节点状态文本(节点),
+        '子项=' + 子项摘要(节点),
+        '地址=' + 格式化指针(节点.ptr)
+      ].forEach((text) => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = text;
+        chips.appendChild(chip);
+      });
+      host.appendChild(chips);
+
+      const actions = document.createElement('div');
+      actions.className = 'detail-actions';
+      if (是否可展开(节点)) {
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'detail-btn';
+        toggle.textContent = 节点.open ? '折叠当前节点' : (节点.lazy && !节点.__loaded ? '加载并展开当前节点' : '展开当前节点');
+        toggle.addEventListener('click', () => 切换节点展开(page, 节点));
+        actions.appendChild(toggle);
+      }
+      if (是否引用节点(节点)) {
+        const follow = document.createElement('button');
+        follow.type = 'button';
+        follow.className = 'detail-btn secondary';
+        follow.textContent = '跳到引用目标';
+        follow.addEventListener('click', () => 跳到引用目标(page, 节点));
+        actions.appendChild(follow);
+      }
+      if (节点.__parent) {
+        const up = document.createElement('button');
+        up.type = 'button';
+        up.className = 'detail-btn secondary';
+        up.textContent = '回到父节点';
+        up.addEventListener('click', () => {
+          页面选中节点.set(page, 节点.__parent.__id);
+          更新选中样式(page);
+          请求节点详情(page, 节点.__parent);
+          更新详情面板(page);
+        });
+        actions.appendChild(up);
+      }
+      if (actions.childNodes.length > 0) {
+        host.appendChild(actions);
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'detail-grid';
+      添加详情行(grid, '页面', 当前页面?.dataset.title || '控制面板');
+      添加详情行(grid, '节点角色', 推断节点角色(节点));
+      添加详情行(grid, '树节点类型', 推断字段类型(节点));
+      添加详情行(grid, '树节点摘要', 推断字段值(节点));
+      添加详情行(grid, '展开器', 节点.expandType ? (展开类型标签[节点.expandType] || 节点.expandType) : '静态');
+      添加详情行(grid, '展开状态', 节点状态文本(节点));
+      添加详情行(
+        grid,
+        '详情状态',
+        节点.__detailLoading
+          ? '正在加载'
+          : (节点.__detailLoaded ? `已加载 ${Array.isArray(节点.details) ? 节点.details.length : 0} 组` : '未加载'));
+      host.appendChild(grid);
+
+      if (解析结果.附加.length > 0) {
+        const list = document.createElement('div');
+        list.className = 'detail-list';
+        解析结果.附加.forEach((item, index) => {
+          const card = document.createElement('div');
+          card.className = 'detail-item';
+          card.innerHTML = `<strong>附加信息 ${index + 1}</strong><br>${转义HTML(item)}`;
+          list.appendChild(card);
+        });
+        host.appendChild(list);
+      }
+
+      if (节点.__detailLoading) {
+        const loading = document.createElement('div');
+        loading.className = 'detail-empty';
+        loading.textContent = '正在按需加载当前节点的主信息详细信息...';
+        host.appendChild(loading);
+      } else if (Array.isArray(节点.details) && 节点.details.length > 0) {
+        const detailTree = document.createElement('div');
+        detailTree.className = 'detail-tree';
+        节点.details.forEach((item) => {
+          detailTree.appendChild(创建详情节点(page, item));
+        });
+        host.appendChild(detailTree);
+      } else if (!是否可请求详情(节点)) {
+        const empty = document.createElement('div');
+        empty.className = 'detail-empty';
+        empty.textContent = '当前节点没有单独的主信息字段，右侧保留节点摘要。';
+        host.appendChild(empty);
+      } else if (!(window.chrome && window.chrome.webview)) {
+        const empty = document.createElement('div');
+        empty.className = 'detail-empty';
+        empty.textContent = '静态 HTML 预览里无法按需读取节点详情，请在 WebView2 窗口中查看。';
+        host.appendChild(empty);
+      }
+
+      const raw = document.createElement('div');
+      raw.className = 'detail-raw';
+      raw.innerHTML = `<strong>原始文本</strong><br>${转义HTML(节点.text || '空')}`;
+      host.appendChild(raw);
+    }
+
+    菜单项列表.forEach((item) => {
+      item.addEventListener('click', () => 切换页面(item.dataset.page));
+    });
+
+    document.getElementById('refresh-page').addEventListener('click', () => {
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage('refresh');
+      } else {
+        location.reload();
+      }
+    });
+
+    document.getElementById('copy-page').addEventListener('click', async () => {
+      const 当前页面 = 页面列表.find((item) => item.classList.contains('active')) || 页面列表[0];
+      const 文本 = 当前页面 ? 当前页面.innerText.trim() : '';
+      if (!文本) return;
+      try {
+        await navigator.clipboard.writeText(文本);
+      } catch (_) {
+        const area = document.createElement('textarea');
+        area.value = 文本;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.focus();
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+      }
+    });
+
+    window.addEventListener('hashchange', () => {
+      切换页面(location.hash.slice(1));
+    });
+
+    Object.entries(页面树数据).forEach(([page, root]) => {
+      规范化节点(page, root);
+      if (root) {
+        页面选中节点.set(page, root.__id);
+      }
+    });
+
+    Object.keys(页面配置).forEach((page) => 渲染页面树(page));
+    切换页面(location.hash.slice(1) || 'thread-status');
   </script>
 </body>
-</html>)";
+</html>)HTML";
 
     return 输出.str();
 }
@@ -7949,9 +5264,11 @@ bool 保存控制面板HTML(
     const 结构_控制面板快照& 快照)
 {
     std::ofstream 输出文件(输出路径, std::ios::binary);
-    if (!输出文件) return false;
+    if (!输出文件) {
+        return false;
+    }
 
-    const auto HTML = 生成控制面板HTML(快照);
+    const auto HTML = 生成控制面板HTML(快照, 24);
     输出文件.write(HTML.data(), static_cast<std::streamsize>(HTML.size()));
     return 输出文件.good();
 }
@@ -7980,131 +5297,24 @@ bool 归档历史宿主残留快照(
     std::filesystem::path* 输出路径,
     std::string* 摘要输出)
 {
-    auto* 自我存在 = 自我.获取自我存在();
-    if (!自我存在) {
-        if (摘要输出) {
-            *摘要输出 = "历史宿主残留归档结果\n  - 自我存在未建立，未执行归档。\n";
-        }
-        return false;
-    }
-
-    const auto 快照 = 读取控制面板快照();
-    const auto 归档路径 = 私有_默认历史宿主残留归档路径();
-    std::string 内部摘要{};
-    if (!私有_保存历史宿主残留归档(归档路径, 快照, &内部摘要)) {
-        if (摘要输出) {
-            *摘要输出 = 内部摘要;
-        }
-        return false;
-    }
-
     if (输出路径) {
-        *输出路径 = 归档路径;
+        *输出路径 = std::filesystem::path{};
     }
     if (摘要输出) {
-        *摘要输出 = 内部摘要;
+        *摘要输出 = "历史宿主残留归档结果\n  - 重构版控制面板暂未实现该专项操作。\n";
     }
-    return true;
+    return false;
 }
 
 bool 清理历史宿主残留(std::string* 摘要输出)
 {
-    结构_历史宿主残留清理结果 结果{};
-    const auto 清理前快照 = 读取控制面板快照();
-    结果.清理前残留节点数 = 清理前快照.历史宿主残留节点数;
-
-    auto* 自我存在 = 自我.获取自我存在();
-    if (!自我存在) {
-        if (摘要输出) {
-            *摘要输出 = "历史宿主残留清理结果\n  - 自我存在未建立，未执行清理。\n";
-        }
-        return false;
-    }
-
-    if (清理前快照.历史宿主残留节点数 > 0) {
-        const auto 归档路径 = 私有_默认历史宿主残留归档路径();
-        std::string 归档摘要{};
-        if (!私有_保存历史宿主残留归档(归档路径, 清理前快照, &归档摘要)) {
-            if (摘要输出) {
-                *摘要输出 = "历史宿主残留清理结果\n  - 清理前归档失败，已中止清理。\n"
-                    + 归档摘要;
-            }
-            return false;
-        }
-        结果.已执行清理前归档 = true;
-        结果.清理前归档路径 = 归档路径.string();
-    }
-
-    auto 候选 = 私有_收集历史宿主残留候选(自我存在);
-
-    for (auto* 模板节点 : 候选.因果模板) {
-        if (模板节点 && 世界树.因果().删除因果(模板节点)) {
-            ++结果.删除因果模板数;
-        }
-    }
-
-    候选 = 私有_收集历史宿主残留候选(自我存在);
-    for (auto* 实例节点 : 候选.因果实例) {
-        if (!实例节点) {
-            continue;
-        }
-        if (私有_存在存活模板引用实例(实例节点)) {
-            结果.阻塞摘要.push_back(
-                私有_基础节点标题(实例节点) + " | 因果实例仍被存活因果模板引用");
-            continue;
-        }
-        if (世界树.因果().删除因果(实例节点)) {
-            ++结果.删除因果实例数;
-        }
-    }
-
-    候选 = 私有_收集历史宿主残留候选(自我存在);
-    for (auto* 动态节点 : 候选.动态) {
-        if (动态节点 && 世界树.动态().删除动态(动态节点)) {
-            ++结果.删除动态数;
-        }
-    }
-
-    候选 = 私有_收集历史宿主残留候选(自我存在);
-    for (auto* 状态节点 : 候选.状态) {
-        if (!状态节点) {
-            continue;
-        }
-        if (私有_存在存活实例或动态引用状态(状态节点)) {
-            结果.阻塞摘要.push_back(
-                私有_基础节点标题(状态节点) + " | 状态仍被存活动态或因果实例引用");
-            continue;
-        }
-        if (世界树.状态().删除状态(状态节点)) {
-            ++结果.删除状态数;
-        }
-    }
-
-    候选 = 私有_收集历史宿主残留候选(自我存在);
-    for (auto* 特征节点 : 候选.特征) {
-        if (!特征节点) {
-            continue;
-        }
-        if (私有_存在存活状态或动态引用特征(特征节点)) {
-            结果.阻塞摘要.push_back(
-                私有_基础节点标题(特征节点) + " | 特征仍被存活状态或动态引用");
-            continue;
-        }
-        if (世界树.特征().删除特征(特征节点)) {
-            ++结果.删除特征数;
-        }
-    }
-
-    const auto 清理后快照 = 读取控制面板快照();
-    结果.清理后残留节点数 = 清理后快照.历史宿主残留节点数;
-
     if (摘要输出) {
-        *摘要输出 = 私有_清理结果摘要(结果);
+        *摘要输出 = "历史宿主残留清理结果\n  - 重构版控制面板暂未实现该专项操作。\n";
     }
-    return true;
+    return false;
 }
 
-枚举_控制面板命令 解析控制面板命令行(int argc, char** argv) noexcept
+枚举_控制面板命令 解析控制面板命令行(const int argc, char** argv) noexcept
 {
     枚举_控制面板命令 输出 = 枚举_控制面板命令::无;
     for (int i = 1; i < argc; ++i) {

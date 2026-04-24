@@ -4,6 +4,7 @@ module;
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include <string_view>
 #include <vector>
 
 export module 控制面板类;
@@ -12,26 +13,12 @@ export {
 
 struct 结构_控制面板树节点 {
     std::uintptr_t 节点指针 = 0;
+    std::uintptr_t 附加参数 = 0;
     std::string 文本{};
+    bool 默认展开 = false;
+    bool 可延迟展开 = false;
+    std::string 展开类型{};
     std::vector<结构_控制面板树节点> 子项{};
-};
-
-struct 结构_控制面板列表项 {
-    std::uintptr_t 节点指针 = 0;
-    std::string 标题{};
-    std::string 摘要{};
-    std::vector<std::string> 详情行{};
-};
-
-struct 结构_控制面板线程事件 {
-    std::uint64_t 时间 = 0;
-    std::uint8_t 阶段 = 0;
-    std::string 摘要{};
-    std::uintptr_t 自我存在 = 0;
-    std::uintptr_t 当前主需求 = 0;
-    std::uintptr_t 当前主任务 = 0;
-    std::uintptr_t 当前主方法 = 0;
-    std::uintptr_t 当前管理任务 = 0;
 };
 
 struct 结构_控制面板快照 {
@@ -40,233 +27,88 @@ struct 结构_控制面板快照 {
     bool 自我线程已初始化 = false;
     bool 自我线程运行中 = false;
     bool 自我线程健康运行 = false;
-    bool 自我线程首轮运行已完成 = false;
-    bool 自我线程本次启动来自故障恢复 = false;
-    bool 自我线程最近结算已生成 = false;
-    bool 自我线程最近已执行固定机制 = false;
-    bool 自我线程解封前验收通过 = false;
-    bool 自我线程重外部输入保持封闭 = true;
     bool 自我存在已建立 = false;
     bool 自我内部世界已建立 = false;
     bool 自我待机状态 = false;
     std::uint8_t 自我线程生命周期 = 0;
 
-    std::size_t 世界根子节点数 = 0;
     std::size_t 基础信息节点数 = 0;
-    std::size_t 世界树活跃节点数 = 0;
     std::size_t 场景数 = 0;
     std::size_t 存在数 = 0;
     std::size_t 特征数 = 0;
     std::size_t 状态数 = 0;
     std::size_t 动态数 = 0;
-    std::size_t 因果实例数 = 0;
     std::size_t 因果模板数 = 0;
     std::size_t 因果证据动态样本数 = 0;
-    std::size_t 先天动作动态数 = 0;
-    std::size_t 先天动作因果数 = 0;
     std::size_t 需求数 = 0;
     std::size_t 任务数 = 0;
     std::size_t 方法数 = 0;
-    std::size_t 学习任务总数 = 0;
-    std::size_t 学习任务活跃数 = 0;
-    std::size_t 学习任务挂起数 = 0;
-    std::size_t 学习任务可调度数 = 0;
-    std::size_t 学习任务执行中数 = 0;
-    std::size_t 学习任务已完成数 = 0;
-    std::size_t 学习就绪队列数 = 0;
-    std::size_t 学习等待表数 = 0;
-    std::size_t 学习因兜底切换进入就绪数 = 0;
-    std::size_t 学习因兜底切换进入采样数 = 0;
-    std::size_t 学习恢复请求数 = 0;
-    bool 学习应触发学习 = false;
-    bool 学习应申请重试恢复 = false;
-    bool 学习应申请收束恢复 = false;
-    std::size_t 历史宿主残留节点数 = 0;
-    std::size_t 历史宿主残留特征数 = 0;
-    std::size_t 历史宿主残留状态数 = 0;
-    std::size_t 历史宿主残留动态数 = 0;
-    std::size_t 历史宿主残留因果数 = 0;
-    std::size_t 历史宿主残留提示数 = 0;
-    std::size_t 历史宿主残留告警数 = 0;
-    std::size_t 历史宿主残留阻断数 = 0;
-    bool 历史宿主残留需要阻断 = false;
+    std::size_t 线程数 = 0;
 
     std::int64_t 自我安全值 = 0;
     std::int64_t 自我服务值 = 0;
-    std::int64_t 自我物理安全值 = 0;
     std::int64_t 自我风险安全值 = 0;
     std::int64_t 自我待学习方法数量 = 0;
-    std::int64_t 自我安全根方向差值 = 0;
-    std::int64_t 自我时序正向步长 = 0;
-    std::int64_t 自我时序反向步长 = 0;
-    std::int64_t 自我服务时序衰减步长 = 0;
     std::uint64_t 自我Tick计数 = 0;
     std::uint64_t 自我线程累计故障次数 = 0;
     std::uint64_t 自我线程累计恢复次数 = 0;
-    std::uint64_t 自我最近Tick时间 = 0;
-    std::uint64_t 自我线程上次故障时间 = 0;
 
     std::uintptr_t 自我存在指针 = 0;
-    std::uintptr_t 自我现实场景指针 = 0;
-    std::uintptr_t 自我内部世界指针 = 0;
     std::uintptr_t 当前主需求指针 = 0;
     std::uintptr_t 当前主任务指针 = 0;
     std::uintptr_t 当前主方法指针 = 0;
-    std::uintptr_t 任务管理当前步骤指针 = 0;
-    std::uintptr_t 任务管理最近结果指针 = 0;
-    std::size_t 任务管理任务实体数量 = 0;
+
+    std::string 自我存在标题{};
+    std::string 当前主需求标题{};
+    std::string 当前主任务标题{};
+    std::string 当前主方法标题{};
+
+    std::string 自我线程当前阶段{};
+    std::string 自我线程当前最终去向{};
+    std::string 自我线程最近运行摘要{};
+    std::string 自我线程最近恢复摘要{};
+    std::string 自我线程最近故障摘要{};
+
     bool 任务管理工作线程已启动 = false;
     bool 任务管理工作线程正在执行 = false;
     bool 任务管理工作线程已收到请求 = false;
-    std::uint64_t 任务管理工作线程最近任务根ID = 0;
     std::uint64_t 任务管理工作线程累计推进次数 = 0;
-    std::uint64_t 任务管理工作线程累计收到请求数 = 0;
-    std::uint64_t 任务管理工作线程累计收到控制请求数 = 0;
-    std::uint64_t 任务管理工作线程累计发送上行消息数 = 0;
-    std::uint64_t 任务管理工作线程最近一次上行消息数 = 0;
     std::uint64_t 任务管理工作线程当前排队数 = 0;
-    std::uint64_t 任务管理工作线程最近推进时间 = 0;
+    std::string 任务管理工作线程最近因果链状态{};
+    std::string 任务管理工作线程最近缺口归类{};
+    std::uint64_t 任务管理工作线程最近特征变化数 = 0;
+    std::string 任务管理最近功能域{};
+    std::string 任务管理最近缺口类型{};
+    std::string 任务管理最近下一步去向{};
+    std::string 任务管理最近总控结果{};
+    std::string 任务管理最近恢复摘要{};
 
-    std::string 自我现实场景名称{};
-    std::string 自我内部世界名称{};
-    std::string 任务管理根层重判结果{};
-    std::string 任务管理执行前门控结果{};
-    std::string 任务管理上层反馈摘要{};
-    std::string 任务管理锚点裁决摘要{};
-    std::string 任务管理当前缺口{};
-    std::string 任务管理当前去向{};
-    std::string 任务管理总控结果{};
-    std::string 任务管理反馈类型{};
-    std::string 任务管理反馈摘要{};
-    std::string 任务管理方法来源{};
-    std::string 任务管理步骤位{};
-    std::string 任务管理步骤语义{};
-    std::string 任务管理当前步骤标题{};
-    std::string 任务管理最近结果标题{};
-    std::string 任务管理目标结果摘要{};
-    std::string 任务管理恢复点类型{};
-    std::string 任务管理恢复投影摘要{};
-    bool 任务管理恢复存在待消费学习反馈 = false;
-    bool 任务管理恢复存在待消费学习回流 = false;
-    bool 任务管理恢复存在待消费外部反馈 = false;
-    std::size_t 治理mailbox待消费数 = 0;
-    std::uint64_t 治理mailbox最老等待微秒 = 0;
-    std::size_t 治理mailbox可恢复事件数 = 0;
-    std::string 主循环归并来源{};
-    std::string 主循环归并摘要{};
-    std::string 主消息心跳车道状态{};
-    std::string 任务治理车道状态{};
-    std::string 学习车道状态{};
-    std::string 延迟事实车道状态{};
-    std::string 根任务结构调整车道状态{};
-    std::string 运行时车道摘要{};
-    std::string 治理mailbox摘要{};
-    std::string 治理mailbox类型计数摘要{};
-    std::string 治理mailbox最老等待摘要{};
-    std::string 治理mailbox最近拦截摘要{};
-    std::string 治理mailbox待恢复摘要{};
-    std::string 自我摘要{};
-    std::string 自我线程摘要{};
-    std::string 运行时摘要{};
-    std::string 任务管理专项摘要{};
-    std::string 任务管理上下文摘要{};
-    std::string 任务管理输出摘要{};
-    std::string 任务管理状态数量摘要{};
-    std::string 任务管理消息汇总摘要{};
-    std::string 任务管理工作线程摘要{};
-    std::string 需求与权重治理输出摘要{};
-    std::string 主派发输出摘要{};
-    std::string 队列治理输出摘要{};
-    std::string 结算治理输出摘要{};
-    std::string 双值结算账摘要{};
-    std::string 学习恢复接口摘要{};
-    std::string 任务管理治理实例堆摘要{};
-    std::string 任务管理恢复快照摘要{};
-    std::string 动态来源摘要{};
-    std::string 动态分类摘要{};
-    std::string 动态方法摘要{};
-    std::string 动态任务摘要{};
-    std::string 动态场景摘要{};
-    std::string 动态树摘要{};
-    std::string 学习账本摘要{};
-    std::string 历史宿主残留严重级别{};
-    std::string 学习调度摘要{};
-    std::string 学习专项摘要{};
-    std::string 学习首个兜底切换就绪摘要{};
-    std::string 学习首个兜底切换采样摘要{};
+    std::size_t 学习任务总数 = 0;
+    std::size_t 学习任务活跃数 = 0;
+    std::size_t 学习任务可调度数 = 0;
+    std::size_t 学习恢复请求数 = 0;
+    std::size_t 学习因兜底切换进入就绪数 = 0;
+    std::size_t 学习因兜底切换进入采样数 = 0;
+    bool 学习应触发学习 = false;
+    bool 学习应申请重试恢复 = false;
+    bool 学习应申请收束恢复 = false;
     std::string 学习当前阶段{};
     std::string 学习当前状态{};
-    std::string 学习当前影响面{};
     std::string 学习当前任务标题{};
     std::string 学习当前方法标题{};
+    std::string 学习调度摘要{};
     std::string 学习最近摘要{};
     std::string 学习最近失败摘要{};
     std::string 学习最近反馈摘要{};
     std::string 学习最近回流摘要{};
-    std::string 学习最近回放摘要{};
     std::string 学习固定机制观察摘要{};
-    std::string 自我线程动作最近摘要{};
-    std::string 自我线程解封前验收摘要{};
-    std::string 自我线程当前最终去向{};
-    std::string 自我线程当前阶段{};
-    std::string 自我线程最近结算摘要{};
-    std::string 自我线程最近固定机制摘要{};
-    std::string 自我线程最近主派发判据摘要{};
-    std::string 自我线程上次故障摘要{};
-    std::string 自我线程最近恢复摘要{};
-    std::string 自我线程最近故障摘要{};
+    std::string 学习首个兜底切换就绪摘要{};
+    std::string 学习首个兜底切换采样摘要{};
 
-    std::vector<结构_控制面板列表项> 世界列表{};
-    std::vector<结构_控制面板列表项> 场景列表{};
-    std::vector<结构_控制面板列表项> 存在列表{};
-    std::vector<结构_控制面板列表项> 需求列表{};
-    std::vector<结构_控制面板列表项> 任务列表{};
-    std::vector<结构_控制面板列表项> 方法列表{};
-    std::vector<结构_控制面板列表项> 动态列表{};
-    std::vector<结构_控制面板列表项> 动态来源列表{};
-    std::vector<结构_控制面板列表项> 动态分类列表{};
-    std::vector<结构_控制面板列表项> 动态方法列表{};
-    std::vector<结构_控制面板列表项> 动态任务列表{};
-    std::vector<结构_控制面板列表项> 动态场景列表{};
-    std::vector<结构_控制面板列表项> 动态树列表{};
-    std::vector<结构_控制面板列表项> 因果实例列表{};
-    std::vector<结构_控制面板列表项> 因果模板列表{};
-    std::vector<结构_控制面板列表项> 任务管理汇总列表{};
-    std::vector<结构_控制面板列表项> 任务管理输入列表{};
-    std::vector<结构_控制面板列表项> 任务管理输出列表{};
-    std::vector<结构_控制面板列表项> 任务管理触发列表{};
-    std::vector<结构_控制面板列表项> 任务管理工作线程列表{};
-    std::vector<结构_控制面板列表项> 主派发动作列表{};
-    std::vector<结构_控制面板列表项> 主派发队列裁决列表{};
-    std::vector<结构_控制面板列表项> 需求候选列表{};
-    std::vector<结构_控制面板列表项> 任务权重候选列表{};
-    std::vector<结构_控制面板列表项> 父子依赖权重候选列表{};
-    std::vector<结构_控制面板列表项> 方法禁止项列表{};
-    std::vector<结构_控制面板列表项> 队列治理状态列表{};
-    std::vector<结构_控制面板列表项> 队列治理成员列表{};
-    std::vector<结构_控制面板列表项> 队列治理成员事件列表{};
-    std::vector<结构_控制面板列表项> 结算治理回流列表{};
-    std::vector<结构_控制面板列表项> 结算治理否定项列表{};
-    std::vector<结构_控制面板列表项> 结算治理学习触发列表{};
-    std::vector<结构_控制面板列表项> 结算治理恢复请求列表{};
-    std::vector<结构_控制面板列表项> 结算治理关键状态列表{};
-    std::vector<结构_控制面板列表项> 结算治理关键状态分组列表{};
-    std::vector<结构_控制面板列表项> 主派发任务包列表{};
-    std::vector<结构_控制面板列表项> 主派发占用登记列表{};
-    std::vector<结构_控制面板列表项> 主派发回执列表{};
-    std::vector<结构_控制面板列表项> 线程状态列表{};
-    std::vector<结构_控制面板列表项> 学习任务列表{};
-    std::vector<结构_控制面板列表项> 学习就绪列表{};
-    std::vector<结构_控制面板列表项> 学习等待列表{};
-    std::vector<结构_控制面板列表项> 先天动作动态列表{};
-    std::vector<结构_控制面板列表项> 先天动作因果列表{};
-    std::vector<结构_控制面板列表项> 历史宿主残留列表{};
-    std::vector<std::string> 历史宿主残留阻断摘要{};
-    std::vector<结构_控制面板线程事件> 自我运行阶段事件{};
-
-    结构_控制面板树节点 因果信息树根{};
+    结构_控制面板树节点 线程状态树根{};
     结构_控制面板树节点 世界树根{};
     结构_控制面板树节点 需求树根{};
+    结构_控制面板树节点 需求列表树根{};
     结构_控制面板树节点 任务树根{};
     结构_控制面板树节点 方法树根{};
 };
@@ -284,8 +126,8 @@ enum class 枚举_控制面板命令 {
 };
 
 结构_控制面板快照 读取控制面板快照(
-    std::size_t 树深度上限 = 6,
-    std::size_t 树广度上限 = 12);
+    std::size_t 树深度上限 = 10,
+    std::size_t 树广度上限 = 24);
 
 std::string 渲染控制面板摘要(
     const 结构_控制面板快照& 快照,
@@ -307,6 +149,17 @@ std::string 渲染历史宿主残留摘要(
 std::string 生成控制面板HTML(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限 = 12);
+
+std::string 读取控制面板节点子项JSON(
+    std::string_view 展开类型,
+    std::uintptr_t 节点指针,
+    std::size_t 树广度上限 = 16,
+    std::uintptr_t 附加参数 = 0);
+
+std::string 读取控制面板节点详情JSON(
+    std::string_view 展开类型,
+    std::uintptr_t 节点指针,
+    std::size_t 树广度上限 = 16);
 
 bool 归档历史宿主残留快照(
     std::filesystem::path* 输出路径 = nullptr,

@@ -283,7 +283,6 @@ private:
         const std::string& 调用点
     ) noexcept;
     需求类::节点类* 选择当前主需求候选_() const noexcept;
-    任务类::节点类* 选择当前主任务候选_(需求类::节点类* 当前主需求) const noexcept;
     void 同步运行态特征_(const std::string& 调用点) noexcept;
     void 重置时序步长为默认值_() noexcept;
     void 重算时序回归步长_按当前双值_() noexcept;

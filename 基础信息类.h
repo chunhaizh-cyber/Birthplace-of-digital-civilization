@@ -63,7 +63,7 @@ public:
         std::vector<节点类*> out;
         auto lk = 获取读锁();
         auto* parent = 父节点 ? const_cast<节点类*>(父节点) : 世界根();
-        if (!parent || !parent->子) return out;
+        if (!parent || !私有_节点属于当前树_已加锁(parent) || !parent->子) return out;
 
         auto* first = static_cast<节点类*>(parent->子);
         auto* it = first;
@@ -78,5 +78,24 @@ public:
     }
 
 private:
+    bool 私有_节点属于当前树_已加锁(const 节点类* 候选节点) const noexcept
+    {
+        if (!根指针 || !候选节点) {
+            return false;
+        }
+        if (根指针 == 候选节点) {
+            return true;
+        }
+
+        for (auto* 当前节点 = 根指针->链下;
+             当前节点 && 当前节点 != 根指针;
+             当前节点 = 当前节点->链下) {
+            if (当前节点 == 候选节点) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void 私有_清理主信息_已加锁() noexcept;
 };

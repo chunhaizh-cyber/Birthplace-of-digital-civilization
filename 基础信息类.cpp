@@ -81,7 +81,7 @@ std::vector<基础信息类::节点类*> 基础信息类::枚举子节点(const 
     std::vector<节点类*> out;
     auto lk = 获取读锁();
     auto* parent = 父节点 ? const_cast<节点类*>(父节点) : 世界根();
-    if (!parent || !parent->子) return out;
+    if (!parent || !私有_节点属于当前树_已加锁(parent) || !parent->子) return out;
 
     auto* first = static_cast<节点类*>(parent->子);
     auto* it = first;
