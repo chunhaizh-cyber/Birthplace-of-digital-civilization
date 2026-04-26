@@ -646,6 +646,48 @@ namespace {
         return 启动自我线程(调用点);
     }
 
+    void 私有_等待任务管理摘要快照稳定(const std::string& 调用点)
+    {
+        auto& 自我线程 = 获取全局自我线程();
+        const auto 开始 = std::chrono::steady_clock::now();
+        const auto 截止 = 开始 + std::chrono::milliseconds(3000);
+        int 连续空闲拍 = 0;
+        任务管理工作线程::结构_工作线程实例快照 最近快照{};
+        bool 有快照 = false;
+
+        while (std::chrono::steady_clock::now() < 截止) {
+            有快照 = 任务管理工作线程::读取任务管理工作线程快照(&最近快照);
+            const bool 首轮完成 = 自我线程.是否首轮运行已完成();
+            const bool 工作线程空闲 =
+                !有快照 || (!最近快照.正在执行 && 最近快照.当前排队数 == 0);
+
+            if (首轮完成 && 工作线程空闲) {
+                ++连续空闲拍;
+                if (连续空闲拍 >= 3) {
+                    break;
+                }
+            } else {
+                连续空闲拍 = 0;
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
+        const auto 耗时 = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - 开始).count();
+        项目运行日志(
+            "控制面板摘要/等待稳定 | 调用点=" + 调用点
+            + " | 耗时ms=" + std::to_string(耗时)
+            + " | 连续空闲拍=" + std::to_string(连续空闲拍)
+            + " | 工作线程="
+            + (有快照
+                ? (std::string("已启动=") + 私有_布尔文本(最近快照.已启动)
+                    + "/执行中=" + 私有_布尔文本(最近快照.正在执行)
+                    + "/排队=" + std::to_string(最近快照.当前排队数)
+                    + "/推进=" + std::to_string(最近快照.累计推进次数))
+                : std::string("无快照")));
+    }
+
     int 私有_执行控制面板命令(枚举_控制面板命令 命令, bool 等待窗口关闭 = false)
     {
         if (命令 == 枚举_控制面板命令::输出摘要) {
@@ -663,7 +705,7 @@ namespace {
                 std::cerr << "自我线程启动失败。\n";
                 return 4;
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(700));
+            私有_等待任务管理摘要快照稳定("鱼巢::main/控制面板/任务管理摘要");
             const auto 快照 = 读取控制面板快照();
             std::cout << 渲染任务管理摘要(快照, 20);
             return 0;
@@ -674,7 +716,7 @@ namespace {
                 std::cerr << "自我线程启动失败。\n";
                 return 4;
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(700));
+            私有_等待任务管理摘要快照稳定("鱼巢::main/控制面板/学习摘要");
             const auto 快照 = 读取控制面板快照();
             std::cout << 渲染学习摘要(快照, 20);
             return 0;

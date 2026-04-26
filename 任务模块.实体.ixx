@@ -37,10 +37,12 @@ export struct 结构_任务根节点 {
     std::uintptr_t 来源需求指针 = 0;
     std::uintptr_t 世界任务根指针 = 0;
     std::uintptr_t 父任务指针 = 0;
+    std::uintptr_t 管理对象任务指针 = 0;
     std::string 来源需求主键{};
-    std::string 方向摘要{};
+    std::string 管理对象任务主键{};
+    std::string 方向说明{};
     std::string 创建者{};
-    std::string 根约束摘要{};
+    std::string 根约束说明{};
     std::int64_t 初始授权等级 = 0;
     bool 只读 = true;
 };
@@ -60,8 +62,8 @@ export struct 结构_任务控制态 {
     bool 是否已响应控制意图 = false;
     bool 控制请求待确认 = false;
     std::string 当前控制请求主键{};
-    std::string 当前控制意图摘要{};
-    std::string 控制摘要{};
+    std::string 当前控制意图说明{};
+    std::string 控制说明{};
 };
 
 export struct 结构_任务局部运行态 {
@@ -72,6 +74,6 @@ export struct 结构_任务局部运行态 {
     std::uintptr_t 最近局部结果 = 0;
     std::vector<std::string> 派生需求缓存{};
     std::int64_t 局部完成度 = 0;
-    std::string 局部错误摘要{};
-    std::string 局部运行摘要{};
+    std::string 局部错误说明{};
+    std::string 局部运行说明{};
 };

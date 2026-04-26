@@ -35,7 +35,7 @@ struct 动作执行上下文 {
     世界树类* 世界树 = nullptr;
     三维场景管理类* 场景管理 = nullptr;
 
-    任务信息基类* 任务 = nullptr;
+    任务主信息类* 任务 = nullptr;
     void* 任务节点 = nullptr;
 
     场景节点类* 场景 = nullptr;

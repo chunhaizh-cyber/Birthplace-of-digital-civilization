@@ -42,6 +42,10 @@ struct 结构_控制面板快照 {
     std::size_t 因果证据动态样本数 = 0;
     std::size_t 需求数 = 0;
     std::size_t 任务数 = 0;
+    std::size_t 任务头节点数 = 0;
+    std::size_t 任务步骤节点数 = 0;
+    std::size_t 任务结果节点数 = 0;
+    std::size_t 任务其他节点数 = 0;
     std::size_t 方法数 = 0;
     std::size_t 线程数 = 0;
 
@@ -49,6 +53,7 @@ struct 结构_控制面板快照 {
     std::int64_t 自我服务值 = 0;
     std::int64_t 自我风险安全值 = 0;
     std::int64_t 自我待学习方法数量 = 0;
+    std::int64_t 自我可用方法数量 = 0;
     std::uint64_t 自我Tick计数 = 0;
     std::uint64_t 自我线程累计故障次数 = 0;
     std::uint64_t 自我线程累计恢复次数 = 0;

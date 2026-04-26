@@ -36,7 +36,7 @@ export struct 结构_任务控制事件 {
     std::int64_t 时间预算_ms = 0;
     std::int64_t 资源预算 = 0;
     std::uintptr_t 子结果指针 = 0;
-    std::string 摘要{};
+    std::string 说明{};
 };
 
 export struct 结构_任务推进事件 {
@@ -45,8 +45,7 @@ export struct 结构_任务推进事件 {
     std::uintptr_t 当前步骤指针 = 0;
     std::uintptr_t 结果指针 = 0;
     std::string 等待原因{};
-    std::string 派生需求摘要{};
-    std::string 摘要{};
+    std::string 说明{};
 };
 
 export namespace 任务线程消息合同 {
@@ -62,7 +61,7 @@ struct 结构_线程消息输入 {
 struct 结构_线程控制消费 {
     bool 已消费控制请求 = false;
     结构_任务管理控制请求 已消费控制请求对象{};
-    结构_任务管理控制响应摘要 控制响应{};
+    结构_任务管理控制响应记录 控制响应{};
     bool 控制阻断执行 = false;
 };
 

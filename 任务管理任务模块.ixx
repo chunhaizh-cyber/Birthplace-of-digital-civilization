@@ -293,7 +293,7 @@ struct 结构_学习目标描述 {
     方法类::节点类* 目标学习方法节点 = nullptr;
     std::int64_t 最大风险值_Q10000 = 0;
     std::int64_t 最大资源消耗_Q10000 = 0;
-    std::string 摘要{};
+    std::string 说明{};
 };
 
 struct 结构_学习需求描述 {
@@ -303,7 +303,7 @@ struct 结构_学习需求描述 {
     std::int64_t 风险上限_Q10000 = 0;
     bool 必须完成 = false;
     bool 可延迟 = false;
-    std::string 摘要{};
+    std::string 说明{};
 };
 
 struct 结构_学习动作描述 {
@@ -539,7 +539,7 @@ struct 结构_任务管理控制承接记录 {
     bool 是否超时 = false;
     时间戳 最近回报时间 = 0;
     std::string 拒绝原因{};
-    std::string 摘要{};
+    std::string 说明{};
 };
 
 // P-1：主体化过渡类型。
@@ -702,7 +702,6 @@ struct 结构_任务管理方法需求位特征面 {
     std::string 结果主键{};
     std::string 最近抽象因果摘要{};
     std::string 学习承接摘要{};
-    std::string 需求摘要{};
 
     状态节点类* 最新目标状态 = nullptr;
     状态节点类* 最新结果状态 = nullptr;
@@ -974,8 +973,6 @@ struct 结构_学习承接决策 {
     std::string 决策摘要{};
 };
 
-// 兼容汇总壳。
-// 它保留旧主流程的聚合观察面，但新的桥接补层优先写请求/决策/写回/一步结果四层薄壳。
 struct 结构_任务管理结果 {
     bool 已补齐治理任务 = false;
     bool 已选中宿主任务 = false;
@@ -1042,6 +1039,10 @@ struct 结构_任务管理结果 {
     结构_高阶胜出绑定 当前高阶胜出绑定{};
     结构_任务管理控制承接记录 当前控制承接{};
 
+    需求类::节点类* 当前主需求 = nullptr;
+    任务类::节点类* 当前管理任务 = nullptr;
+    任务类::节点类* 当前宿主任务 = nullptr;
+    方法类::节点类* 当前方法 = nullptr;
     结构_任务管理上下文 上下文{};
     结构_任务管理请求 当前请求{};
     结构_任务管理单步决策 当前单步决策{};
@@ -1056,6 +1057,7 @@ struct 结构_任务管理结果 {
     方法类::节点类* 当前学习方法节点 = nullptr;
     任务类::节点类* 当前步骤节点 = nullptr;
     任务类::节点类* 最新结果节点 = nullptr;
+    std::vector<任务类::节点类*> 新增步骤待生成需求节点集{};
     状态节点类* 宿主目标状态 = nullptr;
     状态节点类* 宿主结果状态 = nullptr;
     状态节点类* 步骤目标状态 = nullptr;
@@ -1136,20 +1138,6 @@ struct 结构_学习方法资产提交结果 {
     std::string 摘要{};
 };
 
-struct 结构_任务管理学习推进结果 {
-    bool 已构建学习调度快照 = false;
-    bool 已选中学习任务 = false;
-    bool 已执行学习任务 = false;
-    bool 已写回学习方法结构 = false;
-    bool 已补动作骨架 = false;
-    bool 已补条件节点 = false;
-    bool 已补结果节点 = false;
-    std::uint64_t 当前学习账本ID = 0;
-    std::string 学习调度摘要{};
-    std::string 学习执行摘要{};
-    std::string 学习反馈摘要{};
-};
-
 struct 结构_治理实例堆快照 {
     std::size_t 总数 = 0;
     std::string 最近摘要{};
@@ -1222,14 +1210,6 @@ struct 结构_治理恢复快照 {
 
 namespace 任务管理任务模块 {
 
-bool 写入上位输入镜像(
-    自我类& 自我对象,
-    枚举_任务管理根层重判结果 根层重判结果,
-    枚举_任务管理执行前门控结果 执行前门控结果,
-    const std::string& 上层反馈摘要 = {},
-    时间戳 now = 0,
-    const std::string& 调用点 = "任务管理任务模块::写入上位输入镜像") noexcept;
-
 结构_任务管理上下文 读取任务管理上下文(
     const 自我类& 自我对象,
     时间戳 now = 0) noexcept;
@@ -1260,7 +1240,7 @@ bool 设置治理控制请求(
 void 清除治理控制请求() noexcept;
 
 bool 写入治理控制响应(
-    const 结构_任务管理控制响应摘要& 响应) noexcept;
+    const 结构_任务管理控制响应记录& 响应) noexcept;
 
 bool 读取最近治理控制承接记录(
     结构_任务管理控制承接记录* 输出 = nullptr) noexcept;
@@ -1364,17 +1344,20 @@ bool 回并分身增量到任务管理主体(
     const 结构_任务管理分身继承面& 分身,
     结构_任务管理主体虚拟存在* 主体) noexcept;
 
+struct 结构_任务管理治理执行选项 {
+    bool 工作线程负责执行当前步骤方法 = false;
+};
+
+bool 注册任务管理本能动作(
+    自我类& 自我对象,
+    const std::string& 调用点 = "任务管理任务模块::注册任务管理本能动作") noexcept;
+
 bool 执行一步治理(
     自我类& 自我对象,
     时间戳 now = 0,
     const std::string& 调用点 = "任务管理任务模块::执行一步治理",
-    结构_任务管理结果* 输出 = nullptr) noexcept;
-
-bool 执行一步学习推进(
-    自我类& 自我对象,
-    时间戳 当前时间,
-    const std::string& 调用点 = "任务管理任务模块::执行一步学习推进",
-    结构_任务管理学习推进结果* 输出 = nullptr) noexcept;
+    结构_任务管理结果* 输出 = nullptr,
+    const 结构_任务管理治理执行选项* 执行选项 = nullptr) noexcept;
 
 bool 提交学习方法资产(
     自我类& 自我对象,

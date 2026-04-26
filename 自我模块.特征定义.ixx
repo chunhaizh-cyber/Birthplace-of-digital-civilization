@@ -17,6 +17,7 @@ public:
     static const 词性节点类* 类型_自我_外显情绪ID() noexcept;
     static const 词性节点类* 类型_自我_外显情绪强度() noexcept;
     static const 词性节点类* 类型_自我_待学习方法数量() noexcept;
+    static const 词性节点类* 类型_自我_可用方法数量() noexcept;
     static const 词性节点类* 类型_自我_当前主需求() noexcept;
     static const 词性节点类* 类型_自我_当前主任务() noexcept;
     static const 词性节点类* 类型_自我_当前主方法() noexcept;

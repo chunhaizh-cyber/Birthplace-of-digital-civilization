@@ -181,6 +181,49 @@ public:
         const std::string& 原因说明 = {}
     ) noexcept;
 
+    bool 应用自我需求安全值增加(
+        I64 delta = 0,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::应用自我需求安全值增加"
+    ) noexcept;
+    bool 应用自我需求安全值减少(
+        I64 delta = 0,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::应用自我需求安全值减少"
+    ) noexcept;
+    bool 应用自我需求安全值保持(
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::应用自我需求安全值保持"
+    ) noexcept;
+    bool 应用自我需求服务值增加(
+        I64 delta = 0,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::应用自我需求服务值增加"
+    ) noexcept;
+    bool 应用自我需求服务值减少(
+        I64 delta = 0,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::应用自我需求服务值减少"
+    ) noexcept;
+    bool 应用自我需求服务值保持(
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::应用自我需求服务值保持"
+    ) noexcept;
+    bool 应用安全服务闭环安全推进(
+        I64 delta = 0,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::应用安全服务闭环安全推进"
+    ) noexcept;
+    bool 应用安全服务闭环服务推进(
+        I64 delta = 0,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::应用安全服务闭环服务推进"
+    ) noexcept;
+    bool 应用学习闭环维持(
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::应用学习闭环维持"
+    ) noexcept;
+
     bool 应用服务归零待机保护(
         时间戳 now = 结构体_时间戳::当前_微秒(),
         const std::string& 调用点 = "自我类::应用服务归零待机保护"
@@ -221,6 +264,11 @@ public:
         I64 数量,
         时间戳 now = 结构体_时间戳::当前_微秒(),
         const std::string& 调用点 = "自我类::更新待学习方法数量"
+    ) noexcept;
+    bool 增加可用方法数量(
+        I64 增量 = 1,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我类::增加可用方法数量"
     ) noexcept;
     bool 更新尝试学习状态(
         bool 正在尝试学习,
