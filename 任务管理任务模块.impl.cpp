@@ -700,6 +700,70 @@ namespace {
         return a->获取主键() == b->获取主键();
     }
 
+    需求节点* 私有_解析需求引用(const 可解析引用<需求节点类>& 引用) noexcept
+    {
+        if (引用.指针) {
+            return reinterpret_cast<需求节点*>(引用.指针);
+        }
+        if (引用.主键.empty()) {
+            return nullptr;
+        }
+        if (auto* 基础节点 = 世界树.基础信息().查找主键(引用.主键)) {
+            return reinterpret_cast<需求节点*>(基础节点);
+        }
+        return nullptr;
+    }
+
+    需求节点* 私有_任务对应需求(const 任务节点* 任务) noexcept
+    {
+        if (!任务) {
+            return nullptr;
+        }
+        if (auto* 需求 = 私有_解析需求引用(任务->主信息.对应需求)) {
+            return 需求;
+        }
+        return 私有_解析需求引用(任务->主信息.来源需求);
+    }
+
+    二次特征节点类* 私有_任务需求方向(const 任务节点* 任务) noexcept
+    {
+        auto* 需求 = 私有_任务对应需求(任务);
+        if (!需求) {
+            return nullptr;
+        }
+        需求类 需求服务{};
+        return 需求服务.获取需求方向(需求);
+    }
+
+    bool 私有_二次特征引用命中(
+        const 可解析引用<二次特征节点类>& 引用,
+        const 二次特征节点类* 节点) noexcept
+    {
+        if (!节点) {
+            return false;
+        }
+        if (引用.指针 == 节点) {
+            return true;
+        }
+        const auto 节点主键 = 节点->获取主键();
+        return !节点主键.empty() && 引用.主键 == 节点主键;
+    }
+
+    bool 私有_方法结果方向包含(
+        const 方法节点* 方法,
+        const 二次特征节点类* 目标方向) noexcept
+    {
+        if (!方法 || !目标方向) {
+            return false;
+        }
+        for (const auto& 方向引用 : 方法->主信息.结果方向索引) {
+            if (私有_二次特征引用命中(方向引用, 目标方向)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     时间戳 私有_归一化时间(时间戳 now) noexcept
     {
         return now != 0 ? now : 结构体_时间戳::当前_微秒();
@@ -12343,27 +12407,36 @@ namespace {
         if (!方法根节点 || !动作名) {
             return nullptr;
         }
+        const auto* 目标特征类型 = 私有_学习方法主结果特征类型(宿主任务, 结果);
+        auto* 目标方向 = 私有_任务需求方向(学习子任务);
 
         auto* 首节点 = static_cast<方法节点*>(方法根节点->子);
         if (!首节点) {
             return nullptr;
         }
 
+        方法节点* 无方向候选 = nullptr;
         auto* 当前 = 首节点;
         do {
             if (当前
                 && 当前->主信息.节点种类 == 枚举_方法节点种类::方法首节点
                 && 私有_词性相同(当前->主信息.动作名, 动作名)
                 && 私有_动作句柄为尝试学习(当前->主信息.动作句柄) == 作为尝试学习选项
-                && reinterpret_cast<const void*>(当前->主信息.来源任务.指针)
-                    == reinterpret_cast<const void*>(学习子任务)) {
-                return 当前;
+                && (!目标特征类型
+                    || !当前->主信息.主结果特征类型
+                    || 私有_词性相同(当前->主信息.主结果特征类型, 目标特征类型))) {
+                if (!目标方向 || 私有_方法结果方向包含(当前, 目标方向)) {
+                    return 当前;
+                }
+                if (!无方向候选 && 当前->主信息.结果方向索引.empty()) {
+                    无方向候选 = 当前;
+                }
             }
 
             当前 = static_cast<方法节点*>(当前->下);
         } while (当前 && 当前 != 首节点);
 
-        return nullptr;
+        return 无方向候选;
     }
 
     void 私有_写入尝试学习动作句柄(结构体_动作句柄& 动作句柄) noexcept
@@ -12819,6 +12892,10 @@ namespace {
         if (!主信息.主结果特征类型) {
             主信息.主结果特征类型 = 私有_学习方法主结果特征类型(宿主任务, 结果);
         }
+        if (auto* 目标方向 = 私有_任务需求方向(学习子任务)) {
+            私有_P2_追加二次特征引用(主信息.结果方向索引, 目标方向);
+            世界树.二次特征生成().确保二次特征列表具备默认值(主信息.结果方向索引);
+        }
 
         auto* 自我内部世界 = 自我对象.确保自我内部世界(调用点 + "/自我内部世界");
         if (!自我内部世界) {
@@ -12977,16 +13054,14 @@ namespace {
         do {
             if (当前
                 && 当前->主信息.节点种类 == 节点种类
-                && 私有_词性相同(当前->主信息.动作名, 动作名)
-                && (!学习子任务
-                    || reinterpret_cast<const void*>(当前->主信息.来源任务.指针)
-                        == reinterpret_cast<const void*>(学习子任务))) {
+                && 私有_词性相同(当前->主信息.动作名, 动作名)) {
                 return 当前;
             }
 
             当前 = static_cast<方法节点*>(当前->下);
         } while (当前 && 当前 != 首节点);
 
+        (void)学习子任务;
         return nullptr;
     }
 
@@ -13009,16 +13084,14 @@ namespace {
         do {
             if (当前
                 && 当前->主信息.节点种类 == 节点种类
-                && 私有_词性相同(当前->主信息.动作名, 动作名)
-                && (!来源任务
-                    || reinterpret_cast<const void*>(当前->主信息.来源任务.指针)
-                        == reinterpret_cast<const void*>(来源任务))) {
+                && 私有_词性相同(当前->主信息.动作名, 动作名)) {
                 return 当前;
             }
 
             当前 = static_cast<方法节点*>(当前->下);
         } while (当前 && 当前 != 首节点);
 
+        (void)来源任务;
         return nullptr;
     }
 
