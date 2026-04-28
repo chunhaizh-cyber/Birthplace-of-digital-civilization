@@ -46,8 +46,31 @@ struct 结构_控制面板快照 {
     std::size_t 任务步骤节点数 = 0;
     std::size_t 任务结果节点数 = 0;
     std::size_t 任务其他节点数 = 0;
+    std::size_t 任务状态未定义数 = 0;
+    std::size_t 任务状态未启动数 = 0;
+    std::size_t 任务状态运行中数 = 0;
+    std::size_t 任务状态挂起数 = 0;
+    std::size_t 任务状态完成数 = 0;
+    std::size_t 任务状态失败数 = 0;
+    std::size_t 任务状态取消数 = 0;
+    std::size_t 任务状态超时数 = 0;
+    std::size_t 任务状态就绪数 = 0;
+    std::size_t 任务状态执行中数 = 0;
+    std::size_t 任务状态筹办中数 = 0;
+    std::size_t 任务状态排队中数 = 0;
+    std::size_t 任务状态等待中数 = 0;
+    std::size_t 任务状态无法执行数 = 0;
+    std::size_t 任务状态待重筹办数 = 0;
     std::size_t 方法数 = 0;
+    std::size_t 方法首节点数 = 0;
+    std::size_t 方法条件无结果数 = 0;
+    std::size_t 方法结果无条件数 = 0;
+    std::size_t 方法条件结果不成对数 = 0;
     std::size_t 线程数 = 0;
+
+    std::size_t 需求已满足数 = 0;
+    std::size_t 需求状态已达未截止数 = 0;
+    std::size_t 需求未满足数 = 0;
 
     std::int64_t 自我安全值 = 0;
     std::int64_t 自我服务值 = 0;

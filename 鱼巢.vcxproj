@@ -179,6 +179,8 @@
     <ClCompile Include="任务模块.最小回写器.cpp" />
     <ClCompile Include="自我线程模块.ixx" />
     <ClCompile Include="自我线程模块.impl.cpp" />
+    <ClCompile Include="自检线程模块.ixx" />
+    <ClCompile Include="自检线程模块.impl.cpp" />
     <ClCompile Include="任务模块.运行包.ixx" />
     <ClCompile Include="任务模块.运行包.impl.cpp" />
     <ClCompile Include="任务模块.ixx" />

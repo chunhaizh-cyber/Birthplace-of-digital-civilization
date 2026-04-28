@@ -458,11 +458,11 @@
         <p>重构版控制面板保留最重要的 6 个页面。初始只展开根链；中间树区只放结构节点，右侧详情区按需加载主信息详细信息。</p>
         <nav class="nav" aria-label="控制面板菜单">
           <button class="menu-item active" type="button" data-page="thread-status"><span>线程状态</span><span class="menu-badge">4</span></button>
-          <button class="menu-item" type="button" data-page="world-tree"><span>世界树</span><span class="menu-badge">975</span></button>
+          <button class="menu-item" type="button" data-page="world-tree"><span>世界树</span><span class="menu-badge">1796</span></button>
           <button class="menu-item" type="button" data-page="need-tree"><span>需求树</span><span class="menu-badge">2</span></button>
           <button class="menu-item" type="button" data-page="need-list"><span>需求列表</span><span class="menu-badge">2</span></button>
-          <button class="menu-item" type="button" data-page="task-tree"><span>任务树</span><span class="menu-badge">5</span></button>
-          <button class="menu-item" type="button" data-page="method-tree"><span>方法树</span><span class="menu-badge">28</span></button>
+          <button class="menu-item" type="button" data-page="task-tree"><span>任务树</span><span class="menu-badge">15</span></button>
+          <button class="menu-item" type="button" data-page="method-tree"><span>方法树</span><span class="menu-badge">146</span></button>
         </nav>
       </aside>
       <main class="content">
@@ -485,7 +485,7 @@
             <div class="card">
               <div class="label">自我</div>
               <div class="value">已建立</div>
-              <div class="sub">安全=2305843009213693951 | 服务=4611686018427387903 | 风险安全=9223372036854775807 | 待学习方法=0</div>
+              <div class="sub">安全=2305843009213693951 | 服务=4611686018427387903 | 风险安全=9223372036854775807 | 待学习方法=0 | 可用方法=0</div>
             </div>
             <div class="card">
               <div class="label">自我线程</div>
@@ -493,9 +493,9 @@
               <div class="sub">生命周期=未启动 | 去向=未定义 | Tick=0</div>
             </div>
             <div class="card">
-              <div class="label">学习</div>
+              <div class="label">补方法</div>
               <div class="value">0</div>
-              <div class="sub">活跃=0 | 可调度=0 | 恢复请求=0</div>
+              <div class="sub">旧学习模块已移除 | 待处理方法=0 | 可用方法=0</div>
             </div>
           </div>
         </section>
@@ -518,7 +518,7 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>世界树</h3>
-              <div class="summary">节点仓库=基础信息类 | 基础节点=975 | 场景=66 | 存在=31 | 状态=36 | 动态=1 | 因果模板=2</div>
+              <div class="summary">节点仓库=基础信息类 | 基础节点=1796 | 场景=111 | 存在=52 | 状态=60 | 动态=1 | 因果模板=2</div>
               <div class="tree-toolbar"><div class="tree-hint">单击节点查看右侧详情，双击只展开或折叠结构子节点；节点字段会在右侧按需加载。</div></div>
               <div class="tree-shell"><div id="tree-world-tree"></div></div>
             </section>
@@ -531,7 +531,7 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>需求树</h3>
-              <div class="summary">需求数=2</div>
+              <div class="summary">需求数=2 | 已满足=0 | 状态已达未截止=0 | 未满足=2</div>
               <div class="tree-toolbar"><div class="tree-hint">单击节点查看右侧详情，双击只展开或折叠结构子节点；节点字段会在右侧按需加载。</div></div>
               <div class="tree-shell"><div id="tree-need-tree"></div></div>
             </section>
@@ -552,13 +552,13 @@
           </div>
         </section>
 
-        <section class="page" data-page="task-tree" data-title="任务树" data-subtitle="按真实任务父子关系查看任务树；双击只展开结构子节点，字段放到右侧。">
+        <section class="page" data-page="task-tree" data-title="任务列表" data-subtitle="每一条任务是一棵树；中间栏只看结构，字段在右侧显示。">
           <div class="workspace">
             <section class="panel tree-panel">
-              <div class="panel-topline">原始树视图</div>
-              <h3>任务树</h3>
-              <div class="summary">任务数=5 | 功能域=暂无数据 | 去向=暂无数据</div>
-              <div class="tree-toolbar"><div class="tree-hint">单击节点查看右侧详情，双击只展开或折叠结构子节点；节点字段会在右侧按需加载。</div></div>
+              <div class="panel-topline">任务列表</div>
+              <h3>任务列表</h3>
+              <div class="summary">任务节点=15 | 头=3 | 步骤=6 | 结果=6 | 状态={未启动=9 | 就绪=6} | 功能域=暂无数据 | 去向=暂无数据</div>
+              <div class="tree-toolbar"><div class="tree-hint">任务列表页中间栏只显示任务列表与每条任务树结构；单击节点后，字段在右侧按需加载。</div></div>
               <div class="tree-shell"><div id="tree-task-tree"></div></div>
             </section>
             <aside class="panel detail-panel"><div id="detail-task-tree" class="detail-host"></div></aside>
@@ -570,7 +570,7 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>方法树</h3>
-              <div class="summary">方法数=28 | 学习调度=学习任务表=0 | 就绪=0 | 等待=0 | 执行中=0 | 兜底切就绪=0 | 兜底切采样=0</div>
+              <div class="summary">方法数=146 | 首节点=50 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0 | 旧学习模块=已移除</div>
               <div class="tree-toolbar"><div class="tree-hint">单击节点查看右侧详情，双击只展开或折叠结构子节点；节点字段会在右侧按需加载。</div></div>
               <div class="tree-shell"><div id="tree-method-tree"></div></div>
             </section>
@@ -626,7 +626,7 @@
       'task-tree': {
         treeHost: 'tree-task-tree',
         detailHost: 'detail-task-tree',
-        detailHint: '任务树页适合看调度结构；右侧再按需加载任务原始字段与引用信息。'
+        detailHint: '任务列表页中间栏只显示任务树结构；右侧查看当前选中任务节点的字段。'
       },
       'method-tree': {
         treeHost: 'tree-method-tree',
@@ -637,11 +637,11 @@
 
     const 页面树数据 = {
       "thread-status": {"ptr":0,"arg":0,"text":"线程状态 | 系统线程=4 | 自我线程=自我初始化","open":true,"lazy":false,"expandType":"","children":[{"ptr":1,"arg":0,"text":"自我线程 | 生命周期=未启动 | 阶段=自我初始化 | Tick=0","open":false,"lazy":false,"expandType":"thread-self","children":[]},{"ptr":2,"arg":0,"text":"任务管理工作线程 | 启动=否 | 执行=否 | 排队=0 | 推进=0","open":false,"lazy":false,"expandType":"thread-worker","children":[]},{"ptr":3,"arg":0,"text":"系统线程摘要 | 当前进程线程数=4","open":false,"lazy":false,"expandType":"thread-system","children":[]}]},
-      "world-tree": {"ptr":0,"arg":0,"text":"世界树 | 节点仓库=基础信息类 | 基础节点=975 | 场景=66 | 存在=31","open":true,"lazy":false,"expandType":"","children":[{"ptr":2608468685392,"arg":0,"text":"基础信息仓库根 | 主信息=空","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2608468907120,"arg":0,"text":"主信息=场景 | 现实世界 | 子=1 | 主键=1 | 子主信息=场景1","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2608469000736,"arg":0,"text":"主信息=场景 | 自我初始场景 | 子=2 | 主键=7 | 子主信息=存在1/特征1 | 当前现实场景","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2608469000032,"arg":0,"text":"主信息=存在 | 自我 | 子=19 | 主键=9 | 类型=自我类型 | 子主信息=特征18/场景1 | 当前自我存在","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2608469001088,"arg":0,"text":"主信息=场景 | 自我内部世界 | 子=39 | 主键=A | 子主信息=存在30/状态5/二次特征3/动态1 | 当前内部世界","open":true,"lazy":true,"expandType":"base-node","children":[]}]}]}]}]}]},
-      "need-tree": {"ptr":0,"arg":0,"text":"需求树 | 需求数=2","open":true,"lazy":false,"expandType":"","children":[{"ptr":2608469024896,"arg":0,"text":"需求 | 类型=空 | 安全=0 | 服务=0 | 子=2 | 主键=2 | 子类型=安全根需求1/服务根需求1","open":true,"lazy":true,"expandType":"need-node","children":[]}]},
-      "need-list": {"ptr":0,"arg":0,"text":"需求列表 | 需求数=2","open":true,"lazy":false,"expandType":"","children":[{"ptr":2608499898960,"arg":0,"text":"需求 | 类型=安全根需求 | 安全=2305843009213693951 | 服务=0 | 子=0 | 主键=1","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2608499901840,"arg":0,"text":"需求 | 类型=服务根需求 | 安全=0 | 服务=4611686018427387903 | 子=0 | 主键=2","open":false,"lazy":true,"expandType":"need-node","children":[]}]},
-      "task-tree": {"ptr":0,"arg":0,"text":"任务树 | 任务数=5","open":true,"lazy":false,"expandType":"","children":[{"ptr":2608469025616,"arg":0,"text":"未定义 | 5 | 状态=未定义 | 子=5 | 主键=5 | 子种类=头结点5","open":true,"lazy":true,"expandType":"task-node","children":[]}]},
-      "method-tree": {"ptr":0,"arg":0,"text":"方法树 | 方法数=28","open":true,"lazy":false,"expandType":"","children":[{"ptr":2608469027520,"arg":0,"text":"未定义 | S | 来源=未定义 | 子=28 | 主键=S | 子种类=方法首节点28","open":true,"lazy":true,"expandType":"method-node","children":[]}]}
+      "world-tree": {"ptr":0,"arg":0,"text":"世界树 | 节点仓库=基础信息类 | 基础节点=1796 | 场景=111 | 存在=52","open":true,"lazy":false,"expandType":"","children":[{"ptr":2290992658224,"arg":0,"text":"基础信息仓库根 | 主信息=空","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2290992851200,"arg":0,"text":"主信息=场景 | 现实世界 | 子=1 | 主键=1 | 子主信息=场景1","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2290992962704,"arg":0,"text":"主信息=场景 | 自我初始场景 | 子=9 | 主键=7 | 子主信息=状态4/二次特征3/存在1/特征1 | 当前现实场景","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2290992956544,"arg":0,"text":"主信息=存在 | 自我 | 子=20 | 主键=9 | 类型=自我类型 | 子主信息=特征19/场景1 | 当前自我存在","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2290992955840,"arg":0,"text":"主信息=场景 | 自我内部世界 | 子=60 | 主键=A | 子主信息=存在51/状态5/二次特征3/动态1 | 当前内部世界","open":true,"lazy":true,"expandType":"base-node","children":[]}]}]}]}]}]},
+      "need-tree": {"ptr":0,"arg":0,"text":"需求树 | 需求数=2 | 已满足=0 | 状态已达未截止=0 | 未满足=2","open":true,"lazy":false,"expandType":"","children":[{"ptr":2290992982112,"arg":0,"text":"需求树根 | 空 | 子=2 | 主键=2","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2291023701808,"arg":0,"text":"根需求 | 安全根需求 | 子=0 | 主键=1","open":true,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2291023707968,"arg":0,"text":"根需求 | 服务根需求 | 子=0 | 主键=2","open":true,"lazy":true,"expandType":"need-node","children":[]}]}]},
+      "need-list": {"ptr":0,"arg":0,"text":"需求列表 | 需求数=2","open":true,"lazy":false,"expandType":"","children":[{"ptr":2291023701808,"arg":0,"text":"需求 | 类型=安全根需求 | 安全=2305843009213693951 | 服务=0 | 子=0 | 主键=1 | 方法=候选不可用 | 目标特征=安全值 | 方向=增加 | 候选=5 | 可用=0 | 可用同向=0","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2291023707968,"arg":0,"text":"需求 | 类型=服务根需求 | 安全=0 | 服务=4611686018427387903 | 子=0 | 主键=2 | 方法=候选不可用 | 目标特征=服务值 | 方向=增加 | 候选=5 | 可用=0 | 可用同向=0","open":false,"lazy":true,"expandType":"need-node","children":[]}]},
+      "task-tree": {"ptr":0,"arg":0,"text":"任务树 | 任务节点=15 | 头=3 | 步骤=6 | 结果=6 | 状态={未启动=9 | 就绪=6}","open":true,"lazy":false,"expandType":"","children":[{"ptr":2291023483104,"arg":0,"text":"任务 | 任务管理任务 | 子=1 | 主键=1","open":false,"lazy":true,"expandType":"task-node","children":[]},{"ptr":2291025747296,"arg":0,"text":"任务 | 安全根任务 | 子=1 | 主键=B","open":false,"lazy":true,"expandType":"task-node","children":[]},{"ptr":2291025724640,"arg":0,"text":"任务 | 服务根任务 | 子=1 | 主键=6","open":false,"lazy":true,"expandType":"task-node","children":[]}]},
+      "method-tree": {"ptr":0,"arg":0,"text":"方法树 | 方法数=146 | 首节点=50 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0","open":true,"lazy":false,"expandType":"","children":[{"ptr":2290992986096,"arg":0,"text":"未定义 | 2M | 来源=未定义 | 子=50 | 主键=2M | 子种类=方法首节点50","open":true,"lazy":true,"expandType":"method-node","children":[]}]}
     };
 
     

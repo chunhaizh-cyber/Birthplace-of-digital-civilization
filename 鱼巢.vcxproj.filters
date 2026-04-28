@@ -111,31 +111,7 @@
     <ClCompile Include="本能方法类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="学习任务模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="学习任务模块.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="任务类.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="学习对象适配器.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="学习对象适配器.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="学习调度模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="学习调度模块.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="学习执行模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="学习执行模块.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="自我初始化模块.cpp">

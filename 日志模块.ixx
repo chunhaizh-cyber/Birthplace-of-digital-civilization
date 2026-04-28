@@ -129,6 +129,8 @@ export void 关闭项目日志() noexcept;
 export void 项目运行日志(const std::string& 文本) noexcept;
 export void 项目运行警告日志(const std::string& 文本) noexcept;
 export void 项目运行错误日志(const std::string& 文本) noexcept;
+export void 项目弹窗错误提示(const std::string& 标题, const std::string& 文本) noexcept;
+export void 项目自检无上级需求日志(const std::string& 文本) noexcept;
 export void 项目记录异常日志(const std::exception& 异常, const std::string& 上下文) noexcept;
 export void 项目致命日志(const std::string& 文本) noexcept;
 
@@ -343,6 +345,11 @@ namespace 日志::detail {
         return 实例;
     }
 
+    inline 单文件日志器& g_selfcheck_orphan() {
+        static 单文件日志器 实例{};
+        return 实例;
+    }
+
     inline std::mutex& g_init_mtx() {
         static std::mutex 实例{};
         return 实例;
@@ -367,6 +374,7 @@ namespace 日志::detail {
         if (g_inited()) return;
         g_run().配置(g_param(), "run");
         g_ex().配置(g_param(), "exception");
+        g_selfcheck_orphan().配置(g_param(), "selfcheck_orphan_requirement");
         g_inited() = true;
     }
 }
@@ -386,6 +394,7 @@ namespace 日志 {
         if (!detail::g_inited()) return;
         detail::g_run().关闭();
         detail::g_ex().关闭();
+        detail::g_selfcheck_orphan().关闭();
         detail::g_param() = 日志参数{};
         std::filesystem::path{}.swap(detail::g_param().根目录);
         std::string{}.swap(detail::g_param().文件前缀);
@@ -482,6 +491,41 @@ void 项目运行错误日志(const std::string& 文本) noexcept
 {
     try {
         日志::运行_错误(文本);
+    }
+    catch (...) {
+    }
+}
+
+void 项目弹窗错误提示(const std::string& 标题, const std::string& 文本) noexcept
+{
+    try {
+        const auto 宽标题 = 日志::detail::utf8_to_wide_lossy(标题);
+        const auto 宽文本 = 日志::detail::utf8_to_wide_lossy(文本);
+        ::MessageBoxW(nullptr, 宽文本.c_str(), 宽标题.c_str(), MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND);
+    }
+    catch (...) {
+    }
+}
+
+void 项目自检无上级需求日志(const std::string& 文本) noexcept
+{
+    try {
+        if (日志::detail::g_shutdown().load(std::memory_order_acquire)) {
+            return;
+        }
+        if (!日志::detail::g_inited()) {
+            if (日志::detail::g_init_mtx().try_lock()) {
+                if (!日志::detail::g_shutdown().load(std::memory_order_acquire)
+                    && !日志::detail::g_inited()) {
+                    日志::detail::确保初始化_已加锁();
+                }
+                日志::detail::g_init_mtx().unlock();
+            }
+            else {
+                return;
+            }
+        }
+        日志::detail::g_selfcheck_orphan().写一行(枚举_日志级别::警告, 文本);
     }
     catch (...) {
     }

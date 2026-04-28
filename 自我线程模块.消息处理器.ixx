@@ -5,6 +5,7 @@ module;
 #include <unordered_set>
 #include <vector>
 
+#include "日志接入.h"
 #include "世界树类.h"
 #include "需求类.h"
 
@@ -95,6 +96,17 @@ inline 需求节点* 定位需求节点(
         return reinterpret_cast<需求节点*>(节点指针);
     }
     return 按主键定位需求节点(需求根节点, 主键);
+}
+
+inline bool 需求节点是结构根(const 需求节点* 节点) noexcept
+{
+    return 节点 && 节点->父 == nullptr;
+}
+
+inline void 提示派生需求逻辑错误(const std::string& 文本) noexcept
+{
+    项目运行错误日志(文本);
+    项目弹窗错误提示("鱼巢 - 派生需求逻辑错误", 文本);
 }
 
 inline void 收集需求子树快照(
@@ -399,8 +411,15 @@ inline bool 应用需求树变更批次(
             需求根节点,
             需求树更新.父需求指针,
             需求树更新.父需求主键);
-        if (!父需求) {
-            父需求 = 需求根节点;
+        if (需求树更新.指令类型 == 枚举_需求树更新指令类型::新增需求) {
+            if (!父需求) {
+                提示派生需求逻辑错误("派生需求逻辑错误：新增需求缺少有效父需求，已拒绝入树。");
+                continue;
+            }
+            if (需求节点是结构根(父需求)) {
+                提示派生需求逻辑错误("派生需求逻辑错误：新增需求父节点为需求树结构根，已拒绝入树。");
+                continue;
+            }
         }
         auto* 目标需求 = 定位需求节点(
             需求根节点,
