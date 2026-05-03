@@ -86,6 +86,11 @@ public:
     static const 词性节点类* 类型_任务管理_阻塞级别() noexcept;
     static const 词性节点类* 类型_任务管理_线程补充特征类型() noexcept;
     static const 词性节点类* 类型_任务管理_任务挂接方式() noexcept;
+    static const 词性节点类* 类型_任务管理_学习目标类型() noexcept;
+    static const 词性节点类* 类型_任务管理_学习需求类型() noexcept;
+    static const 词性节点类* 类型_任务管理_学习动作类型() noexcept;
+    static const 词性节点类* 类型_任务管理_学习原函数类型() noexcept;
+    static const 词性节点类* 类型_任务管理_学习程序决策() noexcept;
 
     static const 词性节点类* 类型_运行包_包状态() noexcept;
     static const 词性节点类* 类型_运行包_需求大类() noexcept;
