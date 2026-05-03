@@ -93,4 +93,10 @@ public:
     static const 词性节点类* 类型_消息_处理类型() noexcept;
     static const 词性节点类* 类型_消息_优先级() noexcept;
     static const 词性节点类* 类型_消息_动作类型() noexcept;
+    static const 词性节点类* 类型_消息_存在类型() noexcept;
+    static const 词性节点类* 类型_消息_特征类型() noexcept;
+    static const 词性节点类* 类型_消息_结果状态() noexcept;
+    static const 词性节点类* 类型_消息_执行尝试汇总状态() noexcept;
+    static const 词性节点类* 类型_消息_执行尝试验证状态() noexcept;
+    static const 词性节点类* 类型_消息_执行尝试对账结论() noexcept;
 };
