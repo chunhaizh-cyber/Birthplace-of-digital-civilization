@@ -92,6 +92,14 @@ public:
     static const 词性节点类* 类型_任务管理_学习原函数类型() noexcept;
     static const 词性节点类* 类型_任务管理_学习程序决策() noexcept;
 
+    static const 词性节点类* 类型_学习_阶段() noexcept;
+    static const 词性节点类* 类型_学习_状态() noexcept;
+    static const 词性节点类* 类型_学习_等待原因() noexcept;
+    static const 词性节点类* 类型_学习_影响面() noexcept;
+    static const 词性节点类* 类型_学习_结果状态() noexcept;
+    static const 词性节点类* 类型_学习_外层裁决() noexcept;
+    static const 词性节点类* 类型_学习_执行策略() noexcept;
+
     static const 词性节点类* 类型_运行包_包状态() noexcept;
     static const 词性节点类* 类型_运行包_需求大类() noexcept;
     static const 词性节点类* 类型_运行包_服务子类() noexcept;
