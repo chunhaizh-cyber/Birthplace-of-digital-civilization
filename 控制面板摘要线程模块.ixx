@@ -60,10 +60,10 @@ public:
     控制面板摘要线程类(const 控制面板摘要线程类&) = delete;
     控制面板摘要线程类& operator=(const 控制面板摘要线程类&) = delete;
 
-    bool 启动(const std::string& 调用点 = "控制面板摘要线程类::启动");
-    void 请求停止(const std::string& 调用点 = "控制面板摘要线程类::请求停止");
-    void 等待停止(const std::string& 调用点 = "控制面板摘要线程类::等待停止");
-    void 请求刷新(const std::string& 原因 = "外部请求");
+    bool 启动();
+    void 请求停止();
+    void 等待停止();
+    void 请求刷新();
 
     bool 是否健康运行() const noexcept;
     枚举_控制面板摘要线程生命周期状态 读取生命周期状态() const noexcept;
@@ -86,14 +86,13 @@ private:
         枚举_控制面板摘要线程生命周期状态::未启动;
     bool 健康运行_ = false;
     std::uint64_t 快照序号_ = 0;
-    std::string 最近刷新原因_{};
     结构_控制面板摘要快照 最新快照_{};
 };
 
 export 控制面板摘要线程类& 获取全局控制面板摘要线程() noexcept;
-export bool 启动控制面板摘要线程(const std::string& 调用点 = "启动控制面板摘要线程");
-export void 停止控制面板摘要线程(const std::string& 调用点 = "停止控制面板摘要线程");
-export bool 请求刷新控制面板摘要(const std::string& 原因);
+export bool 启动控制面板摘要线程();
+export void 停止控制面板摘要线程();
+export bool 请求刷新控制面板摘要();
 export 结构_控制面板摘要快照 读取最新控制面板摘要快照();
 export const char* 控制面板摘要线程生命周期文本(
     枚举_控制面板摘要线程生命周期状态 状态) noexcept;

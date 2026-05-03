@@ -292,11 +292,11 @@ namespace {
 
 控制面板摘要线程类::~控制面板摘要线程类()
 {
-    请求停止("控制面板摘要线程类::~控制面板摘要线程类");
-    等待停止("控制面板摘要线程类::~控制面板摘要线程类");
+    请求停止();
+    等待停止();
 }
 
-bool 控制面板摘要线程类::启动(const std::string&)
+bool 控制面板摘要线程类::启动()
 {
     {
         std::lock_guard<std::mutex> lock(状态锁_);
@@ -322,7 +322,7 @@ bool 控制面板摘要线程类::启动(const std::string&)
     return true;
 }
 
-void 控制面板摘要线程类::请求停止(const std::string&)
+void 控制面板摘要线程类::请求停止()
 {
     {
         std::lock_guard<std::mutex> lock(状态锁_);
@@ -338,19 +338,15 @@ void 控制面板摘要线程类::请求停止(const std::string&)
     唤醒条件_.notify_all();
 }
 
-void 控制面板摘要线程类::等待停止(const std::string&)
+void 控制面板摘要线程类::等待停止()
 {
     if (工作线程_.joinable()) {
         工作线程_.join();
     }
 }
 
-void 控制面板摘要线程类::请求刷新(const std::string& 原因)
+void 控制面板摘要线程类::请求刷新()
 {
-    {
-        std::lock_guard<std::mutex> lock(状态锁_);
-        最近刷新原因_ = 原因;
-    }
     刷新请求_.store(true);
     唤醒条件_.notify_all();
 }
@@ -436,21 +432,21 @@ void 控制面板摘要线程类::写入快照_(结构_控制面板摘要快照 
     return 实例;
 }
 
-bool 启动控制面板摘要线程(const std::string& 调用点)
+bool 启动控制面板摘要线程()
 {
-    return 获取全局控制面板摘要线程().启动(调用点);
+    return 获取全局控制面板摘要线程().启动();
 }
 
-void 停止控制面板摘要线程(const std::string& 调用点)
+void 停止控制面板摘要线程()
 {
     auto& 线程 = 获取全局控制面板摘要线程();
-    线程.请求停止(调用点);
-    线程.等待停止(调用点);
+    线程.请求停止();
+    线程.等待停止();
 }
 
-bool 请求刷新控制面板摘要(const std::string& 原因)
+bool 请求刷新控制面板摘要()
 {
-    获取全局控制面板摘要线程().请求刷新(原因);
+    获取全局控制面板摘要线程().请求刷新();
     return true;
 }
 
