@@ -66,6 +66,8 @@ public:
     static const 词性节点类* 类型_任务_状态() noexcept;
     static const 词性节点类* 类型_任务_角色() noexcept;
     static const 词性节点类* 类型_任务_节点种类() noexcept;
+    static const 词性节点类* 类型_任务_队列状态() noexcept;
+    static const 词性节点类* 类型_任务_局部运行状态() noexcept;
 
     static const 词性节点类* 类型_任务管理_缺口类型() noexcept;
     static const 词性节点类* 类型_任务管理_本能能力缺口类型() noexcept;

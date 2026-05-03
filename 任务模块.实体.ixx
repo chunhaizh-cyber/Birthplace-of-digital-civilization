@@ -6,6 +6,8 @@ module;
 
 export module 任务模块.实体;
 
+import 自我模块.特征定义;
+
 export enum class 枚举_任务队列状态 : std::uint8_t {
     未定义 = 0,
     可运行 = 1,
@@ -50,6 +52,8 @@ export struct 结构_任务根节点 {
 export struct 结构_任务控制态 {
     std::uint64_t 任务根ID = 0;
     枚举_任务队列状态 队列状态 = 枚举_任务队列状态::未定义;
+    std::uintptr_t 队列状态抽象特征指针 = 0;
+    std::int64_t 队列状态值 = 0;
     std::int64_t 全局优先级 = 0;
     std::int64_t 解阻加权 = 0;
     std::int64_t 时间预算_ms = 0;
@@ -69,6 +73,8 @@ export struct 结构_任务控制态 {
 export struct 结构_任务局部运行态 {
     std::uint64_t 任务根ID = 0;
     枚举_任务局部运行状态 当前状态 = 枚举_任务局部运行状态::未定义;
+    std::uintptr_t 当前状态抽象特征指针 = 0;
+    std::int64_t 当前状态值 = 0;
     std::uintptr_t 当前步骤前沿 = 0;
     std::string 当前等待原因{};
     std::uintptr_t 最近局部结果 = 0;
@@ -77,3 +83,17 @@ export struct 结构_任务局部运行态 {
     std::string 局部错误说明{};
     std::string 局部运行说明{};
 };
+
+export inline void 同步任务实体语义槽(结构_任务控制态& 控制态) noexcept
+{
+    控制态.队列状态抽象特征指针 =
+        reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_任务_队列状态());
+    控制态.队列状态值 = static_cast<std::int64_t>(控制态.队列状态);
+}
+
+export inline void 同步任务实体语义槽(结构_任务局部运行态& 运行态) noexcept
+{
+    运行态.当前状态抽象特征指针 =
+        reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_任务_局部运行状态());
+    运行态.当前状态值 = static_cast<std::int64_t>(运行态.当前状态);
+}
