@@ -2,6 +2,7 @@ module;
 
 #include <chrono>
 #include <exception>
+#include <limits>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -16,6 +17,7 @@ module;
 module 控制面板摘要线程模块;
 
 import 自我模块;
+import 自我模块.特征定义;
 import 自我线程模块;
 import 自检线程模块;
 
@@ -25,6 +27,58 @@ namespace {
     using 方法节点 = 方法类::节点类;
 
     constexpr std::size_t 摘要扫描上限 = 16384;
+
+    I64 私有_U64转I64(std::uint64_t 值) noexcept
+    {
+        constexpr auto 最大值 = static_cast<std::uint64_t>((std::numeric_limits<I64>::max)());
+        if (值 > 最大值) {
+            return (std::numeric_limits<I64>::max)();
+        }
+        return static_cast<I64>(值);
+    }
+
+    I64 私有_计数转I64(std::size_t 值) noexcept
+    {
+        constexpr auto 最大值 = static_cast<std::size_t>((std::numeric_limits<I64>::max)());
+        if (值 > 最大值) {
+            return (std::numeric_limits<I64>::max)();
+        }
+        return static_cast<I64>(值);
+    }
+
+    void 私有_绑定摘要快照特征槽(结构_控制面板摘要快照& 快照) noexcept
+    {
+        快照.快照序号抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_快照序号());
+        快照.世界版本抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_世界版本());
+        快照.采集时间抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_采集时间());
+        快照.活跃需求数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_活跃需求数());
+        快照.等待子需求数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_等待子需求数());
+        快照.已满足需求数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_已满足需求数());
+        快照.筹办中任务数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_筹办中任务数());
+        快照.执行中任务数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_执行中任务数());
+        快照.等待任务数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_等待任务数());
+        快照.方法头节点数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_方法头节点数());
+        快照.方法结构缺口数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_方法结构缺口数());
+        快照.能力包缺失数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_能力包缺失数());
+        快照.条件结果对缺失数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_摘要_条件结果对缺失数());
+    }
+
+    void 私有_同步摘要快照数值槽(结构_控制面板摘要快照& 快照) noexcept
+    {
+        快照.快照序号值 = 私有_U64转I64(快照.快照序号);
+        快照.世界版本值 = 私有_U64转I64(快照.世界版本);
+        快照.采集时间值 = 快照.采集时间;
+        快照.活跃需求数值 = 私有_计数转I64(快照.活跃需求数);
+        快照.等待子需求数值 = 私有_计数转I64(快照.等待子需求数);
+        快照.已满足需求数值 = 私有_计数转I64(快照.已满足需求数);
+        快照.筹办中任务数值 = 私有_计数转I64(快照.筹办中任务数);
+        快照.执行中任务数值 = 私有_计数转I64(快照.执行中任务数);
+        快照.等待任务数值 = 私有_计数转I64(快照.等待任务数);
+        快照.方法头节点数值 = 私有_计数转I64(快照.方法头节点数);
+        快照.方法结构缺口数值 = 私有_计数转I64(快照.方法结构缺口数);
+        快照.能力包缺失数值 = 私有_计数转I64(快照.能力包缺失数);
+        快照.条件结果对缺失数值 = 私有_计数转I64(快照.条件结果对缺失数);
+    }
 
     const char* 私有_自我线程生命周期文本(枚举_线程生命周期状态 状态) noexcept
     {
@@ -405,6 +459,7 @@ void 控制面板摘要线程类::主循环_()
 结构_控制面板摘要快照 控制面板摘要线程类::采集快照_()
 {
     结构_控制面板摘要快照 快照{};
+    私有_绑定摘要快照特征槽(快照);
     快照.采集时间 = 结构体_时间戳::当前_微秒();
     快照.世界版本 = 0;
 
@@ -414,6 +469,7 @@ void 控制面板摘要线程类::主循环_()
     私有_采集任务树摘要(快照);
     私有_采集方法树摘要(快照);
     快照.运行事实摘要 = "运行事实摘要外移接口已就绪，细粒度扫描待接入运行事实树";
+    私有_同步摘要快照数值槽(快照);
 
     return 快照;
 }
@@ -422,6 +478,7 @@ void 控制面板摘要线程类::写入快照_(结构_控制面板摘要快照 
 {
     std::lock_guard<std::mutex> lock(状态锁_);
     快照.快照序号 = ++快照序号_;
+    私有_同步摘要快照数值槽(快照);
     最新快照_ = std::move(快照);
     健康运行_ = 生命周期_ == 枚举_控制面板摘要线程生命周期状态::运行中;
 }

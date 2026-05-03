@@ -41,4 +41,18 @@ public:
     static const 词性节点类* 类型_线程_心跳健康() noexcept;
     static const 词性节点类* 类型_线程_Tick计数() noexcept;
     static const 词性节点类* 类型_线程_最近Tick时间() noexcept;
+
+    static const 词性节点类* 类型_摘要_快照序号() noexcept;
+    static const 词性节点类* 类型_摘要_世界版本() noexcept;
+    static const 词性节点类* 类型_摘要_采集时间() noexcept;
+    static const 词性节点类* 类型_摘要_活跃需求数() noexcept;
+    static const 词性节点类* 类型_摘要_等待子需求数() noexcept;
+    static const 词性节点类* 类型_摘要_已满足需求数() noexcept;
+    static const 词性节点类* 类型_摘要_筹办中任务数() noexcept;
+    static const 词性节点类* 类型_摘要_执行中任务数() noexcept;
+    static const 词性节点类* 类型_摘要_等待任务数() noexcept;
+    static const 词性节点类* 类型_摘要_方法头节点数() noexcept;
+    static const 词性节点类* 类型_摘要_方法结构缺口数() noexcept;
+    static const 词性节点类* 类型_摘要_能力包缺失数() noexcept;
+    static const 词性节点类* 类型_摘要_条件结果对缺失数() noexcept;
 };

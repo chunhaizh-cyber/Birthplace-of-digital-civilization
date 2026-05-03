@@ -27,8 +27,16 @@ export struct 结构_控制面板摘要线程配置 {
 };
 
 export struct 结构_控制面板摘要快照 {
+    std::uintptr_t 快照序号抽象特征指针 = 0;
+    I64 快照序号值 = 0;
     std::uint64_t 快照序号 = 0;
+
+    std::uintptr_t 世界版本抽象特征指针 = 0;
+    I64 世界版本值 = 0;
     std::uint64_t 世界版本 = 0;
+
+    std::uintptr_t 采集时间抽象特征指针 = 0;
+    I64 采集时间值 = 0;
     时间戳 采集时间 = 0;
 
     std::string 自我线程摘要{};
@@ -38,17 +46,44 @@ export struct 结构_控制面板摘要快照 {
     std::string 运行事实摘要{};
     std::string 自检摘要{};
 
+    std::uintptr_t 活跃需求数抽象特征指针 = 0;
+    I64 活跃需求数值 = 0;
     std::size_t 活跃需求数 = 0;
+
+    std::uintptr_t 等待子需求数抽象特征指针 = 0;
+    I64 等待子需求数值 = 0;
     std::size_t 等待子需求数 = 0;
+
+    std::uintptr_t 已满足需求数抽象特征指针 = 0;
+    I64 已满足需求数值 = 0;
     std::size_t 已满足需求数 = 0;
 
+    std::uintptr_t 筹办中任务数抽象特征指针 = 0;
+    I64 筹办中任务数值 = 0;
     std::size_t 筹办中任务数 = 0;
+
+    std::uintptr_t 执行中任务数抽象特征指针 = 0;
+    I64 执行中任务数值 = 0;
     std::size_t 执行中任务数 = 0;
+
+    std::uintptr_t 等待任务数抽象特征指针 = 0;
+    I64 等待任务数值 = 0;
     std::size_t 等待任务数 = 0;
 
+    std::uintptr_t 方法头节点数抽象特征指针 = 0;
+    I64 方法头节点数值 = 0;
     std::size_t 方法头节点数 = 0;
+
+    std::uintptr_t 方法结构缺口数抽象特征指针 = 0;
+    I64 方法结构缺口数值 = 0;
     std::size_t 方法结构缺口数 = 0;
+
+    std::uintptr_t 能力包缺失数抽象特征指针 = 0;
+    I64 能力包缺失数值 = 0;
     std::size_t 能力包缺失数 = 0;
+
+    std::uintptr_t 条件结果对缺失数抽象特征指针 = 0;
+    I64 条件结果对缺失数值 = 0;
     std::size_t 条件结果对缺失数 = 0;
 };
 
