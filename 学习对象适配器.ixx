@@ -20,6 +20,8 @@ enum class 枚举_学习对象来源类型 : std::uint8_t {
 
 struct 结构_学习对象原料 {
     枚举_学习对象来源类型 来源类型 = 枚举_学习对象来源类型::未定义;
+    std::uintptr_t 来源类型抽象特征指针 = 0;
+    I64 来源类型值 = 0;
     bool 使用当前方法 = false;
     bool 使用因果信息 = false;
     bool 使用最近结果 = false;

@@ -116,6 +116,7 @@ public:
     static const 词性节点类* 类型_学习_结果状态() noexcept;
     static const 词性节点类* 类型_学习_外层裁决() noexcept;
     static const 词性节点类* 类型_学习_执行策略() noexcept;
+    static const 词性节点类* 类型_学习_对象来源类型() noexcept;
 
     static const 词性节点类* 类型_运行包_包状态() noexcept;
     static const 词性节点类* 类型_运行包_需求大类() noexcept;

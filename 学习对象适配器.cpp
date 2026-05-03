@@ -8,8 +8,21 @@ module;
 module 学习对象适配器;
 
 import 任务管理任务模块;
+import 自我模块.特征定义;
 
 namespace {
+    std::uintptr_t 私有_抽象特征指针值(const 词性节点类* 特征类型) noexcept
+    {
+        return reinterpret_cast<std::uintptr_t>(特征类型);
+    }
+
+    void 私有_同步学习对象来源类型语义槽(结构_学习对象原料& 原料) noexcept
+    {
+        原料.来源类型抽象特征指针 =
+            私有_抽象特征指针值(自我特征定义类::类型_学习_对象来源类型());
+        原料.来源类型值 = static_cast<I64>(原料.来源类型);
+    }
+
     std::string 私有_优先文本(const std::string& 文本, const std::string& 回退 = {})
     {
         return 文本.empty() ? 回退 : 文本;
@@ -144,6 +157,7 @@ namespace {
         输出.原料.使用成功执行片段 = true;
         输出.原料.动作摘要 = 私有_优先文本(学习任务.学习方法标题, 学习任务.学习子任务标题);
     }
+    私有_同步学习对象来源类型语义槽(输出.原料);
 
     {
         std::vector<std::string> 条件片段{};
