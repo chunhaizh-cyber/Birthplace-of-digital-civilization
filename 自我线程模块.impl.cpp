@@ -5399,8 +5399,12 @@ std::uint64_t 自我线程类::读取累计恢复次数() const noexcept
     const auto* 当前任务特征 = 自我特征定义类::类型_自我_当前主任务();
     const auto* mailbox特征 = 自我特征定义类::类型_线程_邮箱深度();
     const auto* 健康特征 = 自我特征定义类::类型_线程_健康状态();
+    const auto* Tick计数特征 = 自我特征定义类::类型_线程_Tick计数();
+    const auto* 最近Tick时间特征 = 自我特征定义类::类型_线程_最近Tick时间();
     {
         std::scoped_lock 锁(状态锁_);
+        快照.Tick计数抽象特征指针 = reinterpret_cast<std::uintptr_t>(Tick计数特征);
+        快照.最近Tick时间抽象特征指针 = reinterpret_cast<std::uintptr_t>(最近Tick时间特征);
         快照.生命周期抽象特征指针 = reinterpret_cast<std::uintptr_t>(生命周期特征);
         快照.最近阶段抽象特征指针 = reinterpret_cast<std::uintptr_t>(阶段特征);
         快照.最近去向抽象特征指针 = reinterpret_cast<std::uintptr_t>(去向特征);

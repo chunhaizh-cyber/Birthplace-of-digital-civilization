@@ -39,4 +39,6 @@ public:
     static const 词性节点类* 类型_线程_运行模式() noexcept;
     static const 词性节点类* 类型_线程_邮箱深度() noexcept;
     static const 词性节点类* 类型_线程_心跳健康() noexcept;
+    static const 词性节点类* 类型_线程_Tick计数() noexcept;
+    static const 词性节点类* 类型_线程_最近Tick时间() noexcept;
 };
