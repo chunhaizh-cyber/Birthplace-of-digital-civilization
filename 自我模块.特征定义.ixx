@@ -69,4 +69,11 @@ public:
 
     static const 词性节点类* 类型_任务管理_缺口类型() noexcept;
     static const 词性节点类* 类型_任务管理_本能能力缺口类型() noexcept;
+    static const 词性节点类* 类型_任务管理_功能域() noexcept;
+    static const 词性节点类* 类型_任务管理_下一步去向() noexcept;
+    static const 词性节点类* 类型_任务管理_治理状态迁移() noexcept;
+    static const 词性节点类* 类型_任务管理_方法需求位() noexcept;
+    static const 词性节点类* 类型_任务管理_总控结果() noexcept;
+    static const 词性节点类* 类型_任务管理_反馈类型() noexcept;
+    static const 词性节点类* 类型_任务管理_学习承接类型() noexcept;
 };
