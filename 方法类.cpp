@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -482,6 +483,12 @@ namespace {
         return s_特征词;
     }
 
+    const 词性节点类* 私有_特征_自我能力() noexcept
+    {
+        static const 词性节点类* s_特征词 = 语素集.添加词性词("自我能力", "名词");
+        return s_特征词;
+    }
+
     const 词性节点类* 私有_特征_方法成熟度阶段() noexcept
     {
         static const 词性节点类* s_特征词 = 语素集.添加词性词("成熟度阶段", "名词");
@@ -570,6 +577,42 @@ namespace {
             return true;
         }
         return 世界树.写入特征_I64(特征节点, 默认值, now);
+    }
+
+    bool 私有_写入方法自我能力特征(
+        存在节点类* 方法虚拟存在,
+        I64 自我能力值,
+        时间戳 now)
+    {
+        if (!方法虚拟存在
+            || 自我能力值 <= 0
+            || 自我能力值 > static_cast<I64>((std::numeric_limits<std::uint32_t>::max)())) {
+            return false;
+        }
+        const auto* 元信息 = 本能方法类::查询元信息(
+            static_cast<枚举_本能方法ID>(static_cast<std::uint32_t>(自我能力值)));
+        if (!元信息) return false;
+
+        auto* 抽象根 = 世界树.取或创建抽象特征根();
+        auto* 自我能力抽象 = 抽象根
+            ? 世界树.取或创建抽象特征_按类型(抽象根, 私有_特征_自我能力())
+            : nullptr;
+        auto* 实例特征 = 自我能力抽象
+            ? 世界树.取或创建实例特征_按抽象特征(
+                reinterpret_cast<基础信息节点类*>(方法虚拟存在),
+                自我能力抽象)
+            : nullptr;
+        if (实例特征
+            && 世界树.写入特征_I64(实例特征, 自我能力值, now)) {
+            (void)世界树.解析实例特征命中抽象特征(实例特征);
+            return true;
+        }
+
+        return 世界树.写入特征_I64(
+            reinterpret_cast<基础信息节点类*>(方法虚拟存在),
+            私有_特征_自我能力(),
+            自我能力值,
+            now);
     }
 
     bool 私有_写入方法类型特征(
@@ -1146,6 +1189,33 @@ const 方法类::节点类* 方法类::查找方法首节点_按动作名(
     return 方法首节点;
 }
 
+bool 方法类::是有效本能方法能力值(
+    I64 自我能力值) noexcept
+{
+    if (自我能力值 <= 0
+        || 自我能力值 > static_cast<I64>((std::numeric_limits<std::uint32_t>::max)())) {
+        return false;
+    }
+    return 本能方法类::查询元信息(
+        static_cast<枚举_本能方法ID>(static_cast<std::uint32_t>(自我能力值))) != nullptr;
+}
+
+方法类::节点类* 方法类::取或确保本能方法首节点_按能力值(
+    存在节点类* 宿主存在,
+    I64 自我能力值,
+    时间戳 now,
+    const std::string& 调用点)
+{
+    if (!宿主存在 || !是有效本能方法能力值(自我能力值)) {
+        return nullptr;
+    }
+    return 查找或创建_本能方法首节点(
+        宿主存在,
+        static_cast<枚举_本能方法ID>(static_cast<std::uint32_t>(自我能力值)),
+        now,
+        调用点);
+}
+
 bool 方法类::补齐本能方法首节点(
     节点类* 方法首节点,
     const 结构_本能方法元信息& 元信息,
@@ -1433,6 +1503,7 @@ bool 方法类::初始化方法虚拟存在信息(
     if (首节点->主信息.动作句柄.类型 == 枚举_动作句柄类型::本能函数ID
         && 首节点->主信息.动作句柄.本能ID != 0) {
         (void)私有_确保I64特征已初始化(方法虚拟存在, 私有_特征_方法本能动作ID(), 首节点->主信息.动作句柄.本能ID, now);
+        (void)私有_写入方法自我能力特征(方法虚拟存在, 首节点->主信息.动作句柄.本能ID, now);
     }
 
     return true;
