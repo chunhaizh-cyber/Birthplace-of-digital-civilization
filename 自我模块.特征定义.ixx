@@ -84,8 +84,12 @@ public:
     static const 词性节点类* 类型_任务管理_后果治理() noexcept;
     static const 词性节点类* 类型_任务管理_分身状态() noexcept;
     static const 词性节点类* 类型_任务管理_主体汇总策略() noexcept;
+    static const 词性节点类* 类型_任务管理_最小原语ID() noexcept;
+    static const 词性节点类* 类型_任务管理_触发事件类型() noexcept;
     static const 词性节点类* 类型_任务管理_触发来源() noexcept;
     static const 词性节点类* 类型_任务管理_学习承接类型() noexcept;
+    static const 词性节点类* 类型_任务管理_学习反馈消费策略() noexcept;
+    static const 词性节点类* 类型_任务管理_治理恢复事件处理方式() noexcept;
     static const 词性节点类* 类型_任务管理_控制意图() noexcept;
     static const 词性节点类* 类型_任务管理_上行消息类型() noexcept;
     static const 词性节点类* 类型_任务管理_结果状态() noexcept;
