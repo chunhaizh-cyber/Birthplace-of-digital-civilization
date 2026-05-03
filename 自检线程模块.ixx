@@ -63,10 +63,10 @@ public:
     自检线程类(const 自检线程类&) = delete;
     自检线程类& operator=(const 自检线程类&) = delete;
 
-    bool 启动(const std::string& 调用点 = "自检线程类::启动");
-    void 请求停止(const std::string& 调用点 = "自检线程类::请求停止");
-    void 等待停止(const std::string& 调用点 = "自检线程类::等待停止");
-    void 请求休眠期自检(const std::string& 原因 = "外部请求");
+    bool 启动();
+    void 请求停止();
+    void 等待停止();
+    void 请求休眠期自检();
 
     bool 是否健康运行() const noexcept;
     枚举_自检线程生命周期状态 读取生命周期状态() const noexcept;
@@ -105,9 +105,9 @@ private:
 };
 
 export 自检线程类& 获取全局自检线程() noexcept;
-export bool 启动自检线程(const std::string& 调用点 = "启动自检线程");
-export void 停止自检线程(const std::string& 调用点 = "停止自检线程");
-export void 请求休眠期自检(const std::string& 原因 = "外部请求");
+export bool 启动自检线程();
+export void 停止自检线程();
+export void 请求休眠期自检();
 export 结构_自检线程摘要 读取自检线程摘要();
 export const char* 自检线程生命周期文本(枚举_自检线程生命周期状态 状态) noexcept;
 export const char* 自检线程模式文本(枚举_自检线程模式 模式) noexcept;

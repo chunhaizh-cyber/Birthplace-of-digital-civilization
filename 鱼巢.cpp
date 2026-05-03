@@ -643,7 +643,7 @@ namespace {
         ~私有_自我线程守卫()
         {
             if (自检已启动) {
-                停止自检线程("鱼巢::main/退出");
+                停止自检线程();
             }
             if (已启动) {
                 停止自我线程("鱼巢::main/退出");
@@ -664,7 +664,7 @@ namespace {
 
     bool 私有_确保自检线程已启动(const std::string& 调用点)
     {
-        return 启动自检线程(调用点);
+        return 启动自检线程();
     }
 
     void 私有_等待任务管理摘要快照稳定(const std::string& 调用点)
@@ -843,7 +843,7 @@ int main(int argc, char** argv)
                     return 4;
                 }
                 自我线程守卫.自检已启动 = true;
-                请求休眠期自检("命令行自检日志");
+                请求休眠期自检();
                 std::this_thread::sleep_for(std::chrono::milliseconds(800));
                 私有_记录自我实现检查日志("鱼巢::main/命令行/自我实现检查");
                 std::cout << 私有_渲染自检线程摘要();
@@ -914,7 +914,7 @@ int main(int argc, char** argv)
             }
 
             if (输入 == "检查自我实现") {
-                请求休眠期自检("控制台检查自我实现");
+                请求休眠期自检();
                 std::this_thread::sleep_for(std::chrono::milliseconds(800));
                 私有_记录自我实现检查日志("鱼巢::main/控制台/检查自我实现");
                 std::cout << 私有_渲染自检线程摘要();

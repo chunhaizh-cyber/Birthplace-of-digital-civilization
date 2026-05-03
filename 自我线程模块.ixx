@@ -943,6 +943,8 @@ private:
     friend bool 上报任务管理上行消息(
         const 结构_任务管理上行消息& 消息,
         const std::string& 调用点);
+    friend bool 投递自检报告消息(
+        const 自我线程消息协议::结构_自检报告消息& 报告);
 
     void 主循环_();
     结构_循环结果 执行主循环一轮_(时间戳 now);
@@ -1017,6 +1019,8 @@ export bool 切换线程状态并上报(
 export bool 上报任务管理上行消息(
     const 结构_任务管理上行消息& 消息,
     const std::string& 调用点 = "上报任务管理上行消息");
+export bool 投递自检报告消息(
+    const 自我线程消息协议::结构_自检报告消息& 报告);
 export bool 投递治理外部反馈事件(
     const std::string& 摘要,
     const std::string& 来源主观察特征 = "外部反馈/人工注入");
