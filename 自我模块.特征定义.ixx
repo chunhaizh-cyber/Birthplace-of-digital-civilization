@@ -76,4 +76,13 @@ public:
     static const 词性节点类* 类型_任务管理_总控结果() noexcept;
     static const 词性节点类* 类型_任务管理_反馈类型() noexcept;
     static const 词性节点类* 类型_任务管理_学习承接类型() noexcept;
+    static const 词性节点类* 类型_任务管理_控制意图() noexcept;
+
+    static const 词性节点类* 类型_运行包_包状态() noexcept;
+    static const 词性节点类* 类型_运行包_需求大类() noexcept;
+    static const 词性节点类* 类型_运行包_服务子类() noexcept;
+    static const 词性节点类* 类型_运行包_安全子类() noexcept;
+    static const 词性节点类* 类型_运行包_动作类型() noexcept;
+    static const 词性节点类* 类型_运行包_结算结论() noexcept;
+    static const 词性节点类* 类型_运行包_学习样本类别() noexcept;
 };
