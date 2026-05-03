@@ -74,7 +74,17 @@ public:
     static const 词性节点类* 类型_任务管理_治理状态迁移() noexcept;
     static const 词性节点类* 类型_任务管理_方法需求位() noexcept;
     static const 词性节点类* 类型_任务管理_总控结果() noexcept;
+    static const 词性节点类* 类型_任务管理_根层重判结果() noexcept;
+    static const 词性节点类* 类型_任务管理_执行前门控结果() noexcept;
     static const 词性节点类* 类型_任务管理_反馈类型() noexcept;
+    static const 词性节点类* 类型_任务管理_方法来源() noexcept;
+    static const 词性节点类* 类型_任务管理_步骤位类型() noexcept;
+    static const 词性节点类* 类型_任务管理_步骤语义类型() noexcept;
+    static const 词性节点类* 类型_任务管理_双面比较结果() noexcept;
+    static const 词性节点类* 类型_任务管理_后果治理() noexcept;
+    static const 词性节点类* 类型_任务管理_分身状态() noexcept;
+    static const 词性节点类* 类型_任务管理_主体汇总策略() noexcept;
+    static const 词性节点类* 类型_任务管理_触发来源() noexcept;
     static const 词性节点类* 类型_任务管理_学习承接类型() noexcept;
     static const 词性节点类* 类型_任务管理_控制意图() noexcept;
     static const 词性节点类* 类型_任务管理_上行消息类型() noexcept;
