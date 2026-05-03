@@ -23,6 +23,7 @@ public:
     static const 词性节点类* 类型_自我_当前主方法() noexcept;
     static const 词性节点类* 类型_自我_外设可用性() noexcept;
     static const 词性节点类* 类型_自我_尝试学习状态() noexcept;
+    static const 词性节点类* 类型_自我_自我能力() noexcept;
     static const 词性节点类* 类型_自我_待机状态() noexcept;
     static const 词性节点类* 类型_自我_时序正向步长() noexcept;
     static const 词性节点类* 类型_自我_时序反向步长() noexcept;

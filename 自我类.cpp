@@ -2252,6 +2252,9 @@ void 自我类::初始化常用抽象特征_(const std::string& 调用点) noexc
     if (!抽象根) return;
 
     (void)世界树.特征().初始化常用抽象特征(抽象根);
+    (void)世界树.取或创建抽象特征_按类型(
+        抽象根,
+        自我特征定义类::类型_自我_自我能力());
 }
 
 void 自我类::从特征恢复运行态_(const std::string& 调用点) noexcept

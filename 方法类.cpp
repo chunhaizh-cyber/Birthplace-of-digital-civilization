@@ -485,8 +485,7 @@ namespace {
 
     const 词性节点类* 私有_特征_自我能力() noexcept
     {
-        static const 词性节点类* s_特征词 = 语素集.添加词性词("自我能力", "名词");
-        return s_特征词;
+        return 自我特征定义类::类型_自我_自我能力();
     }
 
     const 词性节点类* 私有_特征_方法成熟度阶段() noexcept
