@@ -42,14 +42,38 @@ export struct 结构_自检线程配置 {
 };
 
 export struct 结构_自检线程摘要 {
+    std::uintptr_t 生命周期抽象特征指针 = 0;
+    I64 生命周期值 = 0;
     枚举_自检线程生命周期状态 生命周期 = 枚举_自检线程生命周期状态::未启动;
+
+    std::uintptr_t 最近模式抽象特征指针 = 0;
+    I64 最近模式值 = 0;
     枚举_自检线程模式 最近模式 = 枚举_自检线程模式::运行中;
+
+    std::uintptr_t 健康状态抽象特征指针 = 0;
+    I64 健康状态值 = 0;
     bool 健康运行 = false;
+
+    std::uintptr_t Tick计数抽象特征指针 = 0;
+    I64 Tick计数值 = 0;
     std::uint64_t Tick计数 = 0;
+
+    std::uintptr_t 累计提交需求数抽象特征指针 = 0;
+    I64 累计提交需求数值 = 0;
     std::uint64_t 累计提交需求数 = 0;
+
+    std::uintptr_t 累计发现问题数抽象特征指针 = 0;
+    I64 累计发现问题数值 = 0;
     std::uint64_t 累计发现问题数 = 0;
+
+    std::uintptr_t 最近检查时间抽象特征指针 = 0;
+    I64 最近检查时间值 = 0;
     时间戳 最近检查时间 = 0;
+
+    std::uintptr_t 最近提交时间抽象特征指针 = 0;
+    I64 最近提交时间值 = 0;
     时间戳 最近提交时间 = 0;
+
     std::string 最近事件摘要{};
     std::string 最近需求摘要{};
     std::vector<std::string> 最近事件列表{};

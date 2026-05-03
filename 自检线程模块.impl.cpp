@@ -4,6 +4,7 @@ module;
 #include <atomic>
 #include <chrono>
 #include <exception>
+#include <limits>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -19,6 +20,7 @@ module;
 module 自检线程模块;
 
 import 自我模块;
+import 自我模块.特征定义;
 import 自我线程模块;
 import 自我线程模块.消息协议;
 import 任务管理任务模块;
@@ -31,6 +33,27 @@ namespace {
     constexpr const char* 自检发出者_安全根 = "自检线程/安全根";
     constexpr 时间戳 微秒每秒 = 1000000;
     std::atomic_uint64_t 自检报告序号{0};
+
+    I64 私有_U64转I64(std::uint64_t 值) noexcept
+    {
+        constexpr auto 最大值 = static_cast<std::uint64_t>((std::numeric_limits<I64>::max)());
+        if (值 > 最大值) {
+            return (std::numeric_limits<I64>::max)();
+        }
+        return static_cast<I64>(值);
+    }
+
+    void 私有_绑定自检摘要特征槽(结构_自检线程摘要& 摘要) noexcept
+    {
+        摘要.生命周期抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_线程_生命周期状态());
+        摘要.最近模式抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_线程_运行模式());
+        摘要.健康状态抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_线程_健康状态());
+        摘要.Tick计数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_线程_Tick计数());
+        摘要.累计提交需求数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_自检_累计提交需求数());
+        摘要.累计发现问题数抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_自检_累计发现问题数());
+        摘要.最近检查时间抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_自检_最近检查时间());
+        摘要.最近提交时间抽象特征指针 = reinterpret_cast<std::uintptr_t>(自我特征定义类::类型_自检_最近提交时间());
+    }
 
     const char* 私有_布尔文本(bool 值) noexcept
     {
@@ -390,14 +413,23 @@ bool 自检线程类::是否健康运行() const noexcept
 {
     std::lock_guard<std::mutex> 锁(状态锁_);
     结构_自检线程摘要 摘要{};
+    私有_绑定自检摘要特征槽(摘要);
     摘要.生命周期 = 生命周期_;
+    摘要.生命周期值 = static_cast<I64>(生命周期_);
     摘要.最近模式 = 最近模式_;
+    摘要.最近模式值 = static_cast<I64>(最近模式_);
     摘要.健康运行 = 健康运行_;
+    摘要.健康状态值 = 健康运行_ ? 1 : 0;
     摘要.Tick计数 = Tick计数_;
+    摘要.Tick计数值 = 私有_U64转I64(Tick计数_);
     摘要.累计提交需求数 = 累计提交需求数_;
+    摘要.累计提交需求数值 = 私有_U64转I64(累计提交需求数_);
     摘要.累计发现问题数 = 累计发现问题数_;
+    摘要.累计发现问题数值 = 私有_U64转I64(累计发现问题数_);
     摘要.最近检查时间 = 最近检查时间_;
+    摘要.最近检查时间值 = 最近检查时间_;
     摘要.最近提交时间 = 最近提交时间_;
+    摘要.最近提交时间值 = 最近提交时间_;
     摘要.最近需求摘要 = 最近需求摘要_;
     摘要.最近事件摘要 = 最近事件_.empty() ? std::string{} : 最近事件_.back();
     摘要.最近事件列表.assign(最近事件_.begin(), 最近事件_.end());

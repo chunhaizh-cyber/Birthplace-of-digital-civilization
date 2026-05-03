@@ -55,4 +55,9 @@ public:
     static const 词性节点类* 类型_摘要_方法结构缺口数() noexcept;
     static const 词性节点类* 类型_摘要_能力包缺失数() noexcept;
     static const 词性节点类* 类型_摘要_条件结果对缺失数() noexcept;
+
+    static const 词性节点类* 类型_自检_累计提交需求数() noexcept;
+    static const 词性节点类* 类型_自检_累计发现问题数() noexcept;
+    static const 词性节点类* 类型_自检_最近检查时间() noexcept;
+    static const 词性节点类* 类型_自检_最近提交时间() noexcept;
 };
