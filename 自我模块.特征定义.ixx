@@ -105,6 +105,9 @@ public:
     static const 词性节点类* 类型_任务管理_学习动作类型() noexcept;
     static const 词性节点类* 类型_任务管理_学习原函数类型() noexcept;
     static const 词性节点类* 类型_任务管理_学习程序决策() noexcept;
+    static const 词性节点类* 类型_任务管理_原语类型() noexcept;
+    static const 词性节点类* 类型_任务管理_原语候选比较基准类型() noexcept;
+    static const 词性节点类* 类型_任务管理_原语候选来源锚点类型() noexcept;
 
     static const 词性节点类* 类型_学习_阶段() noexcept;
     static const 词性节点类* 类型_学习_状态() noexcept;
