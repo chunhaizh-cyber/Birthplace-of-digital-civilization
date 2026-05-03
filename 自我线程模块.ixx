@@ -140,6 +140,27 @@ public:
         枚举_自我线程运行阶段 当前运行阶段 = 枚举_自我线程运行阶段::未定义;
     };
 
+    struct 结构_自我线程最小状态快照 {
+        std::uintptr_t Tick计数抽象特征指针 = 0;
+        I64 Tick计数值 = 0;
+        std::uintptr_t 最近Tick时间抽象特征指针 = 0;
+        时间戳 最近Tick时间值 = 0;
+        std::uintptr_t 生命周期抽象特征指针 = 0;
+        I64 生命周期值 = 0;
+        std::uintptr_t 最近阶段抽象特征指针 = 0;
+        I64 最近阶段值 = 0;
+        std::uintptr_t 最近去向抽象特征指针 = 0;
+        I64 最近去向值 = 0;
+        std::uintptr_t 当前需求引用抽象特征指针 = 0;
+        std::uintptr_t 当前需求指针 = 0;
+        std::uintptr_t 当前任务引用抽象特征指针 = 0;
+        std::uintptr_t 当前任务指针 = 0;
+        std::uintptr_t mailbox待消费数抽象特征指针 = 0;
+        I64 mailbox待消费数值 = 0;
+        std::uintptr_t 健康状态抽象特征指针 = 0;
+        I64 健康状态值 = 0;
+    };
+
     struct 结构_需求候选快照 {
         std::string 候选类型{};
         std::string 来源消息类型{};
@@ -543,6 +564,7 @@ public:
     std::uint64_t 读取累计故障次数() const noexcept;
     std::uint64_t 读取累计恢复次数() const noexcept;
     时间戳 读取最近Tick时间() const noexcept;
+    结构_自我线程最小状态快照 读取自我线程最小状态快照() const;
     时间戳 读取上次故障时间() const noexcept;
     std::string 读取上次故障摘要() const;
     std::string 读取最近恢复摘要() const;
@@ -1021,6 +1043,7 @@ export bool 上报任务管理上行消息(
     const std::string& 调用点 = "上报任务管理上行消息");
 export bool 投递自检报告消息(
     const 自我线程消息协议::结构_自检报告消息& 报告);
+export 自我线程类::结构_自我线程最小状态快照 读取自我线程最小状态快照();
 export bool 投递治理外部反馈事件(
     const std::string& 摘要,
     const std::string& 来源主观察特征 = "外部反馈/人工注入");
