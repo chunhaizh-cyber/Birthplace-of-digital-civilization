@@ -77,6 +77,11 @@ public:
     static const 词性节点类* 类型_任务管理_方法需求位() noexcept;
     static const 词性节点类* 类型_任务管理_总控结果() noexcept;
     static const 词性节点类* 类型_任务管理_根层重判结果() noexcept;
+    static const 词性节点类* 类型_任务管理_根层重判时机() noexcept;
+    static const 词性节点类* 类型_任务管理_根层结果来源类型() noexcept;
+    static const 词性节点类* 类型_任务管理_目标对齐结论() noexcept;
+    static const 词性节点类* 类型_任务管理_结果方向结论摘要() noexcept;
+    static const 词性节点类* 类型_任务管理_根层禁止原因类型() noexcept;
     static const 词性节点类* 类型_任务管理_执行前门控结果() noexcept;
     static const 词性节点类* 类型_任务管理_反馈类型() noexcept;
     static const 词性节点类* 类型_任务管理_方法来源() noexcept;
