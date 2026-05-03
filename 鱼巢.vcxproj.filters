@@ -33,6 +33,12 @@
     <ClCompile Include="控制面板WebView2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="控制面板摘要线程模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="控制面板摘要线程模块.impl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="基础数据类型.ixx">
       <Filter>源文件\基础模块</Filter>
     </ClCompile>
