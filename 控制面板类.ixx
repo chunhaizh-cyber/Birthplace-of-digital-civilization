@@ -97,6 +97,17 @@ struct 结构_控制面板快照 {
     std::string 自我线程最近恢复摘要{};
     std::string 自我线程最近故障摘要{};
 
+    bool 控制面板摘要线程已启动 = false;
+    bool 控制面板摘要线程健康运行 = false;
+    std::uint8_t 控制面板摘要线程生命周期 = 0;
+    std::uint64_t 控制面板摘要快照序号 = 0;
+    std::string 控制面板摘要线程摘要{};
+    std::string 控制面板摘要_需求树{};
+    std::string 控制面板摘要_任务树{};
+    std::string 控制面板摘要_方法树{};
+    std::string 控制面板摘要_运行事实{};
+    std::string 控制面板摘要_自检{};
+
     bool 任务管理工作线程已启动 = false;
     bool 任务管理工作线程正在执行 = false;
     bool 任务管理工作线程已收到请求 = false;
