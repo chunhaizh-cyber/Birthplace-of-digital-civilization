@@ -8,6 +8,7 @@
 #include "语素类.h"
 
 import 二次特征应用模块;
+import 自我模块.特征定义;
 
 namespace {
     using 任务节点 = 任务类::节点类;
@@ -254,14 +255,12 @@ namespace {
 
     const 词性节点类* 私有_特征_选中自我能力值() noexcept
     {
-        static const 词性节点类* s_词 = 语素集.添加词性词("选中自我能力值", "名词");
-        return s_词;
+        return 自我特征定义类::类型_任务_选中自我能力();
     }
 
     const 词性节点类* 私有_特征_当前阶段() noexcept
     {
-        static const 词性节点类* s_词 = 语素集.添加词性词("当前阶段", "名词");
-        return s_词;
+        return 自我特征定义类::类型_任务_当前阶段();
     }
 
     枚举_任务阶段 私有_推导任务阶段(const 任务主信息类& 主信息) noexcept

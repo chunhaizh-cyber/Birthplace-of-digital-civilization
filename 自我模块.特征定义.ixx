@@ -60,4 +60,7 @@ public:
     static const 词性节点类* 类型_自检_累计发现问题数() noexcept;
     static const 词性节点类* 类型_自检_最近检查时间() noexcept;
     static const 词性节点类* 类型_自检_最近提交时间() noexcept;
+
+    static const 词性节点类* 类型_任务_当前阶段() noexcept;
+    static const 词性节点类* 类型_任务_选中自我能力() noexcept;
 };
