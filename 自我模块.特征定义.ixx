@@ -85,4 +85,7 @@ public:
     static const 词性节点类* 类型_运行包_动作类型() noexcept;
     static const 词性节点类* 类型_运行包_结算结论() noexcept;
     static const 词性节点类* 类型_运行包_学习样本类别() noexcept;
+
+    static const 词性节点类* 类型_工作线程_控制事件类型() noexcept;
+    static const 词性节点类* 类型_工作线程_推进事件类型() noexcept;
 };
