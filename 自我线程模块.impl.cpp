@@ -27,6 +27,7 @@ module 自我线程模块;
 
 import 二次特征应用模块;
 import 自我模块;
+import 自我模块.特征定义;
 import 自我模块.初始化;
 import 自我_初始化模块;
 import 自我_核心状态模块;
@@ -5391,8 +5392,22 @@ std::uint64_t 自我线程类::读取累计恢复次数() const noexcept
 自我线程类::结构_自我线程最小状态快照 自我线程类::读取自我线程最小状态快照() const
 {
     结构_自我线程最小状态快照 快照{};
+    const auto* 生命周期特征 = 自我特征定义类::类型_线程_生命周期状态();
+    const auto* 阶段特征 = 自我特征定义类::类型_线程_实际运行状态();
+    const auto* 去向特征 = 自我特征定义类::类型_线程_控制意图();
+    const auto* 当前需求特征 = 自我特征定义类::类型_自我_当前主需求();
+    const auto* 当前任务特征 = 自我特征定义类::类型_自我_当前主任务();
+    const auto* mailbox特征 = 自我特征定义类::类型_线程_邮箱深度();
+    const auto* 健康特征 = 自我特征定义类::类型_线程_健康状态();
     {
         std::scoped_lock 锁(状态锁_);
+        快照.生命周期抽象特征指针 = reinterpret_cast<std::uintptr_t>(生命周期特征);
+        快照.最近阶段抽象特征指针 = reinterpret_cast<std::uintptr_t>(阶段特征);
+        快照.最近去向抽象特征指针 = reinterpret_cast<std::uintptr_t>(去向特征);
+        快照.当前需求引用抽象特征指针 = reinterpret_cast<std::uintptr_t>(当前需求特征);
+        快照.当前任务引用抽象特征指针 = reinterpret_cast<std::uintptr_t>(当前任务特征);
+        快照.mailbox待消费数抽象特征指针 = reinterpret_cast<std::uintptr_t>(mailbox特征);
+        快照.健康状态抽象特征指针 = reinterpret_cast<std::uintptr_t>(健康特征);
         快照.Tick计数值 = 私有_计数转I64(Tick计数_);
         快照.最近Tick时间值 = 最近Tick时间_;
         快照.生命周期值 = static_cast<I64>(生命周期_);
