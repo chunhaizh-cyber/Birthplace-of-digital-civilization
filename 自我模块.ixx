@@ -309,6 +309,7 @@ private:
     ) noexcept;
 
     void 初始化自我特征与默认值_(const std::string& 调用点) noexcept;
+    void 初始化常用抽象特征_(const std::string& 调用点) noexcept;
     void 从特征恢复运行态_(const std::string& 调用点) noexcept;
     void 确保自我根需求与根任务已初始化_(const std::string& 调用点) noexcept;
     void 确保主链镜像已初始化_(const std::string& 调用点) noexcept;

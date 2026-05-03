@@ -95,6 +95,53 @@ private:
     }
 };
 
+export struct 结构_基础信息轻引用 {
+    std::uintptr_t 指针 = 0;
+    std::string 主键{};
+
+    bool 有效() const noexcept { return 指针 != 0 || !主键.empty(); }
+
+    template<class T节点>
+    T节点* 取指针() const noexcept
+    {
+        return reinterpret_cast<T节点*>(指针);
+    }
+
+    template<class T节点>
+    void 绑定(T节点* 节点)
+    {
+        指针 = reinterpret_cast<std::uintptr_t>(节点);
+        主键 = 私有_提取主键(节点);
+    }
+
+    void 清空() noexcept
+    {
+        指针 = 0;
+        主键.clear();
+    }
+
+private:
+    template<class U节点>
+    static auto 私有_提取主键_impl(U节点* 节点, int) -> decltype(节点->获取主键(), std::string{})
+    {
+        return 节点 ? 节点->获取主键() : std::string{};
+    }
+
+    template<class U节点>
+    static std::string 私有_提取主键_impl(U节点*, long)
+    {
+        return {};
+    }
+
+    template<class T节点>
+    static std::string 私有_提取主键(T节点* 节点)
+    {
+        return 私有_提取主键_impl(节点, 0);
+    }
+};
+
+export using 抽象特征引用 = 结构_基础信息轻引用;
+
 export struct 结构_统计 {
     时间戳 创建时间 = 0;
     时间戳 最后观测时间 = 0;
@@ -250,7 +297,7 @@ export enum class 枚举_比较字段 : std::uint16_t {
 //  - 需要的主信息基类中定义字段:"主信息类型"
 export enum class 枚举_主信息类型 {
     指代, 非矢量特征值, 矢量特征值, 短语子, 基础信息基类, 语素基类,
-    词, 词性, 短语, 短语子节点, 特征, 特征_特征, 特征_存在, 存在, 状态,
+    词, 词性, 短语, 短语子节点, 特征, 抽象特征, 特征_特征, 特征_存在, 存在, 状态,
     场景, 状态的特征, 动态的特征, 状态_特征, 状态_存在, 状态_场景,
     动态, 因果, 关系, 其它, 存在信息, 存在信息_指代, 动态信息, 特征信息,
     二次特征_修饰, 特征信息_数量, 关系信息, 情绪特征信息, 情绪调节信息, 语言信息_仅记录, 未定义
@@ -1382,6 +1429,84 @@ export enum class 枚举_特征健康状态 : std::uint8_t {
     已使用但可疑 = 2,
     已使用但不稳定 = 3,
     过时 = 4,
+};
+
+export enum class 枚举_抽象特征组合方式 : std::uint8_t {
+    未定义 = 0,
+    全部命中 = 1,
+    任一命中 = 2,
+    至少N项命中 = 3,
+    命中计数 = 10,
+    加权求和 = 11,
+    有符号差值 = 12,
+    方法计算 = 50,
+};
+
+export enum class 枚举_组合输入角色 : std::uint8_t {
+    未定义 = 0,
+    主输入 = 1,
+    条件输入 = 2,
+    否决输入 = 3,
+    权重输入 = 4,
+    上下文输入 = 5,
+};
+
+export enum class 枚举_组合缺失策略 : std::uint8_t {
+    失败 = 0,
+    视为未命中 = 1,
+    忽略该项 = 2,
+    使用默认值 = 3,
+};
+
+export enum class 枚举_组合输出策略 : std::uint8_t {
+    布尔值 = 0,
+    原始计算值 = 1,
+    方法返回值 = 2,
+};
+
+export struct 结构_抽象特征组合输入 {
+    抽象特征引用 来源抽象特征{};
+    抽象特征引用 期望抽象状态{};
+    std::optional<I64区间> 期望区间{};
+
+    枚举_组合输入角色 角色 = 枚举_组合输入角色::主输入;
+    枚举_组合缺失策略 缺失策略 = 枚举_组合缺失策略::失败;
+
+    I64 默认值 = 0;
+    I64 权重 = 10000;
+    std::int32_t 方向 = 1;
+
+    std::string 角色键{};
+    std::uint32_t 输入序号 = 0;
+};
+
+export struct 结构_抽象特征组合输出 {
+    枚举_组合输出策略 输出策略 = 枚举_组合输出策略::布尔值;
+    std::optional<I64区间> 成立区间{};
+    I64 成立输出值 = 1;
+    I64 不成立输出值 = 0;
+    std::optional<I64区间> 输出值限制{};
+};
+
+export struct 结构_抽象特征组合规则 {
+    std::string 规则主键{};
+    std::string 规则名称{};
+
+    std::vector<结构_抽象特征组合输入> 输入{};
+    枚举_抽象特征组合方式 组合方式 = 枚举_抽象特征组合方式::未定义;
+    结构_抽象特征组合输出 输出{};
+
+    std::uint32_t 最少命中数 = 0;
+    结构_基础信息轻引用 计算方法{};
+
+    std::uint32_t 规则版本 = 1;
+    std::int32_t 优先级 = 0;
+    bool 已启用 = true;
+
+    std::uint64_t 命中次数 = 0;
+    std::uint64_t 失败次数 = 0;
+    时间戳 最近命中时间 = 0;
+    时间戳 最近失败时间 = 0;
 };
 
 export struct 结构_特征使用事件 {

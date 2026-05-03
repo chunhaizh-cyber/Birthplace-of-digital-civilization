@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <string>
@@ -132,6 +133,30 @@ public:
 
     std::vector<状态节点类*> 枚举全部状态() const;
     std::vector<状态节点类*> 获取场景状态(const 场景节点类* 场景) const;
+    bool 是否当前活动状态(const 场景节点类* 场景, const 状态节点类* 节点) const;
+    std::uint64_t 统计状态引用数量(const 状态节点类* 节点) const;
+    bool 可从活动状态链清理(const 场景节点类* 场景, const 状态节点类* 节点) const;
+    std::size_t 清理已处理状态索引(
+        场景节点类* 场景,
+        基础信息节点类* 主体 = nullptr,
+        特征节点类* 特征 = nullptr,
+        std::size_t 最大清理数量 = 0
+    );
+    std::size_t 清理超过时间窗口的状态索引(
+        场景节点类* 场景,
+        时间戳 最早保留时间,
+        std::size_t 最大清理数量 = 0
+    );
+    std::size_t 按活动状态限量清理(
+        场景节点类* 场景,
+        std::size_t 活动状态上限,
+        std::size_t 最大清理数量 = 0
+    );
+    std::size_t 状态写入后整理(
+        场景节点类* 场景,
+        状态节点类* 新状态,
+        std::size_t 最大清理数量 = 0
+    );
     结构_最近两次I64状态方向结果 比较最近两次I64状态方向(
         场景节点类* 场景,
         枚举_状态域 状态域,
@@ -140,12 +165,7 @@ public:
 
     bool 绑定主体特征(状态节点类* 节点, 基础信息节点类* 主体, 特征节点类* 特征);
     bool 写入状态值(状态节点类* 节点, const 特征值& 值, 时间戳 发生时间 = 0, 时间戳 收到时间 = 0);
-    bool 标记变化(
-        状态节点类* 节点,
-        bool 是否变化,
-        const std::string& 原因类别 = {},
-        const std::string& 原因说明 = {}
-    );
+    bool 标记变化(状态节点类* 节点, bool 是否变化);
 
 private:
     static 枚举_状态域 私有_推断状态域(const 基础信息节点类* 主体) noexcept;
