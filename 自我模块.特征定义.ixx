@@ -60,6 +60,17 @@ public:
     static const 词性节点类* 类型_自检_累计发现问题数() noexcept;
     static const 词性节点类* 类型_自检_最近检查时间() noexcept;
     static const 词性节点类* 类型_自检_最近提交时间() noexcept;
+    static const 词性节点类* 类型_自检_范围() noexcept;
+    static const 词性节点类* 类型_自检_缺口类型() noexcept;
+    static const 词性节点类* 类型_自检_来源对象类型() noexcept;
+    static const 词性节点类* 类型_自检_来源方法能力() noexcept;
+    static const 词性节点类* 类型_自检_来源方法头节点() noexcept;
+    static const 词性节点类* 类型_自检_目标特征类型() noexcept;
+    static const 词性节点类* 类型_自检_缺失结构类型() noexcept;
+    static const 词性节点类* 类型_自检_建议需求类型() noexcept;
+    static const 词性节点类* 类型_自检_证据类型() noexcept;
+    static const 词性节点类* 类型_自检_严重程度() noexcept;
+    static const 词性节点类* 类型_自检_是否建议生成需求() noexcept;
 
     static const 词性节点类* 类型_任务_当前阶段() noexcept;
     static const 词性节点类* 类型_任务_选中自我能力() noexcept;
