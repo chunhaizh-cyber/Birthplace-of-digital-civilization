@@ -165,6 +165,30 @@ namespace {
         return 数量;
     }
 
+    bool 私有_任务头绑定需求(const 任务节点* 节点) noexcept
+    {
+        return 节点
+            && 节点->主信息.节点种类 == 枚举_任务节点种类::头结点
+            && (节点->主信息.对应需求.指针
+                || !节点->主信息.对应需求.主键.empty());
+    }
+
+    bool 私有_任务节点属于需求任务链(const 任务节点* 节点) noexcept
+    {
+        std::size_t 保护 = 0;
+        for (auto* 当前 = 节点;
+             当前 && 保护 < 128;
+             当前 = reinterpret_cast<const 任务节点*>(当前->父), ++保护) {
+            if (当前->主信息.节点种类 == 枚举_任务节点种类::头结点) {
+                return 私有_任务头绑定需求(当前);
+            }
+            if (当前 == reinterpret_cast<const 任务节点*>(当前->父)) {
+                break;
+            }
+        }
+        return false;
+    }
+
     std::uint64_t 私有_读取世界观测版本() noexcept
     {
         I64 显式版本 = 0;
@@ -277,6 +301,9 @@ namespace {
 
         私有_遍历全链<任务节点>(任务根, [&](任务节点* 任务) noexcept {
             if (!任务) {
+                return;
+            }
+            if (!私有_任务节点属于需求任务链(任务)) {
                 return;
             }
             ++总数;
@@ -401,6 +428,9 @@ namespace {
         时间戳 最近任务时间 = 0;
         私有_遍历全链<任务节点>(任务根, [&](任务节点* 任务) noexcept {
             if (!任务) {
+                return;
+            }
+            if (!私有_任务节点属于需求任务链(任务)) {
                 return;
             }
             if (任务->主信息.状态 == 枚举_任务状态::失败

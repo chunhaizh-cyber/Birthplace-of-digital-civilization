@@ -116,6 +116,30 @@ namespace {
         return 节点 != nullptr;
     }
 
+    bool 私有_任务头绑定需求(const 任务节点* 节点) noexcept
+    {
+        return 节点
+            && 节点->主信息.节点种类 == 枚举_任务节点种类::头结点
+            && (节点->主信息.对应需求.指针
+                || !节点->主信息.对应需求.主键.empty());
+    }
+
+    bool 私有_任务节点属于需求任务链(const 任务节点* 节点) noexcept
+    {
+        std::size_t 保护 = 0;
+        for (auto* 当前 = 节点;
+             当前 && 保护 < 128;
+             当前 = reinterpret_cast<const 任务节点*>(当前->父), ++保护) {
+            if (当前->主信息.节点种类 == 枚举_任务节点种类::头结点) {
+                return 私有_任务头绑定需求(当前);
+            }
+            if (当前 == reinterpret_cast<const 任务节点*>(当前->父)) {
+                break;
+            }
+        }
+        return false;
+    }
+
     template<class T节点>
     struct 私有_规范节点类型 {
         using 类型 = std::remove_cv_t<T节点>;
@@ -1232,6 +1256,18 @@ namespace {
             结果.push_back(子节点);
         });
         return 结果;
+    }
+
+    std::vector<任务节点*> 私有_筛选需求任务链节点(
+        const std::vector<任务节点*>& 节点集)
+    {
+        std::vector<任务节点*> 输出{};
+        for (auto* 节点 : 节点集) {
+            if (私有_任务节点属于需求任务链(节点)) {
+                输出.push_back(节点);
+            }
+        }
+        return 输出;
     }
 
     void 私有_累计文本计数(
@@ -3315,17 +3351,24 @@ namespace {
         私有_追加叶字段(字段节点, "错误码", 节点->主信息.错误码);
         树节点.子项.push_back(std::move(字段节点));
 
-        const auto 子节点集 = 私有_枚举子节点(节点, 上下文.树广度上限);
+        const auto 子节点全集 = 私有_筛选需求任务链节点(
+            私有_枚举全部子节点(节点));
+        const auto 子节点数量 = (std::min)(子节点全集.size(), 上下文.树广度上限);
+        std::vector<任务节点*> 子节点集{};
+        子节点集.reserve(子节点数量);
+        for (std::size_t i = 0; i < 子节点数量; ++i) {
+            子节点集.push_back(子节点全集[i]);
+        }
         for (auto* 子节点 : 子节点集) {
             树节点.子项.push_back(私有_任务骨架节点(子节点, 上下文, false));
         }
-        if (static_cast<std::size_t>(节点->子节点数量) > 子节点集.size()) {
+        if (子节点全集.size() > 子节点集.size()) {
             树节点.子项.push_back(
                 私有_创建结构省略节点(
                     "task-node-more",
                     私有_地址(节点),
                     子节点集.size(),
-                    static_cast<std::size_t>(节点->子节点数量) - 子节点集.size()));
+                    子节点全集.size() - 子节点集.size()));
         }
 
         return 树节点;
@@ -4258,7 +4301,6 @@ namespace {
     auto* 方法根节点 = 自我存在 ? 世界树.存在().获取方法根节点(自我存在) : nullptr;
 
     快照.需求数 = 需求根节点 ? (私有_计数子树节点(需求根节点) - 1) : 0;
-    快照.任务数 = 任务根节点 ? (私有_计数子树节点(任务根节点) - 1) : 0;
     快照.方法数 = 方法根节点 ? (私有_计数子树节点(方法根节点) - 1) : 0;
     if (方法根节点) {
         auto 统计方法结构 = [&](const 方法节点* 节点) {
@@ -4302,6 +4344,10 @@ namespace {
             if (!节点) {
                 return;
             }
+            if (!私有_任务节点属于需求任务链(节点)) {
+                return;
+            }
+            ++快照.任务数;
             switch (节点->主信息.节点种类) {
             case 枚举_任务节点种类::头结点:
                 ++快照.任务头节点数;
@@ -4454,17 +4500,24 @@ namespace {
         0,
         true);
     if (任务根节点) {
-        const auto 子节点集 = 私有_枚举子节点(任务根节点, 上下文.树广度上限);
+        const auto 子节点全集 = 私有_筛选需求任务链节点(
+            私有_枚举全部子节点(任务根节点));
+        const auto 子节点数量 = (std::min)(子节点全集.size(), 上下文.树广度上限);
+        std::vector<任务节点*> 子节点集{};
+        子节点集.reserve(子节点数量);
+        for (std::size_t i = 0; i < 子节点数量; ++i) {
+            子节点集.push_back(子节点全集[i]);
+        }
         for (auto* 子节点 : 子节点集) {
             任务树根.子项.push_back(私有_任务骨架节点(子节点, 上下文, false));
         }
-        if (static_cast<std::size_t>(任务根节点->子节点数量) > 子节点集.size()) {
+        if (子节点全集.size() > 子节点集.size()) {
             任务树根.子项.push_back(
                 私有_创建结构省略节点(
                     "task-node-more",
                     私有_地址(任务根节点),
                     子节点集.size(),
-                    static_cast<std::size_t>(任务根节点->子节点数量) - 子节点集.size()));
+                    子节点全集.size() - 子节点集.size()));
         }
         if (任务树根.子项.empty()) {
             任务树根.子项.push_back(私有_新节点("暂无任务列表项"));
@@ -4675,7 +4728,8 @@ std::string 读取控制面板节点子项JSON(
         if (!父节点) {
             return 私有_失效节点JSON("父节点已失效或已移出当前树");
         }
-        const auto 子节点集 = 私有_枚举全部子节点(父节点);
+        const auto 子节点集 = 私有_筛选需求任务链节点(
+            私有_枚举全部子节点(父节点));
         const auto 起始偏移 = (std::min)(static_cast<std::size_t>(附加参数), 子节点集.size());
         const auto 结束偏移 = (std::min)(起始偏移 + 上下文.树广度上限, 子节点集.size());
         for (std::size_t 索引 = 起始偏移; 索引 < 结束偏移; ++索引) {
