@@ -2415,6 +2415,27 @@ namespace {
         return 主信息 && 目标类型 && 主信息->类型 == 目标类型;
     }
 
+    inline const 词性节点类* 特征值节点对应特征类型词(
+        const 基础信息节点类* 节点) noexcept
+    {
+        if (!节点) return nullptr;
+        if (const auto* 抽象主信息 = 世界树.特征().取抽象特征主信息(
+                static_cast<const 抽象特征节点类*>(节点))) {
+            return 抽象主信息->类型;
+        }
+        if (const auto* 特征主信息 = 世界树.特征().取特征主信息(
+                static_cast<const 特征节点类*>(节点))) {
+            if (auto* 抽象特征 = 特征主信息->抽象特征.指针) {
+                if (const auto* 抽象主信息 = 世界树.特征().取抽象特征主信息(
+                        static_cast<const 抽象特征节点类*>(抽象特征))) {
+                    return 抽象主信息->类型;
+                }
+            }
+            return 特征主信息->类型;
+        }
+        return 基础节点类型词(节点);
+    }
+
     inline bool I64区间包含(I64 能力下界, I64 能力上界, I64 需求下界, I64 需求上界) noexcept
     {
         return 能力下界 <= 需求下界 && 需求上界 <= 能力上界;
@@ -2469,6 +2490,14 @@ namespace {
             if (世界树.特征().取抽象特征主信息(static_cast<抽象特征节点类*>(节点))) {
                 项.抽象特征引用 = 节点;
             }
+            else if (const auto* 特征主信息 = 世界树.特征().取特征主信息(
+                    static_cast<特征节点类*>(节点))) {
+                项.基础节点引用 = 节点;
+                if (特征主信息->抽象特征.指针) {
+                    项.抽象特征引用 = reinterpret_cast<基础信息节点类*>(
+                        特征主信息->抽象特征.指针);
+                }
+            }
             else if (世界树.基础信息().取主信息<存在节点主信息类>(节点)) {
                 项.存在引用 = 节点;
             }
@@ -2502,7 +2531,7 @@ namespace {
         void* 指针 = nullptr;
         if (读取包指针(条件项节点, 特征_特征类型(), 指针)) {
             if (auto* 节点 = 指针若为基础信息节点(指针)) {
-                return 基础节点类型词(节点);
+                return 特征值节点对应特征类型词(节点);
             }
             return reinterpret_cast<const 词性节点类*>(指针);
         }
