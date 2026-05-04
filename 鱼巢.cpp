@@ -18,13 +18,14 @@
 import 控制面板类;
 import 自我模块;
 import 自我模块.初始化;
+import 自我动作实现模块;
 import 任务模块.管理工作线程;
 import 任务管理任务模块;
 import 自我线程模块;
 import 自检线程模块;
 
 namespace {
-    bool 私有_确保自我线程已启动(const std::string& 调用点);
+    bool 私有_确保自我线程已启动(const std::string& 标记);
     void 私有_记录自我实现检查日志(const std::string& 调用点);
     void 私有_枚举任务子节点(
         const 任务类::节点类* 父节点,
@@ -652,14 +653,22 @@ namespace {
         }
     };
 
-    bool 私有_确保自我环境已初始化(const std::string& 调用点)
+    bool 私有_确保自我环境已初始化(const std::string& 标记)
     {
-        return 初始化自我环境(调用点);
+        const bool 已初始化 = 初始化自我环境(标记);
+        if (已初始化) {
+            (void)自我动作实现模块::注册本能函数执行闭环();
+        }
+        return 已初始化;
     }
 
-    bool 私有_确保自我线程已启动(const std::string& 调用点)
+    bool 私有_确保自我线程已启动(const std::string& 标记)
     {
-        return 启动自我线程(调用点);
+        const bool 已启动 = 启动自我线程(标记);
+        if (已启动) {
+            (void)自我动作实现模块::注册本能函数执行闭环();
+        }
+        return 已启动;
     }
 
     bool 私有_确保自检线程已启动(const std::string& 调用点)
