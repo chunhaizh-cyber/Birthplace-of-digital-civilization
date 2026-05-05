@@ -16,7 +16,7 @@ module;
 export module 自我线程模块.消息协议;
 
 import 自我模块.特征定义;
-import 任务管理任务模块;
+import 任务模块.治理协议;
 import 任务模块.工作线程协议;
 
 export namespace 自我线程消息协议 {

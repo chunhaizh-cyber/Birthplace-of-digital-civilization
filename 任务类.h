@@ -32,6 +32,122 @@ public:
         场景节点类* 承载场景 = nullptr,
         时间戳 now = 结构体_时间戳::当前_微秒());
 
+    static bool 写入任务根实体特征(
+        节点类* 任务头结点,
+        std::uint64_t 任务根ID,
+        std::uintptr_t 来源需求指针,
+        std::uintptr_t 世界任务根指针,
+        std::uintptr_t 父任务指针,
+        std::uintptr_t 管理对象任务指针,
+        I64 初始授权等级,
+        bool 只读,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+
+    static bool 写入任务控制实体特征(
+        节点类* 任务头结点,
+        std::uint64_t 任务根ID,
+        I64 队列状态值,
+        I64 全局优先级,
+        I64 解阻加权,
+        I64 时间预算_ms,
+        I64 资源预算,
+        std::uint64_t 绑定工作线程ID,
+        bool 已派发,
+        bool 等待子结果,
+        bool 请求收束,
+        bool 请求停止,
+        bool 是否已响应控制意图,
+        bool 控制请求待确认,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+
+    static bool 写入任务局部运行实体特征(
+        节点类* 任务头结点,
+        std::uint64_t 任务根ID,
+        I64 当前状态值,
+        std::uintptr_t 当前步骤前沿,
+        std::uintptr_t 最近局部结果,
+        I64 局部完成度,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+
+    static bool 任务状态已终结(枚举_任务状态 状态) noexcept;
+    static bool 任务允许派发(const 节点类* 任务节点) noexcept;
+    static void 确保任务初始状态(节点类* 任务节点) noexcept;
+    static void 标记任务待重筹办(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+    static void 标记任务等待(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+    static void 标记任务已承接(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+    static void 标记任务已派发(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+    static void 标记任务负载等待(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+    static void 应用任务状态(节点类* 任务节点, 枚举_任务状态 新状态, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+    static 节点类* 读取任务管理对象任务(节点类* 任务节点) noexcept;
+    static const 节点类* 读取任务管理对象任务(const 节点类* 任务节点) noexcept;
+    static 节点类* 读取任务管理对象或自身(节点类* 任务节点) noexcept;
+    static bool 任务管理对象指向(const 节点类* 任务节点, const 节点类* 目标任务) noexcept;
+    static bool 写入任务管理对象任务(
+        节点类* 任务节点,
+        节点类* 管理对象任务,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+    static 方法节点类* 读取任务执行方法(节点类* 任务节点) noexcept;
+    static const 方法节点类* 读取任务执行方法(const 节点类* 任务节点) noexcept;
+    static bool 任务执行方法指向(const 节点类* 任务节点, const 方法节点类* 目标方法) noexcept;
+    static bool 写入任务执行方法(
+        节点类* 任务节点,
+        方法节点类* 执行方法,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+    static I64 读取任务选中自我能力值(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务选中自我能力值(
+        节点类* 任务头结点,
+        I64 值,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+    static 枚举_任务角色 读取任务角色(
+        const 节点类* 任务头结点,
+        枚举_任务角色 默认值 = 枚举_任务角色::未定义,
+        场景节点类* 承载场景 = nullptr);
+    static bool 写入任务角色(
+        节点类* 任务头结点,
+        枚举_任务角色 值,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+    static 枚举_任务阶段 读取任务当前阶段(
+        const 节点类* 任务头结点,
+        枚举_任务阶段 默认值 = 枚举_任务阶段::未定义,
+        场景节点类* 承载场景 = nullptr);
+    static bool 写入任务当前阶段(
+        节点类* 任务头结点,
+        枚举_任务阶段 值,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+    static bool 读取任务等待缺口唤醒(const 节点类* 任务头结点, bool 默认值 = false, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务等待缺口唤醒(
+        节点类* 任务头结点,
+        bool 值,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+
+    static I64 读取任务基准优先级(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务基准优先级(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务局部优先级偏移(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务局部优先级偏移(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务调度优先级(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务调度优先级(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务运行次数(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务运行次数(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务成功次数(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务成功次数(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务失败次数(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务失败次数(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务连续失败次数(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务连续失败次数(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务转入缺口需求次数(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务转入缺口需求次数(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务最近错误码(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务最近错误码(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+
     static bool 同步任务特征使用统计(
         节点类* 任务头结点,
         const 结构_特征使用统计& 统计,
@@ -67,7 +183,6 @@ public:
         节点类* 所属任务头结点,
         节点类* 来源步骤节点,
         方法节点类* 当前方法首节点 = nullptr,
-        枚举_任务结果角色 结果角色 = 枚举_任务结果角色::实际结果,
         状态节点类* 结果状态 = nullptr,
         时间戳 now = 结构体_时间戳::当前_微秒(),
         const std::string& 调用点 = "任务类::创建任务结果节点");

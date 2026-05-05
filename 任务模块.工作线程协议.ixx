@@ -9,7 +9,7 @@ module;
 export module 任务模块.工作线程协议;
 
 import 自我模块.特征定义;
-import 任务管理任务模块.消息协议;
+import 任务模块.工作线程消息协议;
 
 export enum class 枚举_任务控制事件类型 : std::uint8_t {
     未定义 = 0,
