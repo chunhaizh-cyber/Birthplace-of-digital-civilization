@@ -83,6 +83,26 @@ namespace {
         return 输出;
     }
 
+    bool 私有_解析U64(std::wstring_view 文本, std::uint64_t& 输出值) noexcept
+    {
+        if (文本.empty()) {
+            return false;
+        }
+        std::uint64_t 值 = 0;
+        for (const auto 字符 : 文本) {
+            if (字符 < L'0' || 字符 > L'9') {
+                return false;
+            }
+            const auto 数字 = static_cast<std::uint64_t>(字符 - L'0');
+            if (值 > (UINT64_MAX - 数字) / 10) {
+                return false;
+            }
+            值 = 值 * 10 + 数字;
+        }
+        输出值 = 值;
+        return true;
+    }
+
     bool 私有_解析节点消息(
         const std::wstring& 消息,
         const std::wstring_view 前缀,
@@ -106,29 +126,39 @@ namespace {
         }
         const std::size_t 第三分隔 = 消息.find(L':', 第二分隔 + 1);
 
-        try {
-            if (请求号) {
-                *请求号 = std::stoull(消息.substr(前缀长度, 第一分隔 - 前缀长度));
+        std::uint64_t 解析值 = 0;
+        if (请求号) {
+            if (!私有_解析U64(
+                    std::wstring_view(消息).substr(前缀长度, 第一分隔 - 前缀长度),
+                    解析值)) {
+                return false;
             }
-            if (展开类型) {
-                *展开类型 = 私有_宽字串转UTF8(消息.substr(第一分隔 + 1, 第二分隔 - 第一分隔 - 1));
-            }
-            if (节点指针) {
-                const auto 节点文本 = 第三分隔 == std::wstring::npos
-                    ? 消息.substr(第二分隔 + 1)
-                    : 消息.substr(第二分隔 + 1, 第三分隔 - 第二分隔 - 1);
-                *节点指针 = static_cast<std::uintptr_t>(std::stoull(节点文本));
-            }
-            if (附加参数) {
-                *附加参数 = 第三分隔 == std::wstring::npos
-                    ? 0
-                    : static_cast<std::uintptr_t>(std::stoull(消息.substr(第三分隔 + 1)));
-            }
-            return true;
+            *请求号 = 解析值;
         }
-        catch (...) {
-            return false;
+        if (展开类型) {
+            *展开类型 = 私有_宽字串转UTF8(消息.substr(第一分隔 + 1, 第二分隔 - 第一分隔 - 1));
         }
+        if (节点指针) {
+            const auto 节点文本 = 第三分隔 == std::wstring::npos
+                ? std::wstring_view(消息).substr(第二分隔 + 1)
+                : std::wstring_view(消息).substr(第二分隔 + 1, 第三分隔 - 第二分隔 - 1);
+            if (!私有_解析U64(节点文本, 解析值)) {
+                return false;
+            }
+            *节点指针 = static_cast<std::uintptr_t>(解析值);
+        }
+        if (附加参数) {
+            if (第三分隔 == std::wstring::npos) {
+                *附加参数 = 0;
+            }
+            else {
+                if (!私有_解析U64(std::wstring_view(消息).substr(第三分隔 + 1), 解析值)) {
+                    return false;
+                }
+                *附加参数 = static_cast<std::uintptr_t>(解析值);
+            }
+        }
+        return true;
     }
 
     bool 私有_解析展开消息(

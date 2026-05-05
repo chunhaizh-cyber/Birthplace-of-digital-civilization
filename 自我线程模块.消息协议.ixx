@@ -844,12 +844,18 @@ inline std::uint64_t 安全解析或散列任务管理主键(const std::string& 
         return 0;
     }
 
-    try {
-        return static_cast<std::uint64_t>(std::stoull(文本));
+    std::uint64_t 值 = 0;
+    for (const auto 字符 : 文本) {
+        if (字符 < '0' || 字符 > '9') {
+            return static_cast<std::uint64_t>(std::hash<std::string>{}(文本));
+        }
+        const auto 数字 = static_cast<std::uint64_t>(字符 - '0');
+        if (值 > (UINT64_MAX - 数字) / 10) {
+            return static_cast<std::uint64_t>(std::hash<std::string>{}(文本));
+        }
+        值 = 值 * 10 + 数字;
     }
-    catch (...) {
-        return static_cast<std::uint64_t>(std::hash<std::string>{}(文本));
-    }
+    return 值;
 }
 
 inline 枚举_结果状态 映射任务管理结果状态(const 枚举_任务管理结果状态 状态) noexcept
