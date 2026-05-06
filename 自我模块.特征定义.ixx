@@ -16,13 +16,13 @@ public:
     static const 词性节点类* 类型_自我_情绪强度() noexcept;
     static const 词性节点类* 类型_自我_外显情绪ID() noexcept;
     static const 词性节点类* 类型_自我_外显情绪强度() noexcept;
-    static const 词性节点类* 类型_自我_待学习方法数量() noexcept;
+    static const 词性节点类* 类型_自我_待处理方法数量() noexcept;
     static const 词性节点类* 类型_自我_可用方法数量() noexcept;
     static const 词性节点类* 类型_自我_当前主需求() noexcept;
     static const 词性节点类* 类型_自我_当前主任务() noexcept;
     static const 词性节点类* 类型_自我_当前主方法() noexcept;
     static const 词性节点类* 类型_自我_外设可用性() noexcept;
-    static const 词性节点类* 类型_自我_尝试学习状态() noexcept;
+    static const 词性节点类* 类型_自我_方法补齐状态() noexcept;
     static const 词性节点类* 类型_自我_自我能力() noexcept;
     static const 词性节点类* 类型_自我_待机状态() noexcept;
     static const 词性节点类* 类型_自我_时序正向步长() noexcept;
@@ -79,6 +79,29 @@ public:
     static const 词性节点类* 类型_任务_节点种类() noexcept;
     static const 词性节点类* 类型_任务_队列状态() noexcept;
     static const 词性节点类* 类型_任务_局部运行状态() noexcept;
+    static const 词性节点类* 类型_任务_根ID() noexcept;
+    static const 词性节点类* 类型_任务_来源需求() noexcept;
+    static const 词性节点类* 类型_任务_世界任务根() noexcept;
+    static const 词性节点类* 类型_任务_父任务() noexcept;
+    static const 词性节点类* 类型_任务_管理对象任务() noexcept;
+    static const 词性节点类* 类型_任务_执行方法() noexcept;
+    static const 词性节点类* 类型_任务_初始授权等级() noexcept;
+    static const 词性节点类* 类型_任务_只读状态() noexcept;
+    static const 词性节点类* 类型_任务_全局优先级() noexcept;
+    static const 词性节点类* 类型_任务_解阻加权() noexcept;
+    static const 词性节点类* 类型_任务_时间预算() noexcept;
+    static const 词性节点类* 类型_任务_资源预算() noexcept;
+    static const 词性节点类* 类型_任务_绑定工作线程() noexcept;
+    static const 词性节点类* 类型_任务_已派发() noexcept;
+    static const 词性节点类* 类型_任务_等待子结果() noexcept;
+    static const 词性节点类* 类型_任务_请求收束() noexcept;
+    static const 词性节点类* 类型_任务_请求停止() noexcept;
+    static const 词性节点类* 类型_任务_已响应控制意图() noexcept;
+    static const 词性节点类* 类型_任务_控制请求待确认() noexcept;
+    static const 词性节点类* 类型_任务_当前步骤前沿() noexcept;
+    static const 词性节点类* 类型_任务_最近局部结果() noexcept;
+    static const 词性节点类* 类型_任务_局部完成度() noexcept;
+    static const 词性节点类* 类型_任务_等待缺口唤醒() noexcept;
 
     static const 词性节点类* 类型_任务管理_缺口类型() noexcept;
     static const 词性节点类* 类型_任务管理_本能能力缺口类型() noexcept;
@@ -105,8 +128,8 @@ public:
     static const 词性节点类* 类型_任务管理_最小原语ID() noexcept;
     static const 词性节点类* 类型_任务管理_触发事件类型() noexcept;
     static const 词性节点类* 类型_任务管理_触发来源() noexcept;
-    static const 词性节点类* 类型_任务管理_学习承接类型() noexcept;
-    static const 词性节点类* 类型_任务管理_学习反馈消费策略() noexcept;
+    static const 词性节点类* 类型_任务管理_缺口承接类型() noexcept;
+    static const 词性节点类* 类型_任务管理_缺口反馈消费策略() noexcept;
     static const 词性节点类* 类型_任务管理_治理恢复事件处理方式() noexcept;
     static const 词性节点类* 类型_任务管理_控制意图() noexcept;
     static const 词性节点类* 类型_任务管理_上行消息类型() noexcept;
@@ -119,23 +142,9 @@ public:
     static const 词性节点类* 类型_任务管理_阻塞级别() noexcept;
     static const 词性节点类* 类型_任务管理_线程补充特征类型() noexcept;
     static const 词性节点类* 类型_任务管理_任务挂接方式() noexcept;
-    static const 词性节点类* 类型_任务管理_学习目标类型() noexcept;
-    static const 词性节点类* 类型_任务管理_学习需求类型() noexcept;
-    static const 词性节点类* 类型_任务管理_学习动作类型() noexcept;
-    static const 词性节点类* 类型_任务管理_学习原函数类型() noexcept;
-    static const 词性节点类* 类型_任务管理_学习程序决策() noexcept;
     static const 词性节点类* 类型_任务管理_原语类型() noexcept;
     static const 词性节点类* 类型_任务管理_原语候选比较基准类型() noexcept;
     static const 词性节点类* 类型_任务管理_原语候选来源锚点类型() noexcept;
-
-    static const 词性节点类* 类型_学习_阶段() noexcept;
-    static const 词性节点类* 类型_学习_状态() noexcept;
-    static const 词性节点类* 类型_学习_等待原因() noexcept;
-    static const 词性节点类* 类型_学习_影响面() noexcept;
-    static const 词性节点类* 类型_学习_结果状态() noexcept;
-    static const 词性节点类* 类型_学习_外层裁决() noexcept;
-    static const 词性节点类* 类型_学习_执行策略() noexcept;
-    static const 词性节点类* 类型_学习_对象来源类型() noexcept;
 
     static const 词性节点类* 类型_运行包_包状态() noexcept;
     static const 词性节点类* 类型_运行包_需求大类() noexcept;
@@ -143,7 +152,7 @@ public:
     static const 词性节点类* 类型_运行包_安全子类() noexcept;
     static const 词性节点类* 类型_运行包_动作类型() noexcept;
     static const 词性节点类* 类型_运行包_结算结论() noexcept;
-    static const 词性节点类* 类型_运行包_学习样本类别() noexcept;
+    static const 词性节点类* 类型_运行包_方法沉淀样本类别() noexcept;
 
     static const 词性节点类* 类型_工作线程_控制事件类型() noexcept;
     static const 词性节点类* 类型_工作线程_推进事件类型() noexcept;

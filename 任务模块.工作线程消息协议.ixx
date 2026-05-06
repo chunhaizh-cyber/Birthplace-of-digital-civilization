@@ -10,7 +10,7 @@ module;
 #include "需求任务挂接方式.h"
 #include "语素信息类型.h"
 
-export module 任务管理任务模块.消息协议;
+export module 任务模块.工作线程消息协议;
 
 import 自我模块.特征定义;
 

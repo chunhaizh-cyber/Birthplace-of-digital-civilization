@@ -10,7 +10,7 @@ module;
 export module 任务模块.运行包;
 
 import 自我模块.特征定义;
-import 任务管理任务模块.消息协议;
+import 任务模块.工作线程消息协议;
 
 export namespace 任务运行包 {
 
@@ -58,7 +58,7 @@ enum class 枚举_结算结论 : std::uint8_t {
     越界 = 4,
 };
 
-enum class 枚举_学习样本类别 : std::uint8_t {
+enum class 枚举_方法沉淀样本类别 : std::uint8_t {
     正样本 = 0,
     负样本 = 1,
     待验证 = 2,
@@ -130,15 +130,15 @@ struct 结构_状态变化项 {
     std::string 变化原因{};
 };
 
-struct 结构_学习候选项 {
+struct 结构_方法沉淀候选项 {
     主键 锚点主键 = 0;
     主键 来源任务主键 = 0;
     主键 来源方法主键 = 0;
     std::string 动作语义键{};
     I64 置信度 = 0;
-    枚举_学习样本类别 样本类别 = 枚举_学习样本类别::待验证;
-    const 词性节点类* 学习样本类别抽象特征指针 = nullptr;
-    I64 学习样本类别值 = static_cast<I64>(枚举_学习样本类别::待验证);
+    枚举_方法沉淀样本类别 样本类别 = 枚举_方法沉淀样本类别::待验证;
+    const 词性节点类* 方法沉淀样本类别抽象特征指针 = nullptr;
+    I64 方法沉淀样本类别值 = static_cast<I64>(枚举_方法沉淀样本类别::待验证);
     bool 已验证 = false;
 };
 
@@ -208,7 +208,7 @@ struct 结构_回流结算包 {
     const 词性节点类* 结算结论抽象特征指针 = nullptr;
     I64 结算结论值 = static_cast<I64>(枚举_结算结论::无效推进);
     bool 是否有效推进 = false;
-    std::vector<结构_学习候选项> 学习候选集{};
+    std::vector<结构_方法沉淀候选项> 方法沉淀候选集{};
     bool 建议进入待机 = false;
     bool 建议进入收束 = false;
     bool 建议停止 = false;
@@ -223,7 +223,7 @@ bool 校验结算包(const 结构_回流结算包& 包, std::string* 错误 = nu
 void 同步运行包语义槽(结构_线程运行包头& 包头) noexcept;
 void 同步运行包语义槽(结构_根需求项& 根需求) noexcept;
 void 同步运行包语义槽(结构_授权约束段& 授权约束) noexcept;
-void 同步运行包语义槽(结构_学习候选项& 学习候选) noexcept;
+void 同步运行包语义槽(结构_方法沉淀候选项& 方法沉淀候选) noexcept;
 void 同步运行包语义槽(结构_一步治理任务包& 包) noexcept;
 void 同步运行包语义槽(结构_回流结算包& 包) noexcept;
 bool 封口任务包(结构_一步治理任务包& 包, 时间戳 封口时间 = 0, std::string* 错误 = nullptr) noexcept;

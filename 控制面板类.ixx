@@ -75,7 +75,7 @@ struct 结构_控制面板快照 {
     std::int64_t 自我安全值 = 0;
     std::int64_t 自我服务值 = 0;
     std::int64_t 自我风险安全值 = 0;
-    std::int64_t 自我待学习方法数量 = 0;
+    std::int64_t 自我待处理方法数量 = 0;
     std::int64_t 自我可用方法数量 = 0;
     std::uint64_t 自我Tick计数 = 0;
     std::uint64_t 自我线程累计故障次数 = 0;
@@ -122,27 +122,27 @@ struct 结构_控制面板快照 {
     std::string 任务管理最近总控结果{};
     std::string 任务管理最近恢复摘要{};
 
-    std::size_t 学习任务总数 = 0;
-    std::size_t 学习任务活跃数 = 0;
-    std::size_t 学习任务可调度数 = 0;
-    std::size_t 学习恢复请求数 = 0;
-    std::size_t 学习因兜底切换进入就绪数 = 0;
-    std::size_t 学习因兜底切换进入采样数 = 0;
-    bool 学习应触发学习 = false;
-    bool 学习应申请重试恢复 = false;
-    bool 学习应申请收束恢复 = false;
-    std::string 学习当前阶段{};
-    std::string 学习当前状态{};
-    std::string 学习当前任务标题{};
-    std::string 学习当前方法标题{};
-    std::string 学习调度摘要{};
-    std::string 学习最近摘要{};
-    std::string 学习最近失败摘要{};
-    std::string 学习最近反馈摘要{};
-    std::string 学习最近回流摘要{};
-    std::string 学习固定机制观察摘要{};
-    std::string 学习首个兜底切换就绪摘要{};
-    std::string 学习首个兜底切换采样摘要{};
+    std::size_t 缺口需求总数 = 0;
+    std::size_t 缺口需求活跃数 = 0;
+    std::size_t 缺口需求可调度数 = 0;
+    std::size_t 缺口恢复请求数 = 0;
+    std::size_t 缺口因兜底切换进入就绪数 = 0;
+    std::size_t 缺口因兜底切换进入采样数 = 0;
+    bool 应触发缺口承接 = false;
+    bool 缺口应申请重试恢复 = false;
+    bool 缺口应申请收束恢复 = false;
+    std::string 缺口当前阶段{};
+    std::string 缺口当前状态{};
+    std::string 缺口当前任务标题{};
+    std::string 缺口当前方法标题{};
+    std::string 缺口调度摘要{};
+    std::string 缺口最近摘要{};
+    std::string 缺口最近失败摘要{};
+    std::string 缺口最近反馈摘要{};
+    std::string 缺口最近回流摘要{};
+    std::string 缺口固定机制观察摘要{};
+    std::string 缺口首个兜底切换就绪摘要{};
+    std::string 缺口首个兜底切换采样摘要{};
 
     结构_控制面板树节点 线程状态树根{};
     结构_控制面板树节点 世界树根{};
@@ -156,7 +156,7 @@ enum class 枚举_控制面板命令 {
     无 = 0,
     输出摘要 = 1,
     输出任务管理摘要 = 2,
-    输出学习摘要 = 3,
+    输出缺口摘要 = 3,
     输出历史宿主残留摘要 = 4,
     归档历史宿主残留 = 5,
     清理历史宿主残留 = 6,
@@ -177,7 +177,7 @@ std::string 渲染任务管理摘要(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限 = 12);
 
-std::string 渲染学习摘要(
+std::string 渲染缺口摘要(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限 = 12);
 

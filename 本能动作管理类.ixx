@@ -14,6 +14,7 @@ module;
 #include "基础信息节点类型.h"
 #include "本能方法类.h"
 #include "方法类.h"
+#include "方法虚拟存在服务类.h"
 #include "世界树类.h"
 #include "语素类.h"
 #include "语素节点类型.h"
@@ -101,12 +102,9 @@ inline const char* 本能动作运行结果语义_按码(std::int64_t 运行码)
     case 本能动作错误_动作入口不归本类执行: return "动作入口不归本类执行";
     case 本能动作错误_输入参数不满足: return "输入参数不满足";
     case 本能方法结果_任务筹办已建立方法头待重入: return "任务筹办待重入";
-    case 本能方法结果_任务筹办已激活学习任务: return "任务筹办已激活学习";
     case 本能方法结果_任务执行一步已建立方法头待重入: return "任务执行一步待重入";
-    case 本能方法结果_任务执行一步已激活学习任务: return "任务执行一步已激活学习";
-    case 本能方法结果_学习任务已建立任务头待重入: return "学习任务待重入";
     case 本能方法结果_任务缺条件需自我线程: return "任务缺条件";
-    case 本能方法结果_任务缺方法需任务管理任务: return "任务缺方法";
+    case 本能方法结果_任务形成方法结构缺口: return "任务缺方法";
     default: return 运行码 < 0 ? "运行失败" : "运行成功";
     }
 }
@@ -137,7 +135,7 @@ inline const char* 本能动作运行结果语义_按码(std::int64_t 运行码)
         if (auto* 方法虚拟存在 = 方法首节点->主信息.方法虚拟存在.指针) {
             return reinterpret_cast<基础信息节点类*>(方法虚拟存在);
         }
-        if (auto* 方法虚拟存在 = 方法类::取或创建_方法虚拟存在(方法首节点, nullptr, now)) {
+        if (auto* 方法虚拟存在 = 方法虚拟存在服务类::取或创建方法虚拟存在(方法首节点, nullptr, now)) {
             return reinterpret_cast<基础信息节点类*>(方法虚拟存在);
         }
     }

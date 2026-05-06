@@ -56,7 +56,6 @@ public:
     struct 结构_根任务权重 {
         std::int64_t 安全 = 10000;
         std::int64_t 服务 = 10000;
-        std::int64_t 学习 = 5000;
     };
 
 public:
@@ -219,11 +218,6 @@ public:
         时间戳 now = 结构体_时间戳::当前_微秒(),
         const std::string& 调用点 = "自我类::应用安全服务闭环服务推进"
     ) noexcept;
-    bool 应用学习闭环维持(
-        时间戳 now = 结构体_时间戳::当前_微秒(),
-        const std::string& 调用点 = "自我类::应用学习闭环维持"
-    ) noexcept;
-
     bool 应用服务归零待机保护(
         时间戳 now = 结构体_时间戳::当前_微秒(),
         const std::string& 调用点 = "自我类::应用服务归零待机保护"
@@ -260,20 +254,20 @@ public:
         时间戳 now = 结构体_时间戳::当前_微秒(),
         const std::string& 调用点 = "自我类::应用风险安全回归"
     ) noexcept;
-    bool 更新待学习方法数量(
+    bool 更新待处理方法数量(
         I64 数量,
         时间戳 now = 结构体_时间戳::当前_微秒(),
-        const std::string& 调用点 = "自我类::更新待学习方法数量"
+        const std::string& 调用点 = "自我类::更新待处理方法数量"
     ) noexcept;
     bool 增加可用方法数量(
         I64 增量 = 1,
         时间戳 now = 结构体_时间戳::当前_微秒(),
         const std::string& 调用点 = "自我类::增加可用方法数量"
     ) noexcept;
-    bool 更新尝试学习状态(
-        bool 正在尝试学习,
+    bool 更新方法补齐状态(
+        bool 正在方法补齐,
         时间戳 now = 结构体_时间戳::当前_微秒(),
-        const std::string& 调用点 = "自我类::更新尝试学习状态"
+        const std::string& 调用点 = "自我类::更新方法补齐状态"
     ) noexcept;
 
     结构_根任务权重& 根任务权重() noexcept;

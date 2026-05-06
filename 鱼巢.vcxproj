@@ -148,6 +148,7 @@
     <ClCompile Include="状态类.cpp" />
     <ClCompile Include="动态类.cpp" />
     <ClCompile Include="方法类.cpp" />
+    <ClCompile Include="方法虚拟存在服务类.cpp" />
     <ClCompile Include="本能动作类.ixx" />
     <ClCompile Include="本能动作管理类.ixx" />
     <ClCompile Include="动作线程类.ixx" />
@@ -162,22 +163,11 @@
     <ClCompile Include="需求类.cpp" />
     <ClCompile Include="自我特征定义.cpp" />
     <ClCompile Include="本能方法类.cpp" />
-    <ClCompile Include="学习任务模块.ixx" />
-    <ClCompile Include="学习任务模块.cpp" />
     <ClCompile Include="任务类.cpp" />
-    <ClCompile Include="学习对象适配器.ixx" />
-    <ClCompile Include="学习对象适配器.cpp" />
-    <ClCompile Include="学习调度模块.ixx" />
-    <ClCompile Include="学习调度模块.cpp" />
-    <ClCompile Include="学习执行模块.ixx" />
-    <ClCompile Include="学习执行模块.cpp" />
     <ClCompile Include="自我动作实现模块.ixx" />
     <ClCompile Include="自我初始化模块.cpp" />
-    <ClCompile Include="任务管理最小原语模块.cpp" />
-    <ClCompile Include="任务管理任务模块.消息协议.ixx" />
-    <ClCompile Include="任务管理任务模块.ixx" />
-    <ClCompile Include="任务管理任务模块.impl.cpp" />
-    <ClCompile Include="任务模块.最小回写器.cpp" />
+    <ClCompile Include="任务模块.工作线程消息协议.ixx" />
+    <ClCompile Include="任务模块.治理协议.ixx" />
     <ClCompile Include="自我线程模块.ixx" />
     <ClCompile Include="自我线程模块.impl.cpp" />
     <ClCompile Include="自检线程模块.ixx" />
@@ -189,7 +179,6 @@
     <ClCompile Include="任务模块.ixx" />
     <ClCompile Include="任务模块.实体.ixx" />
     <ClCompile Include="任务模块.工作线程协议.ixx" />
-    <ClCompile Include="任务模块.管理任务.ixx" />
     <ClCompile Include="任务模块.管理工作线程.ixx" />
     <ClCompile Include="自我模块.特征定义.ixx" />
     <ClCompile Include="自我模块.初始化.ixx" />
@@ -199,7 +188,7 @@
     <ClCompile Include="自我_固定机制模块.ixx" />
     <ClCompile Include="自我_恢复快照模块.ixx" />
     <ClCompile Include="自我_结果治理模块.ixx" />
-    <ClCompile Include="自我_学习承接模块.ixx" />
+    <ClCompile Include="自我_缺口承接模块.ixx" />
     <ClCompile Include="自我_主循环治理模块.ixx" />
     <ClCompile Include="自我_治理记忆模块.ixx" />
     <ClCompile Include="自我_执行桥模块.ixx" />
@@ -207,7 +196,6 @@
     <ClCompile Include="自我线程模块.消息路由.ixx" />
     <ClCompile Include="自我线程模块.消息处理器.ixx" />
     <ClCompile Include="自我线程模块.消息批次执行器.ixx" />
-    <ClCompile Include="任务模块.最小回写器.ixx" />
     <ClCompile Include="自我类.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -240,6 +228,7 @@
     <ClInclude Include="任务主信息类.h" />
     <ClInclude Include="方法主信息类.h" />
     <ClInclude Include="方法类.h" />
+    <ClInclude Include="方法虚拟存在服务类.h" />
     <ClInclude Include="语素节点类型.h" />
     <ClInclude Include="语素主信息类.h" />
     <ClInclude Include="语素类.h" />
@@ -247,7 +236,6 @@
     <ClInclude Include="语言主信息类.h" />
     <ClInclude Include="语言类.h" />
     <ClInclude Include="本能方法类.h" />
-    <ClInclude Include="任务管理最小原语模块.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="语素主信息类.cpp" />

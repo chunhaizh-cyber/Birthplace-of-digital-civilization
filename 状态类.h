@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -32,6 +33,19 @@ struct 结构_最近两次I64状态方向结果 {
     I64 上次值 = 0;
     时间戳 最新时间 = 0;
     时间戳 上次时间 = 0;
+};
+
+struct 结构_状态清理问题快照 {
+    bool 需要自检需求 = false;
+    std::uintptr_t 场景指针 = 0;
+    std::string 场景主键{};
+    std::size_t 活动状态数量 = 0;
+    std::size_t 活动状态上限 = 0;
+    std::size_t 目标清理数量 = 0;
+    std::size_t 已清理数量 = 0;
+    std::size_t 被引用状态数量 = 0;
+    时间戳 记录时间 = 0;
+    std::string 摘要{};
 };
 
 class 状态类 {
@@ -157,6 +171,8 @@ public:
         状态节点类* 新状态,
         std::size_t 最大清理数量 = 0
     );
+    结构_状态清理问题快照 读取最近清理问题快照() const;
+    void 清除最近清理问题快照() noexcept;
     结构_最近两次I64状态方向结果 比较最近两次I64状态方向(
         场景节点类* 场景,
         枚举_状态域 状态域,
@@ -174,4 +190,6 @@ private:
 
 private:
     基础信息类* 基础信息_ = nullptr;
+    mutable std::mutex 清理问题锁_{};
+    结构_状态清理问题快照 最近清理问题_{};
 };

@@ -13,10 +13,11 @@ module;
 #include <vector>
 #include "基础数据类型.h"
 #include "需求类.h"
+#include "任务类.h"
 export module 自我线程模块;
 
 import 自我模块;
-import 任务管理任务模块;
+import 任务模块.治理协议;
 import 任务模块.实体;
 import 任务模块.管理工作线程;
 import 任务模块.运行包;
@@ -55,7 +56,7 @@ export enum class 枚举_自我线程最终去向 : std::uint8_t {
     未定义 = 0,
     继续提交 = 1,
     回到重筹办 = 2,
-    转入学习 = 3,
+    转入缺口承接 = 3,
     进入收束 = 4,
     待机 = 5,
     停止 = 6,
@@ -330,7 +331,7 @@ public:
         bool 允许任务入口实例化 = false;
         bool 允许工作线程推进 = false;
         bool 治理桥允许进入执行链 = false;
-        bool 治理桥要求触发学习 = false;
+        bool 治理桥要求触发缺口承接 = false;
         bool 治理桥要求进入等待链 = false;
         bool 治理桥要求停止 = false;
         std::size_t 来源需求候选数 = 0;
@@ -436,7 +437,7 @@ public:
         std::string 父任务局部更新摘要{};
         std::string 结算结论摘要{};
         std::string 恢复建议摘要{};
-        std::string 学习摘要{};
+        std::string 缺口摘要{};
         std::string 故障摘要{};
         std::string 下一轮唤醒原因{};
         std::string 摘要{};
@@ -450,7 +451,7 @@ public:
         std::string 摘要{};
     };
 
-    struct 结构_学习触发快照 {
+    struct 结构_缺口触发快照 {
         时间戳 发生时间 = 0;
         std::uint64_t 锚点主键 = 0;
         std::uint64_t 来源任务主键 = 0;
@@ -497,13 +498,13 @@ public:
         std::string 摘要{};
     };
 
-    struct 结构_学习恢复接口快照 {
+    struct 结构_缺口恢复接口快照 {
         bool 已生成 = false;
-        bool 应触发学习 = false;
+        bool 应触发缺口承接 = false;
         bool 应申请重试恢复 = false;
         bool 应申请收束恢复 = false;
         bool 应申请低频整理 = false;
-        std::size_t 学习触发数 = 0;
+        std::size_t 缺口触发数 = 0;
         std::string 恢复请求摘要{};
         std::string 整理请求摘要{};
         std::string 摘要{};
@@ -528,11 +529,11 @@ public:
         std::string 固定机制摘要{};
         std::string 下一轮唤醒原因{};
         结构_双值结算账快照 双值结算账{};
-        结构_学习恢复接口快照 学习恢复接口{};
+        结构_缺口恢复接口快照 缺口恢复接口{};
         std::string 摘要{};
         std::vector<结构_回流结算快照> 回流结算列表{};
         std::vector<结构_否定项快照> 否定项列表{};
-        std::vector<结构_学习触发快照> 学习触发列表{};
+        std::vector<结构_缺口触发快照> 缺口触发列表{};
         std::vector<结构_关键中间状态快照> 关键中间状态列表{};
         std::vector<结构_关键中间状态分组快照> 关键中间状态分组列表{};
     };
@@ -574,9 +575,25 @@ public:
     结构_主派发输出快照 读取最近主派发输出快照() const;
     结构_队列治理输出快照 读取最近队列治理输出快照() const;
     结构_结算治理输出快照 读取最近结算治理输出快照() const;
+    结构_结算治理输出快照 处理任务满足反馈(
+        任务类::节点类* 任务节点,
+        I64 本次安全满足量 = 0,
+        I64 本次服务满足量 = 0,
+        I64 安全累计比例_百万分比 = -1,
+        I64 服务累计比例_百万分比 = -1,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我线程类::处理任务满足反馈");
+    结构_结算治理输出快照 处理任务满足反馈(
+        const std::string& 任务主键,
+        I64 本次安全满足量 = 0,
+        I64 本次服务满足量 = 0,
+        I64 安全累计比例_百万分比 = -1,
+        I64 服务累计比例_百万分比 = -1,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "自我线程类::处理任务满足反馈");
     结构_双值结算账快照 读取最近双值结算账快照() const;
-    结构_学习恢复接口快照 读取最近学习恢复接口快照() const;
-    std::vector<结构_学习恢复接口快照::结构_恢复请求分组快照> 读取最近恢复请求分组快照() const;
+    结构_缺口恢复接口快照 读取最近缺口恢复接口快照() const;
+    std::vector<结构_缺口恢复接口快照::结构_恢复请求分组快照> 读取最近恢复请求分组快照() const;
     std::vector<结构_回流结算快照> 读取最近回流结算列表快照() const;
     std::vector<结构_关键中间状态分组快照> 读取最近关键中间状态分组快照() const;
     结构_自我线程配置& 配置() noexcept;
@@ -646,7 +663,7 @@ private:
         bool 允许任务入口实例化 = false;
         bool 已生成治理桥预判 = false;
         bool 治理桥允许进入执行链 = false;
-        bool 治理桥要求触发学习 = false;
+        bool 治理桥要求触发缺口承接 = false;
         bool 治理桥要求进入等待链 = false;
         bool 治理桥要求停止 = false;
         bool 命中绝对边界优先层 = false;
@@ -864,7 +881,7 @@ private:
         std::string 恢复建议摘要{};
         std::string 下一轮唤醒原因{};
         std::string 结算结论摘要{};
-        std::string 学习摘要{};
+        std::string 缺口摘要{};
         std::string 故障摘要{};
         std::string 摘要{};
     };
@@ -878,7 +895,7 @@ private:
         std::string 摘要{};
     };
 
-    struct 结构_学习触发项 {
+    struct 结构_缺口触发项 {
         时间戳 发生时间 = 0;
         std::uint64_t 锚点主键 = 0;
         std::uint64_t 来源任务主键 = 0;
@@ -907,16 +924,16 @@ private:
         bool 是否有效推进 = false;
         bool 已执行固定机制 = false;
         bool 已生成否定项候选 = false;
-        bool 已触发学习 = false;
+        bool 已触发缺口承接 = false;
         bool 已生成故障收口摘要 = false;
         std::size_t 新增否定项候选数 = 0;
-        std::size_t 新增学习触发数 = 0;
+        std::size_t 新增缺口触发数 = 0;
         std::size_t 新增关键中间状态沉淀数 = 0;
         I64 服务净变化 = 0;
         I64 安全净变化 = 0;
         std::string 固定机制摘要{};
         std::string 否定项摘要{};
-        std::string 学习摘要{};
+        std::string 缺口摘要{};
         std::string 故障收口摘要{};
         std::string 下一轮唤醒原因{};
         std::string 摘要{};
@@ -1019,7 +1036,7 @@ private:
     std::deque<结构_结果路由动作> 回流队列_{};
     std::deque<结构_回流结算草稿> 回流结算包草稿池_{};
     std::deque<结构_否定项候选> 否定项候选池_{};
-    std::deque<结构_学习触发项> 学习候选池_{};
+    std::deque<结构_缺口触发项> 缺口候选池_{};
     std::deque<结构_关键中间状态沉淀项> 关键中间状态池_{};
     std::vector<结构_需求列表项> 服务优先需求列表_{};
     std::vector<结构_需求列表项> 安全优先需求列表_{};
