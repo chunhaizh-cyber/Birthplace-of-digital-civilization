@@ -9,6 +9,7 @@ module;
 #include "本能方法类.h"
 #include "世界树类.h"
 #include "方法类.h"
+#include "方法虚拟存在服务类.h"
 #include "语素类.h"
 
 export module 自我动作实现模块;
@@ -1283,7 +1284,7 @@ namespace {
     {
         return 方法首节点
             && 特征类型
-            && 方法类::记录方法虚拟存在特征(
+            && 方法虚拟存在服务类::记录方法虚拟存在特征(
                 方法首节点,
                 特征类型,
                 特征值{ 值 },
@@ -1492,7 +1493,7 @@ namespace {
         if (!方法首节点) return nullptr;
         return 方法首节点->主信息.方法虚拟存在.指针
             ? 方法首节点->主信息.方法虚拟存在.指针
-            : 方法类::取或创建_方法虚拟存在(方法首节点, nullptr, now);
+            : 方法虚拟存在服务类::取或创建方法虚拟存在(方法首节点, nullptr, now);
     }
 
     inline 特征节点类* 运行参数根(
@@ -1597,7 +1598,7 @@ namespace {
         时间戳 now) noexcept
     {
         if (!方法首节点 || !目标特征类型) return false;
-        (void)方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        (void)方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         bool ok = true;
 
         ok = 声明形参规格(方法首节点, 特征_目标现实场景(), 值类型_场景指针(), 值_来源_输入现实场景包(), true, now) && ok;
@@ -1636,7 +1637,7 @@ namespace {
         时间戳 now) noexcept
     {
         if (!方法首节点) return false;
-        (void)方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        (void)方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         bool ok = true;
 
         ok = 声明形参规格(方法首节点, 特征_目标现实场景(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
@@ -2163,7 +2164,7 @@ namespace {
         if (!方法首节点) return false;
         if (now == 0) now = 结构体_时间戳::当前_微秒();
 
-        bool 已写入 = 方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        bool 已写入 = 方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         已写入 = 写入I64(方法首节点, 特征_条件描述状态(), 1, now) || 已写入;
         已写入 = 写入I64(方法首节点, 特征_条件描述时间(), static_cast<I64>(now), now) || 已写入;
         已写入 = 写入I64(方法首节点, 特征_条件特征类型数量(), 0, now) || 已写入;
@@ -2217,7 +2218,7 @@ namespace {
             now);
         if (!新方法) return nullptr;
 
-        (void)方法类::补齐本能方法首节点(新方法, *元信息, nullptr, now);
+        (void)本能方法类::补齐本能方法首节点(新方法, *元信息, nullptr, now);
         return 新方法;
     }
 
@@ -3767,7 +3768,7 @@ namespace {
             return 0;
         }
         const I64 能力值 = 方法首节点->主信息.动作句柄.本能ID;
-        return 方法类::是有效本能方法能力值(能力值) ? 能力值 : 0;
+        return 本能方法类::是有效本能方法能力值(能力值) ? 能力值 : 0;
     }
 
     inline bool 方法匹配优于(
@@ -3800,7 +3801,7 @@ namespace {
         时间戳 now) noexcept
     {
         if (!方法首节点 || !查找方法存在) return false;
-        (void)方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        (void)方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         bool ok = true;
 
         ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
@@ -4014,7 +4015,7 @@ namespace {
         时间戳 now) noexcept
     {
         if (!方法首节点 || !方法存在) return false;
-        (void)方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        (void)方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         bool ok = true;
 
         ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
@@ -4497,7 +4498,7 @@ export namespace 自我动作实现模块 {
         时间戳 now) noexcept
     {
         if (!方法首节点 || !方法存在) return false;
-        (void)方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        (void)方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         bool ok = true;
         ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
         ok = 声明形参规格(方法首节点, 特征_方法配对结果(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
@@ -4848,7 +4849,7 @@ export namespace 自我动作实现模块 {
         时间戳 now) noexcept
     {
         if (!方法首节点 || !方法存在) return false;
-        (void)方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        (void)方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         bool ok = true;
         ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
         ok = 声明形参规格(方法首节点, 特征_目标抽象特征(), 值类型_特征类型指针(), 值_来源_输入条件包(), true, now) && ok;
@@ -4936,7 +4937,7 @@ export namespace 自我动作实现模块 {
         时间戳 now) noexcept
     {
         if (!方法首节点 || !方法存在) return false;
-        (void)方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        (void)方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         bool ok = true;
         ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
         ok = 声明形参规格(方法首节点, 特征_目标方法头节点(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
@@ -5518,7 +5519,7 @@ export namespace 自我动作实现模块 {
         时间戳 now) noexcept
     {
         if (!方法首节点 || !方法存在) return false;
-        (void)方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        (void)方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         bool ok = true;
         ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
         ok = 声明形参规格(方法首节点, 特征_目标方法头节点(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
@@ -5543,7 +5544,7 @@ export namespace 自我动作实现模块 {
         时间戳 now) noexcept
     {
         if (!方法首节点 || !方法存在) return false;
-        (void)方法类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
+        (void)方法虚拟存在服务类::初始化方法虚拟存在信息(方法首节点, nullptr, now);
         bool ok = true;
         ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
         ok = 声明形参规格(方法首节点, 特征_目标方法头节点(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;

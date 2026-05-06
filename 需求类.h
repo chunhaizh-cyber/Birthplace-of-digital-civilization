@@ -33,16 +33,11 @@ struct 结构_需求树更新指令 {
     std::string 需求状态主键{};
     std::uintptr_t 当前状态指针 = 0;
     std::string 当前状态主键{};
-    std::uintptr_t 来源任务头指针 = 0;
-    std::string 来源任务头主键{};
-    std::uintptr_t 来源步骤指针 = 0;
-    std::string 来源步骤主键{};
     std::string 来源方法主键{};
     std::string 派生需求类型{};
     std::string 方法需求位{};
     std::string 本能能力缺口类型{};
     std::string 主观察特征{};
-    枚举_需求任务挂接方式 任务挂接方式 = 枚举_需求任务挂接方式::未定义;
 };
 
 class 需求类 : public 链表模板<需求主信息类> {

@@ -73,6 +73,24 @@ public:
         时间戳 now = 结构体_时间戳::当前_微秒());
 
     static bool 任务状态已终结(枚举_任务状态 状态) noexcept;
+    static 枚举_任务状态 读取任务状态(
+        const 节点类* 任务节点,
+        枚举_任务状态 默认值 = 枚举_任务状态::未定义,
+        场景节点类* 承载场景 = nullptr) noexcept;
+    static bool 写入任务状态(
+        节点类* 任务节点,
+        枚举_任务状态 值,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+    static 枚举_任务节点种类 读取任务节点种类(
+        const 节点类* 任务节点,
+        枚举_任务节点种类 默认值 = 枚举_任务节点种类::未定义,
+        场景节点类* 承载场景 = nullptr) noexcept;
+    static bool 写入任务节点种类(
+        节点类* 任务节点,
+        枚举_任务节点种类 值,
+        场景节点类* 承载场景 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
     static bool 任务允许派发(const 节点类* 任务节点) noexcept;
     static void 确保任务初始状态(节点类* 任务节点) noexcept;
     static void 标记任务待重筹办(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
@@ -135,6 +153,10 @@ public:
     static bool 写入任务局部优先级偏移(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
     static I64 读取任务调度优先级(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
     static bool 写入任务调度优先级(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务已折算安全值(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务已折算安全值(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
+    static I64 读取任务已折算服务值(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
+    static bool 写入任务已折算服务值(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
     static I64 读取任务运行次数(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);
     static bool 写入任务运行次数(节点类* 任务头结点, I64 值, 场景节点类* 承载场景 = nullptr, 时间戳 now = 结构体_时间戳::当前_微秒());
     static I64 读取任务成功次数(const 节点类* 任务头结点, I64 默认值 = 0, 场景节点类* 承载场景 = nullptr);

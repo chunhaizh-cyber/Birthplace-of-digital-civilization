@@ -9,6 +9,7 @@
 #include "世界树类.h"
 #include "语素类.h"
 #include "本能方法类.h"
+#include "方法虚拟存在服务类.h"
 
 import 二次特征应用模块;
 import 自我模块.特征定义;
@@ -898,7 +899,7 @@ namespace {
             return nullptr;
         }
 
-        auto* 方法虚拟存在 = 方法类::取或创建_方法虚拟存在(
+        auto* 方法虚拟存在 = 方法虚拟存在服务类::取或创建方法虚拟存在(
             方法首节点,
             宿主存在,
             now,

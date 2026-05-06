@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "方法类.h"
+
 class 自我类;
 
 enum class 枚举_本能方法ID : std::uint32_t {
@@ -86,9 +88,32 @@ struct 结构_本能方法元信息 {
 
 class 本能方法类 {
 public:
+    using 方法节点类 = 方法类::节点类;
+
     static const 结构_本能方法元信息* 查询元信息(枚举_本能方法ID 本能ID) noexcept;
     static std::vector<结构_本能方法元信息> 枚举默认自我本能方法();
     static std::vector<枚举_本能方法ID> 枚举默认自我本能方法ID();
+
+    static 方法节点类* 查找或创建本能方法首节点(
+        存在节点类* 宿主存在,
+        枚举_本能方法ID 本能ID,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "本能方法类::查找或创建本能方法首节点");
+
+    static bool 是有效本能方法能力值(I64 自我能力值) noexcept;
+
+    static 方法节点类* 取或确保本能方法首节点_按能力值(
+        存在节点类* 宿主存在,
+        I64 自我能力值,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "本能方法类::取或确保本能方法首节点_按能力值");
+
+    static bool 补齐本能方法首节点(
+        方法节点类* 方法首节点,
+        const 结构_本能方法元信息& 元信息,
+        存在节点类* 宿主存在 = nullptr,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        const std::string& 调用点 = "本能方法类::补齐本能方法首节点");
 
     static std::size_t 注册默认自我本能方法集(
         自我类& 自我对象,

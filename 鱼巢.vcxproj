@@ -148,6 +148,7 @@
     <ClCompile Include="状态类.cpp" />
     <ClCompile Include="动态类.cpp" />
     <ClCompile Include="方法类.cpp" />
+    <ClCompile Include="方法虚拟存在服务类.cpp" />
     <ClCompile Include="本能动作类.ixx" />
     <ClCompile Include="本能动作管理类.ixx" />
     <ClCompile Include="动作线程类.ixx" />
@@ -227,6 +228,7 @@
     <ClInclude Include="任务主信息类.h" />
     <ClInclude Include="方法主信息类.h" />
     <ClInclude Include="方法类.h" />
+    <ClInclude Include="方法虚拟存在服务类.h" />
     <ClInclude Include="语素节点类型.h" />
     <ClInclude Include="语素主信息类.h" />
     <ClInclude Include="语素类.h" />

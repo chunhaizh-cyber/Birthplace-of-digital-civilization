@@ -14,6 +14,7 @@ module;
 #include "基础信息节点类型.h"
 #include "本能方法类.h"
 #include "方法类.h"
+#include "方法虚拟存在服务类.h"
 #include "世界树类.h"
 #include "语素类.h"
 #include "语素节点类型.h"
@@ -134,7 +135,7 @@ inline const char* 本能动作运行结果语义_按码(std::int64_t 运行码)
         if (auto* 方法虚拟存在 = 方法首节点->主信息.方法虚拟存在.指针) {
             return reinterpret_cast<基础信息节点类*>(方法虚拟存在);
         }
-        if (auto* 方法虚拟存在 = 方法类::取或创建_方法虚拟存在(方法首节点, nullptr, now)) {
+        if (auto* 方法虚拟存在 = 方法虚拟存在服务类::取或创建方法虚拟存在(方法首节点, nullptr, now)) {
             return reinterpret_cast<基础信息节点类*>(方法虚拟存在);
         }
     }

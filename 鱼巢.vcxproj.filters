@@ -75,6 +75,9 @@
     <ClCompile Include="方法类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="方法虚拟存在服务类.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="本能动作类.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -240,6 +243,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="方法类.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="方法虚拟存在服务类.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="语素节点类型.h">
