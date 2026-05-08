@@ -33,7 +33,7 @@ export enum class 枚举_自检线程模式 : std::uint8_t {
 export struct 结构_自检线程配置 {
     std::chrono::milliseconds Tick间隔{500};
     std::chrono::milliseconds 方法结构检查间隔{5000};
-    std::chrono::milliseconds 方法稳定性检查间隔{15000};
+    std::chrono::milliseconds 方法运行账检查间隔{15000};
     std::chrono::milliseconds 方法补齐停滞检查间隔{20000};
     std::chrono::milliseconds 去重抑制间隔{300000};
     std::size_t 每轮提交上限 = 3;

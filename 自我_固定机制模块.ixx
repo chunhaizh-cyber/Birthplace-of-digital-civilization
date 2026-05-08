@@ -38,8 +38,7 @@ struct 结构_固定机制执行结果_最小_v0 {
 
 inline bool 应用服务归零待机保护_最小_v0(
     自我类& 自我对象,
-    时间戳 now = 0,
-    const std::string& 调用点 = "应用服务归零待机保护_最小_v0") noexcept
+    时间戳 now = 0) noexcept
 {
     if (now == 0) {
         now = 结构体_时间戳::当前_微秒();
@@ -50,8 +49,7 @@ inline bool 应用服务归零待机保护_最小_v0(
 inline bool 应用定时衰减服务值_最小_v0(
     自我类& 自我对象,
     I64 delta = 0,
-    时间戳 now = 0,
-    const std::string& 调用点 = "应用定时衰减服务值_最小_v0") noexcept
+    时间戳 now = 0) noexcept
 {
     if (now == 0) {
         now = 结构体_时间戳::当前_微秒();
@@ -61,8 +59,7 @@ inline bool 应用定时衰减服务值_最小_v0(
 
 inline bool 应用按双值重算服务衰减步长_最小_v0(
     自我类& 自我对象,
-    时间戳 now = 0,
-    const std::string& 调用点 = "应用按双值重算服务衰减步长_最小_v0") noexcept
+    时间戳 now = 0) noexcept
 {
     if (now == 0) {
         now = 结构体_时间戳::当前_微秒();
@@ -72,8 +69,7 @@ inline bool 应用按双值重算服务衰减步长_最小_v0(
 
 inline bool 应用按服务值重算安全增加步长_最小_v0(
     自我类& 自我对象,
-    时间戳 now = 0,
-    const std::string& 调用点 = "应用按服务值重算安全增加步长_最小_v0") noexcept
+    时间戳 now = 0) noexcept
 {
     if (now == 0) {
         now = 结构体_时间戳::当前_微秒();
@@ -83,8 +79,7 @@ inline bool 应用按服务值重算安全增加步长_最小_v0(
 
 inline bool 应用按服务值重算安全减少步长_最小_v0(
     自我类& 自我对象,
-    时间戳 now = 0,
-    const std::string& 调用点 = "应用按服务值重算安全减少步长_最小_v0") noexcept
+    时间戳 now = 0) noexcept
 {
     if (now == 0) {
         now = 结构体_时间戳::当前_微秒();
@@ -95,8 +90,7 @@ inline bool 应用按服务值重算安全减少步长_最小_v0(
 inline bool 应用安全低位回升_最小_v0(
     自我类& 自我对象,
     I64 delta = 0,
-    时间戳 now = 0,
-    const std::string& 调用点 = "应用安全低位回升_最小_v0") noexcept
+    时间戳 now = 0) noexcept
 {
     if (now == 0) {
         now = 结构体_时间戳::当前_微秒();
@@ -107,8 +101,7 @@ inline bool 应用安全低位回升_最小_v0(
 inline bool 应用安全高位回落_最小_v0(
     自我类& 自我对象,
     I64 delta = 0,
-    时间戳 now = 0,
-    const std::string& 调用点 = "应用安全高位回落_最小_v0") noexcept
+    时间戳 now = 0) noexcept
 {
     if (now == 0) {
         now = 结构体_时间戳::当前_微秒();
@@ -119,8 +112,7 @@ inline bool 应用安全高位回落_最小_v0(
 inline bool 应用风险安全回归_最小_v0(
     自我类& 自我对象,
     I64 delta = 1,
-    时间戳 now = 0,
-    const std::string& 调用点 = "应用风险安全回归_最小_v0") noexcept
+    时间戳 now = 0) noexcept
 {
     if (now == 0) {
         now = 结构体_时间戳::当前_微秒();
@@ -134,8 +126,7 @@ inline 结构_固定机制执行结果_最小_v0 执行固定机制一步_最小
     I64 安全低位回升delta = 0,
     I64 安全高位回落delta = 0,
     I64 风险安全回归delta = 1,
-    时间戳 now = 0,
-    const std::string& 调用点 = "执行固定机制一步_最小_v0") noexcept
+    时间戳 now = 0) noexcept
 {
     if (now == 0) {
         now = 结构体_时间戳::当前_微秒();

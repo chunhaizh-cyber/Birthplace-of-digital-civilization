@@ -169,6 +169,8 @@
     <ClCompile Include="任务模块.工作线程消息协议.ixx" />
     <ClCompile Include="任务模块.治理协议.ixx" />
     <ClCompile Include="自我线程模块.ixx" />
+    <ClCompile Include="自我线程_消息邮箱模块.ixx" />
+    <ClCompile Include="自我线程_价值结算模块.ixx" />
     <ClCompile Include="自我线程模块.impl.cpp" />
     <ClCompile Include="自检线程模块.ixx" />
     <ClCompile Include="自检线程模块.impl.cpp" />

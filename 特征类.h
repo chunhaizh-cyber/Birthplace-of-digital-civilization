@@ -59,6 +59,15 @@ struct 特征比较方法结果 {
     I64 差值 = 0;
 };
 
+struct 结构_特征状态比较结果 {
+    bool 可比较 = false;
+    枚举_三向关系 关系 = 枚举_三向关系::等于;
+    const 词性节点类* 特征类型 = nullptr;
+    枚举_特征值比较模式 比较方式 = 枚举_特征值比较模式::相等;
+    I64 差值 = 0;
+    std::string 说明{};
+};
+
 struct 常用抽象特征初始化结果 {
     std::uint32_t 抽象特征数 = 0;
     std::uint32_t 区间状态数 = 0;
@@ -141,6 +150,9 @@ public:
         const 特征值& 右值,
         const 特征节点主信息类* 左特征主信息 = nullptr,
         const 特征节点主信息类* 右特征主信息 = nullptr) const;
+    结构_特征状态比较结果 比较状态(
+        const 状态节点类* 当前状态,
+        const 状态节点类* 目标状态) const;
     存在比较结果 比较特征集合(const 特征集合& A, const 特征集合& B, const 集合比较参数& 参数 = {}) const;
     std::string 生成度量签名(const 特征节点类* 节点) const;
 

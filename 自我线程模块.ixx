@@ -62,20 +62,8 @@ export enum class 枚举_自我线程最终去向 : std::uint8_t {
     停止 = 6,
 };
 
-export struct 结构_自我运行阶段事件 {
-    时间戳 时间 = 0;
-    枚举_自我线程运行阶段 阶段 = 枚举_自我线程运行阶段::未定义;
-    std::string 摘要{};
-    std::uintptr_t 自我存在 = 0;
-    std::uintptr_t 当前主需求 = 0;
-    std::uintptr_t 当前主任务 = 0;
-    std::uintptr_t 当前主方法 = 0;
-    std::uintptr_t 当前管理任务 = 0;
-};
-
 export struct 结构_自我线程配置 {
     std::chrono::microseconds Tick间隔{250000};
-    std::size_t 运行阶段事件保留上限 = 32;
 };
 
 export struct 结构_线程状态切换上报参数 {
@@ -425,7 +413,6 @@ public:
         std::uint64_t 包主键 = 0;
         std::uint64_t 任务根ID = 0;
         std::uint64_t 父任务主键 = 0;
-        std::uint64_t 结果节点主键 = 0;
         bool 已封口 = false;
         bool 是否有效推进 = false;
         bool 建议进入收束 = false;
@@ -547,11 +534,11 @@ public:
     自我线程类(自我线程类&&) = delete;
     自我线程类& operator=(自我线程类&&) = delete;
 
-    bool 自我初始化(const std::string& 调用点 = "自我线程类::自我初始化");
-    bool 启动(const std::string& 调用点 = "自我线程类::启动");
-    void 请求停止(const std::string& 调用点 = "自我线程类::请求停止");
-    void 等待停止(const std::string& 调用点 = "自我线程类::等待停止");
-    void 停止(const std::string& 调用点 = "自我线程类::停止");
+    bool 自我初始化();
+    bool 启动();
+    void 请求停止();
+    void 等待停止();
+    void 停止();
 
     bool 是否运行中() const noexcept;
     bool 是否初始化完成() const noexcept;
@@ -582,7 +569,7 @@ public:
         I64 安全累计比例_百万分比 = -1,
         I64 服务累计比例_百万分比 = -1,
         时间戳 now = 结构体_时间戳::当前_微秒(),
-        const std::string& 调用点 = "自我线程类::处理任务满足反馈");
+        const std::string& 反馈事件主键 = {});
     结构_结算治理输出快照 处理任务满足反馈(
         const std::string& 任务主键,
         I64 本次安全满足量 = 0,
@@ -590,7 +577,7 @@ public:
         I64 安全累计比例_百万分比 = -1,
         I64 服务累计比例_百万分比 = -1,
         时间戳 now = 结构体_时间戳::当前_微秒(),
-        const std::string& 调用点 = "自我线程类::处理任务满足反馈");
+        const std::string& 反馈事件主键 = {});
     结构_双值结算账快照 读取最近双值结算账快照() const;
     结构_缺口恢复接口快照 读取最近缺口恢复接口快照() const;
     std::vector<结构_缺口恢复接口快照::结构_恢复请求分组快照> 读取最近恢复请求分组快照() const;
@@ -867,7 +854,6 @@ private:
         std::uint64_t 包主键 = 0;
         std::uint64_t 任务根ID = 0;
         std::uint64_t 父任务主键 = 0;
-        std::uint64_t 结果节点主键 = 0;
         std::uintptr_t 父任务节点 = 0;
         std::uintptr_t 结果节点 = 0;
         bool 是否有效推进 = false;
@@ -974,14 +960,11 @@ private:
         const std::string& 来源主观察特征);
     friend bool 上报线程状态变化(
         const 自我线程消息协议::结构_线程状态变化消息段& 消息段,
-        const 结构_线程存在初始化参数* 线程存在初始化,
-        const std::string& 调用点);
+        const 结构_线程存在初始化参数* 线程存在初始化);
     friend bool 切换线程状态并上报(
-        const 结构_线程状态切换上报参数& 参数,
-        const std::string& 调用点);
+        const 结构_线程状态切换上报参数& 参数);
     friend bool 上报任务管理上行消息(
-        const 结构_任务管理上行消息& 消息,
-        const std::string& 调用点);
+        const 结构_任务管理上行消息& 消息);
     friend bool 投递自检报告消息(
         const 自我线程消息协议::结构_自检报告消息& 报告);
 
@@ -996,10 +979,6 @@ private:
     bool 投递治理消息(const 结构_治理消息& 消息);
     void 刷新初始化标记_已加锁() noexcept;
     void 刷新治理恢复事件镜像_已加锁() noexcept;
-    void 记录阶段事件_已加锁(
-        时间戳 now,
-        枚举_自我线程运行阶段 阶段,
-        const std::string& 摘要);
     void 故障收口_已加锁(时间戳 now, const std::string& 摘要);
 
 private:
@@ -1040,24 +1019,20 @@ private:
     std::deque<结构_关键中间状态沉淀项> 关键中间状态池_{};
     std::vector<结构_需求列表项> 服务优先需求列表_{};
     std::vector<结构_需求列表项> 安全优先需求列表_{};
-    std::vector<结构_自我运行阶段事件> 运行阶段事件_{};
     结构_循环结果 最近循环结果_{};
 };
 
 export 自我线程类& 获取全局自我线程() noexcept;
-export bool 初始化自我环境(const std::string& 调用点 = "初始化自我环境");
-export bool 启动自我线程(const std::string& 调用点 = "启动自我线程");
-export void 停止自我线程(const std::string& 调用点 = "停止自我线程");
+export bool 初始化自我环境();
+export bool 启动自我线程();
+export void 停止自我线程();
 export bool 上报线程状态变化(
     const 自我线程消息协议::结构_线程状态变化消息段& 消息段,
-    const 结构_线程存在初始化参数* 线程存在初始化 = nullptr,
-    const std::string& 调用点 = "上报线程状态变化");
+    const 结构_线程存在初始化参数* 线程存在初始化 = nullptr);
 export bool 切换线程状态并上报(
-    const 结构_线程状态切换上报参数& 参数,
-    const std::string& 调用点 = "切换线程状态并上报");
+    const 结构_线程状态切换上报参数& 参数);
 export bool 上报任务管理上行消息(
-    const 结构_任务管理上行消息& 消息,
-    const std::string& 调用点 = "上报任务管理上行消息");
+    const 结构_任务管理上行消息& 消息);
 export bool 投递自检报告消息(
     const 自我线程消息协议::结构_自检报告消息& 报告);
 export 自我线程类::结构_自我线程最小状态快照 读取自我线程最小状态快照();

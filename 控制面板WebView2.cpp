@@ -269,7 +269,7 @@ namespace {
     std::string 私有_生成页面HTML()
     {
         if (!自我.已初始化()) {
-            (void)初始化自我环境("控制面板WebView2/刷新");
+            (void)初始化自我环境();
         }
 
         const auto 快照 = 读取控制面板快照(10, 24);

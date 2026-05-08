@@ -52,7 +52,7 @@ public:
     static const 词性节点类* 类型_摘要_执行中任务数() noexcept;
     static const 词性节点类* 类型_摘要_等待任务数() noexcept;
     static const 词性节点类* 类型_摘要_方法头节点数() noexcept;
-    static const 词性节点类* 类型_摘要_方法结构缺口数() noexcept;
+    static const 词性节点类* 类型_摘要_方法补齐问题数() noexcept;
     static const 词性节点类* 类型_摘要_能力包缺失数() noexcept;
     static const 词性节点类* 类型_摘要_条件结果对缺失数() noexcept;
 
@@ -141,7 +141,6 @@ public:
     static const 词性节点类* 类型_任务管理_派生需求类型() noexcept;
     static const 词性节点类* 类型_任务管理_阻塞级别() noexcept;
     static const 词性节点类* 类型_任务管理_线程补充特征类型() noexcept;
-    static const 词性节点类* 类型_任务管理_任务挂接方式() noexcept;
     static const 词性节点类* 类型_任务管理_原语类型() noexcept;
     static const 词性节点类* 类型_任务管理_原语候选比较基准类型() noexcept;
     static const 词性节点类* 类型_任务管理_原语候选来源锚点类型() noexcept;

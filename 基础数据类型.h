@@ -32,6 +32,38 @@ struct I64区间 {
     static constexpr I64区间 点(std::int64_t v) noexcept { return I64区间{ v, v }; }
 };
 
+enum class 枚举_三向关系 : std::int8_t {
+    小于 = -1,
+    等于 = 0,
+    大于 = 1,
+};
+
+using 三向关系掩码 = std::uint8_t;
+
+inline constexpr 三向关系掩码 关系_小于 = 0b001;
+inline constexpr 三向关系掩码 关系_等于 = 0b010;
+inline constexpr 三向关系掩码 关系_大于 = 0b100;
+inline constexpr 三向关系掩码 关系_保持 = 关系_等于;
+inline constexpr 三向关系掩码 关系_改变 = 关系_小于 | 关系_大于;
+inline constexpr 三向关系掩码 关系_大于等于 = 关系_大于 | 关系_等于;
+inline constexpr 三向关系掩码 关系_小于等于 = 关系_小于 | 关系_等于;
+
+inline bool 三向关系被接受(
+    const 枚举_三向关系 关系,
+    const 三向关系掩码 掩码) noexcept
+{
+    switch (关系) {
+    case 枚举_三向关系::小于:
+        return (掩码 & 关系_小于) != 0;
+    case 枚举_三向关系::等于:
+        return (掩码 & 关系_等于) != 0;
+    case 枚举_三向关系::大于:
+        return (掩码 & 关系_大于) != 0;
+    default:
+        return false;
+    }
+}
+
 
 // ============================================================================
 // 通用小结构

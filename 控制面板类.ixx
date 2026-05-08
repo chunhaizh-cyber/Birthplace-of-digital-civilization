@@ -44,7 +44,6 @@ struct 结构_控制面板快照 {
     std::size_t 任务数 = 0;
     std::size_t 任务头节点数 = 0;
     std::size_t 任务步骤节点数 = 0;
-    std::size_t 任务结果节点数 = 0;
     std::size_t 任务其他节点数 = 0;
     std::size_t 任务状态未定义数 = 0;
     std::size_t 任务状态未启动数 = 0;
@@ -157,11 +156,8 @@ enum class 枚举_控制面板命令 {
     输出摘要 = 1,
     输出任务管理摘要 = 2,
     输出缺口摘要 = 3,
-    输出历史宿主残留摘要 = 4,
-    归档历史宿主残留 = 5,
-    清理历史宿主残留 = 6,
-    生成HTML = 7,
-    打开窗口 = 8,
+    生成HTML = 4,
+    打开窗口 = 5,
 };
 
 结构_控制面板快照 读取控制面板快照(
@@ -181,10 +177,6 @@ std::string 渲染缺口摘要(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限 = 12);
 
-std::string 渲染历史宿主残留摘要(
-    const 结构_控制面板快照& 快照,
-    std::size_t 列表预览上限 = 12);
-
 std::string 生成控制面板HTML(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限 = 12);
@@ -199,12 +191,6 @@ std::string 读取控制面板节点详情JSON(
     std::string_view 展开类型,
     std::uintptr_t 节点指针,
     std::size_t 树广度上限 = 16);
-
-bool 归档历史宿主残留快照(
-    std::filesystem::path* 输出路径 = nullptr,
-    std::string* 摘要输出 = nullptr);
-
-bool 清理历史宿主残留(std::string* 摘要输出 = nullptr);
 
 bool 保存控制面板HTML(
     const std::filesystem::path& 输出路径,
