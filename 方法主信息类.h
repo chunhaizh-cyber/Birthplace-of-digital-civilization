@@ -82,7 +82,6 @@ struct 结构体_动作句柄 {
 
 struct 结构_方法条件项 {
     const 语素入口节点类* 特征类型 = nullptr;
-    std::string 绑定名{};
     特征值 期望值{};
     I64 区间下界 = 0;
     I64 区间上界 = 0;
@@ -102,7 +101,6 @@ struct 结构_方法形参项 {
     const 语素入口节点类* 参数值类型 = nullptr;
     const 语素入口节点类* 参数来源 = nullptr;
     const 语素入口节点类* 读取特征类型 = nullptr;
-    std::string 绑定名{};
     bool 是否必需 = true;
 };
 
