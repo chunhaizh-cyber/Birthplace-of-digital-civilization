@@ -3,7 +3,6 @@
 #include "方法主信息类.h"
 
 enum class 枚举_本能方法ID : std::uint32_t;
-struct 结构_本能方法元信息;
 
 class 方法类 : public 链表模板<方法主信息类> {
     friend class 本能方法类;
@@ -92,7 +91,6 @@ private:
 
     static bool 补齐本能方法首节点(
         节点类* 方法首节点,
-        const 结构_本能方法元信息& 元信息,
         存在节点类* 宿主存在 = nullptr,
         时间戳 now = 结构体_时间戳::当前_微秒());
 

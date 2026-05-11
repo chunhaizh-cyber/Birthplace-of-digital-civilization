@@ -27,11 +27,11 @@ namespace 本能动作管理模块_detail {
 
     inline std::string 默认函数名称(枚举_本能方法ID 动作ID)
     {
-        const auto* 元信息 = 本能方法类::查询元信息(动作ID);
-        if (!元信息 || !元信息->动作名称) {
+        const auto* 动作名称 = 本能方法类::查询默认动作名称(动作ID);
+        if (!动作名称) {
             return {};
         }
-        return 元信息->动作名称;
+        return 动作名称;
     }
 
     inline std::vector<枚举_本能方法ID> 默认动作ID列表()
@@ -472,11 +472,6 @@ private:
     mutable std::mutex mu_{};
     std::unordered_map<枚举_本能动作ID, 结构体_本能动作登记信息> 表_{};
 };
-
-inline const 结构_本能方法元信息* 查询本能动作元信息(枚举_本能动作ID 动作ID) noexcept
-{
-    return 本能方法类::查询元信息(动作ID);
-}
 
 inline std::vector<枚举_本能动作ID> 枚举默认本能动作ID()
 {

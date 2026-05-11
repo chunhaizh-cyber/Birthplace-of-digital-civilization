@@ -55,21 +55,12 @@ enum class 枚举_本能方法分类 : std::uint8_t {
     外部动作 = 3,
 };
 
-struct 结构_本能方法元信息 {
-    枚举_本能方法ID ID = 枚举_本能方法ID::未定义;
-    枚举_本能方法分类 分类 = 枚举_本能方法分类::未定义;
-    const char* 动作名称 = "";
-    const char* 说明 = "";
-    bool 允许自我线程被动触发 = false;
-    bool 允许任务方法调用 = false;
-};
-
 class 本能方法类 {
 public:
     using 方法节点类 = 方法类::节点类;
 
-    static const 结构_本能方法元信息* 查询元信息(枚举_本能方法ID 本能ID) noexcept;
-    static std::vector<结构_本能方法元信息> 枚举默认自我本能方法();
+    static bool 是默认自我本能方法(枚举_本能方法ID 本能ID) noexcept;
+    static const char* 查询默认动作名称(枚举_本能方法ID 本能ID) noexcept;
     static std::vector<枚举_本能方法ID> 枚举默认自我本能方法ID();
 
     static 方法节点类* 查找或创建本能方法首节点(
@@ -86,7 +77,6 @@ public:
 
     static bool 补齐本能方法首节点(
         方法节点类* 方法首节点,
-        const 结构_本能方法元信息& 元信息,
         存在节点类* 宿主存在 = nullptr,
         时间戳 now = 结构体_时间戳::当前_微秒());
 
