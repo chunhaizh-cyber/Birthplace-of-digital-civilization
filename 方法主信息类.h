@@ -96,18 +96,6 @@ struct 结构_方法条件面 {
     std::vector<结构_方法条件组> 可用条件组集{};
 };
 
-struct 结构_方法形参项 {
-    const 语素入口节点类* 参数特征类型 = nullptr;
-    const 语素入口节点类* 参数值类型 = nullptr;
-    const 语素入口节点类* 参数来源 = nullptr;
-    const 语素入口节点类* 读取特征类型 = nullptr;
-    bool 是否必需 = true;
-};
-
-struct 结构_方法形参表 {
-    std::vector<结构_方法形参项> 形参项集{};
-};
-
 struct 结构_方法结果项 {
     const 语素入口节点类* 特征类型 = nullptr;
     枚举_结果变化方向 方向 = 枚举_结果变化方向::未定义;
@@ -120,22 +108,10 @@ struct 结构_方法结果包 {
     std::vector<结构_方法结果项> 结果项集{};
 };
 
-struct 结构_方法能力签名 {
-    结构_方法条件面 条件面{};
-    结构_方法形参表 形参表{};
+struct 结构_方法首节点能力面 {
     结构_方法结果包 结果包{};
-    I64 成熟度阶段 = 0;
     bool 可被方法查找命中 = true;
     bool 是否根写入原语 = false;
-};
-
-struct 结构_方法能力面 {
-    std::vector<结构_方法能力签名> 能力签名集{};
-};
-
-struct 结构_方法首节点能力面 {
-    // 权威结构：一个签名表示“若干条件组成立时，产生一包结果变化”。
-    结构_方法能力面 能力面{};
 };
 
 struct 结构_方法节点公共信息 {
@@ -298,30 +274,23 @@ public:
     bool 有结果能力() const noexcept {
         const auto* 首节点 = 取首节点信息();
         if (!首节点) return false;
-        for (const auto& 签名 : 首节点->能力.能力面.能力签名集) {
-            if (!签名.结果包.结果项集.empty()) {
-                return true;
-            }
-        }
-        return false;
+        return !首节点->能力.结果包.结果项集.empty();
     }
 
     const 语素入口节点类* 首个结果能力特征类型() const noexcept {
         const auto* 首节点 = 取首节点信息();
         if (!首节点) return nullptr;
-        for (const auto& 签名 : 首节点->能力.能力面.能力签名集) {
-            for (const auto& 结果项 : 签名.结果包.结果项集) {
-                if (结果项.特征类型) {
-                    return 结果项.特征类型;
-                }
+        for (const auto& 结果项 : 首节点->能力.结果包.结果项集) {
+            if (结果项.特征类型) {
+                return 结果项.特征类型;
             }
         }
         return nullptr;
     }
 
-    const std::vector<结构_方法能力签名>* 取能力签名集() const noexcept {
+    const 结构_方法结果包* 取能力结果包() const noexcept {
         const auto* 首节点 = 取首节点信息();
-        return 首节点 ? &首节点->能力.能力面.能力签名集 : nullptr;
+        return 首节点 ? &首节点->能力.结果包 : nullptr;
     }
 
     bool 有最小出生锚点() const noexcept {
