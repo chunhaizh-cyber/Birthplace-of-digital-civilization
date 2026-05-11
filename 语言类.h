@@ -35,7 +35,7 @@ public:
     自然句节点类* 添加自然句(
         段落节点类* 段落节点,
         std::size_t 在段落中的序号,
-        const std::vector<const 词性节点类*>& 词序列,
+        const std::vector<const 语素入口节点类*>& 词序列,
         const std::string& 原句文本
     );
     子句节点类* 添加子句(自然句节点类* 自然句节点, 子句主信息类* 子句主信息);

@@ -8,7 +8,7 @@ module;
 
 export module 任务模块.工作线程协议;
 
-import 自我模块.特征定义;
+import 自我类.特征定义;
 import 任务模块.工作线程消息协议;
 
 export enum class 枚举_任务控制事件类型 : std::uint8_t {
@@ -35,7 +35,7 @@ export enum class 枚举_任务推进事件类型 : std::uint8_t {
 export struct 结构_任务控制事件 {
     std::uint64_t 任务根ID = 0;
     枚举_任务控制事件类型 事件类型 = 枚举_任务控制事件类型::未定义;
-    const 词性节点类* 事件类型抽象特征指针 = nullptr;
+    const 语素入口节点类* 事件类型抽象特征指针 = nullptr;
     std::int64_t 事件类型值 = static_cast<std::int64_t>(枚举_任务控制事件类型::未定义);
     std::int64_t 优先级 = 0;
     std::int64_t 时间预算_ms = 0;
@@ -47,7 +47,7 @@ export struct 结构_任务控制事件 {
 export struct 结构_任务推进事件 {
     std::uint64_t 任务根ID = 0;
     枚举_任务推进事件类型 事件类型 = 枚举_任务推进事件类型::未定义;
-    const 词性节点类* 事件类型抽象特征指针 = nullptr;
+    const 语素入口节点类* 事件类型抽象特征指针 = nullptr;
     std::int64_t 事件类型值 = static_cast<std::int64_t>(枚举_任务推进事件类型::未定义);
     std::uintptr_t 当前步骤指针 = 0;
     std::uintptr_t 结果指针 = 0;

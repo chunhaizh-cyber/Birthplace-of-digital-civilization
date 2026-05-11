@@ -29,6 +29,26 @@ public:
     std::vector<节点类*> 枚举全部节点() const;
     std::vector<节点类*> 枚举子节点(const 节点类* 父节点) const;
     std::string 获取名称(const 节点类* 节点) const;
+    存在节点类* 取或创建存在概念根();
+
+    // 语素/基础信息整合入口：
+    // - 一个语素入口节点默认对应一种基础信息类型；
+    // - 查找或创建该语素入口对应的基础信息模板节点；
+    // - 基础信息模板仍放在基础信息树中，语素层只保存引用。
+    节点类* 查找语素入口模板(const 语素入口节点类* 入口节点, 枚举_主信息类型 类型) const;
+    节点类* 确保语素入口模板(const 语素入口节点类* 入口节点, 枚举_主信息类型 类型, 节点类* 父节点 = nullptr);
+    节点类* 选择信息入口默认根(
+        枚举_信息入口类型 信息入口类型,
+        节点类* 上下文节点 = nullptr
+    );
+    std::vector<节点类*> 查找引用语素入口节点的基础信息(
+        const 语素入口节点类* 入口节点,
+        const 节点类* 范围根 = nullptr
+    ) const;
+
+    static bool 主信息类型是否可由语素入口模板创建(枚举_主信息类型 类型) noexcept;
+    static bool 基础信息节点匹配类型(const 节点类* 节点, 枚举_主信息类型 类型) noexcept;
+    static bool 基础信息节点引用语素入口节点(const 节点类* 节点, const 语素入口节点类* 入口节点) noexcept;
 
     template<class T主信息>
     T主信息* 取主信息(节点类* 节点) const noexcept
@@ -78,6 +98,8 @@ public:
     }
 
 private:
+    节点类* 存在概念根_ = nullptr;
+
     bool 私有_节点属于当前树_已加锁(const 节点类* 候选节点) const noexcept
     {
         if (!根指针 || !候选节点) {
@@ -97,5 +119,11 @@ private:
         return false;
     }
 
+    static 基础信息基类* 私有_创建语素入口模板主信息(const 语素入口节点类* 入口节点, 枚举_主信息类型 类型);
+    static bool 私有_主信息引用语素入口节点(const 基础信息基类* 主信息, const 语素入口节点类* 入口节点) noexcept;
+    static bool 私有_节点在范围内(const 节点类* 范围根, const 节点类* 候选节点) noexcept;
+
     void 私有_清理主信息_已加锁() noexcept;
 };
+
+基础信息类& 获取基础信息集();

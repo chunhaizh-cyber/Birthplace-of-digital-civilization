@@ -15,7 +15,7 @@ module;
 
 export module 自我线程模块.消息协议;
 
-import 自我模块.特征定义;
+import 自我类.特征定义;
 import 任务模块.治理协议;
 import 任务模块.工作线程协议;
 
@@ -76,6 +76,12 @@ enum class 枚举_动作类型 : std::uint16_t {
     路由回父任务 = 9,
     自检报告 = 10,
     控制面板刷新请求 = 11,
+};
+
+enum class 枚举_自检候选类型 : std::uint8_t {
+    未定义 = 0,
+    报告型 = 1,
+    需求型 = 2,
 };
 
 enum class 枚举_特征类型 : std::uint16_t {
@@ -343,6 +349,8 @@ struct 结构_治理消息来源诊断 {
 };
 
 struct 结构_自检缺口候选消息 {
+    枚举_自检候选类型 候选类型 = 枚举_自检候选类型::未定义;
+    I64 候选类型值 = 0;
     std::uintptr_t 缺口类型抽象特征指针 = 0;
     I64 缺口类型值 = 0;
     std::uintptr_t 来源对象类型抽象特征指针 = 0;
@@ -358,6 +366,15 @@ struct 结构_自检缺口候选消息 {
     std::uint64_t 目标主键 = 0;
     std::string 目标主键文本{};
     std::uintptr_t 目标指针 = 0;
+    std::uintptr_t 原子目标主体指针 = 0;
+    std::string 原子目标主体主键{};
+    std::uintptr_t 原子目标特征类型指针 = 0;
+    std::string 原子目标特征类型主键{};
+    std::uintptr_t 原子当前状态指针 = 0;
+    std::string 原子当前状态主键{};
+    std::uintptr_t 原子目标状态指针 = 0;
+    std::string 原子目标状态主键{};
+    三向关系掩码 原子满足关系 = 关系_等于;
     std::uintptr_t 证据特征指针 = 0;
     I64 证据值 = 0;
     std::uintptr_t 严重程度抽象特征指针 = 0;
@@ -366,7 +383,7 @@ struct 结构_自检缺口候选消息 {
     I64 建议需求类型值 = 0;
     std::uintptr_t 建议生成需求抽象特征指针 = 0;
     I64 建议生成需求值 = 0;
-    bool 建议生成需求 = true;
+    bool 建议生成需求 = false;
     std::string 幂等键{};
     std::string 证据摘要{};
 };
@@ -493,7 +510,7 @@ inline 枚举_动作类型 从处理类型映射动作类型(const 枚举_消息
     }
 }
 
-inline std::uintptr_t 抽象特征指针值(const 词性节点类* 特征类型) noexcept
+inline std::uintptr_t 抽象特征指针值(const 语素入口节点类* 特征类型) noexcept
 {
     return reinterpret_cast<std::uintptr_t>(特征类型);
 }
@@ -516,6 +533,13 @@ inline void 同步治理消息语义槽(结构_存在动作语义& 语义) noexc
 
 inline void 同步自检缺口候选消息语义槽(结构_自检缺口候选消息& 候选) noexcept
 {
+    if (候选.候选类型 == 枚举_自检候选类型::未定义) {
+        候选.候选类型 =
+            候选.建议生成需求
+                ? 枚举_自检候选类型::需求型
+                : 枚举_自检候选类型::报告型;
+    }
+    候选.候选类型值 = static_cast<I64>(候选.候选类型);
     候选.缺口类型抽象特征指针 = 抽象特征指针值(自我特征定义类::类型_自检_缺口类型());
     候选.来源对象类型抽象特征指针 = 抽象特征指针值(自我特征定义类::类型_自检_来源对象类型());
     候选.来源方法能力抽象特征指针 = 抽象特征指针值(自我特征定义类::类型_自检_来源方法能力());

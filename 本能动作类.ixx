@@ -42,7 +42,7 @@ namespace 本能动作模块_detail {
         return 主信息 ? &主信息->当前值 : nullptr;
     }
 
-    inline const 词性节点类* 取类型(const 基础信息节点类* 节点) noexcept
+    inline const 语素入口节点类* 取类型(const 基础信息节点类* 节点) noexcept
     {
         return 节点 && 节点->主信息 ? 节点->主信息->类型 : nullptr;
     }
@@ -125,7 +125,7 @@ public:
     struct 结构体_场景模式匹配参数 {
         I64 I64容忍误差 = 0;
         I64 歧义分差阈值 = 50;
-        std::function<I64(const 词性节点类* 类型, const 特征值& 输入值, const 特征值& 模式值)> 差值算法{};
+        std::function<I64(const 语素入口节点类* 类型, const 特征值& 输入值, const 特征值& 模式值)> 差值算法{};
     };
 
     struct 结构体_场景模式匹配绑定 {
@@ -158,7 +158,7 @@ public:
     static inline bool 方法首节点_确保条件参数类型(
         基础信息类& 基础信息,
         T方法节点* 方法首节点,
-        const std::vector<const 词性节点类*>& 需要类型表)
+        const std::vector<const 语素入口节点类*>& 需要类型表)
     {
         if (!方法首节点) {
             return false;
@@ -174,7 +174,7 @@ public:
             return false;
         }
 
-        auto 已有该类型 = [&](const 词性节点类* 类型) {
+        auto 已有该类型 = [&](const 语素入口节点类* 类型) {
             if (!类型) {
                 return true;
             }
@@ -212,7 +212,7 @@ public:
     template<class T方法节点>
     static inline void 方法首节点_确保条件参数类型(
         T方法节点* 方法首节点,
-        const std::vector<const 词性节点类*>& 需要类型表)
+        const std::vector<const 语素入口节点类*>& 需要类型表)
     {
         (void)方法首节点_确保条件参数类型(世界树.基础信息(), 方法首节点, 需要类型表);
     }
@@ -243,7 +243,7 @@ private:
 
     static inline I64 差值(
         const 结构体_场景模式匹配参数& 参数,
-        const 词性节点类* 类型,
+        const 语素入口节点类* 类型,
         const 特征值& 输入值,
         const 特征值& 模式值)
     {
@@ -268,7 +268,7 @@ private:
 
     static inline I64 值匹配分(
         const 结构体_场景模式匹配参数& 参数,
-        const 词性节点类* 类型,
+        const 语素入口节点类* 类型,
         const 基础信息节点类* 输入节点,
         const 基础信息节点类* 模式节点)
     {

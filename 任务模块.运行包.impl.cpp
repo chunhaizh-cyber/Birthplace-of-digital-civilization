@@ -4,7 +4,7 @@ module;
 
 module 任务模块.运行包;
 
-import 自我模块.特征定义;
+import 自我类.特征定义;
 
 namespace {
 

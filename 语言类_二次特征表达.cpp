@@ -12,7 +12,7 @@ import 二次特征应用模块;
 namespace {
     std::string 私有_基础节点短名(const 基础信息类* 基础信息, const 基础信息节点类* 节点);
 
-    std::string 私有_安全词(const 词性节点类* 词) noexcept
+    std::string 私有_安全词(const 语素入口节点类* 词) noexcept
     {
         if (!词) return {};
         try {

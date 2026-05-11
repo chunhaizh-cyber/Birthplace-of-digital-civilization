@@ -178,6 +178,15 @@ namespace 日志::detail {
         const auto 标题 = utf8_to_wide_lossy("低级错误");
         const auto 正文 = utf8_to_wide_lossy(utf8);
         ::OutputDebugStringW(正文.c_str());
+        try {
+            ::CreateDirectoryW(L".\\日志", nullptr);
+            std::ofstream 紧急日志(".\\日志\\鱼巢_popup_fatal.log", std::ios::app);
+            if (紧急日志) {
+                紧急日志 << utf8 << "\n";
+            }
+        }
+        catch (...) {
+        }
         if (首次) {
             ::MessageBoxW(nullptr, 正文.c_str(), 标题.c_str(), MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND);
         }
@@ -499,6 +508,7 @@ void 项目运行错误日志(const std::string& 文本) noexcept
 void 项目弹窗错误提示(const std::string& 标题, const std::string& 文本) noexcept
 {
     try {
+        日志::运行_错误("弹窗错误提示 | 标题=" + 标题 + " | 文本=" + 文本);
         const auto 宽标题 = 日志::detail::utf8_to_wide_lossy(标题);
         const auto 宽文本 = 日志::detail::utf8_to_wide_lossy(文本);
         ::MessageBoxW(nullptr, 宽文本.c_str(), 宽标题.c_str(), MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND);

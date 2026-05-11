@@ -12,7 +12,7 @@ export module 任务模块.治理协议;
 
 export import 任务模块.工作线程消息协议;
 
-import 自我模块;
+import 自我类;
 import 任务模块.运行包;
 
 export {
@@ -103,7 +103,6 @@ enum class 枚举_任务管理方法来源 : std::uint8_t {
     主体长期策略回填 = 4,
     方法树首节点候选 = 5,
     条件节点筛选通过 = 6,
-    默认本能兜底 = 7,
 };
 
 enum class 枚举_任务管理步骤位类型 : std::uint8_t {

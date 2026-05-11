@@ -36,7 +36,7 @@ struct 结构_最近两次I64状态方向结果 {
 };
 
 struct 结构_状态清理问题快照 {
-    bool 需要自检需求 = false;
+    bool 需要自检报告 = false;
     std::uintptr_t 场景指针 = 0;
     std::string 场景主键{};
     std::size_t 活动状态数量 = 0;

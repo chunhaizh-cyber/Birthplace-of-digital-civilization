@@ -32,7 +32,7 @@ public:
 class 自然句主信息类 : public 自然语言成分基类 {
 public:
     std::size_t 在段落中的序号 = 0;
-    std::vector<可解析引用<const 词性节点类>> 词序列{};
+    std::vector<可解析引用<const 语素入口节点类>> 词序列{};
     std::string 原始文本{};
 };
 
@@ -41,7 +41,7 @@ public:
     枚举_原子结构类型 原子结构类型 = 枚举_原子结构类型::未定义;
     std::size_t 起始词索引 = 0;
     std::size_t 结束词索引 = 0;
-    std::vector<可解析引用<const 词性节点类>> 局部词序列{};
+    std::vector<可解析引用<const 语素入口节点类>> 局部词序列{};
 
     可解析引用<场景节点类> 对应场景{};
     可解析引用<状态节点类> 对应状态{};

@@ -4,7 +4,9 @@ module;
 #include <cstdint>
 #include <filesystem>
 #include <future>
+#include <iomanip>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -20,7 +22,8 @@ module;
 module 控制面板WebView2;
 
 import 控制面板类;
-import 自我模块;
+import 日志模块;
+import 自我类;
 import 自我线程模块;
 
 using Microsoft::WRL::ComPtr;
@@ -44,6 +47,52 @@ namespace {
     std::mutex 私有_窗口互斥{};
     std::atomic<HWND> 私有_窗口句柄{ nullptr };
     std::atomic<int> 私有_启动诊断码{ 0 };
+
+    std::string 私有_HRESULT文本(HRESULT 值)
+    {
+        std::ostringstream 输出;
+        输出 << "0x"
+            << std::uppercase
+            << std::hex
+            << std::setw(8)
+            << std::setfill('0')
+            << static_cast<std::uint32_t>(值);
+        return 输出.str();
+    }
+
+    std::string 私有_路径UTF8(const std::filesystem::path& 路径)
+    {
+        const auto 文本 = 路径.u8string();
+        return std::string(
+            reinterpret_cast<const char*>(文本.data()),
+            文本.size());
+    }
+
+    void 私有_记录WebView2诊断(
+        const std::string& 阶段,
+        int 诊断码,
+        HRESULT COM结果 = S_OK,
+        DWORD Win32错误 = ERROR_SUCCESS,
+        const std::string& 附加 = {}) noexcept
+    {
+        try {
+            std::ostringstream 输出;
+            输出 << "控制面板WebView2/" << 阶段
+                << " | 诊断码=" << 诊断码;
+            if (COM结果 != S_OK) {
+                输出 << " | HRESULT=" << 私有_HRESULT文本(COM结果);
+            }
+            if (Win32错误 != ERROR_SUCCESS) {
+                输出 << " | Win32=" << Win32错误;
+            }
+            if (!附加.empty()) {
+                输出 << " | " << 附加;
+            }
+            项目运行错误日志(输出.str());
+        }
+        catch (...) {
+        }
+    }
 
     std::wstring 私有_UTF8转宽字串(const std::string& 输入)
     {
@@ -224,6 +273,8 @@ namespace {
 
     CreateCoreWebView2EnvironmentWithOptionsFn 私有_加载创建函数(HMODULE* 加载器模块) noexcept
     {
+        DWORD 最近加载错误 = ERROR_SUCCESS;
+        std::filesystem::path 最近加载路径{};
         for (const auto& 路径 : 私有_加载器候选路径()) {
             if (路径.empty()) {
                 continue;
@@ -231,6 +282,8 @@ namespace {
 
             HMODULE 模块 = LoadLibraryW(路径.c_str());
             if (!模块) {
+                最近加载错误 = GetLastError();
+                最近加载路径 = 路径;
                 continue;
             }
 
@@ -243,9 +296,21 @@ namespace {
                 return 函数;
             }
 
+            私有_记录WebView2诊断(
+                "加载器缺少创建函数",
+                8,
+                S_OK,
+                GetLastError(),
+                "路径=" + 私有_路径UTF8(路径));
             FreeLibrary(模块);
         }
 
+        私有_记录WebView2诊断(
+            "加载器加载失败",
+            8,
+            S_OK,
+            最近加载错误,
+            最近加载路径.empty() ? std::string{} : ("最近路径=" + 私有_路径UTF8(最近加载路径)));
         return nullptr;
     }
 
@@ -295,12 +360,14 @@ namespace {
         auto* 上下文 = 私有_取窗口上下文(窗口);
         if (!上下文) {
             私有_启动诊断码.store(7);
+            私有_记录WebView2诊断("初始化缺少窗口上下文", 7);
             return false;
         }
 
         auto* 创建环境 = 私有_加载创建函数(&上下文->加载器模块);
         if (!创建环境) {
             私有_启动诊断码.store(8);
+            私有_记录WebView2诊断("初始化缺少创建环境函数", 8);
             return false;
         }
 
@@ -313,6 +380,10 @@ namespace {
                 [窗口](HRESULT 环境结果, ICoreWebView2Environment* 环境) -> HRESULT {
                     if (FAILED(环境结果) || !环境) {
                         私有_启动诊断码.store(9);
+                        私有_记录WebView2诊断(
+                            "创建环境回调失败",
+                            9,
+                            FAILED(环境结果) ? 环境结果 : E_FAIL);
                         return FAILED(环境结果) ? 环境结果 : E_FAIL;
                     }
 
@@ -323,6 +394,12 @@ namespace {
                                 auto* 上下文 = 私有_取窗口上下文(窗口);
                                 if (!上下文 || FAILED(控制器结果) || !控制器) {
                                     私有_启动诊断码.store(10);
+                                    私有_记录WebView2诊断(
+                                        "创建控制器回调失败",
+                                        10,
+                                        FAILED(控制器结果) ? 控制器结果 : E_FAIL,
+                                        ERROR_SUCCESS,
+                                        上下文 ? std::string{} : std::string("窗口上下文为空"));
                                     return FAILED(控制器结果) ? 控制器结果 : E_FAIL;
                                 }
 
@@ -330,6 +407,7 @@ namespace {
                                 上下文->控制器->get_CoreWebView2(&上下文->WebView);
                                 if (!上下文->WebView) {
                                     私有_启动诊断码.store(11);
+                                    私有_记录WebView2诊断("控制器未返回WebView", 11, E_FAIL);
                                     return E_FAIL;
                                 }
 
@@ -406,6 +484,12 @@ namespace {
 
         if (FAILED(结果)) {
             私有_启动诊断码.store(13);
+            私有_记录WebView2诊断(
+                "创建环境调用失败",
+                13,
+                结果,
+                ERROR_SUCCESS,
+                "用户数据目录=" + 私有_路径UTF8(用户数据目录));
             return false;
         }
 
@@ -422,7 +506,18 @@ namespace {
             }
             SetWindowLongPtrW(窗口, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(上下文));
             if (!私有_初始化WebView2(窗口)) {
-                MessageBoxW(窗口, L"WebView2 初始化失败。", L"鱼巢控制面板", MB_OK | MB_ICONERROR);
+                const auto 诊断码 = 私有_启动诊断码.load();
+                私有_记录WebView2诊断(
+                    "弹窗提示初始化失败",
+                    诊断码,
+                    S_OK,
+                    GetLastError(),
+                    "HWND=" + std::to_string(reinterpret_cast<std::uintptr_t>(窗口)));
+                const std::wstring 正文 =
+                    L"WebView2 初始化失败。\n诊断码："
+                    + std::to_wstring(诊断码)
+                    + L"\n详细信息已写入 ./日志。";
+                MessageBoxW(窗口, 正文.c_str(), L"鱼巢控制面板", MB_OK | MB_ICONERROR);
             }
             return 0;
         }
@@ -474,7 +569,11 @@ namespace {
             窗口类.lpszClassName = 私有_控制面板窗口类名;
 
             const ATOM 结果 = RegisterClassExW(&窗口类);
-            已注册 = (结果 != 0) || (GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
+            const DWORD 错误 = GetLastError();
+            已注册 = (结果 != 0) || (错误 == ERROR_CLASS_ALREADY_EXISTS);
+            if (!已注册) {
+                私有_记录WebView2诊断("窗口类注册失败", 2, S_OK, 错误);
+            }
         });
 
         return 已注册;
@@ -484,11 +583,15 @@ namespace {
     {
         HRESULT COM结果 = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
         const bool 已初始化COM = SUCCEEDED(COM结果);
+        if (!已初始化COM) {
+            私有_记录WebView2诊断("COM初始化失败", 1, COM结果);
+        }
 
         try {
             私有_启动诊断码.store(1);
             if (!私有_确保窗口类已注册()) {
                 私有_启动诊断码.store(2);
+                私有_记录WebView2诊断("窗口线程停止：窗口类未注册", 2);
                 启动结果.set_value(false);
                 if (已初始化COM) {
                     CoUninitialize();
@@ -522,7 +625,9 @@ namespace {
                 nullptr);
 
             if (!窗口) {
+                const DWORD 错误 = GetLastError();
                 私有_启动诊断码.store(5);
+                私有_记录WebView2诊断("窗口创建失败", 5, S_OK, 错误);
                 启动结果.set_value(false);
                 if (已初始化COM) {
                     CoUninitialize();
@@ -544,6 +649,7 @@ namespace {
         }
         catch (...) {
             私有_启动诊断码.store(14);
+            私有_记录WebView2诊断("窗口线程捕获未知异常", 14);
             try {
                 启动结果.set_value(false);
             }
@@ -580,10 +686,17 @@ bool 启动控制面板WebView2窗口() noexcept
         std::promise<bool> 启动结果{};
         auto 结果 = 启动结果.get_future();
         std::thread(私有_窗口线程主体, std::move(启动结果)).detach();
-        return 结果.get();
+        const bool 成功 = 结果.get();
+        if (!成功) {
+            私有_记录WebView2诊断(
+                "启动窗口线程返回失败",
+                私有_启动诊断码.load());
+        }
+        return 成功;
     }
     catch (...) {
         私有_启动诊断码.store(15);
+        私有_记录WebView2诊断("启动窗口捕获未知异常", 15);
         return false;
     }
 }

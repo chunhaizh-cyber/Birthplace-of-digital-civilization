@@ -114,7 +114,7 @@
     <ClCompile Include="需求类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="自我特征定义.cpp">
+    <ClCompile Include="自我类.特征定义.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="本能方法类.cpp">
@@ -126,52 +126,40 @@
     <ClCompile Include="自我动作实现模块.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="自我初始化模块.cpp">
+    <ClCompile Include="自我类.初始化.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="任务模块.治理协议.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="任务模块.管理线程协议.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="任务模块.管理工作线程协议.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="任务模块.工作线程消息协议.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="自我线程_消息邮箱模块.ixx">
+    <ClCompile Include="任务模块.筹办.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="自我线程_价值结算模块.ixx">
+    <ClCompile Include="任务模块.执行.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="任务模块.管理工作线程.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="任务模块.管理界面线程.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="任务模块.管理界面线程.impl.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="自我类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="自我线程类.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="自我_初始化模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="自我_核心状态模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="自我_固定机制模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="自我_恢复快照模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="自我_结果治理模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="自我_缺口承接模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="自我_主循环治理模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="自我_治理记忆模块.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="自我_执行桥模块.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

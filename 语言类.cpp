@@ -7,10 +7,10 @@
 语言类 语言集{};
 
 namespace {
-    std::vector<可解析引用<const 词性节点类>> 私有_转换词序列(
-        const std::vector<const 词性节点类*>& 词序列)
+    std::vector<可解析引用<const 语素入口节点类>> 私有_转换词序列(
+        const std::vector<const 语素入口节点类*>& 词序列)
     {
-        std::vector<可解析引用<const 词性节点类>> 输出{};
+        std::vector<可解析引用<const 语素入口节点类>> 输出{};
         输出.reserve(词序列.size());
         for (const auto* 词 : 词序列) {
             输出.emplace_back(词);
@@ -33,8 +33,8 @@ void 语言类::初始化()
 
 文章节点类* 语言类::新建文章(const std::string& 标题, const std::string& 原文)
 {
-    auto* 名称词 = 语素集.添加词性词(标题, "专有名词");
-    auto* 类型词 = 语素集.添加词性词("文章", "名词");
+    auto* 名称词 = 语素集.添加信息入口词(标题, 枚举_信息入口类型::语言记录入口);
+    auto* 类型词 = 语素集.添加信息入口词("文章", 枚举_信息入口类型::语言记录入口);
     (void)名称词;
     (void)类型词;
 
@@ -65,7 +65,7 @@ void 语言类::初始化()
 自然句节点类* 语言类::添加自然句(
     段落节点类* 段落节点,
     std::size_t 在段落中的序号,
-    const std::vector<const 词性节点类*>& 词序列,
+    const std::vector<const 语素入口节点类*>& 词序列,
     const std::string& 原句文本
 )
 {

@@ -34,11 +34,12 @@ module;
 module 控制面板类;
 
 import 控制面板WebView2;
-import 自我模块;
-import 自我_缺口承接模块;
+import 自我类;
+import 自我类.特征定义;
 import 自我线程模块;
 import 控制面板摘要线程模块;
 import 任务模块.管理工作线程;
+import 任务模块.管理界面线程;
 import 任务模块.治理协议;
 
 namespace {
@@ -51,23 +52,55 @@ namespace {
     constexpr std::uintptr_t 私有_线程详情_工作 = 2;
     constexpr std::uintptr_t 私有_线程详情_系统 = 3;
     constexpr std::uintptr_t 私有_线程详情_摘要 = 4;
+    constexpr std::uintptr_t 私有_线程详情_任务界面 = 5;
     constexpr std::size_t 私有_列表分页大小 = 100;
 
-    const 词性节点类* 私有_特征_最近执行时间_控制面板() noexcept
+    struct 结构_控制面板缺口承接快照 {
+        I64 待处理方法数量 = 0;
+        bool 应触发缺口承接 = false;
+        bool 应申请重试恢复 = false;
+        bool 应申请收束恢复 = false;
+        std::size_t 恢复请求数 = 0;
+        std::string 最近缺口反馈摘要{};
+    };
+
+    结构_控制面板缺口承接快照 私有_读取缺口承接快照_控制面板(
+        const 自我类& 自我,
+        const 自我线程类& 自我线程) noexcept
     {
-        static const 词性节点类* s_词 = 语素集.添加词性词("最近执行时间", "名词");
+        结构_控制面板缺口承接快照 输出{};
+        (void)自我.读取自我I64特征当前值(
+            自我特征定义类::类型_自我_待处理方法数量(),
+            输出.待处理方法数量);
+
+        const auto 恢复快照 = 自我线程.读取最近缺口恢复接口快照();
+        输出.应触发缺口承接 = 恢复快照.应触发缺口承接;
+        输出.应申请重试恢复 = 恢复快照.应申请重试恢复;
+        输出.应申请收束恢复 = 恢复快照.应申请收束恢复;
+        输出.恢复请求数 = 恢复快照.恢复请求列表.size();
+        输出.最近缺口反馈摘要 = !恢复快照.摘要.empty()
+            ? 恢复快照.摘要
+            : 恢复快照.恢复请求摘要;
+        return 输出;
+    }
+
+    const 语素入口节点类* 私有_特征_最近执行时间_控制面板() noexcept
+    {
+        static const 语素入口节点类* s_词 =
+            语素集.添加信息入口词("最近执行时间", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
-    const 词性节点类* 私有_特征_最近完成时间_控制面板() noexcept
+    const 语素入口节点类* 私有_特征_最近完成时间_控制面板() noexcept
     {
-        static const 词性节点类* s_词 = 语素集.添加词性词("最近完成时间", "名词");
+        static const 语素入口节点类* s_词 =
+            语素集.添加信息入口词("最近完成时间", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
     时间戳 私有_读取方法运行账时间_控制面板(
         const 方法节点* 方法,
-        const 词性节点类* 特征类型) noexcept
+        const 语素入口节点类* 特征类型) noexcept
     {
         if (!方法 || !特征类型) {
             return 0;
@@ -255,7 +288,7 @@ namespace {
         else if constexpr (std::is_same_v<节点类型, 自然句节点类>) {
             return reinterpret_cast<const 节点类型*>(语言集.根指针);
         }
-        else if constexpr (std::is_same_v<节点类型, 词性节点类>) {
+        else if constexpr (std::is_same_v<节点类型, 语素入口节点类>) {
             return reinterpret_cast<const 节点类型*>(语素集.根指针);
         }
         else {
@@ -325,6 +358,27 @@ namespace {
         return 值 ? "是" : "否";
     }
 
+    std::string 私有_文本列表摘要(
+        const std::vector<std::string>& 列表,
+        const std::size_t 上限 = 6)
+    {
+        if (列表.empty()) {
+            return {};
+        }
+        std::ostringstream 输出;
+        const std::size_t 数量 = (std::min)(列表.size(), 上限);
+        for (std::size_t i = 0; i < 数量; ++i) {
+            if (i > 0) {
+                输出 << "、";
+            }
+            输出 << 列表[i];
+        }
+        if (列表.size() > 数量) {
+            输出 << " 等" << 列表.size() << "项";
+        }
+        return 输出.str();
+    }
+
     std::string 私有_十六进制指针(const std::uintptr_t 值)
     {
         std::ostringstream 输出;
@@ -359,7 +413,7 @@ namespace {
         return 输出.str();
     }
 
-    std::string 私有_词文本(const 词性节点类* 词) noexcept
+    std::string 私有_词文本(const 语素入口节点类* 词) noexcept
     {
         const auto* 安全词节点 = 私有_解析当前树节点(词);
         if (!安全词节点) {
@@ -511,6 +565,25 @@ namespace {
         return !当前主键.empty()
             && 当前主键 == 目标主键
             && 三向关系被接受(枚举_三向关系::等于, 节点->主信息.满足关系);
+    }
+
+    template<class T节点>
+    std::string 私有_引用主键_控制面板(const 可解析引用<T节点>& 引用)
+    {
+        if (!引用.主键.empty()) {
+            return 引用.主键;
+        }
+        return 引用.指针 ? 引用.指针->获取主键() : std::string{};
+    }
+
+    std::string 私有_节点主键_控制面板(const 需求节点* 节点)
+    {
+        return 节点 ? 节点->获取主键() : std::string{};
+    }
+
+    std::string 私有_节点主键_控制面板(const 语素入口节点类* 节点)
+    {
+        return 节点 ? 节点->获取主键() : std::string{};
     }
 
     void 私有_累计任务状态(结构_控制面板快照& 快照, const 枚举_任务状态 状态) noexcept
@@ -783,6 +856,86 @@ namespace {
         case 枚举_主信息类型::指代: return "指代";
         default: return "基础信息";
         }
+    }
+
+    const char* 私有_信息存储树文本(const 枚举_信息存储树 存储树) noexcept
+    {
+        switch (存储树) {
+        case 枚举_信息存储树::基础信息模板树: return "基础信息模板树";
+        case 枚举_信息存储树::现实世界树: return "现实世界树";
+        case 枚举_信息存储树::内部世界树: return "内部世界树";
+        case 枚举_信息存储树::需求根树: return "需求根树";
+        case 枚举_信息存储树::任务根树: return "任务根树";
+        case 枚举_信息存储树::方法根树: return "方法根树";
+        case 枚举_信息存储树::语言记录树: return "语言记录树";
+        case 枚举_信息存储树::不入树: return "不入树";
+        default: return "未定义";
+        }
+    }
+
+    const char* 私有_信息入口类型文本(const 枚举_信息入口类型 类型) noexcept
+    {
+        switch (类型) {
+        case 枚举_信息入口类型::存在概念入口: return "存在概念入口";
+        case 枚举_信息入口类型::特征模板入口: return "特征模板入口";
+        case 枚举_信息入口类型::状态模板入口: return "状态模板入口";
+        case 枚举_信息入口类型::动态模板入口: return "动态模板入口";
+        case 枚举_信息入口类型::关系模板入口: return "关系模板入口";
+        case 枚举_信息入口类型::因果模板入口: return "因果模板入口";
+        case 枚举_信息入口类型::场景模板入口: return "场景模板入口";
+        case 枚举_信息入口类型::存在实例入口: return "存在实例入口";
+        case 枚举_信息入口类型::特征实例入口: return "特征实例入口";
+        case 枚举_信息入口类型::状态实例入口: return "状态实例入口";
+        case 枚举_信息入口类型::动态实例入口: return "动态实例入口";
+        case 枚举_信息入口类型::关系实例入口: return "关系实例入口";
+        case 枚举_信息入口类型::因果实例入口: return "因果实例入口";
+        case 枚举_信息入口类型::场景实例入口: return "场景实例入口";
+        case 枚举_信息入口类型::需求概念入口: return "需求概念入口";
+        case 枚举_信息入口类型::任务概念入口: return "任务概念入口";
+        case 枚举_信息入口类型::方法概念入口: return "方法概念入口";
+        case 枚举_信息入口类型::需求节点入口: return "需求节点入口";
+        case 枚举_信息入口类型::任务信息节点入口: return "任务信息节点入口";
+        case 枚举_信息入口类型::任务虚拟存在入口: return "任务虚拟存在入口";
+        case 枚举_信息入口类型::方法信息节点入口: return "方法信息节点入口";
+        case 枚举_信息入口类型::方法虚拟存在入口: return "方法虚拟存在入口";
+        case 枚举_信息入口类型::数值入口: return "数值入口";
+        case 枚举_信息入口类型::单位入口: return "单位入口";
+        case 枚举_信息入口类型::比较入口: return "比较入口";
+        case 枚举_信息入口类型::逻辑连接入口: return "逻辑连接入口";
+        case 枚举_信息入口类型::语言记录入口: return "语言记录入口";
+        default: return "未定义";
+        }
+    }
+
+    std::string 私有_语素入口诊断文本(const 语素入口节点类* 入口节点)
+    {
+        if (!入口节点 || !入口节点->主信息) {
+            return "空";
+        }
+
+        const auto* 主信息 = dynamic_cast<const 语素入口主信息类*>(入口节点->主信息);
+        if (!主信息) {
+            return "非语素入口节点";
+        }
+
+        const auto 人类词性 = 主信息->人类词性 != 枚举_词性::未定义
+            ? 主信息->人类词性
+            : 主信息->词性;
+        const auto 信息入口类型 = 主信息->信息入口类型;
+        const auto 主信息类型 = 主信息->对应基础信息类型 != 枚举_主信息类型::未定义
+            ? 主信息->对应基础信息类型
+            : 语素_取信息入口主信息类型(信息入口类型);
+        const auto* 默认根名 = 语素_取信息入口默认根名(信息入口类型);
+
+        std::ostringstream 输出;
+        输出 << "人类词性=" << 枚举_词性_工厂::根据枚举类型获取文本(人类词性)
+            << " | 信息入口=" << 私有_信息入口类型文本(信息入口类型)
+            << " | 主信息类型=" << 私有_主信息类型文本(主信息类型)
+            << " | 存储树=" << 私有_信息存储树文本(语素_取信息入口存储树(信息入口类型))
+            << " | 默认根=" << (默认根名 ? 默认根名 : "空")
+            << " | 需上下文=" << (语素_信息入口需要上下文限定(信息入口类型) ? "是" : "否")
+            << " | 裸词模板=" << (语素_信息入口裸词默认模板入口(信息入口类型) ? "是" : "否");
+        return 输出.str();
     }
 
     std::string 私有_动作句柄文本(const 结构体_动作句柄& 句柄)
@@ -1269,7 +1422,7 @@ namespace {
         const std::size_t 剩余数量)
     {
         return 私有_新节点(
-            "... 省略 " + std::to_string(剩余数量) + " 个结构子节点，双击继续加载",
+            "... 省略 " + std::to_string(剩余数量) + " 个结构子节点",
             父节点指针,
             false,
             true,
@@ -1427,7 +1580,7 @@ namespace {
     };
 
     struct 结构_需求方法可用性评估 {
-        const 词性节点类* 目标特征类型 = nullptr;
+        const 语素入口节点类* 目标特征类型 = nullptr;
         std::vector<方法节点*> 候选方法{};
         std::vector<方法节点*> 可用方法{};
         std::vector<方法节点*> 同向候选方法{};
@@ -1471,7 +1624,7 @@ namespace {
         return "未解析";
     }
 
-    bool 私有_词性相同_控制面板(const 词性节点类* 左, const 词性节点类* 右) noexcept
+    bool 私有_语素入口相同_控制面板(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept
     {
         if (左 == 右) {
             return true;
@@ -1482,7 +1635,7 @@ namespace {
         return 左->获取主键() == 右->获取主键();
     }
 
-    const 词性节点类* 私有_查找词性词_控制面板(
+    const 语素入口节点类* 私有_查找人类词性入口_控制面板(
         const std::string& 词值,
         const std::string& 词性值) noexcept
     {
@@ -1490,12 +1643,12 @@ namespace {
             return nullptr;
         }
         auto* 词节点 = 语素集.查找词节点(词值);
-        return 词节点 ? 语素集.查找词性节点(词节点, 词性值) : nullptr;
+        return 词节点 ? 语素集.查找人类词性入口节点(词节点, 词性值) : nullptr;
     }
 
-    const 词性节点类* 私有_方法是否可用特征类型_控制面板() noexcept
+    const 语素入口节点类* 私有_方法是否可用特征类型_控制面板() noexcept
     {
-        return 私有_查找词性词_控制面板("方法是否可用", "名词");
+        return 私有_查找人类词性入口_控制面板("方法是否可用", "名词");
     }
 
     template<class T节点>
@@ -1510,7 +1663,7 @@ namespace {
         return nullptr;
     }
 
-    const 词性节点类* 私有_状态特征类型_控制面板(const 状态节点类* 状态节点) noexcept
+    const 语素入口节点类* 私有_状态特征类型_控制面板(const 状态节点类* 状态节点) noexcept
     {
         const auto* 状态主信息 = 状态节点 ? 世界树.状态().取状态主信息(状态节点) : nullptr;
         if (!状态主信息) {
@@ -1526,7 +1679,7 @@ namespace {
         return 特征主信息 ? 特征主信息->类型 : nullptr;
     }
 
-    const 词性节点类* 私有_需求目标特征类型_控制面板(const 需求节点* 节点) noexcept
+    const 语素入口节点类* 私有_需求目标特征类型_控制面板(const 需求节点* 节点) noexcept
     {
         if (!节点) {
             return nullptr;
@@ -1559,7 +1712,7 @@ namespace {
         const auto* 目标特征类型 = 私有_状态特征类型_控制面板(目标状态);
         if (!当前特征类型
             || !目标特征类型
-            || !私有_词性相同_控制面板(当前特征类型, 目标特征类型)) {
+            || !私有_语素入口相同_控制面板(当前特征类型, 目标特征类型)) {
             return 2;
         }
 
@@ -1590,7 +1743,7 @@ namespace {
 
     void 私有_收集候选方法_按结果特征_控制面板(
         方法节点* 当前方法节点,
-        const 词性节点类* 目标特征类型,
+        const 语素入口节点类* 目标特征类型,
         std::vector<方法节点*>& 输出,
         路径集合& 已访问) noexcept
     {
@@ -1616,7 +1769,7 @@ namespace {
                         签名.结果包.结果项集.end(),
                         [&](const 结构_方法结果项& 结果项) {
                             return !结果项.是否风险结果
-                                && 私有_词性相同_控制面板(结果项.特征类型, 目标特征类型);
+                                && 私有_语素入口相同_控制面板(结果项.特征类型, 目标特征类型);
                         });
                 })) {
             私有_追加唯一方法_控制面板(输出, 当前方法节点);
@@ -1637,7 +1790,7 @@ namespace {
 
     std::vector<方法节点*> 私有_查找需求候选方法_控制面板(
         const 需求节点* 需求,
-        const 词性节点类* 目标特征类型) noexcept
+        const 语素入口节点类* 目标特征类型) noexcept
     {
         std::vector<方法节点*> 候选方法{};
         if (!需求 || !目标特征类型) {
@@ -2139,7 +2292,9 @@ namespace {
             私有_追加叶字段(字段节点, "主信息类型", 私有_主信息类型文本(主信息->主信息类型));
             私有_追加叶字段(字段节点, "主信息运行时基类", "基础信息基类派生");
             私有_追加叶字段(字段节点, "名称", 私有_词文本(主信息->名称));
+            私有_追加叶字段(字段节点, "名称入口诊断", 私有_语素入口诊断文本(主信息->名称));
             私有_追加叶字段(字段节点, "类型", 私有_词文本(主信息->类型));
+            私有_追加叶字段(字段节点, "类型入口诊断", 私有_语素入口诊断文本(主信息->类型));
             私有_追加统计字段(字段节点, 主信息->统计);
         }
         else {
@@ -2250,6 +2405,17 @@ namespace {
             [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
                 return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
             });
+        私有_追加引用列表字段(
+            字段节点,
+            "概念集",
+            主信息.概念集,
+            上下文,
+            剩余深度,
+            路径,
+            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
+                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
+            },
+            32);
         私有_追加引用字段(
             字段节点,
             "内部世界",
@@ -3459,6 +3625,7 @@ namespace {
 
     结构_控制面板树节点 私有_构建线程状态树(
         const 结构_控制面板快照& 快照,
+        const 任务管理线程协议::结构_任务界面线程快照& 界面线程快照,
         const 任务管理工作线程::结构_工作线程实例快照& 工作线程快照)
     {
         auto 根节点 = 私有_新节点(
@@ -3477,6 +3644,19 @@ namespace {
             false,
             "thread-self");
         根节点.子项.push_back(std::move(自我线程节点));
+
+        auto 界面线程节点 = 私有_新节点(
+            std::string("任务管理界面线程 | 启动=")
+                + 私有_布尔文本(界面线程快照.已启动)
+                + " | 处理=" + std::string(私有_布尔文本(界面线程快照.正在处理))
+                + " | 请求=" + std::to_string(界面线程快照.累计接收请求数)
+                + " | 等待包=" + std::to_string(界面线程快照.当前等待工作包数)
+                + " | 上行=" + std::to_string(界面线程快照.当前上行队列长度),
+            私有_线程详情_任务界面,
+            false,
+            false,
+            "thread-task-interface");
+        根节点.子项.push_back(std::move(界面线程节点));
 
         auto 工作线程节点 = 私有_新节点(
             std::string("任务管理工作线程 | 启动=")
@@ -3740,7 +3920,13 @@ namespace {
 
     快照.世界树已初始化 = 世界树.基础信息().世界根() != nullptr;
     快照.自我已初始化 = 自我.已初始化();
-    快照.自我存在已建立 = 自我.获取自我存在() != nullptr;
+    auto* 原始自我存在 = 自我.获取自我存在();
+    快照.自我存在已建立 = 原始自我存在 != nullptr;
+    if (const auto* 自我主信息 = 世界树.基础信息().取主信息<存在节点主信息类>(原始自我存在)) {
+        快照.自我需求根字段已建立 = 自我主信息->需求根节点 != nullptr;
+        快照.自我任务根字段已建立 = 自我主信息->任务根节点 != nullptr;
+        快照.自我方法根字段已建立 = 自我主信息->方法根节点 != nullptr;
+    }
     快照.自我内部世界已建立 = 自我.获取自我内部世界() != nullptr;
     快照.自我待机状态 = 自我.是否待机状态();
     快照.自我安全值 = 自我.获取安全值();
@@ -3769,6 +3955,7 @@ namespace {
         static_cast<枚举_自我线程运行阶段>(自我线程最小快照.最近阶段值);
     const auto 当前去向 =
         static_cast<枚举_自我线程最终去向>(自我线程最小快照.最近去向值);
+    const auto 自检报告修复快照 = 自我线程.读取最近自检报告修复治理快照();
 
     快照.自我线程已初始化 = true;
     快照.自我线程运行中 =
@@ -3789,6 +3976,7 @@ namespace {
     快照.自我线程最近运行摘要 = 自我线程.读取最近运行摘要();
     快照.自我线程最近恢复摘要 = 自我线程.读取最近恢复摘要();
     快照.自我线程最近故障摘要 = 自我线程.读取最近故障摘要();
+
     快照.控制面板摘要线程已启动 =
         摘要线程生命周期 != 枚举_控制面板摘要线程生命周期状态::未启动
         && 摘要线程生命周期 != 枚举_控制面板摘要线程生命周期状态::已停止;
@@ -3803,7 +3991,15 @@ namespace {
     快照.控制面板摘要_方法树 = 摘要线程快照.方法树摘要;
     快照.控制面板摘要_运行事实 = 摘要线程快照.运行事实摘要;
     快照.控制面板摘要_自检 = 摘要线程快照.自检摘要;
-
+    快照.自检报告待处理数 = 自检报告修复快照.待处理报告数;
+    快照.自检报告待休眠修复数 = 自检报告修复快照.待休眠修复报告数;
+    快照.自检报告待映射确认数 = 自检报告修复快照.待映射确认报告数;
+    快照.自检报告仅报告保留数 = 自检报告修复快照.仅报告保留数;
+    快照.自检报告休眠期评估数 = 自检报告修复快照.休眠期评估报告数;
+    快照.自检报告越界需求化拒绝数 = 自检报告修复快照.累计越界需求化拒绝数;
+    快照.自检报告最近休眠期门控数 = 自检报告修复快照.最近休眠期门控报告数;
+    快照.自检报告最近处置 = 自检报告修复快照.最近报告处置;
+    快照.自检报告修复门控摘要 = 自检报告修复快照.摘要;
     快照.自我存在指针 = 私有_地址(自我.获取自我存在());
     快照.自我存在标题 = 私有_安全节点摘要(自我.获取自我存在(), "自我存在");
 
@@ -3872,8 +4068,56 @@ namespace {
             else {
                 ++快照.需求未满足数;
             }
+
+            switch (节点->主信息.结构角色) {
+            case 枚举_需求结构角色::管理需求:
+                ++快照.需求树管理需求数;
+                break;
+            case 枚举_需求结构角色::执行需求:
+                ++快照.需求树执行需求数;
+                break;
+            case 枚举_需求结构角色::未定义:
+            default:
+                ++快照.需求树角色未定义数;
+                break;
+            }
+
+            if (节点->主信息.需求有效截止 != 0) {
+                ++快照.需求树已截止需求数;
+            }
+            else if (节点->主信息.是否阻塞父任务执行) {
+                ++快照.需求树活动阻塞需求数;
+            }
+
+            if (!节点->主信息.是否阻塞父任务执行) {
+                ++快照.需求树非阻塞需求数;
+            }
+
+            if (!节点->主信息.派生来源方法主键.empty()
+                || 节点->主信息.派生需求类型抽象特征指针 != 0
+                || 节点->主信息.派生需求类型值 != 0
+                || 节点->主信息.派生方法需求位抽象特征指针 != 0
+                || 节点->主信息.派生方法需求位值 != 0
+                || 节点->主信息.派生本能能力缺口类型抽象特征指针 != 0
+                || 节点->主信息.派生本能能力缺口类型值 != 0) {
+                ++快照.需求树派生归因需求数;
+            }
         };
         私有_遍历子树节点(需求根节点, 统计需求满足);
+    }
+    if (auto* 当前主需求节点 = 自我.获取当前主需求()) {
+        快照.需求树当前主需求主键 = 当前主需求节点->获取主键();
+        快照.需求树当前主需求父主键 =
+            私有_节点主键_控制面板(reinterpret_cast<需求节点*>(当前主需求节点->父));
+        快照.需求树当前主需求目标主体主键 =
+            私有_引用主键_控制面板(当前主需求节点->主信息.被需求存在);
+        const auto* 目标特征类型 = 当前主需求节点->主信息.目标特征类型缓存
+            ? 当前主需求节点->主信息.目标特征类型缓存
+            : 私有_需求目标特征类型_控制面板(当前主需求节点);
+        快照.需求树当前主需求目标特征主键 =
+            私有_节点主键_控制面板(目标特征类型);
+        快照.需求树当前主需求有任务 =
+            当前主需求节点->主信息.对应任务.有效();
     }
     if (任务根节点) {
         auto 统计任务节点 = [&](const 任务节点* 节点) {
@@ -3903,7 +4147,7 @@ namespace {
         私有_遍历子树节点(任务根节点, 统计任务节点);
     }
 
-    const auto 缺口承接快照 = 读取缺口承接快照_最小_v0(自我, &自我线程);
+    const auto 缺口承接快照 = 私有_读取缺口承接快照_控制面板(自我, 自我线程);
     快照.自我待处理方法数量 = 缺口承接快照.待处理方法数量;
     (void)自我.读取自我I64特征当前值(
         自我特征定义类::类型_自我_可用方法数量(),
@@ -3922,7 +4166,6 @@ namespace {
     快照.缺口最近失败摘要.clear();
     快照.缺口最近反馈摘要 = 缺口承接快照.最近缺口反馈摘要;
     快照.缺口最近回流摘要.clear();
-    快照.缺口固定机制观察摘要.clear();
     快照.缺口首个兜底切换就绪摘要.clear();
     快照.缺口首个兜底切换采样摘要.clear();
     快照.缺口当前阶段.clear();
@@ -3932,6 +4175,28 @@ namespace {
 
     任务管理工作线程::结构_工作线程实例快照 工作线程快照{};
     (void)任务管理工作线程::读取任务管理工作线程快照(&工作线程快照);
+    任务管理线程协议::结构_任务界面线程快照 界面线程快照{};
+    (void)任务管理界面线程::读取任务管理界面线程快照(&界面线程快照);
+
+    快照.任务管理界面线程已启动 = 界面线程快照.已启动;
+    快照.任务管理界面线程正在处理 = 界面线程快照.正在处理;
+    快照.任务管理界面线程故障 = 界面线程快照.故障;
+    快照.任务管理界面线程累计接收请求数 = 界面线程快照.累计接收请求数;
+    快照.任务管理界面线程累计绑定任务虚拟存在数 = 界面线程快照.累计绑定任务虚拟存在数;
+    快照.任务管理界面线程累计派发工作包数 = 界面线程快照.累计派发工作包数;
+    快照.任务管理界面线程累计收到工作结果数 = 界面线程快照.累计收到工作结果数;
+    快照.任务管理界面线程累计上行消息数 = 界面线程快照.累计上行消息数;
+    快照.任务管理界面线程当前请求队列长度 = 界面线程快照.当前请求队列长度;
+    快照.任务管理界面线程当前等待工作包数 = 界面线程快照.当前等待工作包数;
+    快照.任务管理界面线程当前上行队列长度 = 界面线程快照.当前上行队列长度;
+    快照.任务管理界面线程最近请求ID = 界面线程快照.最近请求ID;
+    快照.任务管理界面线程最近工作包ID = 界面线程快照.最近工作包ID;
+    快照.任务管理界面线程最近任务主键 = 界面线程快照.最近任务主键;
+    快照.任务管理界面线程最近任务虚拟存在主键 = 界面线程快照.最近任务虚拟存在主键;
+    快照.任务管理界面线程最近需求主键 = 界面线程快照.最近需求主键;
+    快照.任务管理界面线程最近调度动作 = 界面线程快照.最近调度动作;
+    快照.任务管理界面线程最近说明 = 界面线程快照.最近说明;
+
     快照.任务管理工作线程已启动 = 工作线程快照.已启动;
     快照.任务管理工作线程正在执行 = 工作线程快照.正在执行;
     快照.任务管理工作线程已收到请求 = 工作线程快照.已收到请求;
@@ -3960,7 +4225,7 @@ namespace {
         std::move(上下文.世界默认展开路径),
         私有_构建父链路径(自我存在));
 
-    快照.线程状态树根 = 私有_构建线程状态树(快照, 工作线程快照);
+    快照.线程状态树根 = 私有_构建线程状态树(快照, 界面线程快照, 工作线程快照);
 
     auto 世界树根 = 私有_新节点(
         std::string("世界树 | 节点仓库=基础信息类")
@@ -4352,12 +4617,15 @@ std::string 读取控制面板节点详情JSON(
         return 私有_树节点列表JSON(私有_提取节点字段详情(节点));
     }
     if (展开类型 == "thread-self"
+        || 展开类型 == "thread-task-interface"
         || 展开类型 == "thread-worker"
         || 展开类型 == "thread-summary"
         || 展开类型 == "thread-system") {
         const auto 快照 = 读取控制面板快照(1, 16);
         任务管理工作线程::结构_工作线程实例快照 工作线程快照{};
         (void)任务管理工作线程::读取任务管理工作线程快照(&工作线程快照);
+        任务管理线程协议::结构_任务界面线程快照 界面线程快照{};
+        (void)任务管理界面线程::读取任务管理界面线程快照(&界面线程快照);
 
         auto 字段节点 = 私有_新节点("节点字段");
         if (展开类型 == "thread-self") {
@@ -4372,8 +4640,6 @@ std::string 读取控制面板节点详情JSON(
             私有_追加叶字段(字段节点, "最近故障摘要", 私有_截断文本(快照.自我线程最近故障摘要, 160));
         }
         else if (展开类型 == "thread-worker") {
-            std::vector<任务管理工作线程::结构_工作线程界面回报记录> 界面回报列表{};
-            (void)任务管理工作线程::读取任务管理工作线程界面回报列表(&界面回报列表, 8);
             私有_追加叶字段(字段节点, "已启动", 工作线程快照.已启动);
             私有_追加叶字段(字段节点, "正在执行", 工作线程快照.正在执行);
             私有_追加叶字段(字段节点, "已收到请求", 工作线程快照.已收到请求);
@@ -4389,80 +4655,31 @@ std::string 读取控制面板节点详情JSON(
             私有_追加叶字段(字段节点, "最近总控结果", 工作线程快照.最近总控结果);
             私有_追加叶字段(字段节点, "最近因果链状态", 工作线程快照.最近因果链状态);
             私有_追加叶字段(字段节点, "最近缺口归类", 工作线程快照.最近缺口归类);
+            私有_追加叶字段(字段节点, "最近推进阶段", 工作线程快照.最近推进阶段);
+            私有_追加叶字段(字段节点, "最近推进状况", 工作线程快照.最近推进状况);
             私有_追加叶字段(字段节点, "最近筹办承接", 工作线程快照.最近筹办承接);
             私有_追加叶字段(字段节点, "最近等待原因", 工作线程快照.最近等待原因);
             私有_追加叶字段(字段节点, "最近特征变化数", 工作线程快照.最近特征变化数);
-
-            auto 回报节点 = 私有_新节点(
-                "界面展示回报 (" + std::to_string(界面回报列表.size()) + ")");
-            if (界面回报列表.empty()) {
-                回报节点.子项.push_back(私有_新节点("暂无执行回报"));
-            }
-            else {
-                for (std::size_t 索引 = 0; 索引 < 界面回报列表.size(); ++索引) {
-                    const auto& 回报 = 界面回报列表[索引];
-                    auto 记录节点 = 私有_新节点(
-                        std::to_string(索引 + 1)
-                            + " | 请求ID=" + std::to_string(回报.请求ID)
-                            + " | 步骤=" + (回报.步骤主键.empty() ? std::string("空") : 回报.步骤主键)
-                            + " | 方法=" + (回报.方法主键.empty() ? std::string("空") : 回报.方法主键)
-                            + " | 去向=" + (回报.下一步去向.empty() ? std::string("未定义") : 回报.下一步去向));
-                    私有_追加叶字段(记录节点, "回报时间", 私有_时间文本(回报.回报时间));
-                    私有_追加叶字段(记录节点, "请求ID", 回报.请求ID);
-                    私有_追加叶字段(记录节点, "任务根ID", 回报.任务根ID);
-                    私有_追加叶字段(记录节点, "宿主任务主键", 回报.宿主任务主键);
-                    私有_追加叶字段(记录节点, "步骤主键", 回报.步骤主键);
-                    私有_追加叶字段(记录节点, "方法主键", 回报.方法主键);
-                    私有_追加叶字段(记录节点, "结果主键", 回报.结果主键);
-                    私有_追加叶字段(记录节点, "下一步去向", 回报.下一步去向);
-                    私有_追加叶字段(记录节点, "总控结果", 回报.总控结果);
-                    私有_追加叶字段(记录节点, "因果链状态", 回报.因果链状态);
-                    私有_追加叶字段(记录节点, "缺口归类", 回报.缺口归类);
-                    私有_追加叶字段(记录节点, "筹办承接", 回报.筹办承接);
-                    私有_追加叶字段(记录节点, "等待原因", 回报.等待原因);
-                    私有_追加叶字段(记录节点, "推进事件数", 回报.推进事件数);
-                    私有_追加叶字段(记录节点, "上行消息数", 回报.上行消息数);
-                    auto 特征变化节点 = 私有_新节点(
-                        "特征变化 (" + std::to_string(回报.特征变化列表.size()) + ")");
-                    if (回报.特征变化列表.empty()) {
-                        特征变化节点.子项.push_back(私有_新节点("暂无特征变化"));
-                    }
-                    else {
-                        for (std::size_t 变化索引 = 0; 变化索引 < 回报.特征变化列表.size(); ++变化索引) {
-                            const auto& 变化 = 回报.特征变化列表[变化索引];
-                            auto 变化节点 = 私有_新节点(
-                                std::to_string(变化索引 + 1)
-                                    + " | 特征="
-                                    + (变化.特征类型文本.empty() ? std::string("空") : 变化.特征类型文本)
-                                    + " | 差值="
-                                    + (变化.差值.empty() ? std::string("空") : 变化.差值));
-                            私有_追加叶字段(变化节点, "来源", 变化.来源);
-                            私有_追加叶字段(变化节点, "变化主体主键", 变化.变化主体主键);
-                            私有_追加叶字段(变化节点, "变化主体类型", 变化.变化主体类型文本);
-                            私有_追加叶字段(变化节点, "特征类型", 变化.特征类型文本);
-                            私有_追加叶字段(变化节点, "特征标签", 变化.特征标签);
-                            私有_追加叶字段(
-                                变化节点,
-                                "变化前值",
-                                "类型=" + std::string(变化.变化前值类型.empty() ? 私有_特征值类型文本(特征值{}) : 变化.变化前值类型)
-                                    + " | 值=" + (变化.变化前值.empty() ? std::string("空") : 变化.变化前值));
-                            私有_追加叶字段(
-                                变化节点,
-                                "变化后值",
-                                "类型=" + std::string(变化.变化后值类型.empty() ? 私有_特征值类型文本(特征值{}) : 变化.变化后值类型)
-                                    + " | 值=" + (变化.变化后值.empty() ? std::string("空") : 变化.变化后值));
-                            私有_追加叶字段(变化节点, "差值", 变化.差值);
-                            私有_追加叶字段(变化节点, "变化原因", 变化.变化原因键);
-                            私有_追加叶字段(变化节点, "已确认生效", 变化.已确认生效);
-                            私有_追加叶字段(变化节点, "关键中间状态", 变化.是否关键中间状态);
-                            特征变化节点.子项.push_back(std::move(变化节点));
-                        }
-                    }
-                    记录节点.子项.push_back(std::move(特征变化节点));
-                    回报节点.子项.push_back(std::move(记录节点));
-                }
-            }
-            字段节点.子项.push_back(std::move(回报节点));
+        }
+        else if (展开类型 == "thread-task-interface") {
+            私有_追加叶字段(字段节点, "已启动", 界面线程快照.已启动);
+            私有_追加叶字段(字段节点, "正在处理", 界面线程快照.正在处理);
+            私有_追加叶字段(字段节点, "故障", 界面线程快照.故障);
+            私有_追加叶字段(字段节点, "累计接收请求数", 界面线程快照.累计接收请求数);
+            私有_追加叶字段(字段节点, "累计绑定任务虚拟存在数", 界面线程快照.累计绑定任务虚拟存在数);
+            私有_追加叶字段(字段节点, "累计派发工作包数", 界面线程快照.累计派发工作包数);
+            私有_追加叶字段(字段节点, "累计收到工作结果数", 界面线程快照.累计收到工作结果数);
+            私有_追加叶字段(字段节点, "累计上行消息数", 界面线程快照.累计上行消息数);
+            私有_追加叶字段(字段节点, "当前请求队列长度", 界面线程快照.当前请求队列长度);
+            私有_追加叶字段(字段节点, "当前等待工作包数", 界面线程快照.当前等待工作包数);
+            私有_追加叶字段(字段节点, "当前上行队列长度", 界面线程快照.当前上行队列长度);
+            私有_追加叶字段(字段节点, "最近请求ID", 界面线程快照.最近请求ID);
+            私有_追加叶字段(字段节点, "最近工作包ID", 界面线程快照.最近工作包ID);
+            私有_追加叶字段(字段节点, "最近任务主键", 界面线程快照.最近任务主键);
+            私有_追加叶字段(字段节点, "最近任务虚拟存在主键", 界面线程快照.最近任务虚拟存在主键);
+            私有_追加叶字段(字段节点, "最近需求主键", 界面线程快照.最近需求主键);
+            私有_追加叶字段(字段节点, "最近调度动作", 界面线程快照.最近调度动作);
+            私有_追加叶字段(字段节点, "最近说明", 私有_截断文本(界面线程快照.最近说明, 200));
         }
         else if (展开类型 == "thread-summary") {
             私有_追加叶字段(
@@ -4480,6 +4697,14 @@ std::string 读取控制面板节点详情JSON(
             私有_追加叶字段(字段节点, "方法树摘要", 私有_截断文本(快照.控制面板摘要_方法树, 200));
             私有_追加叶字段(字段节点, "运行事实摘要", 私有_截断文本(快照.控制面板摘要_运行事实, 200));
             私有_追加叶字段(字段节点, "自检摘要", 私有_截断文本(快照.控制面板摘要_自检, 200));
+            私有_追加叶字段(字段节点, "自检报告待处理数", 快照.自检报告待处理数);
+            私有_追加叶字段(字段节点, "待休眠评估报告数", 快照.自检报告休眠期评估数);
+            私有_追加叶字段(字段节点, "待映射确认报告数", 快照.自检报告待映射确认数);
+            私有_追加叶字段(字段节点, "仅报告保留数", 快照.自检报告仅报告保留数);
+            私有_追加叶字段(字段节点, "越界需求化拒绝数", 快照.自检报告越界需求化拒绝数);
+            私有_追加叶字段(字段节点, "最近休眠期门控报告数", 快照.自检报告最近休眠期门控数);
+            私有_追加叶字段(字段节点, "最近报告处置", 私有_截断文本(快照.自检报告最近处置, 200));
+            私有_追加叶字段(字段节点, "自检报告修复门控", 私有_截断文本(快照.自检报告修复门控摘要, 200));
         }
         else {
             私有_追加叶字段(字段节点, "当前进程线程数", 快照.线程数);
@@ -4501,6 +4726,9 @@ std::string 渲染控制面板摘要(
         << "  - 自我: 初始化=" << 私有_布尔文本(快照.自我已初始化)
         << " | 存在=" << 私有_布尔文本(快照.自我存在已建立)
         << " | 内部世界=" << 私有_布尔文本(快照.自我内部世界已建立)
+        << " | 根字段=需" << 私有_布尔文本(快照.自我需求根字段已建立)
+        << "/任" << 私有_布尔文本(快照.自我任务根字段已建立)
+        << "/方" << 私有_布尔文本(快照.自我方法根字段已建立)
         << " | 待机=" << 私有_布尔文本(快照.自我待机状态)
         << " | 安全=" << 快照.自我安全值
         << " | 服务=" << 快照.自我服务值
@@ -4524,6 +4752,17 @@ std::string 渲染控制面板摘要(
         << " | 任务=" << 私有_页面摘要(快照.控制面板摘要_任务树)
         << " | 方法=" << 私有_页面摘要(快照.控制面板摘要_方法树)
         << '\n'
+        << "  - 需求树: 总数=" << 快照.需求数
+        << " | 已满足=" << 快照.需求已满足数
+        << " | 未满足=" << 快照.需求未满足数
+        << " | 管理=" << 快照.需求树管理需求数
+        << " | 执行=" << 快照.需求树执行需求数
+        << " | 活动阻塞=" << 快照.需求树活动阻塞需求数
+        << " | 派生归因=" << 快照.需求树派生归因需求数
+        << " | 当前主需求=" << 私有_页面摘要(快照.需求树当前主需求主键.empty()
+            ? std::string("空")
+            : 快照.需求树当前主需求主键)
+        << '\n'
         << "  - 树规模: 基础节点=" << 快照.基础信息节点数
         << " | 场景=" << 快照.场景数
         << " | 存在=" << 快照.存在数
@@ -4542,6 +4781,9 @@ std::string 渲染控制面板摘要(
         << '\n'
         << "  - 任务管理: 工作线程="
         << 私有_布尔文本(快照.任务管理工作线程已启动)
+        << " | 界面线程=" << 私有_布尔文本(快照.任务管理界面线程已启动)
+        << " | 请求=" << 快照.任务管理界面线程累计接收请求数
+        << " | 上行=" << 快照.任务管理界面线程当前上行队列长度
         << " | 执行=" << 私有_布尔文本(快照.任务管理工作线程正在执行)
         << " | 排队=" << 快照.任务管理工作线程当前排队数
         << " | 因果链=" << 私有_页面摘要(快照.任务管理工作线程最近因果链状态)
@@ -4550,7 +4792,6 @@ std::string 渲染控制面板摘要(
         << '\n';
     return 输出.str();
 }
-
 std::string 渲染任务管理摘要(
     const 结构_控制面板快照& 快照,
     std::size_t)
@@ -4566,6 +4807,17 @@ std::string 渲染任务管理摘要(
         << " | 已收到请求=" << 私有_布尔文本(快照.任务管理工作线程已收到请求)
         << " | 推进次数=" << 快照.任务管理工作线程累计推进次数
         << " | 当前排队=" << 快照.任务管理工作线程当前排队数
+        << '\n'
+        << "  - 界面线程: 已启动=" << 私有_布尔文本(快照.任务管理界面线程已启动)
+        << " | 正在处理=" << 私有_布尔文本(快照.任务管理界面线程正在处理)
+        << " | 故障=" << 私有_布尔文本(快照.任务管理界面线程故障)
+        << " | 请求=" << 快照.任务管理界面线程累计接收请求数
+        << " | 派发工作包=" << 快照.任务管理界面线程累计派发工作包数
+        << " | 上行队列=" << 快照.任务管理界面线程当前上行队列长度
+        << " | 最近调度=" << 私有_页面摘要(快照.任务管理界面线程最近调度动作)
+        << " | 最近任务=" << 私有_页面摘要(快照.任务管理界面线程最近任务主键)
+        << " | 任务虚拟存在=" << 私有_页面摘要(快照.任务管理界面线程最近任务虚拟存在主键)
+        << " | 最近说明=" << 私有_页面摘要(快照.任务管理界面线程最近说明)
         << '\n'
         << "  - 树规模: 需求=" << 快照.需求数
         << " | 任务节点=" << 快照.任务数
@@ -4612,8 +4864,6 @@ std::string 渲染缺口摘要(
         << "  - 最近反馈=" << 私有_页面摘要(快照.缺口最近反馈摘要)
         << '\n'
         << "  - 最近回流=" << 私有_页面摘要(快照.缺口最近回流摘要)
-        << '\n'
-        << "  - 固定机制观察=" << 私有_页面摘要(快照.缺口固定机制观察摘要)
         << '\n';
     return 输出.str();
 }
@@ -4629,17 +4879,13 @@ std::string 生成控制面板HTML(
     const auto 任务树JSON = 私有_树节点JSON(快照.任务树根);
     const auto 方法树JSON = 私有_树节点JSON(快照.方法树根);
 
-    const auto 树交互提示 = 私有_转义HTML(
-        "单击节点查看右侧详情，双击只展开或折叠结构子节点；节点字段会在右侧按需加载。");
-    const auto 任务树交互提示 = 私有_转义HTML(
-        "任务树页从自我任务根节点展示真实任务结构；单击节点后，字段在右侧按需加载。");
-    const auto 顶部说明 = 私有_转义HTML(
-        "当前页面围绕你要求的 6 个核心观察面重构：线程状态、世界树、需求树、需求列表、任务树、方法树。"
-        "左侧切页面，中间看结构树，右侧看当前选中节点的主信息详细信息和节点字段。");
+    const auto 树交互提示 = 私有_转义HTML("结构节点与字段摘要");
+    const auto 任务树交互提示 = 私有_转义HTML("任务根节点结构与运行壳摘要");
     const auto 线程页摘要 = 私有_转义HTML(
         "自我线程阶段=" + 私有_页面摘要(快照.自我线程当前阶段)
         + " | 去向=" + 私有_页面摘要(快照.自我线程当前最终去向)
-        + " | 工作线程已启动=" + std::string(私有_布尔文本(快照.任务管理工作线程已启动))
+        + " | 任务界面线程=" + std::string(私有_布尔文本(快照.任务管理界面线程已启动))
+        + " | 工作线程=" + std::string(私有_布尔文本(快照.任务管理工作线程已启动))
         + " | 系统线程数=" + std::to_string(快照.线程数));
     const auto 世界页摘要 = 私有_转义HTML(
         "节点仓库=基础信息类 | 基础节点=" + std::to_string(快照.基础信息节点数)
@@ -4650,10 +4896,13 @@ std::string 生成控制面板HTML(
         + " | 因果模板=" + std::to_string(快照.因果模板数));
     const auto 需求树摘要 = 私有_转义HTML(
         "需求数=" + std::to_string(快照.需求数)
-        + " | " + 私有_需求满足数量摘要(快照));
+        + " | " + 私有_需求满足数量摘要(快照)
+        + " | 管理=" + std::to_string(快照.需求树管理需求数)
+        + " | 执行=" + std::to_string(快照.需求树执行需求数)
+        + " | 活动阻塞=" + std::to_string(快照.需求树活动阻塞需求数));
     const auto 需求列表摘要 = 私有_转义HTML(
         "需求数=" + std::to_string(快照.需求数)
-        + " | 列表页每次先加载前 100 项，继续点击即可追加后续分段。");
+        + " | 列表窗口=" + std::to_string(私有_列表分页大小));
     const auto 任务树摘要 = 私有_转义HTML(
         "任务节点=" + std::to_string(快照.任务数)
             + " | 头=" + std::to_string(快照.任务头节点数)
@@ -4678,10 +4927,18 @@ std::string 生成控制面板HTML(
         + 私有_线程生命周期文本(static_cast<枚举_线程生命周期状态>(快照.自我线程生命周期))
         + " | 去向=" + 快照.自我线程当前最终去向
         + " | Tick=" + std::to_string(快照.自我Tick计数));
-    const auto 缺口卡片说明 = 私有_转义HTML(
-        "缺口承接已接管 | 待处理方法=" + std::to_string(快照.自我待处理方法数量)
-        + " | 可用方法=" + std::to_string(快照.自我可用方法数量));
-
+    const auto 界面线程卡片值 = 私有_转义HTML(快照.任务管理界面线程已启动 ? "已启动" : "未启动");
+    const auto 界面线程卡片说明 = 私有_转义HTML(
+        "请求=" + std::to_string(快照.任务管理界面线程累计接收请求数)
+        + " | 工作包=" + std::to_string(快照.任务管理界面线程累计派发工作包数)
+        + " | 上行=" + std::to_string(快照.任务管理界面线程当前上行队列长度)
+        + " | 调度=" + 私有_页面摘要(快照.任务管理界面线程最近调度动作));
+    const auto 工作线程卡片值 = 私有_转义HTML(快照.任务管理工作线程已启动 ? "已启动" : "未启动");
+    const auto 工作线程卡片说明 = 私有_转义HTML(
+        "执行=" + std::string(私有_布尔文本(快照.任务管理工作线程正在执行))
+        + " | 排队=" + std::to_string(快照.任务管理工作线程当前排队数)
+        + " | 推进=" + std::to_string(快照.任务管理工作线程累计推进次数)
+        + " | 去向=" + 私有_页面摘要(快照.任务管理最近下一步去向));
     std::ostringstream 输出;
     输出 << R"HTML(<!DOCTYPE html>
 <html lang="zh-CN">
@@ -4691,23 +4948,24 @@ std::string 生成控制面板HTML(
   <title>鱼巢控制面板</title>
   <style>
     :root{
-      --bg:#f3efe8;
-      --card:#fffaf2;
-      --line:#d6c8b2;
-      --ink:#1f2b2f;
-      --muted:#66767a;
+      --bg:#f4f6f8;
+      --surface:#ffffff;
+      --surface-2:#f8fafc;
+      --line:#d8dee7;
+      --ink:#172026;
+      --muted:#5d6977;
       --accent:#0f766e;
-      --accent-soft:#d8efe8;
-      --shadow:0 16px 32px rgba(48,58,60,.08);
+      --blue:#2563eb;
+      --amber:#b45309;
+      --danger:#be123c;
+      --shadow:0 10px 24px rgba(15,23,42,.08);
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       color:var(--ink);
       font-family:"Microsoft YaHei UI","PingFang SC","Source Han Sans SC",sans-serif;
-      background:
-        radial-gradient(circle at top right, rgba(15,118,110,.12), transparent 24%),
-        linear-gradient(180deg, #fffdf8 0%, var(--bg) 100%);
+      background:var(--bg);
     }
     .shell{max-width:1680px;margin:0 auto;padding:24px 20px 36px}
     .layout{
@@ -4720,19 +4978,19 @@ std::string 生成控制面板HTML(
       position:sticky;
       top:16px;
       padding:18px 16px;
-      border:1px solid rgba(31,43,47,.08);
-      border-radius:24px;
-      background:rgba(255,250,242,.92);
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:8px;
+      background:rgba(255,255,255,.94);
       box-shadow:var(--shadow);
       backdrop-filter:blur(10px);
     }
     .brand{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-    .rail h1{margin:10px 0 0;font-size:28px;line-height:1.2}
-    .rail p{margin:10px 0 0;color:var(--muted);font-size:13px;line-height:1.7}
+    .rail h1{margin:10px 0 0;font-size:24px;line-height:1.2}
+    .rail p{margin:10px 0 0;color:var(--muted);font-size:13px;line-height:1.6}
     .nav{margin-top:18px;display:grid;gap:8px}
     .menu-item,.toolbar-btn{
       border:none;
-      border-radius:14px;
+      border-radius:8px;
       cursor:pointer;
       transition:transform .12s ease,background .12s ease,color .12s ease;
       -webkit-user-select:none;
@@ -4745,19 +5003,19 @@ std::string 生成控制面板HTML(
       justify-content:space-between;
       gap:10px;
       padding:11px 12px;
-      background:rgba(15,118,110,.08);
+      background:#eef3f7;
       color:var(--ink);
       text-align:left;
     }
     .menu-item.active{
       background:var(--accent);
-      color:#fffaf2;
+      color:#fff;
       font-weight:700;
       box-shadow:0 10px 20px rgba(15,118,110,.18);
     }
     .menu-item:hover,.toolbar-btn:hover{transform:translateY(-1px)}
     .menu-badge{
-      border-radius:999px;
+      border-radius:8px;
       padding:3px 9px;
       font-size:12px;
       background:rgba(31,43,47,.08);
@@ -4765,8 +5023,8 @@ std::string 生成控制面板HTML(
       white-space:nowrap;
     }
     .menu-item.active .menu-badge{
-      background:rgba(255,250,242,.2);
-      color:#fffaf2;
+      background:rgba(255,255,255,.22);
+      color:#fff;
     }
     .content{min-width:0}
     .toolbar{
@@ -4778,9 +5036,9 @@ std::string 生成控制面板HTML(
       justify-content:space-between;
       gap:16px;
       padding:18px 20px;
-      border:1px solid rgba(31,43,47,.08);
-      border-radius:22px;
-      background:rgba(255,250,242,.92);
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:8px;
+      background:rgba(255,255,255,.94);
       box-shadow:var(--shadow);
       backdrop-filter:blur(10px);
     }
@@ -4791,38 +5049,50 @@ std::string 生成控制面板HTML(
     .toolbar-btn{
       min-width:120px;
       padding:12px 16px;
-      background:linear-gradient(135deg, var(--accent), #15958b);
-      color:#fffaf2;
+      background:var(--accent);
+      color:#fff;
       font-weight:700;
     }
     .toolbar-btn.secondary{
-      background:rgba(15,118,110,.08);
+      background:#eef3f7;
       border:1px solid rgba(15,118,110,.18);
       color:var(--ink);
     }
-    .hero{
+    .overview{
       margin-top:18px;
-      border:1px solid rgba(15,118,110,.16);
-      border-radius:28px;
-      padding:28px;
-      background:linear-gradient(135deg, rgba(15,118,110,.12), rgba(82,140,136,.04));
-      box-shadow:var(--shadow);
-    }
-    .hero h2{margin:0;font-size:34px;line-height:1.2}
-    .lead{margin-top:12px;color:var(--muted);font-size:15px;line-height:1.8}
-    .cards{
-      margin-top:20px;
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:14px;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
     }
-    .card,.panel{
-      border:1px solid rgba(31,43,47,.08);
-      border-radius:22px;
-      background:var(--card);
+    .status-card{
+      min-width:0;
+      padding:14px;
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:8px;
+      background:var(--surface);
       box-shadow:var(--shadow);
     }
-    .card{padding:18px}
+    .status-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .status-value{margin-top:8px;font-size:22px;font-weight:700;line-height:1.2}
+    .status-meta{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.6}
+    .status-dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+    .status-dot.ok{background:var(--accent)}
+    .status-dot.warn{background:var(--amber)}
+    .status-dot.bad{background:var(--danger)}
+    .card,.panel{
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:8px;
+      background:var(--surface);
+      box-shadow:var(--shadow);
+    }
+    .card{padding:14px}
     .label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
     .value{margin-top:8px;font-size:24px;font-weight:700}
     .sub{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.7}
@@ -4840,7 +5110,7 @@ std::string 生成控制面板HTML(
       margin-top:12px;
       padding:14px 16px;
       border:1px dashed rgba(15,118,110,.28);
-      border-radius:16px;
+      border-radius:8px;
       background:rgba(15,118,110,.05);
       color:var(--ink);
       font-size:14px;
@@ -4873,9 +5143,9 @@ std::string 生成控制面板HTML(
     .tree-shell{
       margin-top:14px;
       padding:18px;
-      border-radius:18px;
-      background:linear-gradient(180deg, rgba(255,250,242,.98), rgba(245,241,232,.92));
-      border:1px solid rgba(31,43,47,.08);
+      border-radius:8px;
+      background:var(--surface-2);
+      border:1px solid rgba(15,23,42,.08);
       min-height:440px;
       max-height:calc(100vh - 240px);
       overflow:auto;
@@ -4886,7 +5156,7 @@ std::string 生成控制面板HTML(
       position:relative;
       margin:4px 0;
       padding:8px 10px 8px 26px;
-      border-radius:12px;
+      border-radius:8px;
       line-height:1.6;
       cursor:default;
       user-select:text;
@@ -4940,16 +5210,16 @@ std::string 生成控制面板HTML(
     }
     .breadcrumb{
       border:none;
-      border-radius:999px;
+      border-radius:8px;
       padding:6px 12px;
-      background:rgba(15,118,110,.08);
+      background:#eef3f7;
       color:var(--ink);
       font-size:12px;
       cursor:pointer;
     }
     .breadcrumb.current{
       background:var(--accent);
-      color:#fffaf2;
+      color:#fff;
       cursor:default;
     }
     .chips{
@@ -4960,8 +5230,8 @@ std::string 生成控制面板HTML(
     }
     .chip{
       padding:5px 10px;
-      border-radius:999px;
-      background:rgba(31,43,47,.08);
+      border-radius:8px;
+      background:#eef3f7;
       color:var(--ink);
       font-size:12px;
       line-height:1.4;
@@ -4991,15 +5261,15 @@ std::string 生成控制面板HTML(
     }
     .detail-btn{
       border:none;
-      border-radius:14px;
+      border-radius:8px;
       padding:11px 14px;
       cursor:pointer;
       font-weight:700;
-      background:linear-gradient(135deg, var(--accent), #15958b);
-      color:#fffaf2;
+      background:var(--accent);
+      color:#fff;
     }
     .detail-btn.secondary{
-      background:rgba(15,118,110,.08);
+      background:#eef3f7;
       border:1px solid rgba(15,118,110,.18);
       color:var(--ink);
     }
@@ -5014,9 +5284,9 @@ std::string 生成控制面板HTML(
       gap:12px;
     }
     .detail-node{
-      border:1px solid rgba(31,43,47,.08);
-      border-radius:16px;
-      background:rgba(255,250,242,.9);
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:8px;
+      background:var(--surface);
       padding:12px 14px;
     }
     .detail-group-head,.detail-field-row{
@@ -5065,7 +5335,7 @@ std::string 生成控制面板HTML(
     }
     .detail-mini-btn{
       border:none;
-      border-radius:10px;
+      border-radius:8px;
       padding:7px 10px;
       cursor:pointer;
       font-size:12px;
@@ -5086,9 +5356,9 @@ std::string 生成控制面板HTML(
     }
     .detail-item{
       padding:12px 14px;
-      border-radius:14px;
-      background:rgba(255,250,242,.9);
-      border:1px solid rgba(31,43,47,.08);
+      border-radius:8px;
+      background:var(--surface);
+      border:1px solid rgba(15,23,42,.08);
       font-size:13px;
       line-height:1.7;
       word-break:break-word;
@@ -5097,7 +5367,7 @@ std::string 生成控制面板HTML(
       margin-top:18px;
       padding:14px 16px;
       border:1px dashed rgba(15,118,110,.28);
-      border-radius:16px;
+      border-radius:8px;
       background:rgba(15,118,110,.05);
       font-size:13px;
       line-height:1.8;
@@ -5117,6 +5387,7 @@ std::string 生成控制面板HTML(
       text-align:right;
     }
     @media (max-width:1350px){
+      .overview{grid-template-columns:repeat(2,minmax(0,1fr))}
       .workspace{grid-template-columns:1fr}
       .detail-panel{position:static}
       .tree-shell{max-height:none}
@@ -5126,6 +5397,7 @@ std::string 生成控制面板HTML(
       .rail,.toolbar{position:static}
     }
     @media (max-width:720px){
+      .overview{grid-template-columns:1fr}
       .toolbar{flex-direction:column;align-items:flex-start}
       .toolbar-actions{width:100%}
       .toolbar-btn{width:100%}
@@ -5141,7 +5413,7 @@ std::string 生成控制面板HTML(
       <aside class="rail">
         <div class="brand">WebView2 控制面板</div>
         <h1>鱼巢</h1>
-        <p>重构版控制面板保留最重要的 6 个页面。初始只展开根链；中间树区只放结构节点，右侧详情区按需加载主信息详细信息。</p>
+        <p>需求、任务、方法和线程运行总览。</p>
         <nav class="nav" aria-label="控制面板菜单">
           <button class="menu-item active" type="button" data-page="thread-status"><span>线程状态</span><span class="menu-badge">)HTML"
         << 快照.线程数
@@ -5168,7 +5440,7 @@ std::string 生成控制面板HTML(
           <div>
             <div class="toolbar-kicker">控制面板</div>
             <div class="toolbar-title" id="page-title">线程状态</div>
-            <div class="toolbar-sub" id="page-subtitle">查看自我线程、任务管理工作线程和进程内线程原始状态。</div>
+            <div class="toolbar-sub" id="page-subtitle">自我线程、任务管理界面线程、任务管理工作线程和进程内线程状态。</div>
           </div>
           <div class="toolbar-actions">
             <button class="toolbar-btn secondary" type="button" id="copy-page">复制当前页</button>
@@ -5176,43 +5448,54 @@ std::string 生成控制面板HTML(
           </div>
         </div>
 
-        <section class="hero">
-          <h2>鱼巢控制面板</h2>
-          <div class="lead">)HTML"
-        << 顶部说明
-        << R"HTML(</div>
-          <div class="cards">
-            <div class="card">
-              <div class="label">自我</div>
-              <div class="value">)HTML"
+        <section class="overview">
+          <div class="status-card">
+            <div class="status-head"><span>自我</span><span class="status-dot )HTML"
+        << (快照.自我存在已建立 ? "ok" : "warn")
+        << R"HTML("></span></div>
+            <div class="status-value">)HTML"
         << 自我卡片值
         << R"HTML(</div>
-              <div class="sub">)HTML"
+            <div class="status-meta">)HTML"
         << 自我卡片说明
         << R"HTML(</div>
-            </div>
-            <div class="card">
-              <div class="label">自我线程</div>
-              <div class="value">)HTML"
+          </div>
+          <div class="status-card">
+            <div class="status-head"><span>自我线程</span><span class="status-dot )HTML"
+        << (快照.自我线程健康运行 ? "ok" : "warn")
+        << R"HTML("></span></div>
+            <div class="status-value">)HTML"
         << 线程卡片值
         << R"HTML(</div>
-              <div class="sub">)HTML"
+            <div class="status-meta">)HTML"
         << 线程卡片说明
         << R"HTML(</div>
-            </div>
-            <div class="card">
-              <div class="label">补方法</div>
-              <div class="value">)HTML"
-        << 快照.自我待处理方法数量
+          </div>
+          <div class="status-card">
+            <div class="status-head"><span>任务界面线程</span><span class="status-dot )HTML"
+        << (快照.任务管理界面线程已启动 && !快照.任务管理界面线程故障 ? "ok" : "warn")
+        << R"HTML("></span></div>
+            <div class="status-value">)HTML"
+        << 界面线程卡片值
         << R"HTML(</div>
-              <div class="sub">)HTML"
-        << 缺口卡片说明
+            <div class="status-meta">)HTML"
+        << 界面线程卡片说明
         << R"HTML(</div>
-            </div>
+          </div>
+          <div class="status-card">
+            <div class="status-head"><span>任务工作线程</span><span class="status-dot )HTML"
+        << (快照.任务管理工作线程已启动 ? "ok" : "warn")
+        << R"HTML("></span></div>
+            <div class="status-value">)HTML"
+        << 工作线程卡片值
+        << R"HTML(</div>
+            <div class="status-meta">)HTML"
+        << 工作线程卡片说明
+        << R"HTML(</div>
           </div>
         </section>
 
-        <section class="page active" data-page="thread-status" data-title="线程状态" data-subtitle="查看自我线程、任务管理工作线程和进程内线程原始状态。">
+        <section class="page active" data-page="thread-status" data-title="线程状态" data-subtitle="自我线程、任务管理界面线程、任务管理工作线程和进程内线程状态。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -5229,7 +5512,7 @@ std::string 生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="world-tree" data-title="世界树" data-subtitle="查看基础信息类仓库中的世界结构；树节点统一是基础信息节点类，主信息才是派生类型。">
+        <section class="page" data-page="world-tree" data-title="世界树" data-subtitle="基础信息类仓库中的世界结构；树节点统一是基础信息节点类，主信息承载派生类型。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -5246,7 +5529,7 @@ std::string 生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="按真实父子关系查看需求树；双击只展开结构子节点，字段放到右侧。">
+        <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="真实父子关系、结构角色、目标状态与任务绑定。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -5263,7 +5546,7 @@ std::string 生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="need-list" data-title="需求列表" data-subtitle="按前序顺序平铺需求列表；先加载 100 项，继续点击可追加后续分段。">
+        <section class="page" data-page="need-list" data-title="需求列表" data-subtitle="按前序顺序平铺需求列表；列表窗口 100 项。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -5297,7 +5580,7 @@ std::string 生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="method-tree" data-title="方法树" data-subtitle="按真实方法树关系查看方法树；双击只展开结构子节点，字段放到右侧。">
+        <section class="page" data-page="method-tree" data-title="方法树" data-subtitle="真实方法树关系、方法首节点、条件节点与结果节点。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -5314,7 +5597,7 @@ std::string 生成控制面板HTML(
           </div>
         </section>
 
-        <div class="footer">左侧切页面，中间看结构树，右侧看节点详情；单击按需加载主信息详细信息，双击展开结构子节点。</div>
+        <div class="footer">鱼巢控制面板 · 运行快照</div>
       </main>
     </div>
   </div>)HTML";
@@ -5330,6 +5613,7 @@ std::string 生成控制面板HTML(
       'task-node-more': '更多任务子节点',
       'method-node-more': '更多方法子节点',
       'thread-self': '自我线程',
+      'thread-task-interface': '任务管理界面线程',
       'thread-worker': '任务管理工作线程',
       'thread-summary': '控制面板摘要线程',
       'thread-system': '系统线程摘要',
@@ -5344,7 +5628,7 @@ std::string 生成控制面板HTML(
       'thread-status': {
         treeHost: 'tree-thread-status',
         detailHost: 'detail-thread-status',
-        detailHint: '线程页树上只保留线程摘要；单击后右侧再按需加载该线程的原始字段。'
+        detailHint: '线程运行字段'
       },
       'world-tree': {
         treeHost: 'tree-world-tree',
@@ -5354,22 +5638,22 @@ std::string 生成控制面板HTML(
       'need-tree': {
         treeHost: 'tree-need-tree',
         detailHost: 'detail-need-tree',
-        detailHint: '需求树页会保留真实父子关系；当前选中节点的主信息详细信息会在右侧按需加载。'
+        detailHint: '需求节点字段'
       },
       'need-list': {
         treeHost: 'tree-need-list',
         detailHost: 'detail-need-list',
-        detailHint: '需求列表页按前序顺序分段加载；右侧查看当前选中需求的主信息详细信息与节点字段。'
+        detailHint: '需求列表字段'
       },
       'task-tree': {
         treeHost: 'tree-task-tree',
         detailHost: 'detail-task-tree',
-        detailHint: '任务树页从自我任务根节点展示真实任务结构；右侧查看当前选中任务节点的字段。'
+        detailHint: '任务运行壳字段'
       },
       'method-tree': {
         treeHost: 'tree-method-tree',
         detailHost: 'detail-method-tree',
-        detailHint: '方法树页先看结构，再在右侧按需加载方法节点、条件和结果等详细字段。'
+        detailHint: '方法节点字段'
       }
     };
 
@@ -5963,7 +6247,7 @@ std::string 生成控制面板HTML(
 
       const note = document.createElement('div');
       note.className = 'detail-note';
-      note.textContent = 配置?.detailHint || '单击节点后，这里会按需加载主信息详细信息和节点字段。';
+      note.textContent = 配置?.detailHint || '节点主信息与字段详情';
       host.appendChild(note);
 
       const breadcrumbs = document.createElement('div');
@@ -6084,7 +6368,7 @@ std::string 生成控制面板HTML(
       } else if (!(window.chrome && window.chrome.webview)) {
         const empty = document.createElement('div');
         empty.className = 'detail-empty';
-        empty.textContent = '静态 HTML 预览里无法按需读取节点详情，请在 WebView2 窗口中查看。';
+        empty.textContent = '静态 HTML 预览未连接详情接口。';
         host.appendChild(empty);
       }
 

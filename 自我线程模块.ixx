@@ -16,10 +16,10 @@ module;
 #include "任务类.h"
 export module 自我线程模块;
 
-import 自我模块;
+import 自我类;
 import 任务模块.治理协议;
 import 任务模块.实体;
-import 任务模块.管理工作线程;
+import 任务模块.管理线程协议;
 import 任务模块.运行包;
 import 自我线程模块.消息协议;
 import 自我线程模块.消息处理器;
@@ -97,7 +97,7 @@ export struct 结构_线程状态切换上报参数 {
 export class 自我线程类 {
 public:
     struct 结构_需求列表项 {
-        const 词性节点类* 需求类型 = nullptr;
+        const 语素入口节点类* 需求类型 = nullptr;
         std::string 需求类型名称{};
         std::uintptr_t 需求节点指针 = 0;
         std::string 需求节点主键{};
@@ -144,10 +144,31 @@ public:
         std::uintptr_t 当前需求指针 = 0;
         std::uintptr_t 当前任务引用抽象特征指针 = 0;
         std::uintptr_t 当前任务指针 = 0;
+        std::uintptr_t 当前任务虚拟存在指针 = 0;
+        std::string 当前任务虚拟存在主键{};
+        std::string 当前任务虚拟存在概念摘要{};
         std::uintptr_t mailbox待消费数抽象特征指针 = 0;
         I64 mailbox待消费数值 = 0;
         std::uintptr_t 健康状态抽象特征指针 = 0;
         I64 健康状态值 = 0;
+    };
+
+    struct 结构_自检报告修复治理快照 {
+        bool 已生成 = false;
+        std::uint64_t 累计接收报告候选数 = 0;
+        std::uint64_t 累计越界需求化拒绝数 = 0;
+        std::uint64_t 待处理报告数 = 0;
+        std::uint64_t 待休眠修复报告数 = 0;
+        std::uint64_t 待映射确认报告数 = 0;
+        std::uint64_t 仅报告保留数 = 0;
+        std::uint64_t 休眠期评估报告数 = 0;
+        std::uint64_t 最近休眠期门控报告数 = 0;
+        时间戳 最近报告时间 = 0;
+        时间戳 最近门控时间 = 0;
+        std::string 最近报告摘要{};
+        std::string 最近报告处置{};
+        std::string 最近门控摘要{};
+        std::string 摘要{};
     };
 
     struct 结构_需求候选快照 {
@@ -583,6 +604,7 @@ public:
     std::vector<结构_缺口恢复接口快照::结构_恢复请求分组快照> 读取最近恢复请求分组快照() const;
     std::vector<结构_回流结算快照> 读取最近回流结算列表快照() const;
     std::vector<结构_关键中间状态分组快照> 读取最近关键中间状态分组快照() const;
+    结构_自检报告修复治理快照 读取最近自检报告修复治理快照() const;
     结构_自我线程配置& 配置() noexcept;
     const 结构_自我线程配置& 配置() const noexcept;
 
@@ -939,7 +961,7 @@ private:
         结构_主派发决议 本轮主派发决议{};
         结构_结果路由动作 本轮结果路由动作{};
         结构_本轮结算封口 本轮结算封口{};
-        任务管理工作线程::结构_工作线程桥接结果 桥接结果{};
+        任务管理线程协议::结构_任务界面承接结果 任务界面承接结果{};
         I64 本轮服务净变化 = 0;
         I64 本轮安全净变化 = 0;
         I64 本轮直接服务净变化 = 0;
@@ -976,6 +998,11 @@ private:
     void 步骤_刷新线程上下文并生成治理帧_(结构_主循环骨架上下文* 上下文);
     void 步骤_整理需求并做根层重判_(结构_主循环骨架上下文* 上下文);
     void 步骤_生成并执行主派发决议_(结构_主循环骨架上下文* 上下文);
+    void 记录自检报告待处理_(
+        const 自我线程消息协议::结构_治理消息& 消息);
+    void 执行休眠期自检报告修复门控_(
+        时间戳 now,
+        bool 当前允许休眠期修复);
     bool 投递治理消息(const 结构_治理消息& 消息);
     void 刷新初始化标记_已加锁() noexcept;
     void 刷新治理恢复事件镜像_已加锁() noexcept;
@@ -1017,6 +1044,21 @@ private:
     std::deque<结构_否定项候选> 否定项候选池_{};
     std::deque<结构_缺口触发项> 缺口候选池_{};
     std::deque<结构_关键中间状态沉淀项> 关键中间状态池_{};
+    struct 结构_待处理自检报告项 {
+        std::uint64_t 报告ID = 0;
+        std::uint64_t 候选序号 = 0;
+        时间戳 生成时间 = 0;
+        I64 缺口类型值 = 0;
+        I64 严重程度值 = 0;
+        bool 仅休眠期修复 = true;
+        bool 需要映射确认 = true;
+        std::string 处置类型{};
+        std::string 休眠期候选动作{};
+        std::string 幂等键{};
+        std::string 摘要{};
+    };
+    std::deque<结构_待处理自检报告项> 待处理自检报告队列_{};
+    结构_自检报告修复治理快照 最近自检报告修复治理快照_{};
     std::vector<结构_需求列表项> 服务优先需求列表_{};
     std::vector<结构_需求列表项> 安全优先需求列表_{};
     结构_循环结果 最近循环结果_{};

@@ -29,6 +29,9 @@ struct 结构_控制面板快照 {
     bool 自我线程健康运行 = false;
     bool 自我存在已建立 = false;
     bool 自我内部世界已建立 = false;
+    bool 自我需求根字段已建立 = false;
+    bool 自我任务根字段已建立 = false;
+    bool 自我方法根字段已建立 = false;
     bool 自我待机状态 = false;
     std::uint8_t 自我线程生命周期 = 0;
 
@@ -70,6 +73,18 @@ struct 结构_控制面板快照 {
     std::size_t 需求已满足数 = 0;
     std::size_t 需求状态已达未截止数 = 0;
     std::size_t 需求未满足数 = 0;
+    std::size_t 需求树管理需求数 = 0;
+    std::size_t 需求树执行需求数 = 0;
+    std::size_t 需求树角色未定义数 = 0;
+    std::size_t 需求树活动阻塞需求数 = 0;
+    std::size_t 需求树非阻塞需求数 = 0;
+    std::size_t 需求树已截止需求数 = 0;
+    std::size_t 需求树派生归因需求数 = 0;
+    bool 需求树当前主需求有任务 = false;
+    std::string 需求树当前主需求主键{};
+    std::string 需求树当前主需求父主键{};
+    std::string 需求树当前主需求目标主体主键{};
+    std::string 需求树当前主需求目标特征主键{};
 
     std::int64_t 自我安全值 = 0;
     std::int64_t 自我服务值 = 0;
@@ -106,6 +121,15 @@ struct 结构_控制面板快照 {
     std::string 控制面板摘要_方法树{};
     std::string 控制面板摘要_运行事实{};
     std::string 控制面板摘要_自检{};
+    std::uint64_t 自检报告待处理数 = 0;
+    std::uint64_t 自检报告待休眠修复数 = 0;
+    std::uint64_t 自检报告待映射确认数 = 0;
+    std::uint64_t 自检报告仅报告保留数 = 0;
+    std::uint64_t 自检报告休眠期评估数 = 0;
+    std::uint64_t 自检报告越界需求化拒绝数 = 0;
+    std::uint64_t 自检报告最近休眠期门控数 = 0;
+    std::string 自检报告最近处置{};
+    std::string 自检报告修复门控摘要{};
 
     bool 任务管理工作线程已启动 = false;
     bool 任务管理工作线程正在执行 = false;
@@ -120,6 +144,25 @@ struct 结构_控制面板快照 {
     std::string 任务管理最近下一步去向{};
     std::string 任务管理最近总控结果{};
     std::string 任务管理最近恢复摘要{};
+
+    bool 任务管理界面线程已启动 = false;
+    bool 任务管理界面线程正在处理 = false;
+    bool 任务管理界面线程故障 = false;
+    std::uint64_t 任务管理界面线程累计接收请求数 = 0;
+    std::uint64_t 任务管理界面线程累计绑定任务虚拟存在数 = 0;
+    std::uint64_t 任务管理界面线程累计派发工作包数 = 0;
+    std::uint64_t 任务管理界面线程累计收到工作结果数 = 0;
+    std::uint64_t 任务管理界面线程累计上行消息数 = 0;
+    std::uint64_t 任务管理界面线程当前请求队列长度 = 0;
+    std::uint64_t 任务管理界面线程当前等待工作包数 = 0;
+    std::uint64_t 任务管理界面线程当前上行队列长度 = 0;
+    std::uint64_t 任务管理界面线程最近请求ID = 0;
+    std::uint64_t 任务管理界面线程最近工作包ID = 0;
+    std::string 任务管理界面线程最近任务主键{};
+    std::string 任务管理界面线程最近任务虚拟存在主键{};
+    std::string 任务管理界面线程最近需求主键{};
+    std::string 任务管理界面线程最近调度动作{};
+    std::string 任务管理界面线程最近说明{};
 
     std::size_t 缺口需求总数 = 0;
     std::size_t 缺口需求活跃数 = 0;
@@ -139,7 +182,6 @@ struct 结构_控制面板快照 {
     std::string 缺口最近失败摘要{};
     std::string 缺口最近反馈摘要{};
     std::string 缺口最近回流摘要{};
-    std::string 缺口固定机制观察摘要{};
     std::string 缺口首个兜底切换就绪摘要{};
     std::string 缺口首个兜底切换采样摘要{};
 

@@ -11,7 +11,7 @@ module;
 
 export module 自我线程模块.消息处理器;
 
-import 自我模块;
+import 自我类;
 import 任务模块.工作线程协议;
 import 自我线程模块.消息协议;
 import 自我线程模块.消息路由;
@@ -23,7 +23,7 @@ using 需求节点 = 需求类::节点类;
 struct 结构_需求分支刷新范围 {
     std::unordered_set<std::string> 变更前节点主键集合{};
     std::unordered_set<std::string> 当前节点主键集合{};
-    std::unordered_set<const 词性节点类*> 受影响类型集合{};
+    std::unordered_set<const 语素入口节点类*> 受影响类型集合{};
 };
 
 struct 结构_消息处理动作 {
@@ -109,10 +109,48 @@ inline void 提示派生需求逻辑错误(const std::string& 文本) noexcept
     项目弹窗错误提示("鱼巢 - 派生需求逻辑错误", 文本);
 }
 
+inline bool 新增需求更新指令缺原子目标输入(
+    const 结构_需求树更新指令& 指令,
+    std::string* 输出原因 = nullptr) noexcept
+{
+    if (指令.指令类型 != 枚举_需求树更新指令类型::新增需求) {
+        return false;
+    }
+
+    const bool 缺当前状态 =
+        指令.当前状态指针 == 0
+        && 指令.当前状态主键.empty();
+    if (缺当前状态) {
+        if (输出原因) {
+            *输出原因 = "新增需求缺少当前状态";
+        }
+        return true;
+    }
+
+    const bool 缺目标状态 =
+        指令.需求状态指针 == 0
+        && 指令.需求状态主键.empty();
+    if (缺目标状态) {
+        if (输出原因) {
+            *输出原因 = "新增需求缺少目标状态";
+        }
+        return true;
+    }
+
+    if (指令.满足关系 == 0) {
+        if (输出原因) {
+            *输出原因 = "新增需求缺少满足关系";
+        }
+        return true;
+    }
+
+    return false;
+}
+
 inline void 收集需求子树快照(
     const 需求节点* 根节点,
     std::unordered_set<std::string>* 输出节点主键集合,
-    std::unordered_set<const 词性节点类*>* 输出类型集合) noexcept
+    std::unordered_set<const 语素入口节点类*>* 输出类型集合) noexcept
 {
     if (!根节点) {
         return;
@@ -433,6 +471,14 @@ inline bool 应用需求树变更批次(
             }
             if (需求节点是结构根(父需求)) {
                 提示派生需求逻辑错误("派生需求逻辑错误：新增需求父节点为需求树结构根，已拒绝入树。");
+                continue;
+            }
+            std::string 原子目标缺失原因{};
+            if (新增需求更新指令缺原子目标输入(需求树更新, &原子目标缺失原因)) {
+                提示派生需求逻辑错误(
+                    "派生需求逻辑错误："
+                    + 原子目标缺失原因
+                    + "，已拒绝入树。");
                 continue;
             }
         }
