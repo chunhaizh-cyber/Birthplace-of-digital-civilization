@@ -191,45 +191,6 @@ namespace {
         return static_cast<方法节点*>(新节点);
     }
 
-    std::string 私有_动作句柄键(const 结构体_动作句柄& 句柄)
-    {
-        switch (句柄.类型) {
-        case 枚举_动作句柄类型::本能函数ID:
-            return 句柄.本能ID != 0 ? std::string("innate_") + std::to_string(句柄.本能ID) : std::string{};
-        case 枚举_动作句柄类型::外部实现主键:
-            return 句柄.外部实现主键.empty() ? std::string{} : std::string("ext_") + 句柄.外部实现主键;
-        case 枚举_动作句柄类型::动作序列主键:
-            return 句柄.动作序列主键.empty() ? std::string{} : std::string("seq_") + 句柄.动作序列主键;
-        default:
-            return {};
-        }
-    }
-
-    std::string 私有_方法标识文本(const 方法主信息类& 主信息)
-    {
-        std::string 文本{};
-        if (主信息.首节点信息().动作名) {
-            文本 = 主信息.首节点信息().动作名->获取主键();
-        }
-
-        if (文本.empty()) {
-            const auto* 结果特征类型 = 主信息.首个结果能力特征类型();
-            const auto 结果特征键 = 结果特征类型 ? 结果特征类型->获取主键() : std::string{};
-            if (!结果特征键.empty()) {
-                文本 = 结果特征键;
-            }
-        }
-
-        const auto 句柄键 = 私有_动作句柄键(主信息.首节点信息().动作句柄);
-        if (文本.empty()) {
-            return 句柄键.empty() ? std::string("未命名方法") : 句柄键;
-        }
-        if (句柄键.empty()) {
-            return 文本;
-        }
-        return 文本 + "_" + 句柄键;
-    }
-
     const 语素入口节点类* 私有_方法虚拟存在类型词() noexcept
     {
         static const 语素入口节点类* s_类型词 = 语素集.添加信息入口词(
@@ -238,10 +199,11 @@ namespace {
         return s_类型词;
     }
 
-    const 语素入口节点类* 私有_方法虚拟存在名称词(const 方法主信息类& 主信息) noexcept
+    const 语素入口节点类* 私有_方法虚拟存在名称词(const 方法节点* 方法首节点) noexcept
     {
+        const auto 节点主键 = 方法首节点 ? 方法首节点->获取主键() : std::string{};
         return 语素集.添加信息入口词(
-            私有_方法标识文本(主信息),
+            节点主键.empty() ? std::string("未命名方法") : 节点主键,
             枚举_信息入口类型::方法虚拟存在入口);
     }
 
@@ -1299,7 +1261,7 @@ bool 方法类::补齐本能方法首节点(
 
     auto* 方法虚拟存在 = 世界树.存在().取或创建子存在_按名称类型(
         承载世界,
-        私有_方法虚拟存在名称词(主信息),
+        私有_方法虚拟存在名称词(首节点),
         私有_方法虚拟存在类型词());
     if (!方法虚拟存在) return nullptr;
 
