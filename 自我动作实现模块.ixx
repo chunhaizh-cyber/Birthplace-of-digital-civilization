@@ -2426,7 +2426,6 @@ namespace {
             根节点,
             动作名,
             动作句柄,
-            枚举_方法作用域::主体局部,
             now);
         if (!新方法) return nullptr;
 
