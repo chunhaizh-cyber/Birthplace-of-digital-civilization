@@ -153,11 +153,6 @@ struct 结构_方法结果项 {
     特征值 目标值{};
     I64 最小变化量 = 0;
     I64 最大变化量 = 0;
-    bool 是否主结果 = false;
-    bool 是否必要结果 = true;
-    bool 是否副结果 = false;
-    bool 是否风险结果 = false;
-    I64 置信度_Q10000 = 0;
 };
 
 struct 结构_方法结果包 {
