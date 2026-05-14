@@ -7055,6 +7055,11 @@ std::filesystem::path 默认控制面板HTML路径()
             || 参数 == "--need-difference-child-check") {
             输出 = 枚举_控制面板命令::检查需求差距子需求刷新;
         }
+        else if (参数 == "--demand-difference-child-exit-check"
+            || 参数 == "--demand-diff-child-exit-check"
+            || 参数 == "--need-difference-child-exit-check") {
+            输出 = 枚举_控制面板命令::检查需求差距子需求退出活动集;
+        }
         else if (参数 == "--internal-loop-multirun-check"
             || 参数 == "--internal-loop-stability-check"
             || 参数 == "--self-loop-stability-check") {
