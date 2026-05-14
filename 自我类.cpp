@@ -37,9 +37,10 @@ namespace {
 
     bool 私有_语素入口相同(const 语素入口节点类* a, const 语素入口节点类* b) noexcept
     {
+        // 语素集添加入口词应返回规范化节点；这里处在自我根需求扫描的热路径，
+        // 只做指针级比较，避免需求树中异常节点携带的陈旧入口指针触发主键字符串拷贝崩溃。
         if (a == b) return true;
-        if (!a || !b) return false;
-        return a->获取主键() == b->获取主键();
+        return false;
     }
 
     template<class T节点>
@@ -82,10 +83,16 @@ namespace {
 
         auto* 首节点 = static_cast<T节点*>(父节点->子);
         auto* 当前 = 首节点;
+        std::size_t 保护计数 = 0;
         do {
             if (谓词(当前)) return 当前;
             当前 = static_cast<T节点*>(当前->下);
-        } while (当前 && 当前 != 首节点);
+            ++保护计数;
+        } while (当前 && 当前 != 首节点 && 保护计数 < 4096);
+
+        if (保护计数 >= 4096) {
+            项目运行错误日志("自我类/直接子节点扫描超过保护上限");
+        }
 
         return nullptr;
     }
@@ -2430,7 +2437,11 @@ void 自我类::确保主链镜像已初始化_() noexcept
 
 需求类::节点类* 自我类::选择当前主需求候选_() const noexcept
 {
-    return 评估根需求压力().选中需求;
+    const auto 评估 = 评估根需求压力();
+    if (评估.安全压力 <= 0 && 评估.服务压力 <= 0) {
+        return nullptr;
+    }
+    return 评估.选中需求;
 }
 
 void 自我类::同步运行态特征_() noexcept

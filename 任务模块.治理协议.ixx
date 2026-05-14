@@ -1124,6 +1124,7 @@ struct 结构_任务管理结果 {
     状态节点类* 最新目标状态 = nullptr;
     状态节点类* 最新状态 = nullptr;
     动态节点类* 最新动态 = nullptr;
+    动态节点类* 任务状态动作动态 = nullptr;
     因果模板节点类* 最新抽象因果 = nullptr;
     bool 宿主目标结果已对齐 = false;
     bool 宿主目标结果待推进 = false;

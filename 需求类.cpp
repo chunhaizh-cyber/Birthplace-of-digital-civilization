@@ -73,6 +73,7 @@ bool 需求类::绑定对应任务(
     节点类* 需求,
     任务节点类* 任务) noexcept
 {
+    std::lock_guard<std::recursive_mutex> 借用锁{ 需求类::借用需求树全局互斥() };
     if (!需求 || !任务) {
         return false;
     }

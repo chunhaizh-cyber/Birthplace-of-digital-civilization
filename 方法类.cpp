@@ -266,10 +266,17 @@ namespace {
         const 语素入口节点类* 主结果特征类型,
         const 二次特征节点类* 结果方向 = nullptr) noexcept
     {
-        if (!私有_语素入口主键相等(结果项.特征类型, 主结果特征类型)) {
+        const bool 特征类型匹配 = 结果项.特征类型由参数决定
+            ? 结果项.特征类型参数 != nullptr
+            : 私有_语素入口主键相等(结果项.特征类型, 主结果特征类型);
+        if (!特征类型匹配) {
             return false;
         }
         if (!结果方向) {
+            return true;
+        }
+        if (结果项.特征类型由参数决定
+            && 结果项.方向 == 枚举_结果变化方向::未定义) {
             return true;
         }
         const auto 需求方向 = 私有_结果变化方向编码(私有_二次特征方向枚举(结果方向));
@@ -306,7 +313,9 @@ namespace {
         const 结构_方法结果项& 候选) noexcept
     {
         for (const auto& 结果项 : 结果项集) {
-            if (私有_语素入口主键相等(结果项.特征类型, 候选.特征类型)
+            if (结果项.特征类型由参数决定 == 候选.特征类型由参数决定
+                && 私有_语素入口主键相等(结果项.特征类型, 候选.特征类型)
+                && 私有_语素入口主键相等(结果项.特征类型参数, 候选.特征类型参数)
                 && 结果项.方向 == 候选.方向
                 && 结果项.最小变化量 == 候选.最小变化量
                 && 结果项.最大变化量 == 候选.最大变化量) {
@@ -323,7 +332,9 @@ namespace {
         bool 是否根写入原语) noexcept
     {
         auto* 首信息 = 主信息.取首节点信息();
-        if (!首信息 || (!结果项.特征类型 && !是否根写入原语)) {
+        if (!首信息
+            || (!结果项.特征类型 && !结果项.特征类型由参数决定 && !是否根写入原语)
+            || (结果项.特征类型由参数决定 && !结果项.特征类型参数)) {
             return;
         }
         auto& 能力 = 首信息->能力;
@@ -626,14 +637,14 @@ namespace {
 
     constexpr I64 私有_方法状态_可用值() noexcept
     {
-        return 100;
+        return static_cast<I64>(枚举_方法状态::可用);
     }
 
-    constexpr I64 私有_方法状态_待动作骨架值() noexcept { return 10; }
-    constexpr I64 私有_方法状态_待可执行入口值() noexcept { return 20; }
-    constexpr I64 私有_方法状态_待条件节点值() noexcept { return 30; }
-    constexpr I64 私有_方法状态_待结果节点值() noexcept { return 40; }
-    constexpr I64 私有_方法状态_待条件结果对值() noexcept { return 50; }
+    constexpr I64 私有_方法状态_待动作骨架值() noexcept { return static_cast<I64>(枚举_方法状态::待动作骨架); }
+    constexpr I64 私有_方法状态_待可执行入口值() noexcept { return static_cast<I64>(枚举_方法状态::待可执行入口); }
+    constexpr I64 私有_方法状态_待条件节点值() noexcept { return static_cast<I64>(枚举_方法状态::待条件节点); }
+    constexpr I64 私有_方法状态_待结果节点值() noexcept { return static_cast<I64>(枚举_方法状态::待结果节点); }
+    constexpr I64 私有_方法状态_待条件结果对值() noexcept { return static_cast<I64>(枚举_方法状态::待条件结果对); }
 
     I64 私有_方法直接子节点数量(方法节点* 方法, 枚举_方法节点种类 节点种类) noexcept
     {

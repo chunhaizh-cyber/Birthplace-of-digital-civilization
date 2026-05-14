@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -80,6 +81,12 @@ public:
         }
     };
 
+    static std::recursive_mutex& 借用需求树全局互斥() noexcept
+    {
+        static std::recursive_mutex 互斥{};
+        return 互斥;
+    }
+
     struct 结构_任务初始化上下文 {
         节点类* 来源需求 = nullptr;
 
@@ -131,6 +138,7 @@ public:
 
     std::size_t 刷新子需求权重(节点类* 父需求) noexcept
     {
+        std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
         auto 锁 = this->获取锁();
         return 刷新子需求权重_已加锁(父需求);
     }
@@ -139,12 +147,14 @@ public:
         节点类* 父需求,
         const 需求主信息类& 候选主信息) noexcept
     {
+        std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
         auto 锁 = this->获取锁();
         return 查找直接子需求_按目标重叠_已加锁(父需求, 候选主信息);
     }
 
     std::vector<结构_需求目标视图项> 收集直接子需求目标视图(节点类* 父需求) noexcept
     {
+        std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
         auto 锁 = this->获取锁();
         return 收集直接子需求目标视图_已加锁(父需求);
     }
@@ -165,6 +175,7 @@ public:
 
     static void 刷新需求及祖先结构角色(节点类* 需求) noexcept
     {
+        std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
         auto* 当前 = 需求;
         std::size_t 保护计数 = 0;
         while (当前 && 保护计数 < 2048) {
@@ -180,6 +191,7 @@ public:
         节点类* 需求根节点,
         const 结构_需求树更新指令& 指令) noexcept
     {
+        std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
         auto 锁 = this->获取锁();
         if (!需求根节点) {
             return nullptr;

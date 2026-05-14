@@ -10,6 +10,8 @@ module;
 #include <unordered_map>
 #include <vector>
 
+#include "日志接入.h"
+
 export module 度量模板注册表模块;
 
 import 基础数据类型模块;
@@ -100,6 +102,9 @@ public:
     {
         const auto* 结果 = 查找(模板族);
         if (!结果) {
+            项目运行错误日志(
+                "度量模板注册表类/runtime_error | 模板未注册 | 模板族="
+                + std::to_string(static_cast<std::uint8_t>(模板族)));
             throw std::runtime_error("度量模板注册表类：模板未注册");
         }
         return *结果;
