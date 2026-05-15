@@ -109,7 +109,7 @@ namespace {
     }
 
     constexpr I64 私有_方法状态_可用值() noexcept { return 60; }
-    constexpr I64 私有_方法状态_待动作骨架值() noexcept { return 10; }
+    constexpr I64 私有_方法状态_待方法动作值() noexcept { return 10; }
     constexpr I64 私有_方法状态_待可执行入口值() noexcept { return 20; }
     constexpr I64 私有_方法状态_待条件节点值() noexcept { return 30; }
     constexpr I64 私有_方法状态_待结果节点值() noexcept { return 40; }
@@ -415,8 +415,8 @@ namespace {
         }
 
         I64 方法状态 = 0;
-        if (!首节点->主信息.有动作骨架()) {
-            方法状态 = 私有_方法状态_待动作骨架值();
+        if (!首节点->主信息.有方法动作()) {
+            方法状态 = 私有_方法状态_待方法动作值();
         } else if (!首节点->主信息.首节点信息().动作句柄.有效()) {
             方法状态 = 私有_方法状态_待可执行入口值();
         } else if (私有_方法直接子节点数量(首节点, 枚举_方法节点种类::方法条件节点) <= 0) {

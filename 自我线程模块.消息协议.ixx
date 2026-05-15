@@ -370,6 +370,8 @@ struct 结构_自检缺口候选消息 {
     std::string 原子目标主体主键{};
     std::uintptr_t 原子目标特征类型指针 = 0;
     std::string 原子目标特征类型主键{};
+    std::uintptr_t 原子最初状态指针 = 0;
+    std::string 原子最初状态主键{};
     std::uintptr_t 原子当前状态指针 = 0;
     std::string 原子当前状态主键{};
     std::uintptr_t 原子目标状态指针 = 0;

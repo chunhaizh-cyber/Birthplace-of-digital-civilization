@@ -1723,7 +1723,7 @@ namespace {
         std::vector<方法节点*> 可用方法{};
         std::vector<方法节点*> 同向候选方法{};
         std::vector<方法节点*> 可用同向方法{};
-        std::size_t 有动作骨架候选数 = 0;
+        std::size_t 有方法动作候选数 = 0;
         std::size_t 方向未明候选数 = 0;
         std::size_t 反向候选数 = 0;
         bool 有需求状态引用 = false;
@@ -1931,11 +1931,6 @@ namespace {
             当前子节点 = reinterpret_cast<const 需求节点*>(当前子节点->下);
         } while (当前子节点 && 当前子节点 != 首子节点);
 
-        const auto 期望安全权重 =
-            活跃子需求数量 > 0 ? 父需求->主信息.安全权重 / 活跃子需求数量 : 0;
-        const auto 期望服务权重 =
-            活跃子需求数量 > 0 ? 父需求->主信息.服务权重 / 活跃子需求数量 : 0;
-
         ++快照.需求树父子权重检查父需求数;
         当前子节点 = 首子节点;
         do {
@@ -1947,12 +1942,22 @@ namespace {
                 当前子节点->主信息.需求有效截止 == 0
                 && 当前子节点->主信息.是否阻塞父任务执行
                 && 活跃子需求数量 > 0;
-            const bool 权重符合 =
+            const bool 父安全方向 = 父需求->主信息.安全权重 > 0;
+            const bool 父服务方向 = 父需求->主信息.服务权重 > 0;
+            const bool 子已有服务方向 =
+                当前子节点->主信息.服务权重 > 0
+                && 当前子节点->主信息.安全权重 <= 0;
+            const auto 期望安全权重 =
                 是活跃阻塞子需求
-                    ? (当前子节点->主信息.安全权重 == 期望安全权重
-                        && 当前子节点->主信息.服务权重 == 期望服务权重)
-                    : (当前子节点->主信息.安全权重 == 0
-                        && 当前子节点->主信息.服务权重 == 0);
+                    ? (父安全方向 || (!父服务方向 && !子已有服务方向) ? 1 : 0)
+                    : 0;
+            const auto 期望服务权重 =
+                是活跃阻塞子需求
+                    ? (父服务方向 || (!父安全方向 && 子已有服务方向) ? 1 : 0)
+                    : 0;
+            const bool 权重符合 =
+                当前子节点->主信息.安全权重 == 期望安全权重
+                && 当前子节点->主信息.服务权重 == 期望服务权重;
             if (!权重符合) {
                 std::ostringstream 日志;
                 日志 << "控制面板/需求父子权重异常"
@@ -1964,8 +1969,8 @@ namespace {
                     << " | 父服务=" << 父需求->主信息.服务权重
                     << " | 子安全=" << 当前子节点->主信息.安全权重
                     << " | 子服务=" << 当前子节点->主信息.服务权重
-                    << " | 期望安全=" << (是活跃阻塞子需求 ? 期望安全权重 : 0)
-                    << " | 期望服务=" << (是活跃阻塞子需求 ? 期望服务权重 : 0);
+                    << " | 期望安全=" << 期望安全权重
+                    << " | 期望服务=" << 期望服务权重;
                 项目运行错误日志(日志.str());
                 ++快照.需求树父子权重异常需求数;
             }
@@ -2042,7 +2047,7 @@ namespace {
         }
 
         if (当前方法节点->主信息.公共.节点种类 == 枚举_方法节点种类::方法首节点
-            && 当前方法节点->主信息.有动作骨架()
+            && 当前方法节点->主信息.有方法动作()
             && 当前方法节点->主信息.首节点信息().能力.可被方法查找命中
             && !当前方法节点->主信息.首节点信息().能力.是否根写入原语
             && std::any_of(
@@ -2272,8 +2277,8 @@ namespace {
 
         评估.候选方法 = 私有_查找需求候选方法_控制面板(节点, 评估.目标特征类型);
         for (auto* 方法 : 评估.候选方法) {
-            if (方法 && 方法->主信息.有动作骨架()) {
-                ++评估.有动作骨架候选数;
+            if (方法 && 方法->主信息.有方法动作()) {
+                ++评估.有方法动作候选数;
             }
             const auto 方向关系 = 私有_方法相对需求方向_控制面板(方法, 评估.需求方向);
             if (方向关系 > 0) {
@@ -3382,7 +3387,7 @@ namespace {
         私有_追加叶字段(字段节点, "可用同向方法数量", static_cast<std::uint64_t>(方法评估.可用同向方法.size()));
         私有_追加叶字段(字段节点, "方向未明候选方法数量", static_cast<std::uint64_t>(方法评估.方向未明候选数));
         私有_追加叶字段(字段节点, "反向候选方法数量", static_cast<std::uint64_t>(方法评估.反向候选数));
-        私有_追加叶字段(字段节点, "有动作骨架候选方法数量", static_cast<std::uint64_t>(方法评估.有动作骨架候选数));
+        私有_追加叶字段(字段节点, "有方法动作候选方法数量", static_cast<std::uint64_t>(方法评估.有方法动作候选数));
         私有_追加叶字段(字段节点, "需求状态已满足", 方法评估.需求状态已满足);
         auto 候选方法列表节点 = 私有_新节点("候选方法 (" + std::to_string(方法评估.候选方法.size()) + ")");
         const auto 候选方法实际上限 = (std::min)(上下文.树广度上限, 方法评估.候选方法.size());
@@ -7060,10 +7065,37 @@ std::filesystem::path 默认控制面板HTML路径()
             || 参数 == "--need-difference-child-exit-check") {
             输出 = 枚举_控制面板命令::检查需求差距子需求退出活动集;
         }
+        else if (参数 == "--subtask-parent-flow-check"
+            || 参数 == "--child-task-parent-flow-check"
+            || 参数 == "--demand-child-parent-flow-check") {
+            输出 = 枚举_控制面板命令::检查子任务完成父任务回流;
+        }
+        else if (参数 == "--learning-demand-entry-check"
+            || 参数 == "--learn-demand-entry-check"
+            || 参数 == "--method-learning-demand-check") {
+            输出 = 枚举_控制面板命令::检查学习需求入树;
+        }
+        else if (参数 == "--learning-demand-closure-check"
+            || 参数 == "--learn-demand-closure-check"
+            || 参数 == "--method-learning-demand-closure-check") {
+            输出 = 枚举_控制面板命令::检查学习需求闭合;
+        }
+        else if (参数 == "--change-feature-is-not-method-check"
+            || 参数 == "--change-value-is-not-method-check"
+            || 参数 == "--change-value-delta-source-check"
+            || 参数 == "--change-value-provenance-check"
+            || 参数 == "--change-feature-value-delta-check") {
+            输出 = 枚举_控制面板命令::检查改变特征值非方法化;
+        }
         else if (参数 == "--internal-loop-multirun-check"
             || 参数 == "--internal-loop-stability-check"
             || 参数 == "--self-loop-stability-check") {
             输出 = 枚举_控制面板命令::检查内部循环多轮稳定;
+        }
+        else if (参数 == "--completed-task-change-trace"
+            || 参数 == "--completed-task-trace"
+            || 参数 == "--task-completion-change-trace") {
+            输出 = 枚举_控制面板命令::输出完成任务变化跟踪;
         }
         else if (参数 == "--panel-html") {
             输出 = 枚举_控制面板命令::生成HTML;

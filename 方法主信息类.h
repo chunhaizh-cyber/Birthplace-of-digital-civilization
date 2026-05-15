@@ -47,7 +47,7 @@ enum class 枚举_方法来源 : std::uint8_t {
 
 enum class 枚举_方法状态 : std::uint8_t {
     未定义 = 0,
-    待动作骨架 = 1,
+    待方法动作 = 1,
     待可执行入口 = 2,
     待条件节点 = 3,
     待结果节点 = 4,
@@ -280,7 +280,7 @@ public:
         return 空;
     }
 
-    bool 有动作骨架() const noexcept {
+    bool 有方法动作() const noexcept {
         const auto* 首节点 = 取首节点信息();
         return 首节点 && (首节点->动作名 || 首节点->动作句柄.有效());
     }
@@ -308,11 +308,11 @@ public:
     }
 
     bool 有最小出生锚点() const noexcept {
-        return 有动作骨架() || 有结果能力();
+        return 有方法动作() || 有结果能力();
     }
 
     bool 是仅结果特征需求位() const noexcept {
-        return 有结果能力() && !有动作骨架();
+        return 有结果能力() && !有方法动作();
     }
 
     std::int64_t 比较(const 方法主信息类* 对象, 枚举_比较字段 字段) const {
