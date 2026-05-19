@@ -7180,6 +7180,56 @@ std::filesystem::path 默认控制面板HTML路径()
             || 参数 == "--settlement-formal-evidence-check") {
             输出 = 枚举_控制面板命令::检查正式结算闸门;
         }
+        else if (参数 == "--formal-settlement-i64max-sentinel-check"
+            || 参数 == "--formal-settlement-i64max-check"
+            || 参数 == "--settlement-i64max-sentinel-check") {
+            输出 = 枚举_控制面板命令::检查正式结算I64Max哨兵;
+        }
+        else if (参数 == "--formal-settlement-fixed-point-ratio-check"
+            || 参数 == "--formal-settlement-integer-ratio-check"
+            || 参数 == "--settlement-fixed-point-ratio-check") {
+            输出 = 枚举_控制面板命令::检查正式结算固定点整数比例;
+        }
+        else if (参数 == "--signed-tristate-comparison-check"
+            || 参数 == "--tristate-comparison-check"
+            || 参数 == "--signed-comparison-check") {
+            输出 = 枚举_控制面板命令::检查符号三态比较;
+        }
+        else if (参数 == "--secondary-feature-comparison-template-check"
+            || 参数 == "--secondary-feature-template-check"
+            || 参数 == "--second-feature-comparison-check") {
+            输出 = 枚举_控制面板命令::检查二次特征比较模板;
+        }
+        else if (参数 == "--causal-comparison-template-check"
+            || 参数 == "--causal-template-check"
+            || 参数 == "--causal-comparison-check") {
+            输出 = 枚举_控制面板命令::检查因果比较模板;
+        }
+        else if (参数 == "--method-result-comparison-ability-check"
+            || 参数 == "--method-result-ability-check"
+            || 参数 == "--method-comparison-ability-check") {
+            输出 = 枚举_控制面板命令::检查方法结果比较能力;
+        }
+        else if (参数 == "--reverse-action-combination-single-instinct-check"
+            || 参数 == "--reverse-single-instinct-check"
+            || 参数 == "--reverse-self-action-single-instinct-check") {
+            输出 = 枚举_控制面板命令::检查反推单步本能动作组合;
+        }
+        else if (参数 == "--submit-method-entry-from-reverse-single-instinct-check"
+            || 参数 == "--submit-method-entry-single-instinct-check"
+            || 参数 == "--submit-entry-from-reverse-single-instinct-check") {
+            输出 = 枚举_控制面板命令::检查反推单步本能提交方法入口;
+        }
+        else if (参数 == "--condition-result-gap-after-real-entry-check"
+            || 参数 == "--condition-result-after-entry-check"
+            || 参数 == "--real-entry-condition-result-gap-check") {
+            输出 = 枚举_控制面板命令::检查真实入口后条件结果对缺口;
+        }
+        else if (参数 == "--condition-result-demand-entry-after-real-entry-check"
+            || 参数 == "--condition-result-demand-after-entry-check"
+            || 参数 == "--real-entry-condition-result-demand-check") {
+            输出 = 枚举_控制面板命令::检查真实入口后条件结果对学习需求入树;
+        }
         else if (参数 == "--state-transition-causal-projection-check"
             || 参数 == "--state-transition-projection-check"
             || 参数 == "--safety-causal-tree-check") {

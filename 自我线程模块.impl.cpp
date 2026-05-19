@@ -14,6 +14,10 @@ module;
 #include <variant>
 #include <vector>
 
+#if defined(_MSC_VER) && defined(_M_X64)
+#include <intrin.h>
+#endif
+
 #include "日志接入.h"
 #include "基础信息主信息类.h"
 #include "世界树类.h"
@@ -175,15 +179,70 @@ I64 私有_安全乘除_I64_线程侧(I64 左, I64 右, I64 分母) noexcept
     if (左 <= 0 || 右 <= 0 || 分母 <= 0) {
         return 0;
     }
-    const long double 结果 =
-        static_cast<long double>(左) * static_cast<long double>(右) / static_cast<long double>(分母);
-    if (结果 <= 0.0L) {
-        return 0;
-    }
-    if (结果 >= static_cast<long double>(std::numeric_limits<I64>::max())) {
+    const auto 上限 = static_cast<std::uint64_t>((std::numeric_limits<I64>::max)());
+    const auto a = static_cast<std::uint64_t>(左);
+    const auto b = static_cast<std::uint64_t>(右);
+    const auto d = static_cast<std::uint64_t>(分母);
+
+#if defined(_MSC_VER) && defined(_M_X64)
+    unsigned __int64 高位 = 0;
+    const auto 低位 = _umul128(
+        static_cast<unsigned __int64>(a),
+        static_cast<unsigned __int64>(b),
+        &高位);
+    if (高位 >= static_cast<unsigned __int64>(d)) {
         return std::numeric_limits<I64>::max();
     }
-    return static_cast<I64>(结果);
+    unsigned __int64 余数 = 0;
+    const auto 商 = _udiv128(
+        高位,
+        低位,
+        static_cast<unsigned __int64>(d),
+        &余数);
+    return 商 > 上限
+        ? (std::numeric_limits<I64>::max)()
+        : static_cast<I64>(商);
+#elif defined(__SIZEOF_INT128__)
+    const auto 乘积 =
+        static_cast<unsigned __int128>(a) * static_cast<unsigned __int128>(b);
+    const auto 商 = 乘积 / d;
+    return 商 > 上限
+        ? (std::numeric_limits<I64>::max)()
+        : static_cast<I64>(商);
+#else
+    std::uint64_t 商 = 0;
+    std::uint64_t 余数 = 0;
+    std::uint64_t 项商 = a / d;
+    std::uint64_t 项余 = a % d;
+
+    const auto 饱和加 = [上限](std::uint64_t 左值, std::uint64_t 右值) noexcept {
+        return 左值 > 上限 - 右值 ? 上限 : 左值 + 右值;
+    };
+
+    for (std::uint32_t 位 = 0; 位 < 63 && 位 < sizeof(b) * 8; ++位) {
+        if ((b & (std::uint64_t{1} << 位)) != 0) {
+            商 = 饱和加(商, 项商);
+            余数 += 项余;
+            if (余数 >= d || 余数 < 项余) {
+                余数 -= d;
+                商 = 饱和加(商, 1);
+            }
+        }
+
+        if (位 + 1 >= 63 || 位 + 1 >= sizeof(b) * 8) {
+            break;
+        }
+        const bool 项商溢出 = 项商 > 上限 / 2;
+        项商 = 项商溢出 ? 上限 : 项商 * 2;
+        项余 *= 2;
+        if (项余 >= d) {
+            项余 -= d;
+            项商 = 饱和加(项商, 1);
+        }
+    }
+
+    return 商 >= 上限 ? (std::numeric_limits<I64>::max)() : static_cast<I64>(商);
+#endif
 }
 
 I64 私有_按百万分比计算目标值_线程侧(I64 权重上限, I64 比例_百万分比) noexcept
