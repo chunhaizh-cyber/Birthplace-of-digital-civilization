@@ -112,6 +112,7 @@ public:
 
 private:
     mutable bool 缓存已构建_ = false;
+    // 运行期索引缓存：按内容哈希缩小候选范围，命中后仍以 VecU 值绝对相同为准。
     mutable std::unordered_map<std::uint64_t, std::vector<节点类*>> 哈希到候选_{};
 
     struct 分层索引节点 {
@@ -119,6 +120,7 @@ private:
         std::vector<节点类*> 叶子{};
     };
 
+    // 轮廓分层索引只服务近似查找 / 聚类，不改变特征值主信息的权威值语义。
     std::vector<std::unique_ptr<分层索引节点>> 索引池_{};
     分层索引节点* 根2D_ = nullptr;
     分层索引节点* 根3D_ = nullptr;

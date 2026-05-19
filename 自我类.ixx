@@ -230,36 +230,6 @@ public:
         const std::string& 原因说明 = {}
     ) noexcept;
 
-    bool 应用自我需求安全值增加(
-        I64 delta = 0,
-        时间戳 now = 结构体_时间戳::当前_微秒()
-    ) noexcept;
-    bool 应用自我需求安全值减少(
-        I64 delta = 0,
-        时间戳 now = 结构体_时间戳::当前_微秒()
-    ) noexcept;
-    bool 应用自我需求安全值保持(
-        时间戳 now = 结构体_时间戳::当前_微秒()
-    ) noexcept;
-    bool 应用自我需求服务值增加(
-        I64 delta = 0,
-        时间戳 now = 结构体_时间戳::当前_微秒()
-    ) noexcept;
-    bool 应用自我需求服务值减少(
-        I64 delta = 0,
-        时间戳 now = 结构体_时间戳::当前_微秒()
-    ) noexcept;
-    bool 应用自我需求服务值保持(
-        时间戳 now = 结构体_时间戳::当前_微秒()
-    ) noexcept;
-    bool 应用安全服务闭环安全推进(
-        I64 delta = 0,
-        时间戳 now = 结构体_时间戳::当前_微秒()
-    ) noexcept;
-    bool 应用安全服务闭环服务推进(
-        I64 delta = 0,
-        时间戳 now = 结构体_时间戳::当前_微秒()
-    ) noexcept;
     bool 应用服务归零待机保护(
         时间戳 now = 结构体_时间戳::当前_微秒()
     ) noexcept;

@@ -19,6 +19,7 @@ using 置信度 = std::uint64_t;
 using 需求强度 = std::uint64_t;
 using 时间戳 = std::uint64_t;
 using I64 = std::int64_t;
+using 比较量 = std::int64_t;
 
 struct I64区间 {
     std::int64_t 低值 = 0;
@@ -39,6 +40,7 @@ enum class 枚举_三向关系 : std::int8_t {
 };
 
 using 三向关系掩码 = std::uint8_t;
+using 方向掩码 = 三向关系掩码;
 
 inline constexpr 三向关系掩码 关系_小于 = 0b001;
 inline constexpr 三向关系掩码 关系_等于 = 0b010;
@@ -47,6 +49,17 @@ inline constexpr 三向关系掩码 关系_保持 = 关系_等于;
 inline constexpr 三向关系掩码 关系_改变 = 关系_小于 | 关系_大于;
 inline constexpr 三向关系掩码 关系_大于等于 = 关系_大于 | 关系_等于;
 inline constexpr 三向关系掩码 关系_小于等于 = 关系_小于 | 关系_等于;
+
+inline constexpr 方向掩码 方向_小于0 = 关系_小于;
+inline constexpr 方向掩码 方向_等于0 = 关系_等于;
+inline constexpr 方向掩码 方向_大于0 = 关系_大于;
+inline constexpr 方向掩码 方向_小于 = 方向_小于0;
+inline constexpr 方向掩码 方向_等于 = 方向_等于0;
+inline constexpr 方向掩码 方向_大于 = 方向_大于0;
+inline constexpr 方向掩码 方向_小于等于 = 方向_小于0 | 方向_等于0;
+inline constexpr 方向掩码 方向_大于等于 = 方向_大于0 | 方向_等于0;
+inline constexpr 方向掩码 方向_不等于 = 方向_小于0 | 方向_大于0;
+inline constexpr 方向掩码 方向_任意 = 方向_小于0 | 方向_等于0 | 方向_大于0;
 
 inline bool 三向关系被接受(
     const 枚举_三向关系 关系,
@@ -62,6 +75,49 @@ inline bool 三向关系被接受(
     default:
         return false;
     }
+}
+
+// 有符号比较量规则工具：
+// 比较函数可返回任意负数、0、任意正数；基础逻辑只读取符号。
+inline constexpr 比较量 比较I64_三态(const I64 左, const I64 右) noexcept
+{
+    return 左 < 右 ? -1 : (左 > 右 ? 1 : 0);
+}
+
+inline constexpr 比较量 比较U64_三态(const std::uint64_t 左, const std::uint64_t 右) noexcept
+{
+    return 左 < 右 ? -1 : (左 > 右 ? 1 : 0);
+}
+
+inline constexpr std::int8_t 比较符号(const 比较量 r) noexcept
+{
+    return static_cast<std::int8_t>((r > 0) - (r < 0));
+}
+
+inline constexpr 枚举_三向关系 比较量转三向关系(const 比较量 r) noexcept
+{
+    return r < 0
+        ? 枚举_三向关系::小于
+        : (r > 0 ? 枚举_三向关系::大于 : 枚举_三向关系::等于);
+}
+
+inline constexpr 三向关系掩码 比较量方向掩码(const 比较量 r) noexcept
+{
+    return r < 0 ? 关系_小于 : (r > 0 ? 关系_大于 : 关系_等于);
+}
+
+inline constexpr bool 比较量命中三向关系(
+    const 比较量 r,
+    const 三向关系掩码 掩码) noexcept
+{
+    return (比较量方向掩码(r) & 掩码) != 0;
+}
+
+inline constexpr bool 比较量命中方向(
+    const 比较量 r,
+    const 方向掩码 允许方向) noexcept
+{
+    return (比较量方向掩码(r) & 允许方向) != 0;
 }
 
 
@@ -178,7 +234,7 @@ struct 结构_统计 {
     时间戳 创建时间 = 0;
     时间戳 最后观测时间 = 0;
     std::uint64_t 命中次数 = 0;
-    std::int64_t 可信度 = 10000; // Q10000
+  //  std::int64_t 可信度 = 10000; // Q10000   //不需要
 
     void 记录观测(时间戳 now) noexcept {
         if (创建时间 == 0 && now != 0) 创建时间 = now;

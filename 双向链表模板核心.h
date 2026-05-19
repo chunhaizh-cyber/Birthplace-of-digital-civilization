@@ -204,6 +204,23 @@ private:
         a->比较(b, f);
     };
 
+    template<class T>
+    static constexpr bool 私有_可命中比较值类型 = requires(const T& a, const T& b, 枚举_比较字段 f) {
+        a.命中比较条件(b, f);
+    };
+
+    template<class T>
+    static constexpr bool 私有_可命中比较指针类型 = std::is_pointer_v<T> && requires(T a, T b, 枚举_比较字段 f) {
+        a->命中比较条件(b, f);
+    };
+
+    static bool 私有_旧比较接口命中(std::int64_t 比较结果) noexcept
+    {
+        // 迁移期兼容：旧 `比较(...)` 在部分主信息类中以 1 表示“条件命中”。
+        // 新代码应优先实现 `命中比较条件(...)`，避免把 1 继续误读为有符号比较量。
+        return 比较结果 == 1;
+    }
+
 public:
     std::string 获取主键(节点类* 节点) const
     {
@@ -367,12 +384,19 @@ public:
         auto 命中 = [&](节点类* it) -> bool {
             if (!it) return false;
 
-            if constexpr (私有_可比较指针类型<主信息类型>) {
+            if constexpr (私有_可命中比较指针类型<主信息类型>) {
                 auto* mi = it->主信息;
-                return mi && mi->比较(查找内容, 比较字段) == 1;
+                return mi && mi->命中比较条件(查找内容, 比较字段);
+            }
+            else if constexpr (私有_可命中比较值类型<主信息类型>) {
+                return it->主信息.命中比较条件(查找内容, 比较字段);
+            }
+            else if constexpr (私有_可比较指针类型<主信息类型>) {
+                auto* mi = it->主信息;
+                return mi && 私有_旧比较接口命中(mi->比较(查找内容, 比较字段));
             }
             else if constexpr (私有_可比较值类型<主信息类型>) {
-                return it->主信息.比较(查找内容, 比较字段) == 1;
+                return 私有_旧比较接口命中(it->主信息.比较(查找内容, 比较字段));
             }
             else {
                 static_assert(私有_可比较指针类型<主信息类型> || 私有_可比较值类型<主信息类型>,

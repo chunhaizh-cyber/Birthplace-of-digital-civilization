@@ -376,8 +376,8 @@ namespace {
 
         if (const auto* 因果主信息 = 世界树.因果().取因果主信息(static_cast<const 因果节点类*>(节点))) {
             if (因果主信息->是实例因果()) {
-                if (!因果主信息->动作名称.empty()) return 因果主信息->动作名称;
-                if (!因果主信息->动作语义键.empty()) return 因果主信息->动作语义键;
+                if (!因果主信息->因动作名称.empty()) return 因果主信息->因动作名称;
+                if (!因果主信息->因动作语义键.empty()) return 因果主信息->因动作语义键;
                 const auto 名称 = 私有_安全词(因果主信息->名称);
                 return 名称.empty() ? "因果实例" : 名称;
             }
