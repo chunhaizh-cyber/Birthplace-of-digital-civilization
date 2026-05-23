@@ -108,12 +108,12 @@ namespace {
         return 成熟度阶段 >= 3 ? 1 : 0;
     }
 
-    constexpr I64 私有_方法状态_可用值() noexcept { return 60; }
-    constexpr I64 私有_方法状态_待方法动作值() noexcept { return 10; }
-    constexpr I64 私有_方法状态_待可执行入口值() noexcept { return 20; }
-    constexpr I64 私有_方法状态_待条件节点值() noexcept { return 30; }
-    constexpr I64 私有_方法状态_待结果节点值() noexcept { return 40; }
-    constexpr I64 私有_方法状态_待条件结果对值() noexcept { return 50; }
+    constexpr I64 私有_方法状态_可用值() noexcept { return static_cast<I64>(枚举_方法状态::可用); }
+    constexpr I64 私有_方法状态_待方法动作值() noexcept { return static_cast<I64>(枚举_方法状态::待方法动作); }
+    constexpr I64 私有_方法状态_待可执行入口值() noexcept { return static_cast<I64>(枚举_方法状态::待可执行入口); }
+    constexpr I64 私有_方法状态_待条件节点值() noexcept { return static_cast<I64>(枚举_方法状态::待条件节点); }
+    constexpr I64 私有_方法状态_待结果节点值() noexcept { return static_cast<I64>(枚举_方法状态::待结果节点); }
+    constexpr I64 私有_方法状态_待条件结果对值() noexcept { return static_cast<I64>(枚举_方法状态::待条件结果对); }
 
     I64 私有_方法直接子节点数量(方法类::节点类* 方法, 枚举_方法节点种类 节点种类) noexcept
     {
@@ -685,6 +685,11 @@ bool 方法虚拟存在服务类::初始化方法统计特征(
     bool 已初始化 = false;
     已初始化 = 私有_确保I64特征已初始化(宿主, 私有_方法统计特征词("成功次数"), 0, now) || 已初始化;
     已初始化 = 私有_确保I64特征已初始化(宿主, 私有_方法统计特征词("失败次数"), 0, now) || 已初始化;
+    已初始化 = 私有_确保I64特征已初始化(宿主, 私有_方法统计特征词("运行次数"), 0, now) || 已初始化;
+    已初始化 = 私有_确保I64特征已初始化(宿主, 私有_方法统计特征词("最近连续成功次数"), 0, now) || 已初始化;
+    已初始化 = 私有_确保I64特征已初始化(宿主, 私有_方法统计特征词("方法运行次数"), 0, now) || 已初始化;
+    已初始化 = 私有_确保I64特征已初始化(宿主, 私有_方法统计特征词("方法成功次数"), 0, now) || 已初始化;
+    已初始化 = 私有_确保I64特征已初始化(宿主, 私有_方法统计特征词("方法最近连续成功次数"), 0, now) || 已初始化;
     已初始化 = 私有_确保I64特征已初始化(宿主, 私有_方法统计特征词("候选命中次数"), 0, now) || 已初始化;
     已初始化 = 私有_确保I64特征已初始化(宿主, 私有_方法统计特征词("最近执行时间"), 0, now) || 已初始化;
     return 已初始化;

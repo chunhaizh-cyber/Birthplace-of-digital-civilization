@@ -11,17 +11,6 @@ export module 任务模块.工作线程协议;
 import 自我类.特征定义;
 import 任务模块.工作线程消息协议;
 
-export enum class 枚举_任务控制事件类型 : std::uint8_t {
-    未定义 = 0,
-    启动 = 1,
-    打断 = 2,
-    收束 = 3,
-    停止 = 4,
-    优先级刷新 = 5,
-    预算刷新 = 6,
-    子结果送达 = 7,
-};
-
 export enum class 枚举_任务推进事件类型 : std::uint8_t {
     未定义 = 0,
     当前步骤可执行 = 1,
@@ -30,18 +19,6 @@ export enum class 枚举_任务推进事件类型 : std::uint8_t {
     局部结果返回 = 4,
     最终结果返回 = 5,
     异常上报 = 6,
-};
-
-export struct 结构_任务控制事件 {
-    std::uint64_t 任务根ID = 0;
-    枚举_任务控制事件类型 事件类型 = 枚举_任务控制事件类型::未定义;
-    const 语素入口节点类* 事件类型抽象特征指针 = nullptr;
-    std::int64_t 事件类型值 = static_cast<std::int64_t>(枚举_任务控制事件类型::未定义);
-    std::int64_t 优先级 = 0;
-    std::int64_t 时间预算_ms = 0;
-    std::int64_t 资源预算 = 0;
-    std::uintptr_t 子结果指针 = 0;
-    std::string 说明{};
 };
 
 export struct 结构_任务推进事件 {
@@ -55,12 +32,6 @@ export struct 结构_任务推进事件 {
     std::string 说明{};
 };
 
-export inline void 同步工作线程事件语义槽(结构_任务控制事件& 事件) noexcept
-{
-    事件.事件类型抽象特征指针 = 自我特征定义类::类型_工作线程_控制事件类型();
-    事件.事件类型值 = static_cast<std::int64_t>(事件.事件类型);
-}
-
 export inline void 同步工作线程事件语义槽(结构_任务推进事件& 事件) noexcept
 {
     事件.事件类型抽象特征指针 = 自我特征定义类::类型_工作线程_推进事件类型();
@@ -70,7 +41,6 @@ export inline void 同步工作线程事件语义槽(结构_任务推进事件& 
 export namespace 任务线程消息合同 {
 
 struct 结构_线程消息输入 {
-    结构_任务控制事件 控制事件{};
     bool 存在控制请求 = false;
     结构_任务管理控制请求 控制请求{};
     时间戳 当前时间 = 0;

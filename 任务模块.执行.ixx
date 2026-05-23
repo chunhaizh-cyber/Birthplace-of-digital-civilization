@@ -5,6 +5,7 @@ module;
 #include <cstddef>
 #include <cstdint>
 #include <future>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -456,9 +457,6 @@ inline bool 私有_方法允许引导执行_执行桥_最小_v0(const 方法类:
     case 枚举_本能方法ID::自我_练习:
     case 枚举_本能方法ID::自我_尝试学习:
     case 枚举_本能方法ID::自我_定向学习:
-    case 枚举_本能方法ID::自我_查找特征类型:
-    case 枚举_本能方法ID::自我_配对参数:
-    case 枚举_本能方法ID::自我_检查需求是否满足:
         return true;
     default:
         return false;
@@ -520,6 +518,25 @@ inline I64 私有_方法动作数量_执行桥_最小_v0(const 方法类::节点
     return 方法 && 方法->主信息.有方法动作() ? 1 : 0;
 }
 
+inline bool 私有_本能动作运行时已注册_执行桥_最小_v0(I64 本能ID) noexcept
+{
+    return 本能ID > 0
+        && static_cast<unsigned long long>(本能ID) <= (std::numeric_limits<std::uint32_t>::max)()
+        && static_cast<枚举_本能方法ID>(static_cast<std::uint32_t>(本能ID)) != 枚举_本能方法ID::未定义
+        && 取本能动作集().查询(
+            static_cast<枚举_本能动作ID>(
+                static_cast<枚举_本能方法ID>(
+                    static_cast<std::uint32_t>(本能ID)))).has_value();
+}
+
+inline bool 私有_方法有已注册本能入口_执行桥_最小_v0(const 方法类::节点类* 方法) noexcept
+{
+    return 方法
+        && 方法->主信息.首节点信息().动作句柄.类型 == 枚举_动作句柄类型::本能函数ID
+        && 私有_本能动作运行时已注册_执行桥_最小_v0(
+            方法->主信息.首节点信息().动作句柄.本能ID);
+}
+
 inline I64 私有_方法结果节点数量_执行桥_最小_v0(const 方法类::节点类* 方法) noexcept
 {
     if (!方法 || !方法->子) {
@@ -531,9 +548,6 @@ inline I64 私有_方法结果节点数量_执行桥_最小_v0(const 方法类::
     std::size_t 保护计数 = 0;
     do {
         if (当前) {
-            if (当前->主信息.公共.节点种类 == 枚举_方法节点种类::方法结果节点) {
-                ++数量;
-            }
             if (当前->主信息.公共.节点种类 == 枚举_方法节点种类::方法条件节点
                 && 当前->子) {
                 auto* 首结果 = reinterpret_cast<const 方法类::节点类*>(当前->子);
@@ -556,9 +570,7 @@ inline I64 私有_方法结果节点数量_执行桥_最小_v0(const 方法类::
 
 inline I64 私有_方法可执行入口数量_执行桥_最小_v0(const 方法类::节点类* 方法) noexcept
 {
-    return 方法
-        && 方法->主信息.首节点信息().动作句柄.类型 == 枚举_动作句柄类型::本能函数ID
-        && 方法->主信息.首节点信息().动作句柄.本能ID != 0
+    return 私有_方法有已注册本能入口_执行桥_最小_v0(方法)
         ? 1
         : 0;
 }

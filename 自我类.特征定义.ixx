@@ -173,7 +173,6 @@ public:
     static const 语素入口节点类* 类型_运行包_结算结论() noexcept;
     static const 语素入口节点类* 类型_运行包_方法沉淀样本类别() noexcept;
 
-    static const 语素入口节点类* 类型_工作线程_控制事件类型() noexcept;
     static const 语素入口节点类* 类型_工作线程_推进事件类型() noexcept;
 
     static const 语素入口节点类* 类型_消息_来源链() noexcept;

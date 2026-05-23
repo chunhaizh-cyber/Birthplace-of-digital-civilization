@@ -69,6 +69,7 @@ enum class 枚举_自我动作组合反推状态 : std::uint8_t {
 
 struct 结构_自我动作组合反推输入 {
     状态节点类* 目标结果状态 = nullptr;
+    const 语素入口节点类* 目标特征类型 = nullptr;
     方法类::节点类* 方法根节点 = nullptr;
     std::int64_t 最低稳定度 = 0;
     std::uint32_t 最大候选数 = 16;

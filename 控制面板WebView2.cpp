@@ -5,6 +5,7 @@ module;
 #include <filesystem>
 #include <future>
 #include <iomanip>
+#include <limits>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -23,6 +24,7 @@ module 控制面板WebView2;
 
 import 控制面板类;
 import 日志模块;
+import 任务模块.管理界面线程;
 import 自我类;
 import 自我线程模块;
 
@@ -229,6 +231,25 @@ namespace {
         return 私有_解析节点消息(消息, L"detail:", 请求号, 展开类型, 节点指针);
     }
 
+    bool 私有_解析线程池大小设置消息(
+        const std::wstring& 消息,
+        std::uint64_t* worker数量) noexcept
+    {
+        constexpr std::wstring_view 前缀 = L"settings:worker-pool-size:";
+        if (!消息.starts_with(前缀)) {
+            return false;
+        }
+
+        std::uint64_t 解析值 = 0;
+        if (!私有_解析U64(std::wstring_view(消息).substr(前缀.size()), 解析值)) {
+            return false;
+        }
+        if (worker数量) {
+            *worker数量 = 解析值;
+        }
+        return true;
+    }
+
     std::filesystem::path 私有_模块目录() noexcept
     {
         wchar_t 缓冲区[MAX_PATH]{};
@@ -433,6 +454,26 @@ namespace {
                                             const std::wstring 消息 = 消息文本;
                                             CoTaskMemFree(消息文本);
                                             if (消息 == L"refresh") {
+                                                PostMessageW(窗口, 私有_WM_刷新控制面板窗口, 0, 0);
+                                                return S_OK;
+                                            }
+
+                                            std::uint64_t worker数量 = 0;
+                                            if (私有_解析线程池大小设置消息(消息, &worker数量)) {
+                                                if (worker数量 > static_cast<std::uint64_t>(
+                                                    std::numeric_limits<std::size_t>::max())) {
+                                                    私有_记录WebView2诊断(
+                                                        "参数设置超出本机size_t范围",
+                                                        14,
+                                                        S_OK,
+                                                        ERROR_SUCCESS,
+                                                        "worker数=" + std::to_string(worker数量));
+                                                    PostMessageW(窗口, 私有_WM_刷新控制面板窗口, 0, 0);
+                                                    return S_OK;
+                                                }
+                                                (void)任务管理界面线程::保存任务管理工作线程池大小(
+                                                    自我,
+                                                    static_cast<std::size_t>(worker数量));
                                                 PostMessageW(窗口, 私有_WM_刷新控制面板窗口, 0, 0);
                                                 return S_OK;
                                             }

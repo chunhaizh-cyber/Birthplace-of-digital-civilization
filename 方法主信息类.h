@@ -55,6 +55,7 @@ enum class 枚举_方法状态 : std::uint8_t {
     待结果节点 = 4,
     待条件结果对 = 5,
     可用 = 6,
+    好用 = 7,
 };
 
 enum class 枚举_结果变化方向 : std::uint8_t {

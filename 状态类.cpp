@@ -1,9 +1,11 @@
 #include "状态类.h"
 
 #include <algorithm>
+#include <mutex>
 #include <sstream>
 #include <utility>
 
+#include "场景索引同步.h"
 #include "世界树类.h"
 
 import 日志模块;
@@ -367,6 +369,7 @@ bool 状态类::删除状态(状态节点类* 节点)
     auto* 父节点 = static_cast<基础信息节点类*>(节点->父);
     auto* 场景主信息 = 基础信息_->取主信息<场景节点主信息类>(父节点);
     if (场景主信息) {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
         场景主信息->状态索引.erase(
             std::remove_if(
                 场景主信息->状态索引.begin(),
@@ -395,7 +398,13 @@ std::vector<状态节点类*> 状态类::获取场景状态(const 场景节点�
     const auto* 场景主信息 = 基础信息_ ? 基础信息_->取主信息<场景节点主信息类>(场景) : nullptr;
     if (!场景主信息) return out;
 
-    for (const auto& 项 : 场景主信息->状态索引) {
+    std::vector<可解析引用<状态节点类>> 状态索引快照;
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        状态索引快照 = 场景主信息->状态索引;
+    }
+
+    for (const auto& 项 : 状态索引快照) {
         if (项.指针) out.push_back(项.指针);
     }
     std::stable_sort(out.begin(), out.end(), [this](const auto* 左, const auto* 右) {
@@ -418,8 +427,13 @@ bool 状态类::是否当前活动状态(const 场景节点类* 场景, const �
     const auto* 场景主信息 = 基础信息_->取主信息<场景节点主信息类>(场景);
     if (!目标主信息 || !场景主信息) return false;
 
+    std::vector<可解析引用<状态节点类>> 状态索引快照;
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        状态索引快照 = 场景主信息->状态索引;
+    }
     bool 在活动索引中 = false;
-    for (const auto& 项 : 场景主信息->状态索引) {
+    for (const auto& 项 : 状态索引快照) {
         auto* 候选节点 = 私有_解析状态引用(基础信息_, 项);
         const auto* 候选主信息 = 取状态主信息(候选节点);
         if (!候选主信息 || !私有_状态同主体特征(候选主信息, 目标主信息)) continue;
@@ -464,8 +478,13 @@ bool 状态类::可从活动状态链清理(const 场景节点类* 场景, const
     const auto* 场景主信息 = 基础信息_->取主信息<场景节点主信息类>(场景);
     if (!目标主信息 || !场景主信息) return false;
 
+    std::vector<可解析引用<状态节点类>> 状态索引快照;
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        状态索引快照 = 场景主信息->状态索引;
+    }
     std::size_t 更新状态数量 = 0;
-    for (const auto& 项 : 场景主信息->状态索引) {
+    for (const auto& 项 : 状态索引快照) {
         auto* 候选节点 = 私有_解析状态引用(基础信息_, 项);
         const auto* 候选主信息 = 取状态主信息(候选节点);
         if (!候选主信息 || !私有_状态同主体特征(候选主信息, 目标主信息)) continue;
@@ -491,10 +510,14 @@ std::size_t 状态类::清理已处理状态索引(
     auto* 场景主信息 = 基础信息_ ? 基础信息_->取主信息<场景节点主信息类>(场景) : nullptr;
     if (!场景主信息) return 0;
 
-    auto& 索引 = 场景主信息->状态索引;
+    std::vector<可解析引用<状态节点类>> 状态索引快照;
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        状态索引快照 = 场景主信息->状态索引;
+    }
     std::vector<std::string> 待清理主键;
     std::size_t 清理数量 = 0;
-    for (const auto& 项 : 索引) {
+    for (const auto& 项 : 状态索引快照) {
         if (最大清理数量 != 0 && 清理数量 >= 最大清理数量) {
             break;
         }
@@ -519,16 +542,20 @@ std::size_t 状态类::清理已处理状态索引(
         return 0;
     }
 
-    索引.erase(
-        std::remove_if(
-            索引.begin(),
-            索引.end(),
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        auto& 索引 = 场景主信息->状态索引;
+        索引.erase(
+            std::remove_if(
+                索引.begin(),
+                索引.end(),
             [&](const auto& 项) {
                 auto* 状态节点 = 私有_解析状态引用(基础信息_, 项);
                 const auto 键 = 状态节点 ? 状态节点->获取主键() : 项.主键;
                 return std::find(待清理主键.begin(), 待清理主键.end(), 键) != 待清理主键.end();
             }),
-        索引.end());
+            索引.end());
+    }
     return 待清理主键.size();
 }
 
@@ -540,9 +567,14 @@ std::size_t 状态类::清理超过时间窗口的状态索引(
     auto* 场景主信息 = 基础信息_ ? 基础信息_->取主信息<场景节点主信息类>(场景) : nullptr;
     if (!场景主信息 || 最早保留时间 == 0) return 0;
 
+    std::vector<可解析引用<状态节点类>> 状态索引快照;
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        状态索引快照 = 场景主信息->状态索引;
+    }
     std::vector<std::string> 待清理主键;
     std::size_t 清理数量 = 0;
-    for (const auto& 项 : 场景主信息->状态索引) {
+    for (const auto& 项 : 状态索引快照) {
         if (最大清理数量 != 0 && 清理数量 >= 最大清理数量) {
             break;
         }
@@ -567,17 +599,20 @@ std::size_t 状态类::清理超过时间窗口的状态索引(
         return 0;
     }
 
-    auto& 索引 = 场景主信息->状态索引;
-    索引.erase(
-        std::remove_if(
-            索引.begin(),
-            索引.end(),
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        auto& 索引 = 场景主信息->状态索引;
+        索引.erase(
+            std::remove_if(
+                索引.begin(),
+                索引.end(),
             [&](const auto& 项) {
                 auto* 状态节点 = 私有_解析状态引用(基础信息_, 项);
                 const auto 键 = 状态节点 ? 状态节点->获取主键() : 项.主键;
                 return std::find(待清理主键.begin(), 待清理主键.end(), 键) != 待清理主键.end();
             }),
-        索引.end());
+            索引.end());
+    }
     return 待清理主键.size();
 }
 
@@ -589,7 +624,11 @@ std::size_t 状态类::按活动状态限量清理(
     auto* 场景主信息 = 基础信息_ ? 基础信息_->取主信息<场景节点主信息类>(场景) : nullptr;
     if (!场景主信息 || 活动状态上限 == 0) return 0;
 
-    const auto 当前数量 = 场景主信息->状态索引.size();
+    std::size_t 当前数量 = 0;
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        当前数量 = 场景主信息->状态索引.size();
+    }
     if (当前数量 <= 活动状态上限) {
         return 0;
     }
@@ -601,7 +640,12 @@ std::size_t 状态类::按活动状态限量清理(
     const auto 已清理 = 清理已处理状态索引(场景, nullptr, nullptr, 目标清理数量);
     if (已清理 == 0) {
         std::size_t 被引用状态数量 = 0;
-        for (const auto& 项 : 场景主信息->状态索引) {
+        std::vector<可解析引用<状态节点类>> 状态索引快照;
+        {
+            std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+            状态索引快照 = 场景主信息->状态索引;
+        }
+        for (const auto& 项 : 状态索引快照) {
             auto* 状态节点 = 私有_解析状态引用(基础信息_, 项);
             if (状态节点 && 统计状态引用数量(状态节点) > 0) {
                 ++被引用状态数量;
@@ -755,6 +799,7 @@ bool 状态类::标记变化(状态节点类* 节点, bool 是否变化)
 void 状态类::私有_按时间追加状态索引(场景节点主信息类* 场景主信息, 状态节点类* 节点) const
 {
     if (!场景主信息 || !节点) return;
+    std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
     if (!私有_引用已存在(场景主信息->状态索引, 节点)) {
         场景主信息->状态索引.push_back(私有_生成引用(节点));
     }

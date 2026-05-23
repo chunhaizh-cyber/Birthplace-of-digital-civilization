@@ -1,10 +1,12 @@
 #include "因果类.h"
 #include "动态类.h"
 #include "方法类.h"
+#include "特征类.h"
 #include "语素类.h"
 
 #include <algorithm>
 #include <cstdint>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -14,6 +16,9 @@
 import 自我类.特征定义;
 
 namespace {
+
+constexpr std::size_t 私有_证据动态样本上限 = 64;
+static std::mutex 私有_因果证据样本互斥;
 
 template<class T节点>
 static std::string 私有_节点键(const T节点* 节点)
@@ -92,6 +97,27 @@ static bool 私有_向量含动态(const std::vector<可解析引用<动态节�
     return std::any_of(v.begin(), v.end(), [&](const auto& r) { return 私有_引用等于节点(r, d); });
 }
 
+static bool 私有_登记证据动态样本(std::vector<可解析引用<动态节点类>>& v, 动态节点类* d)
+{
+    if (!d) return false;
+
+    std::lock_guard<std::mutex> guard(私有_因果证据样本互斥);
+    if (私有_向量含动态(v, d)) {
+        return false;
+    }
+
+    // 证据动态样本是可追溯样本，不是完整日志。完整发生次数由基础计数表达；
+    // 这里限制样本向量扩容，避免长时间内部循环把模板证据表写成无界容器。
+    if (v.size() < 私有_证据动态样本上限) {
+        if (v.capacity() < 私有_证据动态样本上限) {
+            v.reserve(私有_证据动态样本上限);
+        }
+        v.push_back(私有_制引用(d));
+    }
+
+    return true;
+}
+
 static bool 私有_向量含二次特征(const std::vector<可解析引用<二次特征节点类>>& v, const 二次特征节点类* n)
 {
     return std::any_of(v.begin(), v.end(), [&](const auto& r) { return 私有_引用等于节点(r, n); });
@@ -120,6 +146,39 @@ static bool 私有_因果模板有动作(const 因果主信息类* m) noexcept
             || !m->因动作名称.empty());
 }
 
+static bool 私有_动作语义是被动整理(const std::string& 动作语义) noexcept
+{
+    return 动作语义 == "被动动作"
+        || 动作语义 == "同步筹办回执到任务"
+        || 动作语义 == "同步执行回执到任务"
+        || 动作语义 == "同步可用方法数量镜像"
+        || 动作语义 == "候选整理"
+        || 动作语义 == "候选选择"
+        || 动作语义 == "条件检查";
+}
+
+static bool 私有_动作语义是治理镜像(const std::string& 动作语义) noexcept
+{
+    return 动作语义 == "自我_当前主需求切换"
+        || 动作语义 == "自我_当前主任务切换"
+        || 动作语义 == "自我_当前主方法切换"
+        || 动作语义 == "线程状态变更"
+        || 动作语义 == "自我治理动作动态";
+}
+
+static bool 私有_动作语义不可主动反推(const std::string& 动作语义) noexcept
+{
+    return 私有_动作语义是被动整理(动作语义)
+        || 私有_动作语义是治理镜像(动作语义);
+}
+
+static bool 私有_因果模板可主动反推(const 因果主信息类* m) noexcept
+{
+    return 私有_因果模板有动作(m)
+        && !私有_动作语义不可主动反推(m->因动作语义键)
+        && !私有_动作语义不可主动反推(m->因动作名称);
+}
+
 // 因果主信息不再持久化置信度；需要排序或投影时由成立/失败基础计数临时派生。
 static std::int64_t 私有_派生置信分(const 因果主信息类* m) noexcept
 {
@@ -128,35 +187,65 @@ static std::int64_t 私有_派生置信分(const 因果主信息类* m) noexcept
     return 稳定度 > 0 ? 稳定度 : 0;
 }
 
-static bool 私有_动态结果命中状态(const 动态节点类* 动态, const 状态节点类* 目标状态) noexcept
+static bool 私有_状态引用命中目标(
+    基础信息类* 基础信息,
+    const 可解析引用<状态节点类>& 状态引用,
+    const 状态节点类* 目标状态)
+{
+    if (!目标状态) return false;
+    if (私有_引用等于节点(状态引用, 目标状态)) return true;
+
+    auto* 基础信息集 = 基础信息 ? 基础信息 : &获取基础信息集();
+    const auto* 候选状态 = 状态引用.指针;
+    if (!候选状态 && !状态引用.主键.empty() && 基础信息集) {
+        候选状态 = reinterpret_cast<const 状态节点类*>(
+            基础信息集->查找主键(状态引用.主键));
+    }
+    if (!候选状态) return false;
+
+    特征类 特征服务(基础信息集);
+    const auto 比较 = 特征服务.比较状态(候选状态, 目标状态);
+    return 比较.可比较 && 比较.关系 == 枚举_三向关系::等于;
+}
+
+static bool 私有_动态结果命中状态(
+    基础信息类* 基础信息,
+    const 动态节点类* 动态,
+    const 状态节点类* 目标状态)
 {
     auto* m = 动态 ? dynamic_cast<const 动态节点主信息类*>(动态->主信息) : nullptr;
-    return m && 私有_引用等于节点(m->结果状态, 目标状态);
+    return m && 私有_状态引用命中目标(基础信息, m->结果状态, 目标状态);
 }
 
-static bool 私有_状态迁移结果命中状态(const 二次特征节点类* 迁移, const 状态节点类* 目标状态) noexcept
+static bool 私有_状态迁移结果命中状态(
+    基础信息类* 基础信息,
+    const 二次特征节点类* 迁移,
+    const 状态节点类* 目标状态)
 {
     auto* m = 迁移 ? dynamic_cast<const 二次特征主信息类*>(迁移->主信息) : nullptr;
-    return m && 私有_引用等于节点(m->来源结果状态, 目标状态);
+    return m && 私有_状态引用命中目标(基础信息, m->来源结果状态, 目标状态);
 }
 
+static bool 私有_语素入口同一(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept;
+
 static bool 私有_因果模板结果命中状态(
+    基础信息类* 基础信息,
     const 因果主信息类* 模板,
-    const 状态节点类* 目标状态) noexcept
+    const 状态节点类* 目标状态)
 {
     if (!模板 || !目标状态) return false;
 
     for (const auto& 证据 : 模板->证据动态样本) {
-        if (私有_动态结果命中状态(证据.指针, 目标状态)) {
+        if (私有_动态结果命中状态(基础信息, 证据.指针, 目标状态)) {
             return true;
         }
     }
 
-    if (私有_状态迁移结果命中状态(模板->主果比较模板.指针, 目标状态)) {
+    if (私有_状态迁移结果命中状态(基础信息, 模板->主果比较模板.指针, 目标状态)) {
         return true;
     }
     for (const auto& 迁移 : 模板->果比较模板) {
-        if (私有_状态迁移结果命中状态(迁移.指针, 目标状态)) {
+        if (私有_状态迁移结果命中状态(基础信息, 迁移.指针, 目标状态)) {
             return true;
         }
     }
@@ -170,6 +259,84 @@ static I64 私有_方法本能ID(const 方法类::节点类* 方法) noexcept
         return 0;
     }
     return 首->动作句柄.本能ID;
+}
+
+static const 语素入口节点类* 私有_状态目标特征类型(const 状态节点类* 状态) noexcept
+{
+    auto* 状态信息 = 状态 ? dynamic_cast<const 状态节点主信息类*>(状态->主信息) : nullptr;
+    auto* 特征节点 = 状态信息 ? 状态信息->状态特征.指针 : nullptr;
+    auto* 特征信息 = 特征节点
+        ? dynamic_cast<const 特征节点主信息类*>(特征节点->主信息)
+        : nullptr;
+    return 特征信息 ? 特征信息->类型 : nullptr;
+}
+
+static bool 私有_方法结果能力命中目标特征(
+    const 方法类::节点类* 方法,
+    const 语素入口节点类* 目标特征类型) noexcept
+{
+    if (!目标特征类型) {
+        return true;
+    }
+
+    auto* 首 = 方法 ? 方法->主信息.取首节点信息() : nullptr;
+    if (!首
+        || !首->能力.可被方法查找命中
+        || 首->能力.是否根写入原语) {
+        return false;
+    }
+
+    for (const auto& 结果项 : 首->能力.结果包.结果项集) {
+        if (结果项.关系目标特征类型由参数决定()) {
+            if (结果项.关系目标特征类型参数()) {
+                return true;
+            }
+            continue;
+        }
+
+        if (私有_语素入口同一(
+                结果项.关系目标特征类型(),
+                目标特征类型)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static const 语素入口节点类* 私有_按主键解析语素入口(const std::string& 主键) noexcept
+{
+    if (主键.empty()) return nullptr;
+    auto* 节点 = 语素集.查找主键(主键);
+    if (!节点 || !节点->主信息) return nullptr;
+    return dynamic_cast<const 语素入口主信息类*>(节点->主信息)
+        ? static_cast<const 语素入口节点类*>(节点)
+        : nullptr;
+}
+
+static std::string 私有_语素入口词_安全(const 语素入口节点类* 入口) noexcept
+{
+    if (!入口) return {};
+    try {
+        return 语素集.获取词(入口);
+    } catch (...) {
+        return {};
+    }
+}
+
+static bool 私有_动作语义键匹配动作名(
+    const std::string& 动作语义键,
+    const 语素入口节点类* 动作名) noexcept
+{
+    if (动作语义键.empty() || !动作名) return false;
+    if (动作名->获取主键() == 动作语义键) return true;
+
+    const auto* 动作语义入口 = 私有_按主键解析语素入口(动作语义键);
+    if (!动作语义入口) return false;
+    if (私有_语素入口同一(动作语义入口, 动作名)) return true;
+
+    const auto 语义词 = 私有_语素入口词_安全(动作语义入口);
+    return !语义词.empty() && 语义词 == 私有_语素入口词_安全(动作名);
 }
 
 static bool 私有_方法动作匹配因果模板(
@@ -199,7 +366,7 @@ static bool 私有_方法动作匹配因果模板(
         if (方法->获取主键() == 模板->因动作语义键) {
             return true;
         }
-        if (首->动作名 && 首->动作名->获取主键() == 模板->因动作语义键) {
+        if (私有_动作语义键匹配动作名(模板->因动作语义键, 首->动作名)) {
             return true;
         }
         if (私有_方法本能ID(方法) != 0
@@ -213,7 +380,8 @@ static bool 私有_方法动作匹配因果模板(
 
 static std::vector<方法类::节点类*> 私有_查找可映射动作方法(
     方法类::节点类* 方法根节点,
-    const 因果主信息类* 模板)
+    const 因果主信息类* 模板,
+    const 语素入口节点类* 目标特征类型)
 {
     std::vector<方法类::节点类*> out;
     if (!方法根节点 || !方法根节点->子 || !模板) return out;
@@ -225,7 +393,8 @@ static std::vector<方法类::节点类*> 私有_查找可映射动作方法(
     do {
         if (当前
             && 当前->主信息.节点种类() == 枚举_方法节点种类::方法首节点
-            && 私有_方法动作匹配因果模板(当前, 模板)) {
+            && 私有_方法动作匹配因果模板(当前, 模板)
+            && 私有_方法结果能力命中目标特征(当前, 目标特征类型)) {
             const auto 主键 = 当前->获取主键();
             if (已加入.insert(主键).second) {
                 out.push_back(当前);
@@ -816,14 +985,20 @@ std::vector<因果模板节点类*> 因果类::查找导致状态变化的动作
     }
 
     const std::uint32_t 最大候选数 = 输入.最大候选数 == 0 ? 16 : 输入.最大候选数;
+    const auto* 目标特征类型 = 输入.目标特征类型
+        ? 输入.目标特征类型
+        : 私有_状态目标特征类型(输入.目标结果状态);
     for (auto* 模板节点 : 枚举因果模板()) {
         auto* 模板 = 取模板主信息(模板节点);
-        if (!模板 || !私有_因果模板有动作(模板)) continue;
+        if (!模板 || !私有_因果模板可主动反推(模板)) continue;
         if (输入.只接受已验证因果 && !模板->已验证) continue;
         if (模板->计算稳定度() < 输入.最低稳定度) continue;
-        if (!私有_因果模板结果命中状态(模板, 输入.目标结果状态)) continue;
+        if (!私有_因果模板结果命中状态(基础信息_, 模板, 输入.目标结果状态)) continue;
 
-        auto 映射方法 = 私有_查找可映射动作方法(输入.方法根节点, 模板);
+        auto 映射方法 = 私有_查找可映射动作方法(
+            输入.方法根节点,
+            模板,
+            目标特征类型);
         if (映射方法.empty()) {
             结构_自我动作组合候选 候选{};
             候选.来源因果模板 = 模板节点;
@@ -1139,7 +1314,7 @@ static std::vector<二次特征节点类*> 私有_查找动态果状态迁移模
     instInfo->适用锚点类型 = 场景 ? 枚举_因果锚点类型::场景 : 枚举_因果锚点类型::未定义;
     instInfo->适用层级 = dm->动态层级;
     instInfo->来源类型 = 来源类型;
-    instInfo->证据动态样本.push_back(私有_制引用(动态节点));
+    (void)私有_登记证据动态样本(instInfo->证据动态样本, 动态节点);
     instInfo->观察次数 = 1;
     instInfo->果出现次数 = dm->结果状态.有效() ? 1 : 0;
     if (dm->来源动作.有效()) instInfo->因方法模板 = dm->来源动作;
@@ -1265,9 +1440,7 @@ bool 因果类::按动态桥接结果状态(因果节点类* 节点, 动态节�
     if (!m || !d || !d->结果状态.有效()) return false;
 
     // 当前云端因果主信息以“果比较模板 + 证据动态”为主；结果状态仍通过证据动态保留。
-    if (!私有_向量含动态(m->证据动态样本, 动态节点)) {
-        m->证据动态样本.push_back(私有_制引用(动态节点));
-    }
+    (void)私有_登记证据动态样本(m->证据动态样本, 动态节点);
     if (设为主结果) {
         for (auto* t : 私有_查找动态果状态迁移模板(基础信息_ ? 基础信息_ : &获取基础信息集(), 动态节点)) {
             if (!m->主果比较模板.有效()) m->主果比较模板 = 私有_制引用(t);
@@ -1336,8 +1509,7 @@ bool 因果类::追加证据动态样本(因果模板节点类* 节点, 动态�
 {
     auto* m = 取模板主信息(节点);
     if (!m || !证据动态) return false;
-    if (!私有_向量含动态(m->证据动态样本, 证据动态)) {
-        m->证据动态样本.push_back(私有_制引用(证据动态));
+    if (私有_登记证据动态样本(m->证据动态样本, 证据动态)) {
         ++m->观察次数;
         ++m->因出现次数;
         ++m->果出现次数;
@@ -1355,8 +1527,7 @@ bool 因果类::追加证据实例(因果模板节点类* 节点, 因果实例�
     // 当前云端统一因果主信息没有“证据实例”字段，实例证据通过实例持有的动态样本合并到模板。
     bool changed = false;
     for (auto& d : e->证据动态样本) {
-        if (d.指针 && !私有_向量含动态(m->证据动态样本, d.指针)) {
-            m->证据动态样本.push_back(d);
+        if (d.指针 && 私有_登记证据动态样本(m->证据动态样本, d.指针)) {
             changed = true;
         }
     }

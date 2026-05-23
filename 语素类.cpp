@@ -1,10 +1,12 @@
 #include "语素类.h"
 
 #include "基础信息类.h"
+#include "场景索引同步.h"
 #include "日志接入.h"
 
 #include <algorithm>
 #include <cstdint>
+#include <mutex>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -218,6 +220,7 @@ namespace {
         auto* 场景主信息 = dynamic_cast<const 场景节点主信息类*>(场景->主信息);
         if (!场景主信息) return false;
 
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
         const auto 检查列表 = [&](const auto& 列表) {
             for (const auto& 引用 : 列表) {
                 if (私有_引用指向(引用, 基础信息节点)) return true;
@@ -238,6 +241,7 @@ namespace {
         auto* 场景主信息 = dynamic_cast<场景节点主信息类*>(场景->主信息);
         if (!场景主信息) return;
 
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
         switch (基础信息节点->主信息->主信息类型) {
         case 枚举_主信息类型::状态:
             私有_追加唯一引用(场景主信息->状态索引, static_cast<状态节点类*>(基础信息节点));

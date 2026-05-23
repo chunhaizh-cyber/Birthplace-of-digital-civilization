@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <cctype>
+#include <mutex>
 
 #include "度量模板注册表桥接.h"
+#include "场景索引同步.h"
 #include "世界树类.h"
 #include "语素类.h"
 
@@ -32,6 +34,7 @@ namespace {
     void 私有_追加二次特征索引(场景节点主信息类* 主信息, 二次特征节点类* 节点)
     {
         if (!主信息 || !节点) return;
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
         const auto 引用 = 私有_生成引用(节点);
         if (!私有_引用已存在(主信息->关系索引, 节点)) {
             主信息->关系索引.push_back(引用);
@@ -44,6 +47,7 @@ namespace {
     void 私有_移除二次特征索引(std::vector<可解析引用<二次特征节点类>>* 列表, 二次特征节点类* 节点)
     {
         if (!列表 || !节点) return;
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
         列表->erase(
             std::remove_if(
                 列表->begin(),

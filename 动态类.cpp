@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <functional>
+#include <mutex>
 #include <string_view>
 
+#include "场景索引同步.h"
 #include "方法类.h"
 #include "世界树类.h"
 #include "语素类.h"
@@ -300,7 +302,13 @@ namespace {
             return nullptr;
         }
 
-        for (const auto& 项 : 场景主信息->动态索引) {
+        std::vector<可解析引用<动态节点类>> 动态索引快照;
+        {
+            std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+            动态索引快照 = 场景主信息->动态索引;
+        }
+
+        for (const auto& 项 : 动态索引快照) {
             auto* 动态节点 = 私有_解析动态引用(基础信息, 项);
             const auto* 主信息 = 基础信息->取主信息<动态节点主信息类>(动态节点);
             if (!动态节点 || !主信息) continue;
@@ -348,6 +356,7 @@ namespace {
         动态节点类* 节点)
     {
         if (!场景主信息 || !节点) return;
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
         if (!私有_引用已存在(场景主信息->动态索引, 节点)) {
             场景主信息->动态索引.push_back(私有_生成引用(节点));
         }
@@ -715,6 +724,7 @@ bool 动态类::删除动态(动态节点类* 节点)
     auto* 父节点 = static_cast<基础信息节点类*>(节点->父);
     auto* 场景主信息 = 基础信息_->取主信息<场景节点主信息类>(父节点);
     if (场景主信息) {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
         场景主信息->动态索引.erase(
             std::remove_if(
                 场景主信息->动态索引.begin(),
@@ -743,7 +753,13 @@ std::vector<动态节点类*> 动态类::获取场景动态(const 场景节点�
     const auto* 场景主信息 = 基础信息_ ? 基础信息_->取主信息<场景节点主信息类>(场景) : nullptr;
     if (!场景主信息) return out;
 
-    for (const auto& 项 : 场景主信息->动态索引) {
+    std::vector<可解析引用<动态节点类>> 动态索引快照;
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        动态索引快照 = 场景主信息->动态索引;
+    }
+
+    for (const auto& 项 : 动态索引快照) {
         if (auto* 动态节点 = 私有_解析动态引用(基础信息_, 项)) {
             out.push_back(动态节点);
         }
@@ -765,9 +781,19 @@ std::vector<动态节点类*> 动态类::获取场景动态(const 场景节点�
         return nullptr;
     }
 
+    std::vector<可解析引用<状态节点类>> 状态索引快照;
+    {
+        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+        状态索引快照 = 场景主信息->状态索引;
+    }
+    if (状态索引快照.empty()) {
+        return nullptr;
+    }
+
     bool 已跳过当前状态 = false;
-    for (auto it = 场景主信息->状态索引.rbegin(); it != 场景主信息->状态索引.rend(); ++it) {
-        auto* 候选节点 = 私有_解析状态引用(基础信息_, *it);
+    for (std::size_t i = 状态索引快照.size(); i > 0; --i) {
+        const auto& 状态引用 = 状态索引快照[i - 1];
+        auto* 候选节点 = 私有_解析状态引用(基础信息_, 状态引用);
         const auto* 候选主信息 = 基础信息_->取主信息<状态节点主信息类>(候选节点);
         if (!候选主信息) continue;
 
