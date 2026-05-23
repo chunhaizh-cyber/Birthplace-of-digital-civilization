@@ -28,6 +28,7 @@ export struct 结构_任务推进事件 {
     std::int64_t 事件类型值 = static_cast<std::int64_t>(枚举_任务推进事件类型::未定义);
     std::uintptr_t 当前步骤指针 = 0;
     std::uintptr_t 结果指针 = 0;
+    // 仅供程序调试和日志展示，绝不能作为逻辑语义、业务判断、去重、结算或因果依据。
     std::string 等待原因{};
     std::string 说明{};
 };

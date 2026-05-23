@@ -53,6 +53,7 @@ struct 结构_控制面板快照 {
     std::size_t 任务状态运行中数 = 0;
     std::size_t 任务状态挂起数 = 0;
     std::size_t 任务状态完成数 = 0;
+    std::size_t 任务状态已结算数 = 0;
     std::size_t 任务状态失败数 = 0;
     std::size_t 任务状态取消数 = 0;
     std::size_t 任务状态超时数 = 0;
