@@ -132,6 +132,9 @@
     <ClCompile Include="任务类.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="自我动作实现.外设模块.ixx">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="自我动作实现模块.ixx">
       <Filter>源文件</Filter>
     </ClCompile>
