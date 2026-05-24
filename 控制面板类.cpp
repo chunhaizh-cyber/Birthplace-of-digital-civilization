@@ -2632,6 +2632,160 @@ namespace {
         return 评估;
     }
 
+    struct 结构_需求满足情况_控制面板 {
+        bool 当前已截止 = false;
+        bool 自身状态可比较 = false;
+        bool 自身状态已满足 = false;
+        枚举_三向关系 自身比较关系 = 枚举_三向关系::等于;
+        std::size_t 直接子总数 = 0;
+        std::size_t 活动阻塞子数 = 0;
+        std::size_t 全部满足子数 = 0;
+        std::size_t 部分满足子数 = 0;
+        std::size_t 未满足子数 = 0;
+        std::size_t 已截止子数 = 0;
+        std::string 满足情况 = "未满足";
+    };
+
+    std::string 私有_状态值文本_控制面板(const 状态节点类* 状态节点)
+    {
+        const auto* 状态主信息 = 状态节点
+            ? 世界树.状态().取状态主信息(状态节点)
+            : nullptr;
+        return 状态主信息 ? 私有_特征值文本(状态主信息->状态值) : std::string("空");
+    }
+
+    bool 私有_需求自身状态已满足_控制面板(
+        const 需求节点* 节点,
+        bool* 输出可比较 = nullptr,
+        枚举_三向关系* 输出关系 = nullptr) noexcept
+    {
+        if (输出可比较) {
+            *输出可比较 = false;
+        }
+        if (输出关系) {
+            *输出关系 = 枚举_三向关系::等于;
+        }
+        if (!节点) {
+            return false;
+        }
+
+        auto* 当前状态 = 私有_解析基础信息引用_控制面板(
+            节点->主信息.被需求当前状态);
+        auto* 目标状态 = 私有_解析基础信息引用_控制面板(
+            节点->主信息.需求状态);
+        if (当前状态 && 目标状态) {
+            const auto 比较 = 世界树.特征().比较状态(当前状态, 目标状态);
+            if (输出可比较) {
+                *输出可比较 = 比较.可比较;
+            }
+            if (输出关系) {
+                *输出关系 = 比较.关系;
+            }
+            return 比较.可比较
+                && 三向关系被接受(比较.关系, 节点->主信息.满足关系);
+        }
+
+        const auto 当前主键 = 私有_引用主键_控制面板(
+            节点->主信息.被需求当前状态);
+        const auto 目标主键 = 私有_引用主键_控制面板(
+            节点->主信息.需求状态);
+        if (!当前主键.empty() && 当前主键 == 目标主键) {
+            if (输出可比较) {
+                *输出可比较 = true;
+            }
+            if (输出关系) {
+                *输出关系 = 枚举_三向关系::等于;
+            }
+            return 三向关系被接受(
+                枚举_三向关系::等于,
+                节点->主信息.满足关系);
+        }
+        return false;
+    }
+
+    结构_需求满足情况_控制面板 私有_评估需求满足情况_控制面板(
+        const 需求节点* 节点,
+        const std::size_t 深度 = 0) noexcept
+    {
+        结构_需求满足情况_控制面板 评估{};
+        if (!节点) {
+            return 评估;
+        }
+
+        评估.当前已截止 = 节点->主信息.需求有效截止 != 0;
+        评估.自身状态已满足 = 私有_需求自身状态已满足_控制面板(
+            节点,
+            &评估.自身状态可比较,
+            &评估.自身比较关系);
+
+        if (节点->子 && 深度 < 32) {
+            auto* 首子节点 = reinterpret_cast<const 需求节点*>(节点->子);
+            auto* 当前子节点 = 首子节点;
+            std::size_t 保护计数 = 0;
+            do {
+                if (!当前子节点) {
+                    break;
+                }
+                ++评估.直接子总数;
+                if (当前子节点->主信息.需求有效截止 != 0) {
+                    ++评估.已截止子数;
+                    ++评估.全部满足子数;
+                }
+                else if (当前子节点->主信息.是否阻塞父任务执行) {
+                    ++评估.活动阻塞子数;
+                    const auto 子评估 = 私有_评估需求满足情况_控制面板(
+                        当前子节点,
+                        深度 + 1);
+                    if (子评估.满足情况 == "全部满足") {
+                        ++评估.全部满足子数;
+                    }
+                    else if (子评估.满足情况 == "部分满足") {
+                        ++评估.部分满足子数;
+                    }
+                    else {
+                        ++评估.未满足子数;
+                    }
+                }
+                当前子节点 = reinterpret_cast<const 需求节点*>(当前子节点->下);
+                ++保护计数;
+            } while (当前子节点 && 当前子节点 != 首子节点 && 保护计数 < 2048);
+        }
+
+        if (评估.当前已截止 || 评估.自身状态已满足) {
+            评估.满足情况 = "全部满足";
+        }
+        else if (评估.活动阻塞子数 > 0
+            && 评估.未满足子数 == 0
+            && 评估.部分满足子数 == 0
+            && 评估.全部满足子数 >= 评估.活动阻塞子数) {
+            评估.满足情况 = "全部满足";
+        }
+        else if (评估.全部满足子数 > 0 || 评估.部分满足子数 > 0) {
+            评估.满足情况 = "部分满足";
+        }
+        else {
+            评估.满足情况 = "未满足";
+        }
+        return 评估;
+    }
+
+    std::string 私有_需求满足情况说明_控制面板(
+        const 结构_需求满足情况_控制面板& 评估)
+    {
+        std::ostringstream 输出;
+        输出 << "自身=" << (评估.自身状态已满足 ? "满足" : "未满足")
+            << " | 可比较=" << 私有_布尔文本(评估.自身状态可比较)
+            << " | 关系=" << static_cast<I64>(评估.自身比较关系)
+            << " | 已截止=" << 私有_布尔文本(评估.当前已截止)
+            << " | 直接子=" << 评估.直接子总数
+            << " | 活动阻塞子=" << 评估.活动阻塞子数
+            << " | 全部满足子=" << 评估.全部满足子数
+            << " | 部分满足子=" << 评估.部分满足子数
+            << " | 未满足子=" << 评估.未满足子数
+            << " | 已截止子=" << 评估.已截止子数;
+        return 输出.str();
+    }
+
     std::string 私有_需求标题_核心(const 需求节点* 节点)
     {
         if (!节点) {
@@ -3079,6 +3233,17 @@ namespace {
         私有_追加等号字段(字段节点, "安全权重", 节点->主信息.安全权重);
         私有_追加等号字段(字段节点, "服务权重", 节点->主信息.服务权重);
         私有_追加等号字段(字段节点, "满足关系", 私有_三向关系掩码文本(节点->主信息.满足关系));
+        auto* 当前状态 = 私有_解析基础信息引用_控制面板(节点->主信息.被需求当前状态);
+        auto* 目标状态 = 私有_解析基础信息引用_控制面板(节点->主信息.需求状态);
+        const auto* 需求特征类型 = 节点->主信息.目标特征类型缓存
+            ? 节点->主信息.目标特征类型缓存
+            : 私有_需求目标特征类型_控制面板(节点);
+        const auto 满足情况 = 私有_评估需求满足情况_控制面板(节点);
+        私有_追加等号字段(字段节点, "需求特征类型", 私有_词文本(需求特征类型));
+        私有_追加等号字段(字段节点, "需求特征值", 私有_状态值文本_控制面板(目标状态));
+        私有_追加等号字段(字段节点, "当前特征值", 私有_状态值文本_控制面板(当前状态));
+        私有_追加等号字段(字段节点, "满足情况", 满足情况.满足情况);
+        私有_追加等号字段(字段节点, "满足情况说明", 私有_需求满足情况说明_控制面板(满足情况));
         私有_追加等号字段(字段节点, "目标特征类型缓存", 私有_词文本(节点->主信息.目标特征类型缓存));
 
         私有_追加等号引用字段(字段节点, "需求主体", 节点->主信息.需求主体, 路径);
@@ -4999,6 +5164,93 @@ namespace {
                 }
             }
 
+            auto* 目标状态 = 私有_解析基础信息引用_控制面板(
+                节点->主信息.需求状态);
+            const auto* 目标状态主信息 = 目标状态
+                ? 世界树.状态().取状态主信息(目标状态)
+                : nullptr;
+            const auto 目标状态主键 = 私有_引用主键_控制面板(
+                节点->主信息.需求状态);
+            const auto 显式目标宿主主键 = 私有_引用主键_控制面板(
+                节点->主信息.被需求存在);
+            const auto 目标状态宿主主键 = 私有_状态主体主键_控制面板(
+                目标状态);
+            const auto 目标宿主主键 = 私有_需求目标宿主主键_控制面板(节点);
+            const auto* 目标特征类型 = 节点->主信息.目标特征类型缓存
+                ? 节点->主信息.目标特征类型缓存
+                : 私有_需求目标特征类型_控制面板(节点);
+            const auto 目标特征类型主键 =
+                私有_节点主键_控制面板(目标特征类型);
+
+            auto* 目标特征节点 = 目标状态主信息
+                ? 目标状态主信息->状态特征.指针
+                : nullptr;
+            if (!目标特征节点
+                && 目标状态主信息
+                && !目标状态主信息->状态特征.主键.empty()) {
+                目标特征节点 = reinterpret_cast<特征节点类*>(
+                    世界树.基础信息().查找主键(
+                        目标状态主信息->状态特征.主键));
+            }
+
+            bool 目标绑定异常 = false;
+            std::string 首因{};
+            auto 标记目标绑定异常 = [&](const char* 原因) {
+                目标绑定异常 = true;
+                if (首因.empty() && 原因) {
+                    首因 = 原因;
+                }
+            };
+
+            if (!目标状态主信息) {
+                ++快照.需求树缺目标状态需求数;
+                标记目标绑定异常("缺目标状态");
+            }
+            if (目标宿主主键.empty()) {
+                ++快照.需求树缺目标宿主需求数;
+                标记目标绑定异常("缺目标宿主");
+            }
+            if (目标特征类型主键.empty()) {
+                ++快照.需求树缺目标特征类型需求数;
+                标记目标绑定异常("缺目标特征类型");
+            }
+            if (!显式目标宿主主键.empty()
+                && !目标状态宿主主键.empty()
+                && 显式目标宿主主键 != 目标状态宿主主键) {
+                ++快照.需求树目标状态宿主不一致需求数;
+                标记目标绑定异常("目标状态主体与被需求存在不一致");
+            }
+            if (!目标宿主主键.empty() && !目标特征类型主键.empty()) {
+                std::string 目标特征归属主键{};
+                if (目标特征节点 && 目标特征节点->父) {
+                    目标特征归属主键 =
+                        reinterpret_cast<const 基础信息节点类*>(
+                            目标特征节点->父)->获取主键();
+                }
+                if (目标特征归属主键.empty()
+                    || 目标特征归属主键 != 目标宿主主键) {
+                    ++快照.需求树目标特征未归属宿主需求数;
+                    标记目标绑定异常("目标特征未归属目标宿主");
+                }
+            }
+
+            if (目标绑定异常) {
+                ++快照.需求树目标绑定异常需求数;
+                if (快照.需求树首个目标绑定异常需求主键.empty()) {
+                    快照.需求树首个目标绑定异常需求主键 =
+                        私有_节点主键_控制面板(节点);
+                    快照.需求树首个目标绑定异常父主键 =
+                        私有_节点主键_控制面板(reinterpret_cast<需求节点*>(节点->父));
+                    快照.需求树首个目标绑定异常目标状态主键 = 目标状态主键;
+                    快照.需求树首个目标绑定异常目标宿主主键 = 目标宿主主键;
+                    快照.需求树首个目标绑定异常目标特征主键 = 目标特征类型主键;
+                    快照.需求树首个目标绑定异常原因 = std::move(首因);
+                }
+            }
+            else {
+                ++快照.需求树目标绑定完整需求数;
+            }
+
             std::string 已完成任务主键{};
             if (私有_需求存在完成任务但仍活动_控制面板(节点, &已完成任务主键)) {
                 ++快照.需求树完成任务仍活动需求数;
@@ -6039,6 +6291,39 @@ std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
         << " | 权重异常=" << 快照.需求树父子权重异常需求数
         << " | 完成任务仍活动需求=" << 快照.需求树完成任务仍活动需求数
         << '\n'
+        << "  - 目标绑定: 完整=" << 快照.需求树目标绑定完整需求数
+        << " | 异常=" << 快照.需求树目标绑定异常需求数
+        << " | 缺目标状态=" << 快照.需求树缺目标状态需求数
+        << " | 缺目标宿主=" << 快照.需求树缺目标宿主需求数
+        << " | 缺目标特征类型=" << 快照.需求树缺目标特征类型需求数
+        << " | 宿主不一致=" << 快照.需求树目标状态宿主不一致需求数
+        << " | 特征未归属宿主=" << 快照.需求树目标特征未归属宿主需求数
+        << '\n'
+        << "  - 首个目标绑定异常: 主键=" << 私有_页面摘要(
+            快照.需求树首个目标绑定异常需求主键.empty()
+                ? std::string("无")
+                : 快照.需求树首个目标绑定异常需求主键)
+        << " | 父=" << 私有_页面摘要(
+            快照.需求树首个目标绑定异常父主键.empty()
+                ? std::string("空")
+                : 快照.需求树首个目标绑定异常父主键)
+        << " | 原因=" << 私有_页面摘要(
+            快照.需求树首个目标绑定异常原因.empty()
+                ? std::string("无")
+                : 快照.需求树首个目标绑定异常原因)
+        << " | 目标状态=" << 私有_页面摘要(
+            快照.需求树首个目标绑定异常目标状态主键.empty()
+                ? std::string("空")
+                : 快照.需求树首个目标绑定异常目标状态主键)
+        << " | 目标宿主=" << 私有_页面摘要(
+            快照.需求树首个目标绑定异常目标宿主主键.empty()
+                ? std::string("空")
+                : 快照.需求树首个目标绑定异常目标宿主主键)
+        << " | 目标特征=" << 私有_页面摘要(
+            快照.需求树首个目标绑定异常目标特征主键.empty()
+                ? std::string("空")
+                : 快照.需求树首个目标绑定异常目标特征主键)
+        << '\n'
         << "  - 首个未任务化执行需求: 主键=" << 私有_页面摘要(
             快照.需求树首个未任务化执行需求主键.empty()
                 ? std::string("无")
@@ -6530,6 +6815,120 @@ std::string 生成控制面板HTML(
       word-break:break-word;
     }
     .settings-hidden-tree[hidden]{display:none}
+)HTML";
+    输出 << R"HTML(
+    .camera-control{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+    .camera-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .camera-btn{
+      min-height:44px;
+      padding:0 16px;
+      border:none;
+      border-radius:8px;
+      background:var(--accent);
+      color:#fff;
+      cursor:pointer;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .camera-btn.secondary{
+      background:#eef3f7;
+      border:1px solid rgba(15,118,110,.18);
+      color:var(--ink);
+    }
+    .camera-btn.danger{
+      background:var(--danger);
+    }
+    .camera-status{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+      word-break:break-word;
+    }
+    .camera-status.ok{color:var(--accent);font-weight:700}
+    .camera-status.error{color:var(--danger);font-weight:700}
+    .camera-layout{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      align-items:start;
+    }
+    .camera-viewer{min-width:0}
+    .camera-viewer-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .camera-viewer-title{
+      margin-top:4px;
+      font-size:20px;
+      font-weight:800;
+      line-height:1.3;
+    }
+    .camera-viewer-meta{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+      text-align:right;
+      white-space:nowrap;
+    }
+    .camera-canvas-shell{
+      margin-top:14px;
+      aspect-ratio:4/3;
+      min-height:280px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.12);
+      background:#0b1116;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .camera-canvas{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:contain;
+      background:#0b1116;
+    }
+    .camera-stat-grid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+    .camera-stat{
+      min-width:0;
+      padding:12px 14px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+    }
+    .camera-stat-label{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .camera-stat-value{
+      margin-top:6px;
+      font-size:15px;
+      font-weight:800;
+      line-height:1.4;
+      word-break:break-word;
+    }
+)HTML";
+    输出 << R"HTML(
     .workspace{
       display:grid;
       grid-template-columns:minmax(0,1.2fr) minmax(320px,420px);
@@ -6860,6 +7259,7 @@ std::string 生成控制面板HTML(
     @media (max-width:1350px){
       .overview{grid-template-columns:repeat(2,minmax(0,1fr))}
       .workspace{grid-template-columns:1fr}
+      .camera-layout{grid-template-columns:1fr}
       .settings-layout{grid-template-columns:1fr}
       .detail-panel{position:static}
       .tree-shell{max-height:none}
@@ -6879,6 +7279,10 @@ std::string 生成控制面板HTML(
       .settings-row{grid-template-columns:1fr}
       .settings-editor{grid-template-columns:minmax(0,1fr) auto}
       .settings-result-grid{grid-template-columns:1fr}
+      .camera-control{align-items:flex-start}
+      .camera-actions{width:100%}
+      .camera-btn{flex:1 1 140px}
+      .camera-stat-grid{grid-template-columns:1fr}
     }
   </style>
 </head>)HTML";
@@ -6908,6 +7312,7 @@ std::string 生成控制面板HTML(
           <button class="menu-item" type="button" data-page="method-tree"><span>方法树</span><span class="menu-badge">)HTML"
         << 快照.方法数
         << R"HTML(</span></button>
+          <button class="menu-item" type="button" data-page="camera-view"><span>相机画面</span><span class="menu-badge">D455</span></button>
           <button class="menu-item" type="button" data-page="settings"><span>参数设定</span><span class="menu-badge">)HTML"
         << 快照.任务管理工作线程池当前有效大小
         << R"HTML(</span></button>
@@ -7072,6 +7477,65 @@ std::string 生成控制面板HTML(
               <div class="tree-shell"><div id="tree-method-tree"></div></div>
             </section>
             <aside class="panel detail-panel"><div id="detail-method-tree" class="detail-host"></div></aside>
+          </div>
+        </section>
+
+        <section class="page" data-page="camera-view" data-title="相机画面" data-subtitle="D455 彩色帧和轮廓帧实时画面。">
+          <section class="panel camera-control">
+            <div>
+              <div class="panel-topline">D455</div>
+              <h3>相机画面</h3>
+              <div id="camera-status" class="camera-status" role="status">未连接</div>
+            </div>
+            <div class="camera-actions">
+              <button id="camera-start" class="camera-btn" type="button">启动</button>
+              <button id="camera-capture" class="camera-btn secondary" type="button">刷新一帧</button>
+              <button id="camera-stop" class="camera-btn danger" type="button">停止</button>
+            </div>
+          </section>
+          <div class="camera-layout">
+            <section class="panel camera-viewer">
+              <div class="camera-viewer-head">
+                <div>
+                  <div class="panel-topline">RGB</div>
+                  <div class="camera-viewer-title">相机画面</div>
+                </div>
+                <div id="camera-rgb-meta" class="camera-viewer-meta">--</div>
+              </div>
+              <div class="camera-canvas-shell">
+                <canvas id="camera-rgb-canvas" class="camera-canvas" width="640" height="480"></canvas>
+              </div>
+            </section>
+            <section class="panel camera-viewer">
+              <div class="camera-viewer-head">
+                <div>
+                  <div class="panel-topline">Contour</div>
+                  <div class="camera-viewer-title">轮廓图画面</div>
+                </div>
+                <div id="camera-contour-meta" class="camera-viewer-meta">--</div>
+              </div>
+              <div class="camera-canvas-shell">
+                <canvas id="camera-contour-canvas" class="camera-canvas" width="640" height="480"></canvas>
+              </div>
+            </section>
+          </div>
+          <div class="camera-stat-grid" aria-label="相机帧状态">
+            <div class="camera-stat">
+              <div class="camera-stat-label">帧尺寸</div>
+              <div id="camera-size-stat" class="camera-stat-value">--</div>
+            </div>
+            <div class="camera-stat">
+              <div class="camera-stat-label">源尺寸</div>
+              <div id="camera-source-stat" class="camera-stat-value">--</div>
+            </div>
+            <div class="camera-stat">
+              <div class="camera-stat-label">帧号</div>
+              <div id="camera-frame-stat" class="camera-stat-value">--</div>
+            </div>
+            <div class="camera-stat">
+              <div class="camera-stat-label">轮廓数</div>
+              <div id="camera-contour-stat" class="camera-stat-value">--</div>
+            </div>
           </div>
         </section>
 
@@ -8011,6 +8475,169 @@ std::string 生成控制面板HTML(
       }
     }
 
+)HTML";
+    输出 << R"HTML(
+    let 相机自动采集句柄 = 0;
+    let 相机请求中 = false;
+
+    function 设置相机状态(text, kind = '') {
+      const status = document.getElementById('camera-status');
+      if (!status) return;
+      status.textContent = text || '';
+      status.classList.toggle('ok', kind === 'ok');
+      status.classList.toggle('error', kind === 'error');
+    }
+
+    function 解码Base64字节(text) {
+      const bin = atob(text || '');
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; ++i) {
+        bytes[i] = bin.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    function 清空相机画布(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#0b1116';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function 绘制RGB画面(data) {
+      const canvas = document.getElementById('camera-rgb-canvas');
+      if (!canvas || !data || !data.colorRGB) return;
+      const w = Number(data.width || 0);
+      const h = Number(data.height || 0);
+      if (w <= 0 || h <= 0) return;
+      canvas.width = w;
+      canvas.height = h;
+      const bytes = 解码Base64字节(data.colorRGB);
+      const ctx = canvas.getContext('2d');
+      const image = ctx.createImageData(w, h);
+      for (let i = 0, j = 0; i < bytes.length && j < image.data.length; i += 3, j += 4) {
+        image.data[j] = bytes[i] || 0;
+        image.data[j + 1] = bytes[i + 1] || 0;
+        image.data[j + 2] = bytes[i + 2] || 0;
+        image.data[j + 3] = 255;
+      }
+      ctx.putImageData(image, 0, 0);
+    }
+
+    function 绘制轮廓画面(data) {
+      const canvas = document.getElementById('camera-contour-canvas');
+      if (!canvas || !data || !data.contourMask) return;
+      const w = Number(data.width || 0);
+      const h = Number(data.height || 0);
+      if (w <= 0 || h <= 0) return;
+      canvas.width = w;
+      canvas.height = h;
+      const mask = 解码Base64字节(data.contourMask);
+      const ctx = canvas.getContext('2d');
+      const image = ctx.createImageData(w, h);
+      for (let i = 0, j = 0; i < mask.length && j < image.data.length; ++i, j += 4) {
+        const v = mask[i] || 0;
+        if (v >= 220) {
+          image.data[j] = 22;
+          image.data[j + 1] = 214;
+          image.data[j + 2] = 143;
+          image.data[j + 3] = 255;
+        } else if (v > 0) {
+          image.data[j] = 54;
+          image.data[j + 1] = 93;
+          image.data[j + 2] = 105;
+          image.data[j + 3] = 255;
+        } else {
+          image.data[j] = 8;
+          image.data[j + 1] = 13;
+          image.data[j + 2] = 18;
+          image.data[j + 3] = 255;
+        }
+      }
+      ctx.putImageData(image, 0, 0);
+      ctx.lineWidth = Math.max(1, Math.round(Math.min(w, h) / 240));
+      ctx.strokeStyle = '#f43f5e';
+      (Array.isArray(data.boxes) ? data.boxes : []).forEach((box) => {
+        const x = Number(box.x || 0);
+        const y = Number(box.y || 0);
+        const bw = Number(box.w || 0);
+        const bh = Number(box.h || 0);
+        if (bw > 0 && bh > 0) {
+          ctx.strokeRect(x + 0.5, y + 0.5, Math.max(1, bw - 1), Math.max(1, bh - 1));
+        }
+      });
+    }
+
+    function 更新相机统计(data) {
+      const setText = (id, text) => {
+        const node = document.getElementById(id);
+        if (node) node.textContent = text;
+      };
+      setText('camera-size-stat', `${data.width || 0} x ${data.height || 0}`);
+      setText('camera-source-stat', `${data.sourceWidth || 0} x ${data.sourceHeight || 0}`);
+      setText('camera-frame-stat', `D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
+      setText('camera-contour-stat', String(data.contourCount || 0));
+      setText('camera-rgb-meta', `${data.width || 0} x ${data.height || 0}`);
+      setText('camera-contour-meta', `${data.contourCount || 0} 个轮廓`);
+    }
+
+    function 请求相机帧(message = 'camera:capture') {
+      if (相机请求中) return;
+      if (!(window.chrome && window.chrome.webview)) {
+        设置相机状态('静态 HTML 预览未连接相机接口。', 'error');
+        return;
+      }
+      相机请求中 = true;
+      设置相机状态('正在读取相机帧...');
+      window.chrome.webview.postMessage(message);
+    }
+
+    function 启动相机采集() {
+      if (相机自动采集句柄) {
+        clearInterval(相机自动采集句柄);
+      }
+      请求相机帧('camera:start');
+      相机自动采集句柄 = window.setInterval(() => 请求相机帧('camera:capture'), 1000);
+    }
+
+    function 停止相机采集() {
+      if (相机自动采集句柄) {
+        clearInterval(相机自动采集句柄);
+        相机自动采集句柄 = 0;
+      }
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage('camera:stop');
+      } else {
+        设置相机状态('静态 HTML 预览未连接相机接口。', 'error');
+      }
+    }
+
+    window.__panelApplyCameraFrame = function(data) {
+      相机请求中 = false;
+      if (!data || typeof data !== 'object') {
+        设置相机状态('相机返回数据无效。', 'error');
+        return;
+      }
+      if (data.stopped) {
+        设置相机状态(data.message || '已停止。');
+        return;
+      }
+      if (!data.ok) {
+        设置相机状态(data.error || '相机采集失败。', 'error');
+        return;
+      }
+      绘制RGB画面(data);
+      绘制轮廓画面(data);
+      更新相机统计(data);
+      设置相机状态(data.message || '已更新。', 'ok');
+    };
+
+    清空相机画布('camera-rgb-canvas');
+    清空相机画布('camera-contour-canvas');
+
+)HTML";
+    输出 << R"HTML(
     菜单项列表.forEach((item) => {
       item.addEventListener('click', () => 切换页面(item.dataset.page));
     });
@@ -8069,6 +8696,19 @@ std::string 生成控制面板HTML(
           提交线程池大小设置();
         }
       });
+    }
+
+    const 相机启动按钮 = document.getElementById('camera-start');
+    const 相机刷新按钮 = document.getElementById('camera-capture');
+    const 相机停止按钮 = document.getElementById('camera-stop');
+    if (相机启动按钮) {
+      相机启动按钮.addEventListener('click', 启动相机采集);
+    }
+    if (相机刷新按钮) {
+      相机刷新按钮.addEventListener('click', () => 请求相机帧('camera:capture'));
+    }
+    if (相机停止按钮) {
+      相机停止按钮.addEventListener('click', 停止相机采集);
     }
 
     document.getElementById('refresh-page').addEventListener('click', () => {

@@ -118,7 +118,7 @@
       <DelayLoadDLLs>realsense2.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
-      <Command>if exist "D:\vcpkg\installed\x64-windows\bin\realsense2.dll" copy /Y "D:\vcpkg\installed\x64-windows\bin\realsense2.dll" "$(OutDir)" &gt;nul</Command>
+      <Command>if exist "D:\vcpkg\installed\x64-windows\bin\realsense2.dll" copy /Y "D:\vcpkg\installed\x64-windows\bin\realsense2.dll" "$(OutDir)" &gt;nul &amp; if exist "D:\vcpkg\installed\x64-windows\bin\lz4.dll" copy /Y "D:\vcpkg\installed\x64-windows\bin\lz4.dll" "$(OutDir)" &gt;nul</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -141,7 +141,7 @@
       <DelayLoadDLLs>realsense2.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
-      <Command>if exist "D:\vcpkg\installed\x64-windows\bin\realsense2.dll" copy /Y "D:\vcpkg\installed\x64-windows\bin\realsense2.dll" "$(OutDir)" &gt;nul</Command>
+      <Command>if exist "D:\vcpkg\installed\x64-windows\bin\realsense2.dll" copy /Y "D:\vcpkg\installed\x64-windows\bin\realsense2.dll" "$(OutDir)" &gt;nul &amp; if exist "D:\vcpkg\installed\x64-windows\bin\lz4.dll" copy /Y "D:\vcpkg\installed\x64-windows\bin\lz4.dll" "$(OutDir)" &gt;nul</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -149,6 +149,7 @@
     <ClCompile Include="相机接口类.ixx" />
     <ClCompile Include="D455相机类.ixx" Condition="'$(Platform)'=='x64'" />
     <ClCompile Include="D455相机类.cpp" Condition="'$(Platform)'=='x64'" />
+    <ClCompile Include="双目相机本能适配器.cpp" Condition="'$(Platform)'=='x64'" />
     <ClCompile Include="日志模块.ixx" />
     <ClCompile Include="基础信息类.cpp" />
     <ClCompile Include="鱼巢.cpp" />
@@ -220,6 +221,7 @@
     <ClInclude Include="基础信息节点类型.h" />
     <ClInclude Include="基础信息类.h" />
     <ClInclude Include="WebView2导入.h" />
+    <ClInclude Include="双目相机本能适配器.h" />
     <ClInclude Include="世界树类.h" />
     <ClInclude Include="双向链表模板_序列化.inl" />
     <ClInclude Include="双向链表模板_深拷贝.inl" />

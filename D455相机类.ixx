@@ -17,6 +17,10 @@ public:
         int 彩色高 = 480;
         int 帧率 = 30;
 
+        bool 启用红外双目 = false;
+        int 红外宽 = 640;
+        int 红外高 = 480;
+
         bool 彩色_自动曝光 = true;
         bool 彩色_自动白平衡 = true;
         double 彩色_曝光 = 8000.0;
@@ -35,6 +39,7 @@ public:
         bool 启用时间滤波 = true;
         double 时间_平滑系数 = 0.4;
         double 时间_平滑阈值 = 20.0;
+        double 时间_持久性 = 3.0;
 
         bool 启用填洞滤波 = true;
         double 填洞_模式 = 1.0;

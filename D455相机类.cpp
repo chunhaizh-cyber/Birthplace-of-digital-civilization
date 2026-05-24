@@ -41,6 +41,10 @@ public:
             rs2::config c;
             c.enable_stream(RS2_STREAM_DEPTH, cfg.深度宽, cfg.深度高, RS2_FORMAT_Z16, cfg.帧率);
             c.enable_stream(RS2_STREAM_COLOR, cfg.彩色宽, cfg.彩色高, RS2_FORMAT_ANY, cfg.帧率);
+            if (cfg.启用红外双目) {
+                c.enable_stream(RS2_STREAM_INFRARED, 1, cfg.红外宽, cfg.红外高, RS2_FORMAT_Y8, cfg.帧率);
+                c.enable_stream(RS2_STREAM_INFRARED, 2, cfg.红外宽, cfg.红外高, RS2_FORMAT_Y8, cfg.帧率);
+            }
 
             profile = 管道.start(c);
             已打开 = true;
@@ -140,6 +144,9 @@ public:
             }
 
             读取对齐彩色(color, 输出);
+            if (cfg.启用红外双目) {
+                读取双目红外(frames, 输出);
+            }
             生成点云(输出);
 
             最近轮廓.clear();
@@ -172,6 +179,9 @@ public:
             cfg.深度高 != 新配置.深度高 ||
             cfg.彩色宽 != 新配置.彩色宽 ||
             cfg.彩色高 != 新配置.彩色高 ||
+            cfg.启用红外双目 != 新配置.启用红外双目 ||
+            cfg.红外宽 != 新配置.红外宽 ||
+            cfg.红外高 != 新配置.红外高 ||
             cfg.帧率 != 新配置.帧率;
 
         if (!已打开) {
@@ -328,6 +338,7 @@ private:
         try_set(空间滤波, RS2_OPTION_HOLES_FILL, cfg.空间_孔洞填充);
         try_set(时间滤波, RS2_OPTION_FILTER_SMOOTH_ALPHA, cfg.时间_平滑系数);
         try_set(时间滤波, RS2_OPTION_FILTER_SMOOTH_DELTA, cfg.时间_平滑阈值);
+        try_set(时间滤波, RS2_OPTION_HOLES_FILL, cfg.时间_持久性);
         try_set(填洞滤波, RS2_OPTION_HOLES_FILL, cfg.填洞_模式);
     }
 
@@ -397,6 +408,45 @@ private:
                         write_rgb(u + 1, v, R, G, B);
                     }
                 }
+            }
+        }
+    }
+
+    static void 复制红外Y8(const rs2::video_frame& ir, std::vector<std::uint8_t>& out, int expectedW, int expectedH) {
+        out.clear();
+        if (ir.get_width() != expectedW || ir.get_height() != expectedH) return;
+        if (ir.get_profile().format() != RS2_FORMAT_Y8 || ir.get_bytes_per_pixel() != 1) return;
+
+        const std::uint8_t* base = static_cast<const std::uint8_t*>(ir.get_data());
+        if (!base) return;
+
+        const int w = ir.get_width();
+        const int h = ir.get_height();
+        const int stride = ir.get_stride_in_bytes();
+        out.resize(static_cast<std::size_t>(w) * static_cast<std::size_t>(h));
+        for (int v = 0; v < h; ++v) {
+            const std::uint8_t* row = base + static_cast<std::size_t>(v) * static_cast<std::size_t>(stride);
+            std::memcpy(out.data() + static_cast<std::size_t>(v) * static_cast<std::size_t>(w), row, static_cast<std::size_t>(w));
+        }
+    }
+
+    void 读取双目红外(const rs2::frameset& frames, 结构体_原始场景帧& out) {
+        out.红外1.clear();
+        out.红外2.clear();
+
+        for (auto&& frame : frames) {
+            rs2::video_frame vf = frame.as<rs2::video_frame>();
+            if (!vf) continue;
+
+            rs2::stream_profile sp = vf.get_profile();
+            if (sp.stream_type() != RS2_STREAM_INFRARED) continue;
+
+            const int streamIndex = sp.stream_index();
+            if (streamIndex == 1) {
+                复制红外Y8(vf, out.红外1, out.宽度, out.高度);
+            }
+            else if (streamIndex == 2) {
+                复制红外Y8(vf, out.红外2, out.宽度, out.高度);
             }
         }
     }

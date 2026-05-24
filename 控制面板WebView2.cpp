@@ -1,14 +1,18 @@
 module;
 
 #include <atomic>
+#include <algorithm>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <future>
 #include <iomanip>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -27,6 +31,8 @@ import 日志模块;
 import 任务模块.管理界面线程;
 import 自我类;
 import 自我线程模块;
+import D455相机模块;
+import 基础数据类型模块;
 
 using Microsoft::WRL::ComPtr;
 
@@ -49,6 +55,34 @@ namespace {
     std::mutex 私有_窗口互斥{};
     std::atomic<HWND> 私有_窗口句柄{ nullptr };
     std::atomic<int> 私有_启动诊断码{ 0 };
+    std::mutex 私有_相机互斥{};
+    std::unique_ptr<D455_相机实现> 私有_相机{};
+    bool 私有_相机已打开 = false;
+    HMODULE 私有_RealSense运行时模块 = nullptr;
+
+    struct 结构_相机轮廓框 {
+        int x = 0;
+        int y = 0;
+        int w = 0;
+        int h = 0;
+    };
+
+    struct 结构_相机帧JSON {
+        bool 成功 = false;
+        bool 已停止 = false;
+        int 源宽 = 0;
+        int 源高 = 0;
+        int 宽 = 0;
+        int 高 = 0;
+        std::uint32_t 深度帧号 = 0;
+        std::uint32_t 彩色帧号 = 0;
+        std::uint64_t 设备时间_us = 0;
+        std::size_t 轮廓数 = 0;
+        std::string 彩色RGB_Base64{};
+        std::string 轮廓掩膜_Base64{};
+        std::vector<结构_相机轮廓框> 轮廓框{};
+        std::string 消息{};
+    };
 
     std::string 私有_HRESULT文本(HRESULT 值)
     {
@@ -260,6 +294,52 @@ namespace {
         return std::filesystem::path(缓冲区).parent_path();
     }
 
+    bool 私有_确保RealSense运行时(std::string& 错误消息) noexcept
+    {
+        if (私有_RealSense运行时模块) {
+            return true;
+        }
+
+        try {
+            const auto 模块目录 = 私有_模块目录();
+            const auto 主DLL = (模块目录 / L"realsense2.dll").lexically_normal();
+            const auto LZ4DLL = (模块目录 / L"lz4.dll").lexically_normal();
+
+            if (!std::filesystem::exists(主DLL)) {
+                错误消息 = "RealSense 运行时缺失: " + 私有_路径UTF8(主DLL);
+                return false;
+            }
+            if (!std::filesystem::exists(LZ4DLL)) {
+                错误消息 = "RealSense 依赖缺失: " + 私有_路径UTF8(LZ4DLL);
+                return false;
+            }
+
+            私有_RealSense运行时模块 = LoadLibraryExW(
+                主DLL.c_str(),
+                nullptr,
+                LOAD_WITH_ALTERED_SEARCH_PATH);
+            if (!私有_RealSense运行时模块) {
+                const DWORD 错误 = GetLastError();
+                std::ostringstream 输出;
+                输出 << "RealSense 运行时加载失败"
+                    << " | Win32=" << 错误
+                    << " | 路径=" << 私有_路径UTF8(主DLL);
+                错误消息 = 输出.str();
+                return false;
+            }
+
+            return true;
+        }
+        catch (const std::exception& e) {
+            错误消息 = std::string("RealSense 运行时检查异常: ") + e.what();
+            return false;
+        }
+        catch (...) {
+            错误消息 = "RealSense 运行时检查发生未知异常";
+            return false;
+        }
+    }
+
     std::vector<std::filesystem::path> 私有_加载器候选路径()
     {
         std::vector<std::filesystem::path> 路径集{};
@@ -338,6 +418,350 @@ namespace {
     结构_WebView2窗口上下文* 私有_取窗口上下文(HWND 窗口) noexcept
     {
         return reinterpret_cast<结构_WebView2窗口上下文*>(GetWindowLongPtrW(窗口, GWLP_USERDATA));
+    }
+
+    std::string 私有_Base64编码(const std::vector<std::uint8_t>& 数据)
+    {
+        static constexpr char 字典[] =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        std::string 输出;
+        输出.reserve(((数据.size() + 2) / 3) * 4);
+
+        std::uint32_t 缓冲 = 0;
+        int 位数 = -6;
+        for (const auto 字节 : 数据) {
+            缓冲 = (缓冲 << 8) | 字节;
+            位数 += 8;
+            while (位数 >= 0) {
+                输出.push_back(字典[(缓冲 >> 位数) & 0x3F]);
+                位数 -= 6;
+            }
+        }
+        if (位数 > -6) {
+            输出.push_back(字典[((缓冲 << 8) >> (位数 + 8)) & 0x3F]);
+        }
+        while (输出.size() % 4 != 0) {
+            输出.push_back('=');
+        }
+        return 输出;
+    }
+
+    void 私有_追加JSON字符串(std::ostringstream& 输出, std::string_view 文本)
+    {
+        输出 << '"';
+        for (const char 字符 : 文本) {
+            switch (字符) {
+            case '\\': 输出 << "\\\\"; break;
+            case '"': 输出 << "\\\""; break;
+            case '\n': 输出 << "\\n"; break;
+            case '\r': 输出 << "\\r"; break;
+            case '\t': 输出 << "\\t"; break;
+            default:
+                if (static_cast<unsigned char>(字符) < 0x20) {
+                    输出 << "\\u"
+                        << std::hex
+                        << std::setw(4)
+                        << std::setfill('0')
+                        << static_cast<int>(static_cast<unsigned char>(字符))
+                        << std::dec
+                        << std::setfill(' ');
+                }
+                else {
+                    输出 << 字符;
+                }
+                break;
+            }
+        }
+        输出 << '"';
+    }
+
+    void 私有_计算相机显示尺寸(int 源宽, int 源高, int& 宽, int& 高) noexcept
+    {
+        constexpr int 最大宽 = 640;
+        宽 = 0;
+        高 = 0;
+        if (源宽 <= 0 || 源高 <= 0) {
+            return;
+        }
+        if (源宽 <= 最大宽) {
+            宽 = 源宽;
+            高 = 源高;
+            return;
+        }
+        宽 = 最大宽;
+        高 = std::max(1, static_cast<int>(
+            (static_cast<long long>(源高) * 最大宽) / 源宽));
+    }
+
+    std::vector<std::uint8_t> 私有_构建相机RGB(
+        const 结构体_原始场景帧& 帧,
+        int 宽,
+        int 高)
+    {
+        std::vector<std::uint8_t> 输出(static_cast<std::size_t>(宽) * static_cast<std::size_t>(高) * 3, 0);
+        if (宽 <= 0 || 高 <= 0 || 帧.宽度 <= 0 || 帧.高度 <= 0) {
+            return 输出;
+        }
+
+        const bool 有颜色 = 帧.有效颜色();
+        for (int y = 0; y < 高; ++y) {
+            const int sy = std::min(帧.高度 - 1, static_cast<int>(
+                (static_cast<long long>(y) * 帧.高度) / 高));
+            for (int x = 0; x < 宽; ++x) {
+                const int sx = std::min(帧.宽度 - 1, static_cast<int>(
+                    (static_cast<long long>(x) * 帧.宽度) / 宽));
+                const auto 源索引 = static_cast<std::size_t>(sy) * static_cast<std::size_t>(帧.宽度)
+                    + static_cast<std::size_t>(sx);
+                const auto 目标索引 = (static_cast<std::size_t>(y) * static_cast<std::size_t>(宽)
+                    + static_cast<std::size_t>(x)) * 3;
+                const Color 颜色 = 有颜色 ? 帧.颜色[源索引] : Color{ 0, 0, 0 };
+                输出[目标索引] = 颜色.r;
+                输出[目标索引 + 1] = 颜色.g;
+                输出[目标索引 + 2] = 颜色.b;
+            }
+        }
+        return 输出;
+    }
+
+    std::vector<std::uint8_t> 私有_构建源轮廓掩膜(const 结构体_原始场景帧& 帧)
+    {
+        const auto 像素数 = static_cast<std::size_t>(帧.宽度) * static_cast<std::size_t>(帧.高度);
+        std::vector<std::uint8_t> 输出(像素数, 0);
+        if (像素数 == 0) {
+            return 输出;
+        }
+
+        if (帧.有效前景提示()) {
+            for (std::size_t i = 0; i < 像素数; ++i) {
+                输出[i] = 帧.前景提示[i] ? 128 : 0;
+            }
+        }
+
+        for (const auto& 轮廓 : 帧.轮廓观测列表) {
+            if (轮廓.w <= 0 || 轮廓.h <= 0) {
+                continue;
+            }
+            if (!轮廓.掩膜.empty()
+                && 轮廓.掩膜.size() == static_cast<std::size_t>(轮廓.w) * static_cast<std::size_t>(轮廓.h)) {
+                for (int rv = 0; rv < 轮廓.h; ++rv) {
+                    const int y = 轮廓.y + rv;
+                    if (y < 0 || y >= 帧.高度) {
+                        continue;
+                    }
+                    for (int ru = 0; ru < 轮廓.w; ++ru) {
+                        const int x = 轮廓.x + ru;
+                        if (x < 0 || x >= 帧.宽度) {
+                            continue;
+                        }
+                        const auto 掩膜索引 = static_cast<std::size_t>(rv) * static_cast<std::size_t>(轮廓.w)
+                            + static_cast<std::size_t>(ru);
+                        if (轮廓.掩膜[掩膜索引]) {
+                            输出[static_cast<std::size_t>(y) * static_cast<std::size_t>(帧.宽度)
+                                + static_cast<std::size_t>(x)] = 255;
+                        }
+                    }
+                }
+            }
+        }
+        return 输出;
+    }
+
+    std::vector<std::uint8_t> 私有_缩放掩膜(
+        const std::vector<std::uint8_t>& 源,
+        int 源宽,
+        int 源高,
+        int 宽,
+        int 高)
+    {
+        std::vector<std::uint8_t> 输出(static_cast<std::size_t>(宽) * static_cast<std::size_t>(高), 0);
+        if (源.empty() || 源宽 <= 0 || 源高 <= 0 || 宽 <= 0 || 高 <= 0) {
+            return 输出;
+        }
+        for (int y = 0; y < 高; ++y) {
+            const int sy = std::min(源高 - 1, static_cast<int>(
+                (static_cast<long long>(y) * 源高) / 高));
+            for (int x = 0; x < 宽; ++x) {
+                const int sx = std::min(源宽 - 1, static_cast<int>(
+                    (static_cast<long long>(x) * 源宽) / 宽));
+                输出[static_cast<std::size_t>(y) * static_cast<std::size_t>(宽) + static_cast<std::size_t>(x)] =
+                    源[static_cast<std::size_t>(sy) * static_cast<std::size_t>(源宽) + static_cast<std::size_t>(sx)];
+            }
+        }
+        return 输出;
+    }
+
+    结构_相机轮廓框 私有_缩放轮廓框(const 结构体_轮廓观测& 轮廓, int 源宽, int 源高, int 宽, int 高) noexcept
+    {
+        结构_相机轮廓框 输出{};
+        if (源宽 <= 0 || 源高 <= 0 || 宽 <= 0 || 高 <= 0) {
+            return 输出;
+        }
+        const int x0 = std::clamp(static_cast<int>((static_cast<long long>(轮廓.x) * 宽) / 源宽), 0, 宽 - 1);
+        const int y0 = std::clamp(static_cast<int>((static_cast<long long>(轮廓.y) * 高) / 源高), 0, 高 - 1);
+        const int x1 = std::clamp(static_cast<int>((static_cast<long long>(轮廓.x + 轮廓.w) * 宽) / 源宽), x0 + 1, 宽);
+        const int y1 = std::clamp(static_cast<int>((static_cast<long long>(轮廓.y + 轮廓.h) * 高) / 源高), y0 + 1, 高);
+        输出.x = x0;
+        输出.y = y0;
+        输出.w = x1 - x0;
+        输出.h = y1 - y0;
+        return 输出;
+    }
+
+    结构_相机帧JSON 私有_构建相机帧JSON数据(const 结构体_原始场景帧& 帧)
+    {
+        结构_相机帧JSON 输出{};
+        if (!帧.有效深度()) {
+            输出.消息 = "相机帧无有效深度数据";
+            return 输出;
+        }
+
+        输出.成功 = true;
+        输出.源宽 = 帧.宽度;
+        输出.源高 = 帧.高度;
+        输出.深度帧号 = 帧.时间戳.深度帧号;
+        输出.彩色帧号 = 帧.时间戳.彩色帧号;
+        输出.设备时间_us = 帧.时间戳.设备时间_us;
+        输出.轮廓数 = 帧.轮廓观测列表.size();
+        输出.消息 = "已更新";
+
+        私有_计算相机显示尺寸(输出.源宽, 输出.源高, 输出.宽, 输出.高);
+        const auto RGB = 私有_构建相机RGB(帧, 输出.宽, 输出.高);
+        const auto 源掩膜 = 私有_构建源轮廓掩膜(帧);
+        const auto 掩膜 = 私有_缩放掩膜(源掩膜, 输出.源宽, 输出.源高, 输出.宽, 输出.高);
+        输出.彩色RGB_Base64 = 私有_Base64编码(RGB);
+        输出.轮廓掩膜_Base64 = 私有_Base64编码(掩膜);
+
+        输出.轮廓框.reserve(帧.轮廓观测列表.size());
+        for (const auto& 轮廓 : 帧.轮廓观测列表) {
+            if (轮廓.w > 0 && 轮廓.h > 0) {
+                输出.轮廓框.push_back(私有_缩放轮廓框(轮廓, 输出.源宽, 输出.源高, 输出.宽, 输出.高));
+            }
+        }
+        return 输出;
+    }
+
+    结构_相机帧JSON 私有_读取相机帧()
+    {
+        std::lock_guard<std::mutex> 锁(私有_相机互斥);
+        try {
+            if (!私有_相机) {
+                std::string 运行时错误;
+                if (!私有_确保RealSense运行时(运行时错误)) {
+                    项目运行错误日志("控制面板相机画面/" + 运行时错误);
+                    结构_相机帧JSON 输出{};
+                    输出.消息 = 运行时错误;
+                    return 输出;
+                }
+
+                D455_相机实现::配置项 配置{};
+                配置.启用轮廓提取 = true;
+                配置.轮廓_输出原始掩膜 = true;
+                私有_相机 = std::make_unique<D455_相机实现>(配置);
+                私有_相机已打开 = false;
+            }
+
+            if (!私有_相机已打开) {
+                if (!私有_相机->打开()) {
+                    私有_相机.reset();
+                    私有_相机已打开 = false;
+                    项目运行错误日志("控制面板相机画面/D455打开失败");
+                    结构_相机帧JSON 输出{};
+                    输出.消息 = "D455 打开失败";
+                    return 输出;
+                }
+                私有_相机已打开 = true;
+            }
+
+            结构体_原始场景帧 帧{};
+            if (!私有_相机->采集一帧(帧)) {
+                项目运行错误日志("控制面板相机画面/D455采集一帧失败");
+                结构_相机帧JSON 输出{};
+                输出.消息 = "D455 采集一帧失败";
+                return 输出;
+            }
+            return 私有_构建相机帧JSON数据(帧);
+        }
+        catch (...) {
+            项目运行错误日志("控制面板相机画面/采集过程发生异常");
+            结构_相机帧JSON 输出{};
+            输出.消息 = "相机采集异常";
+            return 输出;
+        }
+    }
+
+    结构_相机帧JSON 私有_停止相机()
+    {
+        std::lock_guard<std::mutex> 锁(私有_相机互斥);
+        try {
+            if (私有_相机) {
+                私有_相机->关闭();
+            }
+        }
+        catch (...) {
+        }
+        私有_相机.reset();
+        私有_相机已打开 = false;
+
+        结构_相机帧JSON 输出{};
+        输出.已停止 = true;
+        输出.消息 = "已停止";
+        return 输出;
+    }
+
+    std::string 私有_相机帧JSON文本(const 结构_相机帧JSON& 帧)
+    {
+        std::ostringstream 输出;
+        输出 << "{";
+        输出 << "\"ok\":" << (帧.成功 ? "true" : "false") << ",";
+        输出 << "\"stopped\":" << (帧.已停止 ? "true" : "false") << ",";
+        输出 << "\"sourceWidth\":" << 帧.源宽 << ",";
+        输出 << "\"sourceHeight\":" << 帧.源高 << ",";
+        输出 << "\"width\":" << 帧.宽 << ",";
+        输出 << "\"height\":" << 帧.高 << ",";
+        输出 << "\"depthFrame\":" << 帧.深度帧号 << ",";
+        输出 << "\"colorFrame\":" << 帧.彩色帧号 << ",";
+        输出 << "\"deviceTimeUs\":" << 帧.设备时间_us << ",";
+        输出 << "\"contourCount\":" << 帧.轮廓数 << ",";
+        输出 << "\"message\":";
+        私有_追加JSON字符串(输出, 帧.消息);
+        输出 << ",";
+        输出 << "\"error\":";
+        私有_追加JSON字符串(输出, 帧.成功 || 帧.已停止 ? std::string_view{} : std::string_view(帧.消息));
+        输出 << ",";
+        输出 << "\"colorRGB\":";
+        私有_追加JSON字符串(输出, 帧.彩色RGB_Base64);
+        输出 << ",";
+        输出 << "\"contourMask\":";
+        私有_追加JSON字符串(输出, 帧.轮廓掩膜_Base64);
+        输出 << ",\"boxes\":[";
+        for (std::size_t i = 0; i < 帧.轮廓框.size(); ++i) {
+            if (i > 0) {
+                输出 << ",";
+            }
+            const auto& 框 = 帧.轮廓框[i];
+            输出 << "{\"x\":" << 框.x
+                << ",\"y\":" << 框.y
+                << ",\"w\":" << 框.w
+                << ",\"h\":" << 框.h
+                << "}";
+        }
+        输出 << "]}";
+        return 输出.str();
+    }
+
+    void 私有_发送相机帧到页面(HWND 窗口, const 结构_相机帧JSON& 帧) noexcept
+    {
+        auto* 上下文 = 私有_取窗口上下文(窗口);
+        if (!上下文 || !上下文->WebView) {
+            return;
+        }
+        const auto JSON = 私有_相机帧JSON文本(帧);
+        const auto 宽JSON = 私有_UTF8转宽字串(JSON);
+        if (宽JSON.empty()) {
+            return;
+        }
+        const std::wstring 脚本 = L"window.__panelApplyCameraFrame(" + 宽JSON + L");";
+        (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
     }
 
     void 私有_调整WebView尺寸(HWND 窗口) noexcept
@@ -457,6 +881,14 @@ namespace {
                                                 PostMessageW(窗口, 私有_WM_刷新控制面板窗口, 0, 0);
                                                 return S_OK;
                                             }
+                                            if (消息 == L"camera:start" || 消息 == L"camera:capture") {
+                                                私有_发送相机帧到页面(窗口, 私有_读取相机帧());
+                                                return S_OK;
+                                            }
+                                            if (消息 == L"camera:stop") {
+                                                私有_发送相机帧到页面(窗口, 私有_停止相机());
+                                                return S_OK;
+                                            }
 
                                             std::uint64_t worker数量 = 0;
                                             if (私有_解析线程池大小设置消息(消息, &worker数量)) {
@@ -572,6 +1004,7 @@ namespace {
             DestroyWindow(窗口);
             return 0;
         case WM_DESTROY: {
+            (void)私有_停止相机();
             auto* 上下文 = 私有_取窗口上下文(窗口);
             if (上下文) {
                 上下文->WebView.Reset();

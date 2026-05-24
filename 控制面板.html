@@ -288,6 +288,118 @@
       word-break:break-word;
     }
     .settings-hidden-tree[hidden]{display:none}
+
+    .camera-control{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+    .camera-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .camera-btn{
+      min-height:44px;
+      padding:0 16px;
+      border:none;
+      border-radius:8px;
+      background:var(--accent);
+      color:#fff;
+      cursor:pointer;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .camera-btn.secondary{
+      background:#eef3f7;
+      border:1px solid rgba(15,118,110,.18);
+      color:var(--ink);
+    }
+    .camera-btn.danger{
+      background:var(--danger);
+    }
+    .camera-status{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+      word-break:break-word;
+    }
+    .camera-status.ok{color:var(--accent);font-weight:700}
+    .camera-status.error{color:var(--danger);font-weight:700}
+    .camera-layout{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      align-items:start;
+    }
+    .camera-viewer{min-width:0}
+    .camera-viewer-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .camera-viewer-title{
+      margin-top:4px;
+      font-size:20px;
+      font-weight:800;
+      line-height:1.3;
+    }
+    .camera-viewer-meta{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+      text-align:right;
+      white-space:nowrap;
+    }
+    .camera-canvas-shell{
+      margin-top:14px;
+      aspect-ratio:4/3;
+      min-height:280px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.12);
+      background:#0b1116;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .camera-canvas{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:contain;
+      background:#0b1116;
+    }
+    .camera-stat-grid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+    .camera-stat{
+      min-width:0;
+      padding:12px 14px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+    }
+    .camera-stat-label{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .camera-stat-value{
+      margin-top:6px;
+      font-size:15px;
+      font-weight:800;
+      line-height:1.4;
+      word-break:break-word;
+    }
+
     .workspace{
       display:grid;
       grid-template-columns:minmax(0,1.2fr) minmax(320px,420px);
@@ -618,6 +730,7 @@
     @media (max-width:1350px){
       .overview{grid-template-columns:repeat(2,minmax(0,1fr))}
       .workspace{grid-template-columns:1fr}
+      .camera-layout{grid-template-columns:1fr}
       .settings-layout{grid-template-columns:1fr}
       .detail-panel{position:static}
       .tree-shell{max-height:none}
@@ -637,6 +750,10 @@
       .settings-row{grid-template-columns:1fr}
       .settings-editor{grid-template-columns:minmax(0,1fr) auto}
       .settings-result-grid{grid-template-columns:1fr}
+      .camera-control{align-items:flex-start}
+      .camera-actions{width:100%}
+      .camera-btn{flex:1 1 140px}
+      .camera-stat-grid{grid-template-columns:1fr}
     }
   </style>
 </head><body>
@@ -648,11 +765,12 @@
         <p>需求、任务、方法和线程运行总览。</p>
         <nav class="nav" aria-label="控制面板菜单">
           <button class="menu-item active" type="button" data-page="thread-status"><span>线程状态</span><span class="menu-badge">5</span></button>
-          <button class="menu-item" type="button" data-page="world-tree"><span>世界树</span><span class="menu-badge">1950</span></button>
-          <button class="menu-item" type="button" data-page="need-tree"><span>需求树</span><span class="menu-badge">4</span></button>
-          <button class="menu-item" type="button" data-page="need-list"><span>需求列表</span><span class="menu-badge">4</span></button>
+          <button class="menu-item" type="button" data-page="world-tree"><span>世界树</span><span class="menu-badge">2034</span></button>
+          <button class="menu-item" type="button" data-page="need-tree"><span>需求树</span><span class="menu-badge">13</span></button>
+          <button class="menu-item" type="button" data-page="need-list"><span>需求列表</span><span class="menu-badge">13</span></button>
           <button class="menu-item" type="button" data-page="task-tree"><span>任务树</span><span class="menu-badge">0</span></button>
-          <button class="menu-item" type="button" data-page="method-tree"><span>方法树</span><span class="menu-badge">36</span></button>
+          <button class="menu-item" type="button" data-page="method-tree"><span>方法树</span><span class="menu-badge">29</span></button>
+          <button class="menu-item" type="button" data-page="camera-view"><span>相机画面</span><span class="menu-badge">D455</span></button>
           <button class="menu-item" type="button" data-page="settings"><span>参数设定</span><span class="menu-badge">20</span></button>
         </nav>
       </aside>
@@ -673,7 +791,7 @@
           <div class="status-card">
             <div class="status-head"><span>自我</span><span class="status-dot ok"></span></div>
             <div class="status-value">已建立</div>
-            <div class="status-meta">安全=2305843009213693951 | 服务=4611686018427387903 | 风险安全=9223372036854775807 | 待处理方法=0 | 可用方法=12</div>
+            <div class="status-meta">安全=2305843009213693951 | 服务=4611686018427387903 | 风险安全=9223372036854775807 | 待处理方法=0 | 可用方法=9</div>
           </div>
           <div class="status-card">
             <div class="status-head"><span>自我线程</span><span class="status-dot ok"></span></div>
@@ -710,7 +828,7 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>世界树</h3>
-              <div class="summary">节点仓库=基础信息类 | 基础节点=1950 | 场景=32 | 存在=40 | 状态=23 | 动态=3 | 因果模板=6</div>
+              <div class="summary">节点仓库=基础信息类 | 基础节点=2034 | 场景=26 | 存在=38 | 状态=42 | 动态=13 | 因果模板=0</div>
               <div class="tree-toolbar"><div class="tree-hint">结构节点与字段摘要</div></div>
               <div class="tree-shell"><div id="tree-world-tree"></div></div>
             </section>
@@ -723,7 +841,7 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>需求树</h3>
-              <div class="summary">需求数=4 | 已满足=0 | 状态已达未截止=0 | 未满足=4 | 管理=2 | 执行=2 | 活动阻塞=4</div>
+              <div class="summary">需求数=13 | 已满足=0 | 状态已达未截止=0 | 未满足=13 | 管理=2 | 执行=11 | 活动阻塞=13</div>
               <div class="tree-toolbar"><div class="tree-hint">结构节点与字段摘要</div></div>
               <div class="tree-shell"><div id="tree-need-tree"></div></div>
             </section>
@@ -736,7 +854,7 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>需求列表</h3>
-              <div class="summary">需求数=4 | 列表窗口=100</div>
+              <div class="summary">需求数=13 | 列表窗口=100</div>
               <div class="tree-toolbar"><div class="tree-hint">结构节点与字段摘要</div></div>
               <div class="tree-shell"><div id="tree-need-list"></div></div>
             </section>
@@ -762,11 +880,70 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>方法树</h3>
-              <div class="summary">方法数=36 | 首节点=12 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0 | 缺口承接=已接管</div>
+              <div class="summary">方法数=29 | 首节点=11 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0 | 缺口承接=已接管</div>
               <div class="tree-toolbar"><div class="tree-hint">结构节点与字段摘要</div></div>
               <div class="tree-shell"><div id="tree-method-tree"></div></div>
             </section>
             <aside class="panel detail-panel"><div id="detail-method-tree" class="detail-host"></div></aside>
+          </div>
+        </section>
+
+        <section class="page" data-page="camera-view" data-title="相机画面" data-subtitle="D455 彩色帧和轮廓帧实时画面。">
+          <section class="panel camera-control">
+            <div>
+              <div class="panel-topline">D455</div>
+              <h3>相机画面</h3>
+              <div id="camera-status" class="camera-status" role="status">未连接</div>
+            </div>
+            <div class="camera-actions">
+              <button id="camera-start" class="camera-btn" type="button">启动</button>
+              <button id="camera-capture" class="camera-btn secondary" type="button">刷新一帧</button>
+              <button id="camera-stop" class="camera-btn danger" type="button">停止</button>
+            </div>
+          </section>
+          <div class="camera-layout">
+            <section class="panel camera-viewer">
+              <div class="camera-viewer-head">
+                <div>
+                  <div class="panel-topline">RGB</div>
+                  <div class="camera-viewer-title">相机画面</div>
+                </div>
+                <div id="camera-rgb-meta" class="camera-viewer-meta">--</div>
+              </div>
+              <div class="camera-canvas-shell">
+                <canvas id="camera-rgb-canvas" class="camera-canvas" width="640" height="480"></canvas>
+              </div>
+            </section>
+            <section class="panel camera-viewer">
+              <div class="camera-viewer-head">
+                <div>
+                  <div class="panel-topline">Contour</div>
+                  <div class="camera-viewer-title">轮廓图画面</div>
+                </div>
+                <div id="camera-contour-meta" class="camera-viewer-meta">--</div>
+              </div>
+              <div class="camera-canvas-shell">
+                <canvas id="camera-contour-canvas" class="camera-canvas" width="640" height="480"></canvas>
+              </div>
+            </section>
+          </div>
+          <div class="camera-stat-grid" aria-label="相机帧状态">
+            <div class="camera-stat">
+              <div class="camera-stat-label">帧尺寸</div>
+              <div id="camera-size-stat" class="camera-stat-value">--</div>
+            </div>
+            <div class="camera-stat">
+              <div class="camera-stat-label">源尺寸</div>
+              <div id="camera-source-stat" class="camera-stat-value">--</div>
+            </div>
+            <div class="camera-stat">
+              <div class="camera-stat-label">帧号</div>
+              <div id="camera-frame-stat" class="camera-stat-value">--</div>
+            </div>
+            <div class="camera-stat">
+              <div class="camera-stat-label">轮廓数</div>
+              <div id="camera-contour-stat" class="camera-stat-value">--</div>
+            </div>
           </div>
         </section>
 
@@ -909,11 +1086,11 @@
 
     const 页面树数据 = {
       "thread-status": {"ptr":0,"arg":0,"text":"线程状态 | 系统线程=5 | 自我线程=未定义","open":true,"lazy":false,"expandType":"","children":[{"ptr":1,"arg":0,"text":"自我线程 | 生命周期=未启动 | 阶段=未定义 | Tick=0","open":false,"lazy":false,"expandType":"thread-self","children":[]},{"ptr":5,"arg":0,"text":"任务管理界面线程 | 启动=否 | 处理=否 | 请求=0 | 巡检=0/0 | 等待工作项=0 | 上行=0","open":false,"lazy":false,"expandType":"thread-task-interface","children":[]},{"ptr":2,"arg":0,"text":"任务管理工作线程 | 启动=否 | 执行=否 | 排队=0 | 推进=0","open":false,"lazy":false,"expandType":"thread-worker","children":[]},{"ptr":4,"arg":0,"text":"控制面板摘要线程 | 生命周期=启动中 | 健康=是 | 快照=1","open":false,"lazy":false,"expandType":"thread-summary","children":[]},{"ptr":3,"arg":0,"text":"系统线程摘要 | 当前进程线程数=5","open":false,"lazy":false,"expandType":"thread-system","children":[]}]},
-      "world-tree": {"ptr":0,"arg":0,"text":"世界树 | 节点仓库=基础信息类 | 基础节点=1950 | 场景=32 | 存在=40","open":true,"lazy":false,"expandType":"","children":[{"ptr":2437166314816,"arg":0,"text":"基础信息仓库根 | 主信息=空","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2437166503728,"arg":0,"text":"主信息=场景 | 现实世界 | 子=1 | 主键=2 | 子主信息=场景1","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2437195897216,"arg":0,"text":"主信息=场景 | 自我初始场景 | 子=21 | 主键=61 | 子主信息=二次特征7/因果6/状态4/动态2/其余2 | 当前现实场景","open":true,"lazy":true,"expandType":"base-node","children":[]}]}]}]},
-      "need-tree": {"ptr":0,"arg":0,"text":"需求树 | 需求数=4 | 已满足=0 | 状态已达未截止=0 | 未满足=4","open":true,"lazy":false,"expandType":"","children":[{"ptr":2437196144976,"arg":0,"text":"需求树根 | 空 | 子=2 | 主键=4","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2437197628624,"arg":0,"text":"根需求 | 安全根需求 | 子=1 | 主键=1","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2437197630096,"arg":0,"text":"子需求 | 安全值 | 子=0 | 主键=3","open":false,"lazy":true,"expandType":"need-node","children":[]}]},{"ptr":2437197633776,"arg":0,"text":"根需求 | 服务根需求 | 子=1 | 主键=2","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2437197630832,"arg":0,"text":"子需求 | 服务值 | 子=0 | 主键=4","open":false,"lazy":true,"expandType":"need-node","children":[]}]}]}]},
-      "need-list": {"ptr":0,"arg":0,"text":"需求列表 | 需求数=4","open":true,"lazy":false,"expandType":"","children":[{"ptr":2437197628624,"arg":0,"text":"需求列表项 | 地址=0x237744C84D0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2437197630096,"arg":0,"text":"需求列表项 | 地址=0x237744C8A90 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2437197633776,"arg":0,"text":"需求列表项 | 地址=0x237744C98F0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2437197630832,"arg":0,"text":"需求列表项 | 地址=0x237744C8D70 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]}]},
-      "task-tree": {"ptr":0,"arg":0,"text":"任务树 | 任务节点=0 | 头=0 | 步骤=0 | 状态={暂无任务状态}","open":true,"lazy":false,"expandType":"","children":[{"ptr":2437196145712,"arg":0,"text":"任务根节点 |  | 子=0 | 主键=","open":true,"lazy":true,"expandType":"task-node","children":[]}]},
-      "method-tree": {"ptr":0,"arg":0,"text":"方法树 | 方法数=36 | 首节点=12 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0","open":true,"lazy":false,"expandType":"","children":[{"ptr":2437196146160,"arg":0,"text":"未定义 | a | 来源=未定义 | 子=12 | 主键=a | 子种类=方法首节点12","open":true,"lazy":true,"expandType":"method-node","children":[{"ptr":2437196267152,"arg":0,"text":"方法首节点 | 练习 | 来源=本能 | 子=1 | 主键=1 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437196268592,"arg":0,"text":"方法条件节点 | 2 | 来源=未定义 | 子=1 | 主键=2 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437198056704,"arg":0,"text":"方法首节点 | 提交方法状态变化 | 来源=本能 | 子=1 | 主键=Y | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437198052336,"arg":0,"text":"方法条件节点 | Z | 来源=未定义 | 子=1 | 主键=Z | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437198048592,"arg":0,"text":"方法首节点 | 建立条件结果对 | 来源=本能 | 子=1 | 主键=V | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437198056080,"arg":0,"text":"方法条件节点 | W | 来源=未定义 | 子=1 | 主键=W | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437198054208,"arg":0,"text":"方法首节点 | 提交方法可执行入口 | 来源=本能 | 子=1 | 主键=S | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437198047344,"arg":0,"text":"方法条件节点 | T | 来源=未定义 | 子=1 | 主键=T | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437198054832,"arg":0,"text":"方法首节点 | 结算叶子任务价值 | 来源=本能 | 子=1 | 主键=P | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437198047968,"arg":0,"text":"方法条件节点 | Q | 来源=未定义 | 子=1 | 主键=Q | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437196449136,"arg":0,"text":"方法首节点 | 回写需求满足 | 来源=本能 | 子=1 | 主键=M | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437198044224,"arg":0,"text":"方法条件节点 | N | 来源=未定义 | 子=1 | 主键=N | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437196454128,"arg":0,"text":"方法首节点 | 提交任务状态变化 | 来源=本能 | 子=1 | 主键=J | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437196459744,"arg":0,"text":"方法条件节点 | K | 来源=未定义 | 子=1 | 主键=K | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437196457872,"arg":0,"text":"方法首节点 | 同步执行回执到任务 | 来源=本能 | 子=1 | 主键=G | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437196451632,"arg":0,"text":"方法条件节点 | H | 来源=未定义 | 子=1 | 主键=H | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437196452256,"arg":0,"text":"方法首节点 | 同步筹办回执到任务 | 来源=本能 | 子=1 | 主键=D | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437196460992,"arg":0,"text":"方法条件节点 | E | 来源=未定义 | 子=1 | 主键=E | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437196451008,"arg":0,"text":"方法首节点 | 增加可用方法数量 | 来源=本能 | 子=1 | 主键=A | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437196450384,"arg":0,"text":"方法条件节点 | B | 来源=未定义 | 子=1 | 主键=B | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437196274208,"arg":0,"text":"方法首节点 | 定向学习 | 来源=本能 | 子=1 | 主键=7 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437196457248,"arg":0,"text":"方法条件节点 | 8 | 来源=未定义 | 子=1 | 主键=8 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2437196269840,"arg":0,"text":"方法首节点 | 尝试学习 | 来源=本能 | 子=1 | 主键=4 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2437196272336,"arg":0,"text":"方法条件节点 | 5 | 来源=未定义 | 子=1 | 主键=5 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]}]}]},
+      "world-tree": {"ptr":0,"arg":0,"text":"世界树 | 节点仓库=基础信息类 | 基础节点=2034 | 场景=26 | 存在=38","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443405089728,"arg":0,"text":"基础信息仓库根 | 主信息=空","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2443405254336,"arg":0,"text":"主信息=场景 | 现实世界 | 子=1 | 主键=2 | 子主信息=场景1","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2443435228768,"arg":0,"text":"主信息=场景 | 自我初始场景 | 子=15 | 主键=7m | 子主信息=二次特征7/状态4/动态2/存在1/其余1 | 当前现实场景","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2443435217680,"arg":0,"text":"主信息=存在 | 自我 | 子=23 | 主键=7o | 类型=自我类型 | 子主信息=特征22/场景1 | 当前自我存在","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2443435218912,"arg":0,"text":"主信息=场景 | 自我内部世界 | 子=78 | 主键=7p | 子主信息=二次特征30/状态24/存在13/动态11 | 当前内部世界","open":true,"lazy":true,"expandType":"base-node","children":[]}]}]}]}]}]},
+      "need-tree": {"ptr":0,"arg":0,"text":"需求树 | 需求数=13 | 已满足=0 | 状态已达未截止=0 | 未满足=13","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443435249312,"arg":0,"text":"需求树根 | 空 | 子=2 | 主键=D","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2443436737632,"arg":0,"text":"根需求 | 安全根需求 | 子=7 | 主键=1","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2443436734688,"arg":0,"text":"子需求 | 自我运行状态明确状态 | 子=0 | 主键=3","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436735424,"arg":0,"text":"子需求 | 自我运行状态正常状态 | 子=0 | 主键=9","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436733216,"arg":0,"text":"子需求 | 资源状态明确状态 | 子=0 | 主键=8","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436729536,"arg":0,"text":"子需求 | 资源状态足够状态 | 子=0 | 主键=7","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436743520,"arg":0,"text":"子需求 | 权限边界明确状态 | 子=0 | 主键=6","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436731744,"arg":0,"text":"子需求 | 风险状态明确状态 | 子=0 | 主键=5","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436733952,"arg":0,"text":"子需求 | 风险状态可控状态 | 子=0 | 主键=4","open":false,"lazy":true,"expandType":"need-node","children":[]}]},{"ptr":2443436731008,"arg":0,"text":"根需求 | 服务根需求 | 子=4 | 主键=2","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2443436742048,"arg":0,"text":"子需求 | 当前人类服务对象明确状态 | 子=0 | 主键=A","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439301808,"arg":0,"text":"子需求 | 当前交互者明确状态 | 子=0 | 主键=D","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439295184,"arg":0,"text":"子需求 | 当前权限者明确状态 | 子=0 | 主键=C","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439298128,"arg":0,"text":"子需求 | 当前服务目标明确状态 | 子=0 | 主键=B","open":false,"lazy":true,"expandType":"need-node","children":[]}]}]}]},
+      "need-list": {"ptr":0,"arg":0,"text":"需求列表 | 需求数=13","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443436737632,"arg":0,"text":"需求列表项 | 地址=0x238E82DC460 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436734688,"arg":0,"text":"需求列表项 | 地址=0x238E82DB8E0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436735424,"arg":0,"text":"需求列表项 | 地址=0x238E82DBBC0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436733216,"arg":0,"text":"需求列表项 | 地址=0x238E82DB320 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436729536,"arg":0,"text":"需求列表项 | 地址=0x238E82DA4C0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436743520,"arg":0,"text":"需求列表项 | 地址=0x238E82DDB60 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436731744,"arg":0,"text":"需求列表项 | 地址=0x238E82DAD60 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436733952,"arg":0,"text":"需求列表项 | 地址=0x238E82DB600 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436731008,"arg":0,"text":"需求列表项 | 地址=0x238E82DAA80 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436742048,"arg":0,"text":"需求列表项 | 地址=0x238E82DD5A0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439301808,"arg":0,"text":"需求列表项 | 地址=0x238E854E4B0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439295184,"arg":0,"text":"需求列表项 | 地址=0x238E854CAD0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439298128,"arg":0,"text":"需求列表项 | 地址=0x238E854D650 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]}]},
+      "task-tree": {"ptr":0,"arg":0,"text":"任务树 | 任务节点=0 | 头=0 | 步骤=0 | 状态={暂无任务状态}","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443435250048,"arg":0,"text":"任务根节点 |  | 子=0 | 主键=","open":true,"lazy":true,"expandType":"task-node","children":[]}]},
+      "method-tree": {"ptr":0,"arg":0,"text":"方法树 | 方法数=29 | 首节点=11 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443435250496,"arg":0,"text":"未定义 | T | 来源=未定义 | 子=11 | 主键=T | 子种类=方法首节点11","open":true,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435345088,"arg":0,"text":"方法首节点 | 练习 | 来源=本能 | 子=1 | 主键=1 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435275120,"arg":0,"text":"方法条件节点 | 2 | 来源=未定义 | 子=1 | 主键=2 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443437018384,"arg":0,"text":"方法首节点 | 服务值 | 来源=运行时方法沉淀 | 子=0 | 主键=T","open":false,"lazy":true,"expandType":"method-node","children":[]},{"ptr":2443437024000,"arg":0,"text":"方法首节点 | 安全值 | 来源=运行时方法沉淀 | 子=0 | 主键=S","open":false,"lazy":true,"expandType":"method-node","children":[]},{"ptr":2443437016512,"arg":0,"text":"方法首节点 | 提交方法状态变化 | 来源=本能 | 子=1 | 主键=P | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443437024624,"arg":0,"text":"方法条件节点 | Q | 来源=未定义 | 子=1 | 主键=Q | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435843520,"arg":0,"text":"方法首节点 | 建立条件结果对 | 来源=本能 | 子=1 | 主键=M | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443437022752,"arg":0,"text":"方法条件节点 | N | 来源=未定义 | 子=1 | 主键=N | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435842896,"arg":0,"text":"方法首节点 | 提交方法可执行入口 | 来源=本能 | 子=1 | 主键=J | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435831664,"arg":0,"text":"方法条件节点 | K | 来源=未定义 | 子=1 | 主键=K | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435844144,"arg":0,"text":"方法首节点 | 结算叶子任务价值 | 来源=本能 | 子=1 | 主键=G | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435836656,"arg":0,"text":"方法条件节点 | H | 来源=未定义 | 子=1 | 主键=H | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435834160,"arg":0,"text":"方法首节点 | 回写需求满足 | 来源=本能 | 子=1 | 主键=D | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435835408,"arg":0,"text":"方法条件节点 | E | 来源=未定义 | 子=1 | 主键=E | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435846640,"arg":0,"text":"方法首节点 | 提交任务状态变化 | 来源=本能 | 子=1 | 主键=A | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435831040,"arg":0,"text":"方法条件节点 | B | 来源=未定义 | 子=1 | 主键=B | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435276992,"arg":0,"text":"方法首节点 | 定向学习 | 来源=本能 | 子=1 | 主键=7 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435841648,"arg":0,"text":"方法条件节点 | 8 | 来源=未定义 | 子=1 | 主键=8 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435272624,"arg":0,"text":"方法首节点 | 尝试学习 | 来源=本能 | 子=1 | 主键=4 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435278864,"arg":0,"text":"方法条件节点 | 5 | 来源=未定义 | 子=1 | 主键=5 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]}]}]},
       "settings": {"ptr":0,"arg":0,"text":"参数设定 | 任务管理工作线程池大小=20 | 默认=20","open":true,"lazy":false,"expandType":"","children":[{"ptr":0,"arg":0,"text":"任务管理工作线程池大小 | 当前有效=20 | 待保存=20 | 范围=1-128","open":false,"lazy":false,"expandType":"","children":[]},{"ptr":0,"arg":0,"text":"参数保存 | 最近保存=尚未保存 | 最近错误=暂无数据","open":false,"lazy":false,"expandType":"","children":[]},{"ptr":0,"arg":0,"text":"参数应用 | 最近应用=尚未应用 | 参数版本=1","open":false,"lazy":false,"expandType":"","children":[]}]}
     };
 
@@ -1658,6 +1835,167 @@
       }
     }
 
+
+    let 相机自动采集句柄 = 0;
+    let 相机请求中 = false;
+
+    function 设置相机状态(text, kind = '') {
+      const status = document.getElementById('camera-status');
+      if (!status) return;
+      status.textContent = text || '';
+      status.classList.toggle('ok', kind === 'ok');
+      status.classList.toggle('error', kind === 'error');
+    }
+
+    function 解码Base64字节(text) {
+      const bin = atob(text || '');
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; ++i) {
+        bytes[i] = bin.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    function 清空相机画布(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#0b1116';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function 绘制RGB画面(data) {
+      const canvas = document.getElementById('camera-rgb-canvas');
+      if (!canvas || !data || !data.colorRGB) return;
+      const w = Number(data.width || 0);
+      const h = Number(data.height || 0);
+      if (w <= 0 || h <= 0) return;
+      canvas.width = w;
+      canvas.height = h;
+      const bytes = 解码Base64字节(data.colorRGB);
+      const ctx = canvas.getContext('2d');
+      const image = ctx.createImageData(w, h);
+      for (let i = 0, j = 0; i < bytes.length && j < image.data.length; i += 3, j += 4) {
+        image.data[j] = bytes[i] || 0;
+        image.data[j + 1] = bytes[i + 1] || 0;
+        image.data[j + 2] = bytes[i + 2] || 0;
+        image.data[j + 3] = 255;
+      }
+      ctx.putImageData(image, 0, 0);
+    }
+
+    function 绘制轮廓画面(data) {
+      const canvas = document.getElementById('camera-contour-canvas');
+      if (!canvas || !data || !data.contourMask) return;
+      const w = Number(data.width || 0);
+      const h = Number(data.height || 0);
+      if (w <= 0 || h <= 0) return;
+      canvas.width = w;
+      canvas.height = h;
+      const mask = 解码Base64字节(data.contourMask);
+      const ctx = canvas.getContext('2d');
+      const image = ctx.createImageData(w, h);
+      for (let i = 0, j = 0; i < mask.length && j < image.data.length; ++i, j += 4) {
+        const v = mask[i] || 0;
+        if (v >= 220) {
+          image.data[j] = 22;
+          image.data[j + 1] = 214;
+          image.data[j + 2] = 143;
+          image.data[j + 3] = 255;
+        } else if (v > 0) {
+          image.data[j] = 54;
+          image.data[j + 1] = 93;
+          image.data[j + 2] = 105;
+          image.data[j + 3] = 255;
+        } else {
+          image.data[j] = 8;
+          image.data[j + 1] = 13;
+          image.data[j + 2] = 18;
+          image.data[j + 3] = 255;
+        }
+      }
+      ctx.putImageData(image, 0, 0);
+      ctx.lineWidth = Math.max(1, Math.round(Math.min(w, h) / 240));
+      ctx.strokeStyle = '#f43f5e';
+      (Array.isArray(data.boxes) ? data.boxes : []).forEach((box) => {
+        const x = Number(box.x || 0);
+        const y = Number(box.y || 0);
+        const bw = Number(box.w || 0);
+        const bh = Number(box.h || 0);
+        if (bw > 0 && bh > 0) {
+          ctx.strokeRect(x + 0.5, y + 0.5, Math.max(1, bw - 1), Math.max(1, bh - 1));
+        }
+      });
+    }
+
+    function 更新相机统计(data) {
+      const setText = (id, text) => {
+        const node = document.getElementById(id);
+        if (node) node.textContent = text;
+      };
+      setText('camera-size-stat', `${data.width || 0} x ${data.height || 0}`);
+      setText('camera-source-stat', `${data.sourceWidth || 0} x ${data.sourceHeight || 0}`);
+      setText('camera-frame-stat', `D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
+      setText('camera-contour-stat', String(data.contourCount || 0));
+      setText('camera-rgb-meta', `${data.width || 0} x ${data.height || 0}`);
+      setText('camera-contour-meta', `${data.contourCount || 0} 个轮廓`);
+    }
+
+    function 请求相机帧(message = 'camera:capture') {
+      if (相机请求中) return;
+      if (!(window.chrome && window.chrome.webview)) {
+        设置相机状态('静态 HTML 预览未连接相机接口。', 'error');
+        return;
+      }
+      相机请求中 = true;
+      设置相机状态('正在读取相机帧...');
+      window.chrome.webview.postMessage(message);
+    }
+
+    function 启动相机采集() {
+      if (相机自动采集句柄) {
+        clearInterval(相机自动采集句柄);
+      }
+      请求相机帧('camera:start');
+      相机自动采集句柄 = window.setInterval(() => 请求相机帧('camera:capture'), 1000);
+    }
+
+    function 停止相机采集() {
+      if (相机自动采集句柄) {
+        clearInterval(相机自动采集句柄);
+        相机自动采集句柄 = 0;
+      }
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage('camera:stop');
+      } else {
+        设置相机状态('静态 HTML 预览未连接相机接口。', 'error');
+      }
+    }
+
+    window.__panelApplyCameraFrame = function(data) {
+      相机请求中 = false;
+      if (!data || typeof data !== 'object') {
+        设置相机状态('相机返回数据无效。', 'error');
+        return;
+      }
+      if (data.stopped) {
+        设置相机状态(data.message || '已停止。');
+        return;
+      }
+      if (!data.ok) {
+        设置相机状态(data.error || '相机采集失败。', 'error');
+        return;
+      }
+      绘制RGB画面(data);
+      绘制轮廓画面(data);
+      更新相机统计(data);
+      设置相机状态(data.message || '已更新。', 'ok');
+    };
+
+    清空相机画布('camera-rgb-canvas');
+    清空相机画布('camera-contour-canvas');
+
+
     菜单项列表.forEach((item) => {
       item.addEventListener('click', () => 切换页面(item.dataset.page));
     });
@@ -1716,6 +2054,19 @@
           提交线程池大小设置();
         }
       });
+    }
+
+    const 相机启动按钮 = document.getElementById('camera-start');
+    const 相机刷新按钮 = document.getElementById('camera-capture');
+    const 相机停止按钮 = document.getElementById('camera-stop');
+    if (相机启动按钮) {
+      相机启动按钮.addEventListener('click', 启动相机采集);
+    }
+    if (相机刷新按钮) {
+      相机刷新按钮.addEventListener('click', () => 请求相机帧('camera:capture'));
+    }
+    if (相机停止按钮) {
+      相机停止按钮.addEventListener('click', 停止相机采集);
     }
 
     document.getElementById('refresh-page').addEventListener('click', () => {
