@@ -1329,6 +1329,363 @@ namespace {
         return 私有_基础信息标题(节点, 空上下文);
     }
 
+    const 语素入口节点类* 私有_场景复现特征词(const char* 名称) noexcept
+    {
+        try {
+            if (!名称 || !*名称) {
+                return nullptr;
+            }
+            const auto* 词节点 = 语素集.查找词节点(名称);
+            return 词节点
+                ? 语素集.查找信息入口节点(词节点, 枚举_信息入口类型::特征模板入口)
+                : nullptr;
+        }
+        catch (...) {
+            return nullptr;
+        }
+    }
+
+    const 语素入口节点类* 私有_场景复现存在概念词(const char* 名称) noexcept
+    {
+        try {
+            if (!名称 || !*名称) {
+                return nullptr;
+            }
+            const auto* 词节点 = 语素集.查找词节点(名称);
+            return 词节点
+                ? 语素集.查找信息入口节点(词节点, 枚举_信息入口类型::存在概念入口)
+                : nullptr;
+        }
+        catch (...) {
+            return nullptr;
+        }
+    }
+
+    bool 私有_读取场景复现I64(
+        const 基础信息节点类* 宿主,
+        const char* 特征名,
+        I64& 输出值) noexcept
+    {
+        输出值 = 0;
+        const auto* 特征类型 = 私有_场景复现特征词(特征名);
+        return 宿主
+            && 特征类型
+            && 世界树.读取特征_I64(宿主, 特征类型, 输出值);
+    }
+
+    bool 私有_读取场景复现I64_保留默认(
+        const 基础信息节点类* 宿主,
+        const char* 特征名,
+        I64& 输出值) noexcept
+    {
+        I64 临时值 = 0;
+        if (!私有_读取场景复现I64(宿主, 特征名, 临时值)) {
+            return false;
+        }
+        输出值 = 临时值;
+        return true;
+    }
+
+    int 私有_场景复现宿主评分(const 基础信息节点类* 宿主) noexcept
+    {
+        if (!宿主) {
+            return 0;
+        }
+
+        int 评分 = 0;
+        I64 值 = 0;
+        const auto 读非零加分 = [&](const char* 特征名, int 加分) noexcept {
+            if (私有_读取场景复现I64(宿主, 特征名, 值) && 值 != 0) {
+                评分 += 加分;
+            }
+        };
+
+        读非零加分("当前观察帧", 16);
+        读非零加分("当前帧像素特征索引", 12);
+        读非零加分("空间候选集合", 16);
+        读非零加分("观察存在假设", 12);
+        读非零加分("像素归属验证结果", 12);
+        读非零加分("已验证观察存在", 12);
+        if (私有_读取场景复现I64(宿主, "相机帧宽度", 值) && 值 > 0) {
+            评分 += 4;
+        }
+        if (私有_读取场景复现I64(宿主, "相机帧高度", 值) && 值 > 0) {
+            评分 += 4;
+        }
+        if (私有_读取场景复现I64(宿主, "空间候选数量", 值) && 值 > 0) {
+            评分 += 20;
+        }
+        if (私有_读取场景复现I64(宿主, "诊断区域数量", 值) && 值 > 0) {
+            评分 += 10;
+        }
+        if (私有_读取场景复现I64(宿主, "已验证观察存在数量", 值) && 值 > 0) {
+            评分 += 24;
+        }
+        if (私有_读取场景复现I64(宿主, "深度帧号", 值) && 值 > 0) {
+            评分 += 1;
+        }
+        return 评分;
+    }
+
+    基础信息节点类* 私有_选择自我场景复现宿主(场景节点类* 自我所在场景) noexcept
+    {
+        auto* 场景宿主 = reinterpret_cast<基础信息节点类*>(自我所在场景);
+        if (!场景宿主) {
+            return nullptr;
+        }
+
+        基础信息节点类* 最佳宿主 = nullptr;
+        int 最佳评分 = 0;
+        I64 最佳深度帧号 = -1;
+        std::vector<基础信息节点类*> 栈{};
+        栈.push_back(场景宿主);
+
+        std::size_t 已扫描 = 0;
+        while (!栈.empty() && 已扫描 < 4096) {
+            auto* 当前 = 栈.back();
+            栈.pop_back();
+            ++已扫描;
+            if (!当前) {
+                continue;
+            }
+
+            const int 当前评分 = 私有_场景复现宿主评分(当前);
+            I64 当前深度帧号 = -1;
+            (void)私有_读取场景复现I64(当前, "深度帧号", 当前深度帧号);
+            if (当前评分 > 最佳评分
+                || (当前评分 == 最佳评分 && 当前评分 > 0 && 当前深度帧号 > 最佳深度帧号)) {
+                最佳宿主 = 当前;
+                最佳评分 = 当前评分;
+                最佳深度帧号 = 当前深度帧号;
+            }
+
+            for (auto* 子节点 : 世界树.基础信息().枚举子节点(当前)) {
+                if (子节点) {
+                    栈.push_back(子节点);
+                }
+            }
+        }
+
+        return 最佳宿主 ? 最佳宿主 : 场景宿主;
+    }
+
+    void 私有_读取自我场景诊断区域列表(
+        基础信息节点类* 宿主,
+        结构_控制面板快照& 快照) noexcept
+    {
+        快照.自我场景诊断区域列表.clear();
+        const auto* 区域类型 = 私有_场景复现存在概念词("观察诊断区域");
+        if (!宿主 || !区域类型) {
+            return;
+        }
+
+        const auto 读区域值 = [](基础信息节点类* 节点, const char* 特征名, std::int64_t& 字段) noexcept {
+            I64 值 = static_cast<I64>(字段);
+            if (私有_读取场景复现I64_保留默认(节点, 特征名, 值)) {
+                字段 = static_cast<std::int64_t>(值);
+            }
+        };
+
+        std::size_t 已扫描 = 0;
+        for (auto* 子存在 : 世界树.存在().获取子存在(宿主)) {
+            if (++已扫描 > 1024) {
+                break;
+            }
+            const auto* 主信息 = 世界树.存在().取存在主信息(子存在);
+            if (!主信息 || 主信息->类型 != 区域类型) {
+                continue;
+            }
+            auto* 节点 = reinterpret_cast<基础信息节点类*>(子存在);
+            if (!节点) {
+                continue;
+            }
+
+            结构_控制面板诊断区域 区域{};
+            读区域值(节点, "诊断区域编号", 区域.区域编号);
+            读区域值(节点, "诊断区域图层类型", 区域.图层类型);
+            读区域值(节点, "诊断区域来源候选编号", 区域.来源候选编号);
+            读区域值(节点, "诊断区域投影最小X", 区域.投影最小X);
+            读区域值(节点, "诊断区域投影最大X", 区域.投影最大X);
+            读区域值(节点, "诊断区域投影最小Y", 区域.投影最小Y);
+            读区域值(节点, "诊断区域投影最大Y", 区域.投影最大Y);
+            读区域值(节点, "诊断区域像素数量", 区域.像素数量);
+            读区域值(节点, "诊断区域置信度", 区域.置信度);
+            读区域值(节点, "诊断区域掩码状态", 区域.掩码状态);
+            if (区域.图层类型 <= 0
+                || 区域.投影最大X < 区域.投影最小X
+                || 区域.投影最大Y < 区域.投影最小Y) {
+                continue;
+            }
+            快照.自我场景诊断区域列表.push_back(区域);
+        }
+
+        std::sort(
+            快照.自我场景诊断区域列表.begin(),
+            快照.自我场景诊断区域列表.end(),
+            [](const auto& a, const auto& b) noexcept {
+                if (a.图层类型 != b.图层类型) {
+                    return a.图层类型 < b.图层类型;
+                }
+                return a.区域编号 < b.区域编号;
+            });
+        if (快照.自我场景诊断区域列表.size() > 256) {
+            快照.自我场景诊断区域列表.resize(256);
+        }
+        if (!快照.自我场景诊断区域列表.empty()) {
+            if (快照.自我场景诊断区域数量 <= 0) {
+                快照.自我场景诊断区域数量 = static_cast<std::int64_t>(快照.自我场景诊断区域列表.size());
+            }
+            快照.自我场景诊断区域集合状态 = 1;
+            快照.自我场景诊断区域掩码状态 = 1;
+        }
+    }
+
+    void 私有_读取自我场景复现快照(结构_控制面板快照& 快照) noexcept
+    {
+        auto* 自我所在场景 = 自我.获取自我现实场景();
+        快照.自我所在场景指针 = 私有_地址(自我所在场景);
+        快照.自我所在场景标题 = 自我所在场景
+            ? 私有_安全节点摘要(自我所在场景, "自我所在场景")
+            : std::string("空");
+
+        auto* 宿主 = 私有_选择自我场景复现宿主(自我所在场景);
+        快照.自我场景复现宿主指针 = 私有_地址(宿主);
+        快照.自我场景复现宿主标题 = 宿主
+            ? 私有_安全节点摘要(宿主, "复现宿主")
+            : std::string("空");
+        if (!宿主) {
+            return;
+        }
+
+        bool 有快照 = false;
+        const auto 读 = [&](const char* 特征名, I64& 字段) noexcept {
+            const bool 命中 = 私有_读取场景复现I64_保留默认(宿主, 特征名, 字段);
+            有快照 = 命中 || 有快照;
+        };
+
+        读("当前观察帧", 快照.自我场景当前观察帧);
+        读("相机帧宽度", 快照.自我场景相机帧宽度);
+        读("相机帧高度", 快照.自我场景相机帧高度);
+        读("深度帧号", 快照.自我场景深度帧号);
+        读("彩色帧号", 快照.自我场景彩色帧号);
+        读("预期像素数量", 快照.自我场景预期像素数量);
+        读("像素特征数量", 快照.自我场景像素特征数量);
+        读("深度有效像素数量", 快照.自我场景深度有效像素数量);
+        读("点云有效像素数量", 快照.自我场景点云有效像素数量);
+        读("像素覆盖状态", 快照.自我场景像素覆盖状态);
+        读("空间坐标单位毫米", 快照.自我场景空间坐标单位毫米);
+        读("颜色RGB结构状态", 快照.自我场景颜色RGB结构状态);
+        读("原始深度毫米结构状态", 快照.自我场景原始深度毫米结构状态);
+        读("滤波深度毫米结构状态", 快照.自我场景滤波深度毫米结构状态);
+        读("补全深度毫米结构状态", 快照.自我场景补全深度毫米结构状态);
+        读("深度有效性Mask状态", 快照.自我场景深度有效性Mask状态);
+        读("深度来源结构状态", 快照.自我场景深度来源结构状态);
+        读("深度稳定性结构状态", 快照.自我场景深度稳定性结构状态);
+        读("深度邻域一致性结构状态", 快照.自我场景深度邻域一致性结构状态);
+        读("融合深度毫米结构状态", 快照.自我场景融合深度毫米结构状态);
+        读("融合深度有效性结构状态", 快照.自我场景融合深度有效性结构状态);
+        读("多帧深度稳定性结构状态", 快照.自我场景多帧深度稳定性结构状态);
+        读("每像素深度方差结构状态", 快照.自我场景每像素深度方差结构状态);
+        读("空间坐标毫米XYZ结构状态", 快照.自我场景空间坐标毫米XYZ结构状态);
+        读("原始深度来源像素数量", 快照.自我场景原始深度来源像素数量);
+        读("滤波深度来源像素数量", 快照.自我场景滤波深度来源像素数量);
+        读("补全深度来源像素数量", 快照.自我场景补全深度来源像素数量);
+        读("无有效深度来源像素数量", 快照.自我场景无有效深度来源像素数量);
+        读("补全深度低置信像素数量", 快照.自我场景补全深度低置信像素数量);
+        读("深度稳定性平均值", 快照.自我场景深度稳定性平均值);
+        读("深度邻域一致性平均值", 快照.自我场景深度邻域一致性平均值);
+        读("观察帧组状态", 快照.自我场景观察帧组状态);
+        读("观察帧组帧数", 快照.自我场景观察帧组帧数);
+        读("融合依据帧集合状态", 快照.自我场景融合依据帧集合状态);
+        读("融合深度有效像素数量", 快照.自我场景融合深度有效像素数量);
+        读("融合深度有效率", 快照.自我场景融合深度有效率);
+        读("融合补偿深度空洞像素数量", 快照.自我场景融合补偿深度空洞像素数量);
+        读("融合低稳定像素数量", 快照.自我场景融合低稳定像素数量);
+        读("融合深度稳定性平均值", 快照.自我场景融合深度稳定性平均值);
+        读("融合深度平均方差", 快照.自我场景融合深度平均方差);
+        读("彩色深度已对齐", 快照.自我场景彩色深度已对齐);
+        读("深度有效率", 快照.自我场景深度有效率);
+        读("空间坐标有效率", 快照.自我场景空间坐标有效率);
+        读("帧质量评分", 快照.自我场景帧质量评分);
+        读("深度空洞数量", 快照.自我场景深度空洞数量);
+        读("深度空洞区域数量", 快照.自我场景深度空洞区域数量);
+        读("轮廓闭合率", 快照.自我场景轮廓闭合率);
+        读("轮廓断裂数量", 快照.自我场景轮廓断裂数量);
+        读("彩图轮廓数量", 快照.自我场景彩图轮廓数量);
+        读("深度轮廓数量", 快照.自我场景深度轮廓数量);
+        读("空间投影轮廓数量", 快照.自我场景空间投影轮廓数量);
+        读("融合轮廓数量", 快照.自我场景融合轮廓数量);
+        读("轮廓来源分层状态", 快照.自我场景轮廓来源分层状态);
+        读("轮廓深度支持率", 快照.自我场景轮廓深度支持率);
+        读("轮廓颜色支持率", 快照.自我场景轮廓颜色支持率);
+        读("轮廓空间支持率", 快照.自我场景轮廓空间支持率);
+        读("融合轮廓置信度", 快照.自我场景融合轮廓置信度);
+        读("跨越深度断裂轮廓数量", 快照.自我场景跨越深度断裂轮廓数量);
+        读("穿过深度无效区域轮廓数量", 快照.自我场景穿过深度无效区域轮廓数量);
+        读("依赖补全深度轮廓数量", 快照.自我场景依赖补全深度轮廓数量);
+        读("边界深度稳定率", 快照.自我场景边界深度稳定率);
+        读("候选存在验证通过率", 快照.自我场景候选存在验证通过率);
+        读("未解释区域比例", 快照.自我场景未解释区域比例);
+        读("补观察缺口状态", 快照.自我场景补观察缺口状态);
+        读("补观察缺失原因", 快照.自我场景补观察缺失原因);
+        读("待补观察区域数量", 快照.自我场景待补观察区域数量);
+        读("补全候选数量", 快照.自我场景补全候选数量);
+        读("低置信轮廓数量", 快照.自我场景低置信轮廓数量);
+        读("条件不足候选数量", 快照.自我场景条件不足候选数量);
+        读("待验证候选数量", 快照.自我场景待验证候选数量);
+        读("部分确认候选数量", 快照.自我场景部分确认候选数量);
+        读("补观察需求建议", 快照.自我场景补观察需求建议);
+        读("诊断区域数量", 快照.自我场景诊断区域数量);
+        读("诊断区域集合状态", 快照.自我场景诊断区域集合状态);
+        读("诊断区域掩码状态", 快照.自我场景诊断区域掩码状态);
+        私有_读取自我场景诊断区域列表(宿主, 快照);
+        读("空间候选数量", 快照.自我场景空间候选数量);
+        读("空间候选有效点数量", 快照.自我场景空间候选有效点数量);
+        读("主空间候选编号", 快照.自我场景主空间候选编号);
+        读("主空间候选像素数量", 快照.自我场景主空间候选像素数量);
+        读("中心空间坐标X", 快照.自我场景中心空间坐标X);
+        读("中心空间坐标Y", 快照.自我场景中心空间坐标Y);
+        读("中心空间坐标Z", 快照.自我场景中心空间坐标Z);
+        读("范围坐标AABB最小X", 快照.自我场景范围坐标AABB最小X);
+        读("范围坐标AABB最大X", 快照.自我场景范围坐标AABB最大X);
+        读("范围坐标AABB最小Y", 快照.自我场景范围坐标AABB最小Y);
+        读("范围坐标AABB最大Y", 快照.自我场景范围坐标AABB最大Y);
+        读("范围坐标AABB最小Z", 快照.自我场景范围坐标AABB最小Z);
+        读("范围坐标AABB最大Z", 快照.自我场景范围坐标AABB最大Z);
+        读("空间连续性评分", 快照.自我场景空间连续性评分);
+        读("范围稳定性评分", 快照.自我场景范围稳定性评分);
+        读("观察存在假设", 快照.自我场景观察存在假设);
+        读("来源空间候选编号", 快照.自我场景来源空间候选编号);
+        读("存在假设验证状态", 快照.自我场景存在假设验证状态);
+        读("假设距离", 快照.自我场景假设距离);
+        读("假设尺寸X", 快照.自我场景假设尺寸X);
+        读("假设尺寸Y", 快照.自我场景假设尺寸Y);
+        读("假设尺寸Z", 快照.自我场景假设尺寸Z);
+        读("假设有效点比例", 快照.自我场景假设有效点比例);
+        读("像素归属验证状态", 快照.自我场景像素归属验证状态);
+        读("全帧像素归属账状态", 快照.自我场景全帧像素归属账状态);
+        读("已归属像素数", 快照.自我场景已归属像素数);
+        读("未解释像素数", 快照.自我场景未解释像素数);
+        读("归属冲突像素数", 快照.自我场景归属冲突像素数);
+        读("像素归属率", 快照.自我场景像素归属率);
+        读("深度一致率", 快照.自我场景深度一致率);
+        读("范围内点比例", 快照.自我场景范围内点比例);
+        读("投影覆盖率", 快照.自我场景投影覆盖率);
+        读("轮廓吻合率", 快照.自我场景轮廓吻合率);
+        读("已验证观察存在", 快照.自我场景已验证观察存在);
+        读("观察存在确认状态", 快照.自我场景观察存在确认状态);
+        读("已验证观察存在数量", 快照.自我场景已验证观察存在数量);
+        读("帧解释状态", 快照.自我场景帧解释状态);
+
+        快照.自我场景复现有快照 = 有快照
+            && (快照.自我场景当前观察帧 != 0
+                || 快照.自我场景相机帧宽度 > 0
+                || 快照.自我场景空间候选数量 > 0
+                || 快照.自我场景诊断区域数量 > 0
+                || 快照.自我场景观察存在假设 != 0
+                || 快照.自我场景已验证观察存在数量 > 0);
+    }
+
     template<>
     std::string 私有_对象摘要<需求节点>(const 需求节点* 节点)
     {
@@ -4008,6 +4365,71 @@ namespace {
         return 树节点;
     }
 
+    结构_控制面板树节点 私有_构建因果信息树(
+        const 结构_构建上下文& 上下文,
+        const std::size_t 抽象因果数,
+        const std::size_t 实例因果数,
+        const std::size_t 证据动态样本数)
+    {
+        auto 根节点 = 私有_新节点(
+            "因果信息 | 抽象因果=" + std::to_string(抽象因果数)
+                + " | 实例因果=" + std::to_string(实例因果数)
+                + " | 证据动态样本=" + std::to_string(证据动态样本数),
+            0,
+            true);
+
+        std::vector<基础信息节点类*> 抽象因果节点{};
+        std::vector<基础信息节点类*> 实例因果节点{};
+        std::vector<基础信息节点类*> 未定义因果节点{};
+
+        for (auto* 因果节点 : 世界树.基础信息().枚举节点_按类型<因果主信息类>()) {
+            const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
+            if (!主信息) continue;
+            if (主信息->是抽象因果()) {
+                抽象因果节点.push_back(因果节点);
+            }
+            else if (主信息->是实例因果()) {
+                实例因果节点.push_back(因果节点);
+            }
+            else {
+                未定义因果节点.push_back(因果节点);
+            }
+        }
+
+        auto 追加分组 = [&](const std::string& 名称, const std::vector<基础信息节点类*>& 节点集) {
+            auto 分组节点 = 私有_新节点(
+                名称 + " | 数量=" + std::to_string(节点集.size()),
+                0,
+                名称 == "抽象因果");
+            const auto 实际上限 = (std::min)(上下文.树广度上限, 节点集.size());
+            for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
+                分组节点.子项.push_back(
+                    私有_构建基础信息树节点(节点集[索引], 上下文, 上下文.树深度上限, {}));
+            }
+            if (节点集.size() > 实际上限) {
+                分组节点.子项.push_back(
+                    私有_新节点("... 省略 " + std::to_string(节点集.size() - 实际上限) + " 项"));
+            }
+            if (节点集.empty()) {
+                分组节点.子项.push_back(私有_新节点("当前无记录"));
+            }
+            根节点.子项.push_back(std::move(分组节点));
+        };
+
+        追加分组("抽象因果", 抽象因果节点);
+        追加分组("实例因果", 实例因果节点);
+        if (!未定义因果节点.empty()) {
+            追加分组("未定义因果", 未定义因果节点);
+        }
+
+        if (抽象因果节点.empty() && 实例因果节点.empty() && 未定义因果节点.empty()) {
+            根节点.子项.clear();
+            根节点.子项.push_back(私有_新节点("当前世界树未记录因果信息"));
+        }
+
+        return 根节点;
+    }
+
     结构_控制面板树节点 私有_构建需求树节点(
         需求节点* 节点,
         const 结构_构建上下文& 上下文,
@@ -4810,6 +5232,195 @@ namespace {
         return 输出.str();
     }
 
+    void 私有_追加JSON_I64数组3(std::ostringstream& 输出, I64 x, I64 y, I64 z)
+    {
+        输出 << "[" << x << "," << y << "," << z << "]";
+    }
+
+    void 私有_追加自我场景诊断区域数组JSON(
+        std::ostringstream& 输出,
+        const std::vector<结构_控制面板诊断区域>& 区域列表)
+    {
+        输出 << "[";
+        for (std::size_t 索引 = 0; 索引 < 区域列表.size(); ++索引) {
+            if (索引 > 0) {
+                输出 << ",";
+            }
+            const auto& 区域 = 区域列表[索引];
+            输出 << "{";
+            输出 << "\"id\":" << 区域.区域编号;
+            输出 << ",\"layer\":" << 区域.图层类型;
+            输出 << ",\"source\":" << 区域.来源候选编号;
+            输出 << ",\"rect\":["
+                << 区域.投影最小X << ","
+                << 区域.投影最小Y << ","
+                << 区域.投影最大X << ","
+                << 区域.投影最大Y << "]";
+            输出 << ",\"pixels\":" << 区域.像素数量;
+            输出 << ",\"confidence\":" << 区域.置信度;
+            输出 << ",\"mask\":" << 区域.掩码状态;
+            输出 << "}";
+        }
+        输出 << "]";
+    }
+
+    std::string 私有_自我场景复现JSON(const 结构_控制面板快照& 快照)
+    {
+        const bool 候选范围有效 =
+            快照.自我场景空间候选数量 > 0
+            && 快照.自我场景范围坐标AABB最大X >= 快照.自我场景范围坐标AABB最小X
+            && 快照.自我场景范围坐标AABB最大Y >= 快照.自我场景范围坐标AABB最小Y
+            && 快照.自我场景范围坐标AABB最大Z >= 快照.自我场景范围坐标AABB最小Z;
+        const I64 绘制候选编号 = 快照.自我场景观察存在假设 != 0
+            ? 快照.自我场景来源空间候选编号
+            : 快照.自我场景主空间候选编号;
+        const I64 绘制候选像素数量 = 快照.自我场景观察存在假设 != 0
+            ? std::max<I64>(
+                0,
+                快照.自我场景假设有效点比例 * 快照.自我场景点云有效像素数量 / 10000)
+            : 快照.自我场景主空间候选像素数量;
+
+        std::ostringstream 输出;
+        输出 << "{";
+        输出 << "\"ok\":" << (快照.自我场景复现有快照 ? "true" : "false") << ",";
+        输出 << "\"scenePtr\":" << 快照.自我所在场景指针 << ",";
+        输出 << "\"hostPtr\":" << 快照.自我场景复现宿主指针 << ",";
+        输出 << "\"sceneTitle\":";
+        私有_追加JSON字符串(输出, 快照.自我所在场景标题);
+        输出 << ",\"hostTitle\":";
+        私有_追加JSON字符串(输出, 快照.自我场景复现宿主标题);
+        输出 << ",\"width\":" << 快照.自我场景相机帧宽度;
+        输出 << ",\"height\":" << 快照.自我场景相机帧高度;
+        输出 << ",\"depthFrame\":" << 快照.自我场景深度帧号;
+        输出 << ",\"colorFrame\":" << 快照.自我场景彩色帧号;
+        输出 << ",\"currentFrame\":" << 快照.自我场景当前观察帧;
+        输出 << ",\"expectedPixels\":" << 快照.自我场景预期像素数量;
+        输出 << ",\"pixelFeatures\":" << 快照.自我场景像素特征数量;
+        输出 << ",\"depthValidPixels\":" << 快照.自我场景深度有效像素数量;
+        输出 << ",\"pointCloudPixels\":" << 快照.自我场景点云有效像素数量;
+        输出 << ",\"pixelCoverage\":" << 快照.自我场景像素覆盖状态;
+        输出 << ",\"unitMm\":" << 快照.自我场景空间坐标单位毫米;
+        输出 << ",\"rgbStructure\":" << 快照.自我场景颜色RGB结构状态;
+        输出 << ",\"rawDepthStructure\":" << 快照.自我场景原始深度毫米结构状态;
+        输出 << ",\"filteredDepthStructure\":" << 快照.自我场景滤波深度毫米结构状态;
+        输出 << ",\"filledDepthStructure\":" << 快照.自我场景补全深度毫米结构状态;
+        输出 << ",\"depthMaskStructure\":" << 快照.自我场景深度有效性Mask状态;
+        输出 << ",\"depthSourceStructure\":" << 快照.自我场景深度来源结构状态;
+        输出 << ",\"depthStabilityStructure\":" << 快照.自我场景深度稳定性结构状态;
+        输出 << ",\"depthNeighborhoodStructure\":" << 快照.自我场景深度邻域一致性结构状态;
+        输出 << ",\"fusedDepthStructure\":" << 快照.自我场景融合深度毫米结构状态;
+        输出 << ",\"fusedDepthValidityStructure\":" << 快照.自我场景融合深度有效性结构状态;
+        输出 << ",\"multiFrameStabilityStructure\":" << 快照.自我场景多帧深度稳定性结构状态;
+        输出 << ",\"perPixelDepthVarianceStructure\":" << 快照.自我场景每像素深度方差结构状态;
+        输出 << ",\"xyzStructure\":" << 快照.自我场景空间坐标毫米XYZ结构状态;
+        输出 << ",\"rawDepthSourcePixels\":" << 快照.自我场景原始深度来源像素数量;
+        输出 << ",\"filteredDepthSourcePixels\":" << 快照.自我场景滤波深度来源像素数量;
+        输出 << ",\"filledDepthSourcePixels\":" << 快照.自我场景补全深度来源像素数量;
+        输出 << ",\"noDepthSourcePixels\":" << 快照.自我场景无有效深度来源像素数量;
+        输出 << ",\"filledDepthLowConfidencePixels\":" << 快照.自我场景补全深度低置信像素数量;
+        输出 << ",\"depthStabilityAverage\":" << 快照.自我场景深度稳定性平均值;
+        输出 << ",\"depthNeighborhoodAverage\":" << 快照.自我场景深度邻域一致性平均值;
+        输出 << ",\"observationFrameGroupState\":" << 快照.自我场景观察帧组状态;
+        输出 << ",\"observationFrameGroupCount\":" << 快照.自我场景观察帧组帧数;
+        输出 << ",\"fusedBasisFrameSetState\":" << 快照.自我场景融合依据帧集合状态;
+        输出 << ",\"fusedDepthValidPixels\":" << 快照.自我场景融合深度有效像素数量;
+        输出 << ",\"fusedDepthValidRatio\":" << 快照.自我场景融合深度有效率;
+        输出 << ",\"fusedDepthHoleCompensationPixels\":" << 快照.自我场景融合补偿深度空洞像素数量;
+        输出 << ",\"fusedDepthLowStabilityPixels\":" << 快照.自我场景融合低稳定像素数量;
+        输出 << ",\"fusedDepthStabilityAverage\":" << 快照.自我场景融合深度稳定性平均值;
+        输出 << ",\"fusedDepthAverageVariance\":" << 快照.自我场景融合深度平均方差;
+        输出 << ",\"colorDepthAligned\":" << 快照.自我场景彩色深度已对齐;
+        输出 << ",\"depthValidRatio\":" << 快照.自我场景深度有效率;
+        输出 << ",\"spaceValidRatio\":" << 快照.自我场景空间坐标有效率;
+        输出 << ",\"frameQualityScore\":" << 快照.自我场景帧质量评分;
+        输出 << ",\"depthHolePixels\":" << 快照.自我场景深度空洞数量;
+        输出 << ",\"depthHoleRegions\":" << 快照.自我场景深度空洞区域数量;
+        输出 << ",\"contourClosureRatio\":" << 快照.自我场景轮廓闭合率;
+        输出 << ",\"contourBreakCount\":" << 快照.自我场景轮廓断裂数量;
+        输出 << ",\"colorContourCount\":" << 快照.自我场景彩图轮廓数量;
+        输出 << ",\"depthContourCount\":" << 快照.自我场景深度轮廓数量;
+        输出 << ",\"spaceProjectionContourCount\":" << 快照.自我场景空间投影轮廓数量;
+        输出 << ",\"fusedContourCount\":" << 快照.自我场景融合轮廓数量;
+        输出 << ",\"contourLayerState\":" << 快照.自我场景轮廓来源分层状态;
+        输出 << ",\"contourDepthSupport\":" << 快照.自我场景轮廓深度支持率;
+        输出 << ",\"contourColorSupport\":" << 快照.自我场景轮廓颜色支持率;
+        输出 << ",\"contourSpaceSupport\":" << 快照.自我场景轮廓空间支持率;
+        输出 << ",\"fusedContourConfidence\":" << 快照.自我场景融合轮廓置信度;
+        输出 << ",\"depthBreakContourCount\":" << 快照.自我场景跨越深度断裂轮廓数量;
+        输出 << ",\"invalidDepthContourCount\":" << 快照.自我场景穿过深度无效区域轮廓数量;
+        输出 << ",\"filledDepthContourCount\":" << 快照.自我场景依赖补全深度轮廓数量;
+        输出 << ",\"boundaryDepthStability\":" << 快照.自我场景边界深度稳定率;
+        输出 << ",\"candidateVerifyRatio\":" << 快照.自我场景候选存在验证通过率;
+        输出 << ",\"unexplainedRatio\":" << 快照.自我场景未解释区域比例;
+        输出 << ",\"observationGapState\":" << 快照.自我场景补观察缺口状态;
+        输出 << ",\"observationMissingReason\":" << 快照.自我场景补观察缺失原因;
+        输出 << ",\"refillObservationRegionCount\":" << 快照.自我场景待补观察区域数量;
+        输出 << ",\"completionCandidateCount\":" << 快照.自我场景补全候选数量;
+        输出 << ",\"lowConfidenceContourCount\":" << 快照.自我场景低置信轮廓数量;
+        输出 << ",\"insufficientCandidateCount\":" << 快照.自我场景条件不足候选数量;
+        输出 << ",\"pendingVerifyCandidateCount\":" << 快照.自我场景待验证候选数量;
+        输出 << ",\"partialConfirmCandidateCount\":" << 快照.自我场景部分确认候选数量;
+        输出 << ",\"observationSuggestion\":" << 快照.自我场景补观察需求建议;
+        输出 << ",\"diagnosticRegionCount\":" << 快照.自我场景诊断区域数量;
+        输出 << ",\"diagnosticRegionSetState\":" << 快照.自我场景诊断区域集合状态;
+        输出 << ",\"diagnosticRegionMaskState\":" << 快照.自我场景诊断区域掩码状态;
+        输出 << ",\"diagnosticRegions\":";
+        私有_追加自我场景诊断区域数组JSON(输出, 快照.自我场景诊断区域列表);
+        输出 << ",\"candidateCount\":" << 快照.自我场景空间候选数量;
+        输出 << ",\"candidateValidPixels\":" << 快照.自我场景空间候选有效点数量;
+        输出 << ",\"hypothesisState\":" << 快照.自我场景观察存在假设;
+        输出 << ",\"hypothesisSource\":" << 快照.自我场景来源空间候选编号;
+        输出 << ",\"hypothesisVerifyState\":" << 快照.自我场景存在假设验证状态;
+        输出 << ",\"hypothesisDistance\":" << 快照.自我场景假设距离;
+        输出 << ",\"hypothesisSize\":";
+        私有_追加JSON_I64数组3(
+            输出,
+            快照.自我场景假设尺寸X,
+            快照.自我场景假设尺寸Y,
+            快照.自我场景假设尺寸Z);
+        输出 << ",\"hypothesisValidRatio\":" << 快照.自我场景假设有效点比例;
+        输出 << ",\"pixelOwnershipState\":" << 快照.自我场景像素归属验证状态;
+        输出 << ",\"fullFrameOwnershipState\":" << 快照.自我场景全帧像素归属账状态;
+        输出 << ",\"assignedPixels\":" << 快照.自我场景已归属像素数;
+        输出 << ",\"unexplainedPixels\":" << 快照.自我场景未解释像素数;
+        输出 << ",\"ownershipConflictPixels\":" << 快照.自我场景归属冲突像素数;
+        输出 << ",\"ownershipRatio\":" << 快照.自我场景像素归属率;
+        输出 << ",\"depthConsistency\":" << 快照.自我场景深度一致率;
+        输出 << ",\"insideRangeRatio\":" << 快照.自我场景范围内点比例;
+        输出 << ",\"projectionCoverage\":" << 快照.自我场景投影覆盖率;
+        输出 << ",\"contourMatch\":" << 快照.自我场景轮廓吻合率;
+        输出 << ",\"verifiedFlag\":" << 快照.自我场景已验证观察存在;
+        输出 << ",\"confirmState\":" << 快照.自我场景观察存在确认状态;
+        输出 << ",\"verifiedCount\":" << 快照.自我场景已验证观察存在数量;
+        输出 << ",\"frameExplainState\":" << 快照.自我场景帧解释状态;
+        输出 << ",\"candidate\":{";
+        输出 << "\"valid\":" << (候选范围有效 ? "true" : "false") << ",";
+        输出 << "\"id\":" << 绘制候选编号 << ",";
+        输出 << "\"pixels\":" << 绘制候选像素数量 << ",";
+        输出 << "\"center\":";
+        私有_追加JSON_I64数组3(
+            输出,
+            快照.自我场景中心空间坐标X,
+            快照.自我场景中心空间坐标Y,
+            快照.自我场景中心空间坐标Z);
+        输出 << ",\"min\":";
+        私有_追加JSON_I64数组3(
+            输出,
+            快照.自我场景范围坐标AABB最小X,
+            快照.自我场景范围坐标AABB最小Y,
+            快照.自我场景范围坐标AABB最小Z);
+        输出 << ",\"max\":";
+        私有_追加JSON_I64数组3(
+            输出,
+            快照.自我场景范围坐标AABB最大X,
+            快照.自我场景范围坐标AABB最大Y,
+            快照.自我场景范围坐标AABB最大Z);
+        输出 << ",\"continuity\":" << 快照.自我场景空间连续性评分;
+        输出 << ",\"stability\":" << 快照.自我场景范围稳定性评分;
+        输出 << "}}";
+        return 输出.str();
+    }
+
     std::string 私有_树节点子项JSON(const 结构_控制面板树节点& 节点)
     {
         std::ostringstream 输出;
@@ -5049,6 +5660,7 @@ namespace {
     快照.自检报告修复门控摘要 = 自检报告修复快照.摘要;
     快照.自我存在指针 = 私有_地址(自我.获取自我存在());
     快照.自我存在标题 = 私有_安全节点摘要(自我.获取自我存在(), "自我存在");
+    私有_读取自我场景复现快照(快照);
 
     const auto 全部基础节点 = 世界树.基础信息().枚举全部节点();
     快照.基础信息节点数 = 全部基础节点.size();
@@ -5061,6 +5673,7 @@ namespace {
 
     const auto 因果节点集 = 世界树.基础信息().枚举节点_按类型<因果主信息类>();
     std::size_t 因果模板数 = 0;
+    std::size_t 因果实例数 = 0;
     std::size_t 因果证据动态样本数 = 0;
     for (auto* 因果节点 : 因果节点集) {
         const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
@@ -5070,9 +5683,13 @@ namespace {
         if (主信息->是抽象因果()) {
             ++因果模板数;
         }
+        else if (主信息->是实例因果()) {
+            ++因果实例数;
+        }
         因果证据动态样本数 += 主信息->证据动态样本.size();
     }
     快照.因果模板数 = 因果模板数;
+    快照.因果实例数 = 因果实例数;
     快照.因果证据动态样本数 = 因果证据动态样本数;
 
     auto* 自我存在 = 自我.获取自我存在();
@@ -5538,6 +6155,13 @@ namespace {
     }
     快照.世界树根 = std::move(世界树根);
     记录快照阶段("世界树骨架构建完成");
+
+    快照.因果信息根 = 私有_构建因果信息树(
+        上下文,
+        快照.因果模板数,
+        快照.因果实例数,
+        快照.因果证据动态样本数);
+    记录快照阶段("因果信息树构建完成");
 
     auto 需求树根 = 私有_新节点(
         "需求树 | 需求数=" + std::to_string(快照.需求数)
@@ -6401,10 +7025,12 @@ std::string 生成控制面板HTML(
 {
     const auto 线程树JSON = 私有_树节点JSON(快照.线程状态树根);
     const auto 世界树JSON = 私有_树节点JSON(快照.世界树根);
+    const auto 因果信息JSON = 私有_树节点JSON(快照.因果信息根);
     const auto 需求树JSON = 私有_树节点JSON(快照.需求树根);
     const auto 需求列表JSON = 私有_树节点JSON(快照.需求列表树根);
     const auto 任务树JSON = 私有_树节点JSON(快照.任务树根);
     const auto 方法树JSON = 私有_树节点JSON(快照.方法树根);
+    const auto 自我场景复现JSON = 私有_自我场景复现JSON(快照);
     auto 参数设定根 = 私有_新节点(
         "参数设定 | 任务管理工作线程池大小="
         + std::to_string(快照.任务管理工作线程池当前有效大小)
@@ -6456,6 +7082,11 @@ std::string 生成控制面板HTML(
         + " | 状态=" + std::to_string(快照.状态数)
         + " | 动态=" + std::to_string(快照.动态数)
         + " | 因果模板=" + std::to_string(快照.因果模板数));
+    const auto 因果信息摘要 = 私有_转义HTML(
+        "抽象因果=" + std::to_string(快照.因果模板数)
+        + " | 实例因果=" + std::to_string(快照.因果实例数)
+        + " | 证据动态样本=" + std::to_string(快照.因果证据动态样本数)
+        + " | 来源=世界树因果主信息");
     const auto 需求树摘要 = 私有_转义HTML(
         "需求数=" + std::to_string(快照.需求数)
         + " | " + 私有_需求满足数量摘要(快照)
@@ -6476,6 +7107,23 @@ std::string 生成控制面板HTML(
         "方法数=" + std::to_string(快照.方法数)
         + " | " + 私有_方法结构诊断摘要(快照)
         + " | 缺口承接=已接管");
+    const auto 自我场景复现菜单标记 = 私有_转义HTML(
+        快照.自我场景复现有快照
+            ? ("候选 " + std::to_string(快照.自我场景空间候选数量))
+            : "OpenGL");
+    const auto 自我场景复现摘要 = 私有_转义HTML(
+        "场景=" + 私有_页面摘要(快照.自我所在场景标题)
+        + " | 宿主=" + 私有_页面摘要(快照.自我场景复现宿主标题)
+        + " | 观察帧=" + std::to_string(快照.自我场景当前观察帧)
+        + " | 帧=" + std::to_string(快照.自我场景相机帧宽度)
+        + "x" + std::to_string(快照.自我场景相机帧高度)
+        + " | 像素特征=" + std::to_string(快照.自我场景像素特征数量)
+        + " | 质量=" + std::to_string(快照.自我场景帧质量评分)
+        + " | 空间候选=" + std::to_string(快照.自我场景空间候选数量)
+        + " | 已验证观察存在=" + std::to_string(快照.自我场景已验证观察存在数量)
+        + " | 补观察缺口=" + std::to_string(快照.自我场景补观察缺口状态)
+        + " | 待补区域=" + std::to_string(快照.自我场景待补观察区域数量)
+        + " | 帧解释=" + std::to_string(快照.自我场景帧解释状态));
     const auto 参数设定摘要 = 私有_转义HTML(
         "任务管理工作线程池大小="
         + std::to_string(快照.任务管理工作线程池当前有效大小)
@@ -6927,6 +7575,225 @@ std::string 生成控制面板HTML(
       line-height:1.4;
       word-break:break-word;
     }
+    .scene-control{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+    .scene-status{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+      word-break:break-word;
+    }
+    .scene-status.ok{color:var(--accent);font-weight:700}
+    .scene-status.error{color:var(--danger);font-weight:700}
+    .scene-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .scene-btn{
+      min-height:44px;
+      padding:0 16px;
+      border:none;
+      border-radius:8px;
+      background:var(--accent);
+      color:#fff;
+      cursor:pointer;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .scene-btn.secondary{
+      background:#eef3f7;
+      border:1px solid rgba(15,118,110,.18);
+      color:var(--ink);
+    }
+    .scene-layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.4fr) minmax(320px,.6fr);
+      gap:18px;
+      align-items:start;
+    }
+    .scene-side{
+      min-width:0;
+      display:grid;
+      gap:18px;
+    }
+    .scene-viewer{min-width:0}
+    .scene-canvas-shell{
+      position:relative;
+      aspect-ratio:16/9;
+      min-height:360px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.12);
+      background:#080d12;
+      overflow:hidden;
+    }
+    .scene-canvas{
+      width:100%;
+      height:100%;
+      display:block;
+      background:#080d12;
+    }
+    .scene-layer-overlay{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+    }
+    .scene-legend{
+      margin-top:14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .scene-legend span{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .scene-legend i{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      display:inline-block;
+      background:var(--accent);
+    }
+    .scene-legend .x i{background:#f87171}
+    .scene-legend .y i{background:#34d399}
+    .scene-legend .z i{background:#60a5fa}
+    .scene-legend .box i{background:#f59e0b}
+    .scene-legend .depth-hole i{background:#ef4444}
+    .scene-legend .filled-depth i{background:#facc15}
+    .scene-legend .unexplained i{background:#a78bfa}
+    .scene-legend .contour-risk i{background:#fb7185}
+    .scene-stat-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .scene-stat{
+      min-width:0;
+      padding:12px 14px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+    }
+    .scene-stat-label{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .scene-stat-value{
+      margin-top:6px;
+      font-size:15px;
+      font-weight:800;
+      line-height:1.5;
+      word-break:break-word;
+    }
+    .scene-diagnostic-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .scene-diagnostic-row{
+      min-width:0;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+    }
+    .scene-diagnostic-label{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .scene-diagnostic-value{
+      margin-top:6px;
+      font-size:14px;
+      font-weight:800;
+      line-height:1.55;
+      word-break:break-word;
+    }
+    .scene-layer-controls{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .scene-layer-toggle{
+      min-width:0;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+      color:var(--ink);
+      font-size:13px;
+      font-weight:700;
+      line-height:1.45;
+    }
+    .scene-layer-toggle input{accent-color:var(--accent)}
+    .scene-layer-status{
+      margin-top:12px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+      word-break:break-word;
+    }
+    .scene-layer-grid{
+      margin-top:12px;
+      display:grid;
+      gap:10px;
+    }
+    .scene-layer-row{
+      min-width:0;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+    }
+    .scene-layer-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .scene-layer-value{
+      color:var(--ink);
+      font-weight:800;
+      word-break:break-word;
+    }
+    .scene-layer-meter{
+      margin-top:8px;
+      height:7px;
+      border-radius:999px;
+      overflow:hidden;
+      background:rgba(15,23,42,.08);
+    }
+    .scene-layer-meter span{
+      display:block;
+      width:0%;
+      height:100%;
+      border-radius:999px;
+      background:var(--accent);
+    }
+    .scene-layer-row.depth-hole .scene-layer-meter span{background:#ef4444}
+    .scene-layer-row.filled-depth .scene-layer-meter span{background:#facc15}
+    .scene-layer-row.unexplained .scene-layer-meter span{background:#a78bfa}
+    .scene-layer-row.contour-risk .scene-layer-meter span{background:#fb7185}
 )HTML";
     输出 << R"HTML(
     .workspace{
@@ -7260,6 +8127,7 @@ std::string 生成控制面板HTML(
       .overview{grid-template-columns:repeat(2,minmax(0,1fr))}
       .workspace{grid-template-columns:1fr}
       .camera-layout{grid-template-columns:1fr}
+      .scene-layout{grid-template-columns:1fr}
       .settings-layout{grid-template-columns:1fr}
       .detail-panel{position:static}
       .tree-shell{max-height:none}
@@ -7283,6 +8151,13 @@ std::string 生成控制面板HTML(
       .camera-actions{width:100%}
       .camera-btn{flex:1 1 140px}
       .camera-stat-grid{grid-template-columns:1fr}
+      .scene-control{align-items:flex-start}
+      .scene-actions{width:100%}
+      .scene-btn{flex:1 1 140px}
+      .scene-stat-grid{grid-template-columns:1fr}
+      .scene-diagnostic-grid{grid-template-columns:1fr}
+      .scene-layer-controls{grid-template-columns:1fr}
+      .scene-canvas-shell{min-height:280px}
     }
   </style>
 </head>)HTML";
@@ -7300,6 +8175,9 @@ std::string 生成控制面板HTML(
           <button class="menu-item" type="button" data-page="world-tree"><span>世界树</span><span class="menu-badge">)HTML"
         << 快照.基础信息节点数
         << R"HTML(</span></button>
+          <button class="menu-item" type="button" data-page="causal-info"><span>因果信息</span><span class="menu-badge">)HTML"
+        << (快照.因果模板数 + 快照.因果实例数)
+        << R"HTML(</span></button>
           <button class="menu-item" type="button" data-page="need-tree"><span>需求树</span><span class="menu-badge">)HTML"
         << 快照.需求数
         << R"HTML(</span></button>
@@ -7311,6 +8189,9 @@ std::string 生成控制面板HTML(
         << R"HTML(</span></button>
           <button class="menu-item" type="button" data-page="method-tree"><span>方法树</span><span class="menu-badge">)HTML"
         << 快照.方法数
+        << R"HTML(</span></button>
+          <button class="menu-item" type="button" data-page="self-scene"><span>自我所在场景</span><span class="menu-badge">)HTML"
+        << 自我场景复现菜单标记
         << R"HTML(</span></button>
           <button class="menu-item" type="button" data-page="camera-view"><span>相机画面</span><span class="menu-badge">D455</span></button>
           <button class="menu-item" type="button" data-page="settings"><span>参数设定</span><span class="menu-badge">)HTML"
@@ -7412,6 +8293,23 @@ std::string 生成控制面板HTML(
           </div>
         </section>
 
+        <section class="page" data-page="causal-info" data-title="因果信息" data-subtitle="当前世界树中记录的抽象因果、实例因果和证据动态样本。">
+          <div class="workspace">
+            <section class="panel tree-panel">
+              <div class="panel-topline">因果账本</div>
+              <h3>因果信息</h3>
+              <div class="summary">)HTML"
+        << 因果信息摘要
+        << R"HTML(</div>
+              <div class="tree-toolbar"><div class="tree-hint">)HTML"
+        << 树交互提示
+        << R"HTML(</div></div>
+              <div class="tree-shell"><div id="tree-causal-info"></div></div>
+            </section>
+            <aside class="panel detail-panel"><div id="detail-causal-info" class="detail-host"></div></aside>
+          </div>
+        </section>
+
         <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="真实父子关系、结构角色、目标状态与任务绑定。">
           <div class="workspace">
             <section class="panel tree-panel">
@@ -7477,6 +8375,152 @@ std::string 生成控制面板HTML(
               <div class="tree-shell"><div id="tree-method-tree"></div></div>
             </section>
             <aside class="panel detail-panel"><div id="detail-method-tree" class="detail-host"></div></aside>
+          </div>
+        </section>
+
+        <section class="page" data-page="self-scene" data-title="自我所在场景" data-subtitle="读取自我所在场景中的观察帧、空间候选和观察存在快照，以 OpenGL 复现空间解释层。">
+          <section class="panel scene-control">
+            <div>
+              <div class="panel-topline">OpenGL</div>
+              <h3>自我所在场景</h3>
+              <div class="summary">)HTML"
+        << 自我场景复现摘要
+        << R"HTML(</div>
+              <div id="self-scene-status" class="scene-status" role="status">等待渲染</div>
+            </div>
+            <div class="scene-actions">
+              <button id="scene-reset-view" class="scene-btn secondary" type="button">重置视角</button>
+              <button id="scene-toggle-rotation" class="scene-btn" type="button">暂停旋转</button>
+            </div>
+          </section>
+          <div class="scene-layout">
+            <section class="panel scene-viewer">
+              <div class="scene-canvas-shell">
+                <canvas id="self-scene-gl" class="scene-canvas" width="960" height="540"></canvas>
+                <canvas id="self-scene-layer-overlay" class="scene-layer-overlay" width="960" height="540"></canvas>
+              </div>
+              <div class="scene-legend" aria-label="场景复现图例">
+                <span class="x"><i></i>X</span>
+                <span class="y"><i></i>Y</span>
+                <span class="z"><i></i>Z</span>
+                <span class="box"><i></i>AABB</span>
+                <span class="depth-hole"><i></i>深度空洞</span>
+                <span class="filled-depth"><i></i>补全深度</span>
+                <span class="unexplained"><i></i>未解释</span>
+                <span class="contour-risk"><i></i>轮廓风险</span>
+              </div>
+            </section>
+            <div class="scene-side">
+              <aside class="panel">
+                <div class="panel-topline">场景快照</div>
+                <h3>空间解释</h3>
+                <div class="scene-stat-grid" aria-label="自我所在场景复现状态">
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">帧尺寸</div>
+                    <div id="scene-frame-size-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">帧号</div>
+                    <div id="scene-frame-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">像素特征</div>
+                    <div id="scene-pixel-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">空间候选</div>
+                    <div id="scene-candidate-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">中心坐标</div>
+                    <div id="scene-center-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">范围 AABB</div>
+                    <div id="scene-aabb-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">连续 / 稳定</div>
+                    <div id="scene-score-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">验证状态</div>
+                    <div id="scene-verify-stat" class="scene-stat-value">--</div>
+                  </div>
+                </div>
+              </aside>
+              <aside class="panel">
+                <div class="panel-topline">区域图层</div>
+                <h3>诊断区域</h3>
+                <div class="scene-layer-controls" aria-label="诊断区域图层开关">
+                  <label class="scene-layer-toggle"><input id="scene-layer-depth-hole" type="checkbox" checked>深度空洞</label>
+                  <label class="scene-layer-toggle"><input id="scene-layer-filled-depth" type="checkbox" checked>补全深度</label>
+                  <label class="scene-layer-toggle"><input id="scene-layer-unexplained" type="checkbox" checked>未解释</label>
+                  <label class="scene-layer-toggle"><input id="scene-layer-contour-risk" type="checkbox" checked>轮廓风险</label>
+                </div>
+                <div id="scene-layer-status" class="scene-layer-status">等待图层数据</div>
+                <div class="scene-layer-grid" aria-label="诊断区域图层摘要">
+                  <div class="scene-layer-row depth-hole">
+                    <div class="scene-layer-head"><span>深度空洞区域</span><span id="scene-layer-depth-hole-value" class="scene-layer-value">--</span></div>
+                    <div class="scene-layer-meter"><span id="scene-layer-depth-hole-meter"></span></div>
+                  </div>
+                  <div class="scene-layer-row filled-depth">
+                    <div class="scene-layer-head"><span>补全深度区域</span><span id="scene-layer-filled-depth-value" class="scene-layer-value">--</span></div>
+                    <div class="scene-layer-meter"><span id="scene-layer-filled-depth-meter"></span></div>
+                  </div>
+                  <div class="scene-layer-row unexplained">
+                    <div class="scene-layer-head"><span>未解释区域</span><span id="scene-layer-unexplained-value" class="scene-layer-value">--</span></div>
+                    <div class="scene-layer-meter"><span id="scene-layer-unexplained-meter"></span></div>
+                  </div>
+                  <div class="scene-layer-row contour-risk">
+                    <div class="scene-layer-head"><span>轮廓风险区域</span><span id="scene-layer-contour-risk-value" class="scene-layer-value">--</span></div>
+                    <div class="scene-layer-meter"><span id="scene-layer-contour-risk-meter"></span></div>
+                  </div>
+                </div>
+              </aside>
+              <aside class="panel">
+                <div class="panel-topline">诊断摘要</div>
+                <h3>观察质量</h3>
+                <div class="scene-diagnostic-grid" aria-label="观察质量诊断摘要">
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">结构状态</div>
+                    <div id="scene-quality-structure-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">质量比例</div>
+                    <div id="scene-quality-ratio-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">深度来源</div>
+                    <div id="scene-depth-source-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">深度稳定</div>
+                    <div id="scene-depth-stability-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">多帧融合</div>
+                    <div id="scene-fusion-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">轮廓证据</div>
+                    <div id="scene-contour-layer-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">轮廓风险</div>
+                    <div id="scene-contour-risk-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">补观察缺口</div>
+                    <div id="scene-gap-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">补偿候选</div>
+                    <div id="scene-gap-candidate-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                </div>
+              </aside>
+            </div>
           </div>
         </section>
 
@@ -7680,6 +8724,11 @@ std::string 生成控制面板HTML(
         detailHost: 'detail-world-tree',
         detailHint: '世界树页展示基础信息类仓库；右侧只展示当前节点主信息字段，父子上下结构以中间树为准。'
       },
+      'causal-info': {
+        treeHost: 'tree-causal-info',
+        detailHost: 'detail-causal-info',
+        detailHint: '因果主信息字段；抽象因果、实例因果和证据动态样本均来自当前世界树。'
+      },
       'need-tree': {
         treeHost: 'tree-need-tree',
         detailHost: 'detail-need-tree',
@@ -7714,6 +8763,9 @@ std::string 生成控制面板HTML(
       "world-tree": )HTML"
         << 世界树JSON
         << R"HTML(,
+      "causal-info": )HTML"
+        << 因果信息JSON
+        << R"HTML(,
       "need-tree": )HTML"
         << 需求树JSON
         << R"HTML(,
@@ -7730,6 +8782,9 @@ std::string 生成控制面板HTML(
         << 参数设定JSON
         << R"HTML(
     };
+    const 自我场景复现数据 = )HTML"
+        << 自我场景复现JSON
+        << R"HTML(;
 )HTML";
     输出 << R"HTML(
     
@@ -8274,6 +9329,9 @@ std::string 生成控制面板HTML(
       页面标题节点.textContent = 目标页面.dataset.title || '控制面板';
       页面副标题节点.textContent = 目标页面.dataset.subtitle || '';
       渲染页面树(目标页面.dataset.page);
+      if (目标页面.dataset.page === 'self-scene') {
+        请求绘制自我场景();
+      }
       if (location.hash !== '#' + 目标页面.dataset.page) {
         history.replaceState(null, '', '#' + 目标页面.dataset.page);
       }
@@ -8473,6 +9531,686 @@ std::string 生成控制面板HTML(
         raw.innerHTML = `<strong>原始文本</strong><br>${转义HTML(节点.text || '空')}`;
         host.appendChild(raw);
       }
+    }
+
+)HTML";
+    输出 << R"HTML(
+    let 自我场景GL状态 = null;
+
+    function 设置自我场景状态(text, kind = '') {
+      const status = document.getElementById('self-scene-status');
+      if (!status) return;
+      status.textContent = text || '';
+      status.classList.toggle('ok', kind === 'ok');
+      status.classList.toggle('error', kind === 'error');
+    }
+
+    function 设置自我场景文本(id, text) {
+      const node = document.getElementById(id);
+      if (node) node.textContent = text;
+    }
+
+    function 格式化场景数值(value) {
+      const n = Number(value || 0);
+      if (!Number.isFinite(n)) return '0';
+      return String(Math.round(n * 1000) / 1000);
+    }
+
+    function 格式化场景三元组(value) {
+      const arr = Array.isArray(value) ? value : [0, 0, 0];
+      return `${格式化场景数值(arr[0])}, ${格式化场景数值(arr[1])}, ${格式化场景数值(arr[2])}`;
+    }
+
+    function 格式化场景比例(value) {
+      return `${Number(value || 0)}/10000`;
+    }
+
+    function 场景万分比(value) {
+      const n = Number(value || 0);
+      if (!Number.isFinite(n)) return 0;
+      return Math.max(0, Math.min(10000, n));
+    }
+
+    function 场景像素比例(pixels, total) {
+      const p = Number(pixels || 0);
+      const t = Number(total || 0);
+      if (!Number.isFinite(p) || !Number.isFinite(t) || t <= 0) return 0;
+      return 场景万分比(Math.round(p * 10000 / t));
+    }
+
+    function 设置自我场景图层值(kind, text, ratio) {
+      设置自我场景文本(`scene-layer-${kind}-value`, text);
+      const meter = document.getElementById(`scene-layer-${kind}-meter`);
+      if (meter) {
+        meter.style.width = `${场景万分比(ratio) / 100}%`;
+      }
+    }
+
+    function 自我场景图层启用(id) {
+      const node = document.getElementById(`scene-layer-${id}`);
+      return !node || !!node.checked;
+    }
+
+    function 自我场景区域图层ID(layer) {
+      switch (Number(layer || 0)) {
+        case 1: return 'depth-hole';
+        case 2: return 'filled-depth';
+        case 3: return 'unexplained';
+        case 4: return 'contour-risk';
+        default: return '';
+      }
+    }
+
+    function 自我场景区域颜色(layer) {
+      switch (Number(layer || 0)) {
+        case 1: return '#ef4444';
+        case 2: return '#facc15';
+        case 3: return '#a78bfa';
+        case 4: return '#fb7185';
+        default: return '#94a3b8';
+      }
+    }
+
+    function 读取自我场景诊断区域(data) {
+      return Array.isArray(data?.diagnosticRegions)
+        ? data.diagnosticRegions.filter((region) => {
+            const rect = region?.rect || [];
+            return 自我场景区域图层ID(region?.layer)
+              && rect.length === 4
+              && Number(rect[2]) >= Number(rect[0])
+              && Number(rect[3]) >= Number(rect[1]);
+          })
+        : [];
+    }
+
+    function 读取自我场景图层摘要(data) {
+      const expected = Number(data.expectedPixels || data.pixelFeatures || 0);
+      const regions = 读取自我场景诊断区域(data);
+      const regionCounts = { 'depth-hole': 0, 'filled-depth': 0, unexplained: 0, 'contour-risk': 0 };
+      const regionPixels = { 'depth-hole': 0, 'filled-depth': 0, unexplained: 0, 'contour-risk': 0 };
+      regions.forEach((region) => {
+        const id = 自我场景区域图层ID(region.layer);
+        if (!id) return;
+        regionCounts[id] += 1;
+        regionPixels[id] += Math.max(0, Number(region.pixels || 0));
+      });
+      const depthHoleRatio = data.depthHolePixels
+        ? 场景像素比例(data.depthHolePixels, expected)
+        : 场景万分比(10000 - Number(data.depthValidRatio || 0));
+      const filledPixels = Number(data.filledDepthSourcePixels || data.fusedDepthHoleCompensationPixels || 0);
+      const filledRatio = 场景像素比例(filledPixels, expected);
+      const unexplainedRatio = data.unexplainedPixels
+        ? 场景像素比例(data.unexplainedPixels, expected)
+        : 场景万分比(data.unexplainedRatio || 0);
+      const contourTotal =
+        Number(data.colorContourCount || 0)
+        + Number(data.depthContourCount || 0)
+        + Number(data.spaceProjectionContourCount || 0)
+        + Number(data.fusedContourCount || 0);
+      const contourRiskCount =
+        Number(data.depthBreakContourCount || 0)
+        + Number(data.invalidDepthContourCount || 0)
+        + Number(data.filledDepthContourCount || 0)
+        + Number(data.lowConfidenceContourCount || 0);
+      const contourRiskRatio = contourTotal > 0
+        ? 场景万分比(Math.round(contourRiskCount * 10000 / contourTotal))
+        : 0;
+      return {
+        depthHoleRatio,
+        filledRatio,
+        unexplainedRatio,
+        contourRiskRatio,
+        filledPixels,
+        contourRiskCount,
+        contourTotal,
+        regionCounts,
+        regionPixels,
+        regionTotal: regions.length
+      };
+    }
+
+    function 更新自我场景图层摘要() {
+      const data = 自我场景复现数据 || {};
+      const summary = 读取自我场景图层摘要(data);
+      设置自我场景图层值(
+        'depth-hole',
+        `${data.depthHolePixels || 0} 像素 / ${data.depthHoleRegions || 0} 区 / 矩形 ${summary.regionCounts['depth-hole'] || 0} / ${格式化场景比例(summary.depthHoleRatio)}`,
+        summary.depthHoleRatio);
+      设置自我场景图层值(
+        'filled-depth',
+        `${summary.filledPixels || 0} 像素 / 候选 ${data.completionCandidateCount || 0} / 矩形 ${summary.regionCounts['filled-depth'] || 0} / ${格式化场景比例(summary.filledRatio)}`,
+        summary.filledRatio);
+      设置自我场景图层值(
+        'unexplained',
+        `${data.unexplainedPixels || 0} 像素 / 待补 ${data.refillObservationRegionCount || 0} / 矩形 ${summary.regionCounts.unexplained || 0} / ${格式化场景比例(summary.unexplainedRatio)}`,
+        summary.unexplainedRatio);
+      设置自我场景图层值(
+        'contour-risk',
+        `${summary.contourRiskCount || 0}/${summary.contourTotal || 0} / 矩形 ${summary.regionCounts['contour-risk'] || 0} / ${格式化场景比例(summary.contourRiskRatio)}`,
+        summary.contourRiskRatio);
+      const status = document.getElementById('scene-layer-status');
+      if (status) {
+        status.textContent = data.ok
+          ? (summary.regionTotal > 0
+              ? `区域矩形已落账 ${summary.regionTotal}/${data.diagnosticRegionCount || summary.regionTotal}；掩码状态 ${data.diagnosticRegionMaskState || 0}。`
+              : '当前为自我所在场景快照的摘要覆盖层；逐区域几何/掩码尚未落账。')
+          : '当前没有可复现快照，区域图层只保留占位状态。';
+      }
+    }
+
+    function 更新自我场景统计() {
+      const data = 自我场景复现数据 || {};
+      const candidate = data.candidate || {};
+      设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
+      设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
+      设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
+      设置自我场景文本('scene-candidate-stat', `${data.candidateCount || 0} / 有效点 ${data.candidateValidPixels || 0}`);
+      设置自我场景文本('scene-center-stat', candidate.valid ? 格式化场景三元组(candidate.center) : '--');
+      设置自我场景文本('scene-aabb-stat', candidate.valid ? `${格式化场景三元组(candidate.min)} -> ${格式化场景三元组(candidate.max)}` : '--');
+      设置自我场景文本('scene-score-stat', `${data.frameQualityScore || 0} / ${candidate.continuity || 0} / ${candidate.stability || 0}`);
+      设置自我场景文本('scene-verify-stat', `假设 ${data.hypothesisVerifyState || 0} / 像素 ${data.pixelOwnershipState || 0}:${data.fullFrameOwnershipState || 0} / 已归属 ${data.assignedPixels || 0}(${data.ownershipRatio || 0}) / 未解释 ${data.unexplainedPixels || 0} / 冲突 ${data.ownershipConflictPixels || 0} / 确认 ${data.confirmState || 0} / 已验证 ${data.verifiedCount || 0} / 补观察 ${data.observationGapState || 0}:${data.refillObservationRegionCount || 0}:${data.observationMissingReason || 0}`);
+      设置自我场景文本('scene-quality-structure-stat', `RGB ${data.rgbStructure || 0} / 原始 ${data.rawDepthStructure || 0} / 滤波 ${data.filteredDepthStructure || 0} / 补全 ${data.filledDepthStructure || 0} / Mask ${data.depthMaskStructure || 0} / XYZ ${data.xyzStructure || 0} / 对齐 ${data.colorDepthAligned || 0}`);
+      设置自我场景文本('scene-quality-ratio-stat', `质量 ${data.frameQualityScore || 0} / 深度 ${格式化场景比例(data.depthValidRatio)} / 空间 ${格式化场景比例(data.spaceValidRatio)} / 候选 ${格式化场景比例(data.candidateVerifyRatio)} / 未解释 ${格式化场景比例(data.unexplainedRatio)}`);
+      设置自我场景文本('scene-depth-source-stat', `原始 ${data.rawDepthSourcePixels || 0} / 滤波 ${data.filteredDepthSourcePixels || 0} / 补全 ${data.filledDepthSourcePixels || 0} / 无效 ${data.noDepthSourcePixels || 0} / 低置信 ${data.filledDepthLowConfidencePixels || 0}`);
+      设置自我场景文本('scene-depth-stability-stat', `结构 ${data.depthSourceStructure || 0}:${data.depthStabilityStructure || 0}:${data.depthNeighborhoodStructure || 0} / 稳定 ${data.depthStabilityAverage || 0} / 邻域 ${data.depthNeighborhoodAverage || 0} / 边界 ${data.boundaryDepthStability || 0}`);
+      设置自我场景文本('scene-fusion-stat', `状态 ${data.observationFrameGroupState || 0}:${data.fusedBasisFrameSetState || 0} / 帧 ${data.observationFrameGroupCount || 0} / 有效 ${data.fusedDepthValidPixels || 0}(${格式化场景比例(data.fusedDepthValidRatio)}) / 补洞 ${data.fusedDepthHoleCompensationPixels || 0} / 低稳 ${data.fusedDepthLowStabilityPixels || 0}`);
+      设置自我场景文本('scene-contour-layer-stat', `分层 ${data.contourLayerState || 0} / 彩 ${data.colorContourCount || 0} / 深 ${data.depthContourCount || 0} / 空间 ${data.spaceProjectionContourCount || 0} / 融合 ${data.fusedContourCount || 0} / 置信 ${data.fusedContourConfidence || 0}`);
+      设置自我场景文本('scene-contour-risk-stat', `深度支持 ${格式化场景比例(data.contourDepthSupport)} / 颜色 ${格式化场景比例(data.contourColorSupport)} / 空间 ${格式化场景比例(data.contourSpaceSupport)} / 断裂 ${data.depthBreakContourCount || 0} / 无效 ${data.invalidDepthContourCount || 0} / 补全 ${data.filledDepthContourCount || 0} / 低置信 ${data.lowConfidenceContourCount || 0}`);
+      设置自我场景文本('scene-gap-stat', `状态 ${data.observationGapState || 0} / 原因 ${data.observationMissingReason || 0} / 待补区域 ${data.refillObservationRegionCount || 0} / 诊断矩形 ${data.diagnosticRegionCount || 0}:${data.diagnosticRegionSetState || 0}:${data.diagnosticRegionMaskState || 0} / 建议 ${data.observationSuggestion || 0}`);
+      设置自我场景文本('scene-gap-candidate-stat', `补全 ${data.completionCandidateCount || 0} / 条件不足 ${data.insufficientCandidateCount || 0} / 待验证 ${data.pendingVerifyCandidateCount || 0} / 部分确认 ${data.partialConfirmCandidateCount || 0}`);
+      更新自我场景图层摘要();
+    }
+
+)HTML";
+    输出 << R"HTML(
+    function 场景向量减(a, b) {
+      return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+    }
+
+    function 场景向量叉乘(a, b) {
+      return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+      ];
+    }
+
+    function 场景向量点乘(a, b) {
+      return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    }
+
+    function 场景向量归一(v) {
+      const len = Math.hypot(v[0], v[1], v[2]) || 1;
+      return [v[0] / len, v[1] / len, v[2] / len];
+    }
+
+    function 场景矩阵相乘(a, b) {
+      const out = new Float32Array(16);
+      for (let col = 0; col < 4; ++col) {
+        for (let row = 0; row < 4; ++row) {
+          out[col * 4 + row] =
+            a[0 * 4 + row] * b[col * 4 + 0]
+            + a[1 * 4 + row] * b[col * 4 + 1]
+            + a[2 * 4 + row] * b[col * 4 + 2]
+            + a[3 * 4 + row] * b[col * 4 + 3];
+        }
+      }
+      return out;
+    }
+
+    function 场景透视矩阵(fovy, aspect, near, far) {
+      const f = 1 / Math.tan(fovy / 2);
+      const range = 1 / (near - far);
+      return new Float32Array([
+        f / aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (far + near) * range, -1,
+        0, 0, 2 * far * near * range, 0
+      ]);
+    }
+
+    function 场景视图矩阵(eye, center, up) {
+      const f = 场景向量归一(场景向量减(center, eye));
+      const s = 场景向量归一(场景向量叉乘(f, up));
+      const u = 场景向量叉乘(s, f);
+      return new Float32Array([
+        s[0], u[0], -f[0], 0,
+        s[1], u[1], -f[1], 0,
+        s[2], u[2], -f[2], 0,
+        -场景向量点乘(s, eye), -场景向量点乘(u, eye), 场景向量点乘(f, eye), 1
+      ]);
+    }
+
+    function 编译自我场景着色器(gl, type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        const log = gl.getShaderInfoLog(shader) || 'shader compile failed';
+        gl.deleteShader(shader);
+        throw new Error(log);
+      }
+      return shader;
+    }
+
+    function 创建自我场景程序(gl) {
+      const vertex = 编译自我场景着色器(gl, gl.VERTEX_SHADER, `
+        attribute vec3 a_position;
+        attribute vec3 a_color;
+        uniform mat4 u_matrix;
+        varying vec3 v_color;
+        void main() {
+          gl_Position = u_matrix * vec4(a_position, 1.0);
+          gl_PointSize = 9.0;
+          v_color = a_color;
+        }
+      `);
+      const fragment = 编译自我场景着色器(gl, gl.FRAGMENT_SHADER, `
+        precision mediump float;
+        varying vec3 v_color;
+        void main() {
+          gl_FragColor = vec4(v_color, 1.0);
+        }
+      `);
+      const program = gl.createProgram();
+      gl.attachShader(program, vertex);
+      gl.attachShader(program, fragment);
+      gl.linkProgram(program);
+      gl.deleteShader(vertex);
+      gl.deleteShader(fragment);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        const log = gl.getProgramInfoLog(program) || 'program link failed';
+        gl.deleteProgram(program);
+        throw new Error(log);
+      }
+      return program;
+    }
+
+)HTML";
+    输出 << R"HTML(
+    function 取自我场景范围(data) {
+      const candidate = data?.candidate || {};
+      const valid = !!candidate.valid;
+      const min = valid ? [...candidate.min] : [-1000, -100, -1000];
+      const max = valid ? [...candidate.max] : [1000, 900, 1000];
+      const points = [[0, 0, 0]];
+      if (valid) {
+        points.push(candidate.center || [0, 0, 0]);
+      }
+      points.forEach((p) => {
+        for (let i = 0; i < 3; ++i) {
+          min[i] = Math.min(min[i], Number(p[i] || 0));
+          max[i] = Math.max(max[i], Number(p[i] || 0));
+        }
+      });
+      const pad = Math.max(100, Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2]) * 0.18);
+      for (let i = 0; i < 3; ++i) {
+        min[i] -= pad;
+        max[i] += pad;
+      }
+      const center = [
+        (min[0] + max[0]) / 2,
+        (min[1] + max[1]) / 2,
+        (min[2] + max[2]) / 2
+      ];
+      const extent = Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2], 1);
+      return { min, max, center, extent, scale: 4 / extent };
+    }
+
+    function 构建自我场景几何(data) {
+      const range = 取自我场景范围(data || {});
+      const lines = [];
+      const points = [];
+      const transform = (p) => [
+        (Number(p[0] || 0) - range.center[0]) * range.scale,
+        (Number(p[1] || 0) - range.center[1]) * range.scale,
+        (Number(p[2] || 0) - range.center[2]) * range.scale
+      ];
+      const pushVertex = (target, p, color) => {
+        const q = transform(p);
+        target.push(q[0], q[1], q[2], color[0], color[1], color[2]);
+      };
+      const pushLine = (a, b, color) => {
+        pushVertex(lines, a, color);
+        pushVertex(lines, b, color);
+      };
+      const pushPoint = (p, color) => pushVertex(points, p, color);
+
+      const gridColor = [0.17, 0.26, 0.29];
+      const y = Math.min(0, range.min[1]);
+      const steps = 10;
+      for (let i = 0; i <= steps; ++i) {
+        const t = i / steps;
+        const x = range.min[0] + (range.max[0] - range.min[0]) * t;
+        const z = range.min[2] + (range.max[2] - range.min[2]) * t;
+        pushLine([x, y, range.min[2]], [x, y, range.max[2]], gridColor);
+        pushLine([range.min[0], y, z], [range.max[0], y, z], gridColor);
+      }
+
+      const axisLen = range.extent * 0.45;
+      pushLine([0, 0, 0], [axisLen, 0, 0], [0.95, 0.38, 0.38]);
+      pushLine([0, 0, 0], [0, axisLen, 0], [0.2, 0.83, 0.52]);
+      pushLine([0, 0, 0], [0, 0, axisLen], [0.38, 0.65, 0.98]);
+      pushPoint([0, 0, 0], [1.0, 1.0, 1.0]);
+
+      const candidate = data?.candidate || {};
+      if (candidate.valid) {
+        const mn = candidate.min || [0, 0, 0];
+        const mx = candidate.max || [0, 0, 0];
+        const boxColor = data?.verifiedFlag ? [0.06, 0.84, 0.56] : [0.96, 0.58, 0.12];
+        const pointColor = data?.verifiedFlag ? [0.78, 1.0, 0.72] : [0.06, 0.84, 0.56];
+        const corners = [
+          [mn[0], mn[1], mn[2]], [mx[0], mn[1], mn[2]], [mx[0], mx[1], mn[2]], [mn[0], mx[1], mn[2]],
+          [mn[0], mn[1], mx[2]], [mx[0], mn[1], mx[2]], [mx[0], mx[1], mx[2]], [mn[0], mx[1], mx[2]]
+        ];
+        [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach((edge) => {
+          pushLine(corners[edge[0]], corners[edge[1]], boxColor);
+        });
+        pushPoint(candidate.center || [0, 0, 0], pointColor);
+      }
+
+      return {
+        lineData: new Float32Array(lines),
+        pointData: new Float32Array(points),
+        lineCount: lines.length / 6,
+        pointCount: points.length / 6
+      };
+    }
+
+)HTML";
+    输出 << R"HTML(
+    function 调整自我场景画布尺寸(gl, canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const width = Math.max(1, Math.floor((rect.width || canvas.clientWidth || 960) * window.devicePixelRatio));
+      const height = Math.max(1, Math.floor((rect.height || canvas.clientHeight || 540) * window.devicePixelRatio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+
+    function 绘制自我场景诊断覆盖层() {
+      const overlay = document.getElementById('self-scene-layer-overlay');
+      const source = document.getElementById('self-scene-gl');
+      if (!overlay || !source) return;
+      const rect = source.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.max(1, Math.floor((rect.width || source.clientWidth || 960) * dpr));
+      const height = Math.max(1, Math.floor((rect.height || source.clientHeight || 540) * dpr));
+      if (overlay.width !== width || overlay.height !== height) {
+        overlay.width = width;
+        overlay.height = height;
+      }
+      const ctx = overlay.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const cssWidth = width / dpr;
+      const cssHeight = height / dpr;
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+      const data = 自我场景复现数据 || {};
+      if (!data.ok) return;
+      const summary = 读取自我场景图层摘要(data);
+      const regions = 读取自我场景诊断区域(data).filter((region) => {
+        const layerId = 自我场景区域图层ID(region.layer);
+        return layerId && 自我场景图层启用(layerId);
+      });
+      const layers = [
+        {
+          id: 'depth-hole',
+          name: '深度空洞',
+          value: summary.depthHoleRatio,
+          color: '#ef4444',
+          text: `${data.depthHoleRegions || 0}区`
+        },
+        {
+          id: 'filled-depth',
+          name: '补全深度',
+          value: summary.filledRatio,
+          color: '#facc15',
+          text: `${data.completionCandidateCount || 0}候选`
+        },
+        {
+          id: 'unexplained',
+          name: '未解释',
+          value: summary.unexplainedRatio,
+          color: '#a78bfa',
+          text: `${data.refillObservationRegionCount || 0}待补`
+        },
+        {
+          id: 'contour-risk',
+          name: '轮廓风险',
+          value: summary.contourRiskRatio,
+          color: '#fb7185',
+          text: `${summary.contourRiskCount || 0}项`
+        }
+      ].filter((item) => 自我场景图层启用(item.id));
+
+      if (layers.length === 0) return;
+      const panelWidth = Math.min(430, Math.max(280, cssWidth * 0.46));
+      const rowHeight = 26;
+      const panelHeight = 44 + layers.length * rowHeight;
+      const x = 18;
+      const y = 18;
+      ctx.fillStyle = 'rgba(8, 13, 18, 0.72)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x, y, panelWidth, panelHeight, 8);
+      } else {
+        ctx.rect(x, y, panelWidth, panelHeight);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.86)';
+      ctx.font = '700 12px system-ui, sans-serif';
+      ctx.fillText(regions.length > 0 ? '诊断区域矩形' : '诊断区域摘要覆盖', x + 12, y + 22);
+      ctx.font = '12px system-ui, sans-serif';
+      layers.forEach((layer, index) => {
+        const rowY = y + 42 + index * rowHeight;
+        const barX = x + 82;
+        const barWidth = panelWidth - 170;
+        const activeWidth = Math.max(2, barWidth * 场景万分比(layer.value) / 10000);
+        ctx.fillStyle = 'rgba(255,255,255,0.68)';
+        ctx.fillText(layer.name, x + 12, rowY + 12);
+        ctx.fillStyle = 'rgba(255,255,255,0.14)';
+        ctx.fillRect(barX, rowY, barWidth, 12);
+        ctx.fillStyle = layer.color;
+        ctx.globalAlpha = 0.86;
+        ctx.fillRect(barX, rowY, activeWidth, 12);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = 'rgba(255,255,255,0.78)';
+        ctx.fillText(`${layer.value}/10000 ${layer.text}`, barX + barWidth + 10, rowY + 11);
+      });
+
+      if (regions.length === 0) {
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.fillText('几何待落账', Math.max(18, cssWidth - 98), Math.max(32, cssHeight - 18));
+        return;
+      }
+
+      const frameW = Math.max(1, Number(data.width || 0));
+      const frameH = Math.max(1, Number(data.height || 0));
+      const mapMaxWidth = Math.min(430, Math.max(260, cssWidth * 0.44));
+      const mapWidth = Math.max(220, Math.min(mapMaxWidth, cssWidth - 36));
+      const mapHeight = Math.max(140, Math.min(260, mapWidth * frameH / frameW + 36));
+      const mapX = 18;
+      const mapY = y + panelHeight + 14;
+      if (mapY + mapHeight + 10 > cssHeight) {
+        ctx.fillStyle = 'rgba(255,255,255,0.62)';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.fillText(`${regions.length} 矩形`, Math.max(18, cssWidth - 88), Math.max(32, cssHeight - 18));
+        return;
+      }
+
+      ctx.fillStyle = 'rgba(8, 13, 18, 0.66)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(mapX, mapY, mapWidth, mapHeight, 8);
+      } else {
+        ctx.rect(mapX, mapY, mapWidth, mapHeight);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.82)';
+      ctx.font = '700 12px system-ui, sans-serif';
+      ctx.fillText(`${regions.length}/${data.diagnosticRegionCount || regions.length} 矩形`, mapX + 12, mapY + 21);
+
+      const innerX = mapX + 12;
+      const innerY = mapY + 32;
+      const innerW = mapWidth - 24;
+      const innerH = mapHeight - 44;
+      const scale = Math.min(innerW / frameW, innerH / frameH);
+      const drawW = frameW * scale;
+      const drawH = frameH * scale;
+      const originX = innerX + (innerW - drawW) / 2;
+      const originY = innerY + (innerH - drawH) / 2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+      ctx.strokeRect(originX, originY, drawW, drawH);
+
+      regions.slice(0, 180).forEach((region) => {
+        const rect = region.rect || [0, 0, 0, 0];
+        const minX = Math.max(0, Math.min(frameW - 1, Number(rect[0] || 0)));
+        const minY = Math.max(0, Math.min(frameH - 1, Number(rect[1] || 0)));
+        const maxX = Math.max(0, Math.min(frameW - 1, Number(rect[2] || 0)));
+        const maxY = Math.max(0, Math.min(frameH - 1, Number(rect[3] || 0)));
+        const rx = originX + Math.min(minX, maxX) * scale;
+        const ry = originY + Math.min(minY, maxY) * scale;
+        const rw = Math.max(2, (Math.abs(maxX - minX) + 1) * scale);
+        const rh = Math.max(2, (Math.abs(maxY - minY) + 1) * scale);
+        const color = 自我场景区域颜色(region.layer);
+        ctx.globalAlpha = region.layer === 1 ? 0.24 : 0.18;
+        ctx.fillStyle = color;
+        ctx.fillRect(rx, ry, rw, rh);
+        ctx.globalAlpha = 0.88;
+        ctx.strokeStyle = color;
+        ctx.strokeRect(rx, ry, rw, rh);
+      });
+      ctx.globalAlpha = 1;
+    }
+
+)HTML";
+    输出 << R"HTML(
+    function 初始化自我场景WebGL() {
+      if (自我场景GL状态) return 自我场景GL状态;
+      更新自我场景统计();
+      const canvas = document.getElementById('self-scene-gl');
+      if (!canvas) return null;
+      const gl = canvas.getContext('webgl', { antialias: true, alpha: false }) || canvas.getContext('experimental-webgl');
+      if (!gl) {
+        设置自我场景状态('OpenGL(WebGL) 初始化失败。', 'error');
+        return null;
+      }
+      try {
+        const program = 创建自我场景程序(gl);
+        const geometry = 构建自我场景几何(自我场景复现数据 || {});
+        const lineBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, geometry.lineData, gl.STATIC_DRAW);
+        const pointBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, geometry.pointData, gl.STATIC_DRAW);
+        自我场景GL状态 = {
+          gl,
+          canvas,
+          program,
+          lineBuffer,
+          pointBuffer,
+          lineCount: geometry.lineCount,
+          pointCount: geometry.pointCount,
+          position: gl.getAttribLocation(program, 'a_position'),
+          color: gl.getAttribLocation(program, 'a_color'),
+          matrix: gl.getUniformLocation(program, 'u_matrix'),
+          angle: 0.72,
+          rotating: true,
+          frame: 0
+        };
+        设置自我场景状态(
+          (自我场景复现数据 && 自我场景复现数据.ok)
+            ? '已用自我所在场景快照完成 OpenGL 复现。'
+            : '自我所在场景暂无可复现快照，已显示坐标基准。',
+          (自我场景复现数据 && 自我场景复现数据.ok) ? 'ok' : '');
+      } catch (error) {
+        设置自我场景状态(`OpenGL(WebGL) 渲染准备失败：${error.message || error}`, 'error');
+        自我场景GL状态 = null;
+      }
+      return 自我场景GL状态;
+    }
+
+    function 绘制自我场景() {
+      const state = 初始化自我场景WebGL();
+      if (!state) return;
+      const { gl, canvas, program } = state;
+      调整自我场景画布尺寸(gl, canvas);
+      gl.clearColor(0.03, 0.05, 0.07, 1);
+      gl.clearDepth(1);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LEQUAL);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.useProgram(program);
+
+      const aspect = Math.max(1, canvas.width) / Math.max(1, canvas.height);
+      const angle = state.angle;
+      const eye = [Math.sin(angle) * 6.4, 3.7, Math.cos(angle) * 6.4];
+      const projection = 场景透视矩阵(Math.PI / 4.5, aspect, 0.1, 100);
+      const view = 场景视图矩阵(eye, [0, 0, 0], [0, 1, 0]);
+      const matrix = 场景矩阵相乘(projection, view);
+      gl.uniformMatrix4fv(state.matrix, false, matrix);
+
+      const bindGeometry = (buffer) => {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.enableVertexAttribArray(state.position);
+        gl.vertexAttribPointer(state.position, 3, gl.FLOAT, false, 24, 0);
+        gl.enableVertexAttribArray(state.color);
+        gl.vertexAttribPointer(state.color, 3, gl.FLOAT, false, 24, 12);
+      };
+
+      bindGeometry(state.lineBuffer);
+      if (state.lineCount > 0) {
+        gl.drawArrays(gl.LINES, 0, state.lineCount);
+      }
+      bindGeometry(state.pointBuffer);
+      if (state.pointCount > 0) {
+        gl.drawArrays(gl.POINTS, 0, state.pointCount);
+      }
+      绘制自我场景诊断覆盖层();
+
+      if (state.rotating && document.querySelector('.page.active')?.dataset.page === 'self-scene') {
+        state.angle += 0.006;
+      }
+      state.frame = window.requestAnimationFrame(绘制自我场景);
+    }
+
+    function 请求绘制自我场景() {
+      const state = 初始化自我场景WebGL();
+      if (!state) return;
+      if (!state.frame) {
+        绘制自我场景();
+      }
+    }
+
+    function 重置自我场景视角() {
+      const state = 初始化自我场景WebGL();
+      if (!state) return;
+      state.angle = 0.72;
+      请求绘制自我场景();
+    }
+
+    function 切换自我场景旋转() {
+      const state = 初始化自我场景WebGL();
+      if (!state) return;
+      state.rotating = !state.rotating;
+      const button = document.getElementById('scene-toggle-rotation');
+      if (button) {
+        button.textContent = state.rotating ? '暂停旋转' : '继续旋转';
+      }
+      请求绘制自我场景();
     }
 
 )HTML";
@@ -8710,6 +10448,25 @@ std::string 生成控制面板HTML(
     if (相机停止按钮) {
       相机停止按钮.addEventListener('click', 停止相机采集);
     }
+
+    const 自我场景重置按钮 = document.getElementById('scene-reset-view');
+    const 自我场景旋转按钮 = document.getElementById('scene-toggle-rotation');
+    if (自我场景重置按钮) {
+      自我场景重置按钮.addEventListener('click', 重置自我场景视角);
+    }
+    if (自我场景旋转按钮) {
+      自我场景旋转按钮.addEventListener('click', 切换自我场景旋转);
+    }
+    ['depth-hole', 'filled-depth', 'unexplained', 'contour-risk'].forEach((layerId) => {
+      const checkbox = document.getElementById(`scene-layer-${layerId}`);
+      if (checkbox) {
+        checkbox.addEventListener('change', () => {
+          绘制自我场景诊断覆盖层();
+          请求绘制自我场景();
+        });
+      }
+    });
+    window.addEventListener('resize', 请求绘制自我场景);
 
     document.getElementById('refresh-page').addEventListener('click', () => {
       if (window.chrome && window.chrome.webview) {

@@ -399,6 +399,225 @@
       line-height:1.4;
       word-break:break-word;
     }
+    .scene-control{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+    .scene-status{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+      word-break:break-word;
+    }
+    .scene-status.ok{color:var(--accent);font-weight:700}
+    .scene-status.error{color:var(--danger);font-weight:700}
+    .scene-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .scene-btn{
+      min-height:44px;
+      padding:0 16px;
+      border:none;
+      border-radius:8px;
+      background:var(--accent);
+      color:#fff;
+      cursor:pointer;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .scene-btn.secondary{
+      background:#eef3f7;
+      border:1px solid rgba(15,118,110,.18);
+      color:var(--ink);
+    }
+    .scene-layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.4fr) minmax(320px,.6fr);
+      gap:18px;
+      align-items:start;
+    }
+    .scene-side{
+      min-width:0;
+      display:grid;
+      gap:18px;
+    }
+    .scene-viewer{min-width:0}
+    .scene-canvas-shell{
+      position:relative;
+      aspect-ratio:16/9;
+      min-height:360px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.12);
+      background:#080d12;
+      overflow:hidden;
+    }
+    .scene-canvas{
+      width:100%;
+      height:100%;
+      display:block;
+      background:#080d12;
+    }
+    .scene-layer-overlay{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      pointer-events:none;
+    }
+    .scene-legend{
+      margin-top:14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .scene-legend span{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .scene-legend i{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      display:inline-block;
+      background:var(--accent);
+    }
+    .scene-legend .x i{background:#f87171}
+    .scene-legend .y i{background:#34d399}
+    .scene-legend .z i{background:#60a5fa}
+    .scene-legend .box i{background:#f59e0b}
+    .scene-legend .depth-hole i{background:#ef4444}
+    .scene-legend .filled-depth i{background:#facc15}
+    .scene-legend .unexplained i{background:#a78bfa}
+    .scene-legend .contour-risk i{background:#fb7185}
+    .scene-stat-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .scene-stat{
+      min-width:0;
+      padding:12px 14px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+    }
+    .scene-stat-label{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .scene-stat-value{
+      margin-top:6px;
+      font-size:15px;
+      font-weight:800;
+      line-height:1.5;
+      word-break:break-word;
+    }
+    .scene-diagnostic-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .scene-diagnostic-row{
+      min-width:0;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+    }
+    .scene-diagnostic-label{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .scene-diagnostic-value{
+      margin-top:6px;
+      font-size:14px;
+      font-weight:800;
+      line-height:1.55;
+      word-break:break-word;
+    }
+    .scene-layer-controls{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .scene-layer-toggle{
+      min-width:0;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+      color:var(--ink);
+      font-size:13px;
+      font-weight:700;
+      line-height:1.45;
+    }
+    .scene-layer-toggle input{accent-color:var(--accent)}
+    .scene-layer-status{
+      margin-top:12px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+      word-break:break-word;
+    }
+    .scene-layer-grid{
+      margin-top:12px;
+      display:grid;
+      gap:10px;
+    }
+    .scene-layer-row{
+      min-width:0;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+    }
+    .scene-layer-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .scene-layer-value{
+      color:var(--ink);
+      font-weight:800;
+      word-break:break-word;
+    }
+    .scene-layer-meter{
+      margin-top:8px;
+      height:7px;
+      border-radius:999px;
+      overflow:hidden;
+      background:rgba(15,23,42,.08);
+    }
+    .scene-layer-meter span{
+      display:block;
+      width:0%;
+      height:100%;
+      border-radius:999px;
+      background:var(--accent);
+    }
+    .scene-layer-row.depth-hole .scene-layer-meter span{background:#ef4444}
+    .scene-layer-row.filled-depth .scene-layer-meter span{background:#facc15}
+    .scene-layer-row.unexplained .scene-layer-meter span{background:#a78bfa}
+    .scene-layer-row.contour-risk .scene-layer-meter span{background:#fb7185}
 
     .workspace{
       display:grid;
@@ -731,6 +950,7 @@
       .overview{grid-template-columns:repeat(2,minmax(0,1fr))}
       .workspace{grid-template-columns:1fr}
       .camera-layout{grid-template-columns:1fr}
+      .scene-layout{grid-template-columns:1fr}
       .settings-layout{grid-template-columns:1fr}
       .detail-panel{position:static}
       .tree-shell{max-height:none}
@@ -754,6 +974,13 @@
       .camera-actions{width:100%}
       .camera-btn{flex:1 1 140px}
       .camera-stat-grid{grid-template-columns:1fr}
+      .scene-control{align-items:flex-start}
+      .scene-actions{width:100%}
+      .scene-btn{flex:1 1 140px}
+      .scene-stat-grid{grid-template-columns:1fr}
+      .scene-diagnostic-grid{grid-template-columns:1fr}
+      .scene-layer-controls{grid-template-columns:1fr}
+      .scene-canvas-shell{min-height:280px}
     }
   </style>
 </head><body>
@@ -764,12 +991,14 @@
         <h1>鱼巢</h1>
         <p>需求、任务、方法和线程运行总览。</p>
         <nav class="nav" aria-label="控制面板菜单">
-          <button class="menu-item active" type="button" data-page="thread-status"><span>线程状态</span><span class="menu-badge">5</span></button>
-          <button class="menu-item" type="button" data-page="world-tree"><span>世界树</span><span class="menu-badge">2034</span></button>
+          <button class="menu-item active" type="button" data-page="thread-status"><span>线程状态</span><span class="menu-badge">7</span></button>
+          <button class="menu-item" type="button" data-page="world-tree"><span>世界树</span><span class="menu-badge">53766</span></button>
+          <button class="menu-item" type="button" data-page="causal-info"><span>因果信息</span><span class="menu-badge">0</span></button>
           <button class="menu-item" type="button" data-page="need-tree"><span>需求树</span><span class="menu-badge">13</span></button>
           <button class="menu-item" type="button" data-page="need-list"><span>需求列表</span><span class="menu-badge">13</span></button>
           <button class="menu-item" type="button" data-page="task-tree"><span>任务树</span><span class="menu-badge">0</span></button>
-          <button class="menu-item" type="button" data-page="method-tree"><span>方法树</span><span class="menu-badge">29</span></button>
+          <button class="menu-item" type="button" data-page="method-tree"><span>方法树</span><span class="menu-badge">125</span></button>
+          <button class="menu-item" type="button" data-page="self-scene"><span>自我所在场景</span><span class="menu-badge">候选 69</span></button>
           <button class="menu-item" type="button" data-page="camera-view"><span>相机画面</span><span class="menu-badge">D455</span></button>
           <button class="menu-item" type="button" data-page="settings"><span>参数设定</span><span class="menu-badge">20</span></button>
         </nav>
@@ -791,7 +1020,7 @@
           <div class="status-card">
             <div class="status-head"><span>自我</span><span class="status-dot ok"></span></div>
             <div class="status-value">已建立</div>
-            <div class="status-meta">安全=2305843009213693951 | 服务=4611686018427387903 | 风险安全=9223372036854775807 | 待处理方法=0 | 可用方法=9</div>
+            <div class="status-meta">安全=2305843009213693951 | 服务=4611686018427387903 | 风险安全=9223372036854775807 | 待处理方法=0 | 可用方法=41</div>
           </div>
           <div class="status-card">
             <div class="status-head"><span>自我线程</span><span class="status-dot ok"></span></div>
@@ -815,7 +1044,7 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>线程状态</h3>
-              <div class="summary">自我线程阶段=未定义 | 去向=未定义 | 任务界面线程=否 | 最近巡检=0/0 | 工作线程=否 | 系统线程数=5</div>
+              <div class="summary">自我线程阶段=未定义 | 去向=未定义 | 任务界面线程=否 | 最近巡检=0/0 | 工作线程=否 | 系统线程数=7</div>
               <div class="tree-toolbar"><div class="tree-hint">结构节点与字段摘要</div></div>
               <div class="tree-shell"><div id="tree-thread-status"></div></div>
             </section>
@@ -828,11 +1057,24 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>世界树</h3>
-              <div class="summary">节点仓库=基础信息类 | 基础节点=2034 | 场景=26 | 存在=38 | 状态=42 | 动态=13 | 因果模板=0</div>
+              <div class="summary">节点仓库=基础信息类 | 基础节点=53766 | 场景=90 | 存在=1996 | 状态=123 | 动态=30 | 因果模板=0</div>
               <div class="tree-toolbar"><div class="tree-hint">结构节点与字段摘要</div></div>
               <div class="tree-shell"><div id="tree-world-tree"></div></div>
             </section>
             <aside class="panel detail-panel"><div id="detail-world-tree" class="detail-host"></div></aside>
+          </div>
+        </section>
+
+        <section class="page" data-page="causal-info" data-title="因果信息" data-subtitle="当前世界树中记录的抽象因果、实例因果和证据动态样本。">
+          <div class="workspace">
+            <section class="panel tree-panel">
+              <div class="panel-topline">因果账本</div>
+              <h3>因果信息</h3>
+              <div class="summary">抽象因果=0 | 实例因果=0 | 证据动态样本=0 | 来源=世界树因果主信息</div>
+              <div class="tree-toolbar"><div class="tree-hint">结构节点与字段摘要</div></div>
+              <div class="tree-shell"><div id="tree-causal-info"></div></div>
+            </section>
+            <aside class="panel detail-panel"><div id="detail-causal-info" class="detail-host"></div></aside>
           </div>
         </section>
 
@@ -880,11 +1122,155 @@
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
               <h3>方法树</h3>
-              <div class="summary">方法数=29 | 首节点=11 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0 | 缺口承接=已接管</div>
+              <div class="summary">方法数=125 | 首节点=43 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0 | 缺口承接=已接管</div>
               <div class="tree-toolbar"><div class="tree-hint">结构节点与字段摘要</div></div>
               <div class="tree-shell"><div id="tree-method-tree"></div></div>
             </section>
             <aside class="panel detail-panel"><div id="detail-method-tree" class="detail-host"></div></aside>
+          </div>
+        </section>
+
+        <section class="page" data-page="self-scene" data-title="自我所在场景" data-subtitle="读取自我所在场景中的观察帧、空间候选和观察存在快照，以 OpenGL 复现空间解释层。">
+          <section class="panel scene-control">
+            <div>
+              <div class="panel-topline">OpenGL</div>
+              <h3>自我所在场景</h3>
+              <div class="summary">场景=自我所在场景#8I | 地址=0x286BA5862D0 | 宿主=复现宿主#8I | 地址=0x286BA5862D0 | 观察帧=1 | 帧=640x480 | 像素特征=307200 | 质量=5545 | 空间候选=69 | 已验证观察存在=21 | 补观察缺口=1 | 待补区域=1168 | 帧解释=1</div>
+              <div id="self-scene-status" class="scene-status" role="status">等待渲染</div>
+            </div>
+            <div class="scene-actions">
+              <button id="scene-reset-view" class="scene-btn secondary" type="button">重置视角</button>
+              <button id="scene-toggle-rotation" class="scene-btn" type="button">暂停旋转</button>
+            </div>
+          </section>
+          <div class="scene-layout">
+            <section class="panel scene-viewer">
+              <div class="scene-canvas-shell">
+                <canvas id="self-scene-gl" class="scene-canvas" width="960" height="540"></canvas>
+                <canvas id="self-scene-layer-overlay" class="scene-layer-overlay" width="960" height="540"></canvas>
+              </div>
+              <div class="scene-legend" aria-label="场景复现图例">
+                <span class="x"><i></i>X</span>
+                <span class="y"><i></i>Y</span>
+                <span class="z"><i></i>Z</span>
+                <span class="box"><i></i>AABB</span>
+                <span class="depth-hole"><i></i>深度空洞</span>
+                <span class="filled-depth"><i></i>补全深度</span>
+                <span class="unexplained"><i></i>未解释</span>
+                <span class="contour-risk"><i></i>轮廓风险</span>
+              </div>
+            </section>
+            <div class="scene-side">
+              <aside class="panel">
+                <div class="panel-topline">场景快照</div>
+                <h3>空间解释</h3>
+                <div class="scene-stat-grid" aria-label="自我所在场景复现状态">
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">帧尺寸</div>
+                    <div id="scene-frame-size-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">帧号</div>
+                    <div id="scene-frame-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">像素特征</div>
+                    <div id="scene-pixel-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">空间候选</div>
+                    <div id="scene-candidate-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">中心坐标</div>
+                    <div id="scene-center-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">范围 AABB</div>
+                    <div id="scene-aabb-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">连续 / 稳定</div>
+                    <div id="scene-score-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">验证状态</div>
+                    <div id="scene-verify-stat" class="scene-stat-value">--</div>
+                  </div>
+                </div>
+              </aside>
+              <aside class="panel">
+                <div class="panel-topline">区域图层</div>
+                <h3>诊断区域</h3>
+                <div class="scene-layer-controls" aria-label="诊断区域图层开关">
+                  <label class="scene-layer-toggle"><input id="scene-layer-depth-hole" type="checkbox" checked>深度空洞</label>
+                  <label class="scene-layer-toggle"><input id="scene-layer-filled-depth" type="checkbox" checked>补全深度</label>
+                  <label class="scene-layer-toggle"><input id="scene-layer-unexplained" type="checkbox" checked>未解释</label>
+                  <label class="scene-layer-toggle"><input id="scene-layer-contour-risk" type="checkbox" checked>轮廓风险</label>
+                </div>
+                <div id="scene-layer-status" class="scene-layer-status">等待图层数据</div>
+                <div class="scene-layer-grid" aria-label="诊断区域图层摘要">
+                  <div class="scene-layer-row depth-hole">
+                    <div class="scene-layer-head"><span>深度空洞区域</span><span id="scene-layer-depth-hole-value" class="scene-layer-value">--</span></div>
+                    <div class="scene-layer-meter"><span id="scene-layer-depth-hole-meter"></span></div>
+                  </div>
+                  <div class="scene-layer-row filled-depth">
+                    <div class="scene-layer-head"><span>补全深度区域</span><span id="scene-layer-filled-depth-value" class="scene-layer-value">--</span></div>
+                    <div class="scene-layer-meter"><span id="scene-layer-filled-depth-meter"></span></div>
+                  </div>
+                  <div class="scene-layer-row unexplained">
+                    <div class="scene-layer-head"><span>未解释区域</span><span id="scene-layer-unexplained-value" class="scene-layer-value">--</span></div>
+                    <div class="scene-layer-meter"><span id="scene-layer-unexplained-meter"></span></div>
+                  </div>
+                  <div class="scene-layer-row contour-risk">
+                    <div class="scene-layer-head"><span>轮廓风险区域</span><span id="scene-layer-contour-risk-value" class="scene-layer-value">--</span></div>
+                    <div class="scene-layer-meter"><span id="scene-layer-contour-risk-meter"></span></div>
+                  </div>
+                </div>
+              </aside>
+              <aside class="panel">
+                <div class="panel-topline">诊断摘要</div>
+                <h3>观察质量</h3>
+                <div class="scene-diagnostic-grid" aria-label="观察质量诊断摘要">
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">结构状态</div>
+                    <div id="scene-quality-structure-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">质量比例</div>
+                    <div id="scene-quality-ratio-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">深度来源</div>
+                    <div id="scene-depth-source-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">深度稳定</div>
+                    <div id="scene-depth-stability-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">多帧融合</div>
+                    <div id="scene-fusion-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">轮廓证据</div>
+                    <div id="scene-contour-layer-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">轮廓风险</div>
+                    <div id="scene-contour-risk-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">补观察缺口</div>
+                    <div id="scene-gap-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">补偿候选</div>
+                    <div id="scene-gap-candidate-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                </div>
+              </aside>
+            </div>
           </div>
         </section>
 
@@ -1057,6 +1443,11 @@
         detailHost: 'detail-world-tree',
         detailHint: '世界树页展示基础信息类仓库；右侧只展示当前节点主信息字段，父子上下结构以中间树为准。'
       },
+      'causal-info': {
+        treeHost: 'tree-causal-info',
+        detailHost: 'detail-causal-info',
+        detailHint: '因果主信息字段；抽象因果、实例因果和证据动态样本均来自当前世界树。'
+      },
       'need-tree': {
         treeHost: 'tree-need-tree',
         detailHost: 'detail-need-tree',
@@ -1085,14 +1476,16 @@
     };
 
     const 页面树数据 = {
-      "thread-status": {"ptr":0,"arg":0,"text":"线程状态 | 系统线程=5 | 自我线程=未定义","open":true,"lazy":false,"expandType":"","children":[{"ptr":1,"arg":0,"text":"自我线程 | 生命周期=未启动 | 阶段=未定义 | Tick=0","open":false,"lazy":false,"expandType":"thread-self","children":[]},{"ptr":5,"arg":0,"text":"任务管理界面线程 | 启动=否 | 处理=否 | 请求=0 | 巡检=0/0 | 等待工作项=0 | 上行=0","open":false,"lazy":false,"expandType":"thread-task-interface","children":[]},{"ptr":2,"arg":0,"text":"任务管理工作线程 | 启动=否 | 执行=否 | 排队=0 | 推进=0","open":false,"lazy":false,"expandType":"thread-worker","children":[]},{"ptr":4,"arg":0,"text":"控制面板摘要线程 | 生命周期=启动中 | 健康=是 | 快照=1","open":false,"lazy":false,"expandType":"thread-summary","children":[]},{"ptr":3,"arg":0,"text":"系统线程摘要 | 当前进程线程数=5","open":false,"lazy":false,"expandType":"thread-system","children":[]}]},
-      "world-tree": {"ptr":0,"arg":0,"text":"世界树 | 节点仓库=基础信息类 | 基础节点=2034 | 场景=26 | 存在=38","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443405089728,"arg":0,"text":"基础信息仓库根 | 主信息=空","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2443405254336,"arg":0,"text":"主信息=场景 | 现实世界 | 子=1 | 主键=2 | 子主信息=场景1","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2443435228768,"arg":0,"text":"主信息=场景 | 自我初始场景 | 子=15 | 主键=7m | 子主信息=二次特征7/状态4/动态2/存在1/其余1 | 当前现实场景","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2443435217680,"arg":0,"text":"主信息=存在 | 自我 | 子=23 | 主键=7o | 类型=自我类型 | 子主信息=特征22/场景1 | 当前自我存在","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2443435218912,"arg":0,"text":"主信息=场景 | 自我内部世界 | 子=78 | 主键=7p | 子主信息=二次特征30/状态24/存在13/动态11 | 当前内部世界","open":true,"lazy":true,"expandType":"base-node","children":[]}]}]}]}]}]},
-      "need-tree": {"ptr":0,"arg":0,"text":"需求树 | 需求数=13 | 已满足=0 | 状态已达未截止=0 | 未满足=13","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443435249312,"arg":0,"text":"需求树根 | 空 | 子=2 | 主键=D","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2443436737632,"arg":0,"text":"根需求 | 安全根需求 | 子=7 | 主键=1","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2443436734688,"arg":0,"text":"子需求 | 自我运行状态明确状态 | 子=0 | 主键=3","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436735424,"arg":0,"text":"子需求 | 自我运行状态正常状态 | 子=0 | 主键=9","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436733216,"arg":0,"text":"子需求 | 资源状态明确状态 | 子=0 | 主键=8","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436729536,"arg":0,"text":"子需求 | 资源状态足够状态 | 子=0 | 主键=7","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436743520,"arg":0,"text":"子需求 | 权限边界明确状态 | 子=0 | 主键=6","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436731744,"arg":0,"text":"子需求 | 风险状态明确状态 | 子=0 | 主键=5","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436733952,"arg":0,"text":"子需求 | 风险状态可控状态 | 子=0 | 主键=4","open":false,"lazy":true,"expandType":"need-node","children":[]}]},{"ptr":2443436731008,"arg":0,"text":"根需求 | 服务根需求 | 子=4 | 主键=2","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2443436742048,"arg":0,"text":"子需求 | 当前人类服务对象明确状态 | 子=0 | 主键=A","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439301808,"arg":0,"text":"子需求 | 当前交互者明确状态 | 子=0 | 主键=D","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439295184,"arg":0,"text":"子需求 | 当前权限者明确状态 | 子=0 | 主键=C","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439298128,"arg":0,"text":"子需求 | 当前服务目标明确状态 | 子=0 | 主键=B","open":false,"lazy":true,"expandType":"need-node","children":[]}]}]}]},
-      "need-list": {"ptr":0,"arg":0,"text":"需求列表 | 需求数=13","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443436737632,"arg":0,"text":"需求列表项 | 地址=0x238E82DC460 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436734688,"arg":0,"text":"需求列表项 | 地址=0x238E82DB8E0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436735424,"arg":0,"text":"需求列表项 | 地址=0x238E82DBBC0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436733216,"arg":0,"text":"需求列表项 | 地址=0x238E82DB320 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436729536,"arg":0,"text":"需求列表项 | 地址=0x238E82DA4C0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436743520,"arg":0,"text":"需求列表项 | 地址=0x238E82DDB60 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436731744,"arg":0,"text":"需求列表项 | 地址=0x238E82DAD60 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436733952,"arg":0,"text":"需求列表项 | 地址=0x238E82DB600 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436731008,"arg":0,"text":"需求列表项 | 地址=0x238E82DAA80 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443436742048,"arg":0,"text":"需求列表项 | 地址=0x238E82DD5A0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439301808,"arg":0,"text":"需求列表项 | 地址=0x238E854E4B0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439295184,"arg":0,"text":"需求列表项 | 地址=0x238E854CAD0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2443439298128,"arg":0,"text":"需求列表项 | 地址=0x238E854D650 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]}]},
-      "task-tree": {"ptr":0,"arg":0,"text":"任务树 | 任务节点=0 | 头=0 | 步骤=0 | 状态={暂无任务状态}","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443435250048,"arg":0,"text":"任务根节点 |  | 子=0 | 主键=","open":true,"lazy":true,"expandType":"task-node","children":[]}]},
-      "method-tree": {"ptr":0,"arg":0,"text":"方法树 | 方法数=29 | 首节点=11 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0","open":true,"lazy":false,"expandType":"","children":[{"ptr":2443435250496,"arg":0,"text":"未定义 | T | 来源=未定义 | 子=11 | 主键=T | 子种类=方法首节点11","open":true,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435345088,"arg":0,"text":"方法首节点 | 练习 | 来源=本能 | 子=1 | 主键=1 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435275120,"arg":0,"text":"方法条件节点 | 2 | 来源=未定义 | 子=1 | 主键=2 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443437018384,"arg":0,"text":"方法首节点 | 服务值 | 来源=运行时方法沉淀 | 子=0 | 主键=T","open":false,"lazy":true,"expandType":"method-node","children":[]},{"ptr":2443437024000,"arg":0,"text":"方法首节点 | 安全值 | 来源=运行时方法沉淀 | 子=0 | 主键=S","open":false,"lazy":true,"expandType":"method-node","children":[]},{"ptr":2443437016512,"arg":0,"text":"方法首节点 | 提交方法状态变化 | 来源=本能 | 子=1 | 主键=P | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443437024624,"arg":0,"text":"方法条件节点 | Q | 来源=未定义 | 子=1 | 主键=Q | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435843520,"arg":0,"text":"方法首节点 | 建立条件结果对 | 来源=本能 | 子=1 | 主键=M | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443437022752,"arg":0,"text":"方法条件节点 | N | 来源=未定义 | 子=1 | 主键=N | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435842896,"arg":0,"text":"方法首节点 | 提交方法可执行入口 | 来源=本能 | 子=1 | 主键=J | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435831664,"arg":0,"text":"方法条件节点 | K | 来源=未定义 | 子=1 | 主键=K | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435844144,"arg":0,"text":"方法首节点 | 结算叶子任务价值 | 来源=本能 | 子=1 | 主键=G | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435836656,"arg":0,"text":"方法条件节点 | H | 来源=未定义 | 子=1 | 主键=H | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435834160,"arg":0,"text":"方法首节点 | 回写需求满足 | 来源=本能 | 子=1 | 主键=D | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435835408,"arg":0,"text":"方法条件节点 | E | 来源=未定义 | 子=1 | 主键=E | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435846640,"arg":0,"text":"方法首节点 | 提交任务状态变化 | 来源=本能 | 子=1 | 主键=A | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435831040,"arg":0,"text":"方法条件节点 | B | 来源=未定义 | 子=1 | 主键=B | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435276992,"arg":0,"text":"方法首节点 | 定向学习 | 来源=本能 | 子=1 | 主键=7 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435841648,"arg":0,"text":"方法条件节点 | 8 | 来源=未定义 | 子=1 | 主键=8 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2443435272624,"arg":0,"text":"方法首节点 | 尝试学习 | 来源=本能 | 子=1 | 主键=4 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2443435278864,"arg":0,"text":"方法条件节点 | 5 | 来源=未定义 | 子=1 | 主键=5 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]}]}]},
+      "thread-status": {"ptr":0,"arg":0,"text":"线程状态 | 系统线程=7 | 自我线程=未定义","open":true,"lazy":false,"expandType":"","children":[{"ptr":1,"arg":0,"text":"自我线程 | 生命周期=未启动 | 阶段=未定义 | Tick=0","open":false,"lazy":false,"expandType":"thread-self","children":[]},{"ptr":5,"arg":0,"text":"任务管理界面线程 | 启动=否 | 处理=否 | 请求=0 | 巡检=0/0 | 等待工作项=0 | 上行=0","open":false,"lazy":false,"expandType":"thread-task-interface","children":[]},{"ptr":2,"arg":0,"text":"任务管理工作线程 | 启动=否 | 执行=否 | 排队=0 | 推进=0","open":false,"lazy":false,"expandType":"thread-worker","children":[]},{"ptr":4,"arg":0,"text":"控制面板摘要线程 | 生命周期=启动中 | 健康=是 | 快照=1","open":false,"lazy":false,"expandType":"thread-summary","children":[]},{"ptr":3,"arg":0,"text":"系统线程摘要 | 当前进程线程数=7","open":false,"lazy":false,"expandType":"thread-system","children":[]}]},
+      "world-tree": {"ptr":0,"arg":0,"text":"世界树 | 节点仓库=基础信息类 | 基础节点=53766 | 场景=90 | 存在=1996","open":true,"lazy":false,"expandType":"","children":[{"ptr":2777644904496,"arg":0,"text":"基础信息仓库根 | 主信息=空","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2777645080400,"arg":0,"text":"主信息=场景 | 现实世界 | 子=1 | 主键=2 | 子主信息=场景1","open":true,"lazy":true,"expandType":"base-node","children":[{"ptr":2777675227856,"arg":0,"text":"主信息=场景 | 自我初始场景 | 子=487 | 主键=8I | 子主信息=存在254/特征186/状态21/动态19/其余7 | 当前现实场景","open":true,"lazy":true,"expandType":"base-node","children":[]}]}]}]},
+      "causal-info": {"ptr":0,"arg":0,"text":"因果信息 | 抽象因果=0 | 实例因果=0 | 证据动态样本=0","open":true,"lazy":false,"expandType":"","children":[{"ptr":0,"arg":0,"text":"当前世界树未记录因果信息","open":false,"lazy":false,"expandType":"","children":[]}]},
+      "need-tree": {"ptr":0,"arg":0,"text":"需求树 | 需求数=13 | 已满足=0 | 状态已达未截止=0 | 未满足=13","open":true,"lazy":false,"expandType":"","children":[{"ptr":2777674796720,"arg":0,"text":"需求树根 | 空 | 子=2 | 主键=D","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2777681449840,"arg":0,"text":"根需求 | 安全根需求 | 子=7 | 主键=1","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2777681456464,"arg":0,"text":"子需求 | 自我运行状态明确状态 | 子=0 | 主键=3","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681453520,"arg":0,"text":"子需求 | 自我运行状态正常状态 | 子=0 | 主键=9","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681452048,"arg":0,"text":"子需求 | 资源状态明确状态 | 子=0 | 主键=8","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681454256,"arg":0,"text":"子需求 | 资源状态足够状态 | 子=0 | 主键=7","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681441744,"arg":0,"text":"子需求 | 权限边界明确状态 | 子=0 | 主键=6","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681441008,"arg":0,"text":"子需求 | 风险状态明确状态 | 子=0 | 主键=5","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681443952,"arg":0,"text":"子需求 | 风险状态可控状态 | 子=0 | 主键=4","open":false,"lazy":true,"expandType":"need-node","children":[]}]},{"ptr":2777681446160,"arg":0,"text":"根需求 | 服务根需求 | 子=4 | 主键=2","open":true,"lazy":true,"expandType":"need-node","children":[{"ptr":2777681455728,"arg":0,"text":"子需求 | 当前人类服务对象明确状态 | 子=0 | 主键=A","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777689872976,"arg":0,"text":"子需求 | 当前交互者明确状态 | 子=0 | 主键=D","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681445424,"arg":0,"text":"子需求 | 当前权限者明确状态 | 子=0 | 主键=C","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681444688,"arg":0,"text":"子需求 | 当前服务目标明确状态 | 子=0 | 主键=B","open":false,"lazy":true,"expandType":"need-node","children":[]}]}]}]},
+      "need-list": {"ptr":0,"arg":0,"text":"需求列表 | 需求数=13","open":true,"lazy":false,"expandType":"","children":[{"ptr":2777681449840,"arg":0,"text":"需求列表项 | 地址=0x286BAB75370 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681456464,"arg":0,"text":"需求列表项 | 地址=0x286BAB76D50 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681453520,"arg":0,"text":"需求列表项 | 地址=0x286BAB761D0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681452048,"arg":0,"text":"需求列表项 | 地址=0x286BAB75C10 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681454256,"arg":0,"text":"需求列表项 | 地址=0x286BAB764B0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681441744,"arg":0,"text":"需求列表项 | 地址=0x286BAB733D0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681441008,"arg":0,"text":"需求列表项 | 地址=0x286BAB730F0 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681443952,"arg":0,"text":"需求列表项 | 地址=0x286BAB73C70 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681446160,"arg":0,"text":"需求列表项 | 地址=0x286BAB74510 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681455728,"arg":0,"text":"需求列表项 | 地址=0x286BAB76A70 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777689872976,"arg":0,"text":"需求列表项 | 地址=0x286BB37DA50 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681445424,"arg":0,"text":"需求列表项 | 地址=0x286BAB74230 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]},{"ptr":2777681444688,"arg":0,"text":"需求列表项 | 地址=0x286BAB73F50 | 详情=按需展开","open":false,"lazy":true,"expandType":"need-node","children":[]}]},
+      "task-tree": {"ptr":0,"arg":0,"text":"任务树 | 任务节点=0 | 头=0 | 步骤=0 | 状态={暂无任务状态}","open":true,"lazy":false,"expandType":"","children":[{"ptr":2777645903376,"arg":0,"text":"任务根节点 |  | 子=0 | 主键=","open":true,"lazy":true,"expandType":"task-node","children":[]}]},
+      "method-tree": {"ptr":0,"arg":0,"text":"方法树 | 方法数=125 | 首节点=43 | 条件无结果=0 | 结果无条件=0 | 条件结果不成对=0","open":true,"lazy":false,"expandType":"","children":[{"ptr":2777674797456,"arg":0,"text":"未定义 | 21 | 来源=未定义 | 子=43 | 主键=21 | 子种类=方法首节点43","open":true,"lazy":true,"expandType":"method-node","children":[{"ptr":2777674803504,"arg":0,"text":"方法首节点 | 练习 | 来源=本能 | 子=1 | 主键=1 | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777675551088,"arg":0,"text":"方法条件节点 | 2 | 来源=未定义 | 子=1 | 主键=2 | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681423808,"arg":0,"text":"方法首节点 | 服务值 | 来源=运行时方法沉淀 | 子=0 | 主键=21","open":false,"lazy":true,"expandType":"method-node","children":[]},{"ptr":2777681415696,"arg":0,"text":"方法首节点 | 安全值 | 来源=运行时方法沉淀 | 子=0 | 主键=20","open":false,"lazy":true,"expandType":"method-node","children":[]},{"ptr":2777681418816,"arg":0,"text":"方法首节点 | 用双目相机取得当前观察特征帧 | 来源=本能 | 子=1 | 主键=1x | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681411328,"arg":0,"text":"方法条件节点 | 1y | 来源=未定义 | 子=1 | 主键=1y | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681414448,"arg":0,"text":"方法首节点 | 用双目相机建立当前帧像素特征索引 | 来源=本能 | 子=1 | 主键=1u | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681416944,"arg":0,"text":"方法条件节点 | 1v | 来源=未定义 | 子=1 | 主键=1v | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681387344,"arg":0,"text":"方法首节点 | 用双目相机取得当前观察帧 | 来源=本能 | 子=1 | 主键=1r | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681410080,"arg":0,"text":"方法条件节点 | 1s | 来源=未定义 | 子=1 | 主键=1s | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681386096,"arg":0,"text":"方法首节点 | 用双目相机发现候选存在 | 来源=本能 | 子=1 | 主键=1o | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681392336,"arg":0,"text":"方法条件节点 | 1p | 来源=未定义 | 子=1 | 主键=1p | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681391088,"arg":0,"text":"方法首节点 | 用双目相机刷新当前观察场景 | 来源=本能 | 子=1 | 主键=1l | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681385472,"arg":0,"text":"方法条件节点 | 1m | 来源=未定义 | 子=1 | 主键=1m | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681396080,"arg":0,"text":"方法首节点 | 检查双目相机运行状态 | 来源=本能 | 子=1 | 主键=1i | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681388592,"arg":0,"text":"方法条件节点 | 1j | 来源=未定义 | 子=1 | 主键=1j | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681397328,"arg":0,"text":"方法首节点 | 释放双目相机 | 来源=本能 | 子=1 | 主键=1f | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681394208,"arg":0,"text":"方法条件节点 | 1g | 来源=未定义 | 子=1 | 主键=1g | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681080512,"arg":0,"text":"方法首节点 | 使双目相机达到可用状态 | 来源=本能 | 子=1 | 主键=1c | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681396704,"arg":0,"text":"方法条件节点 | 1d | 来源=未定义 | 子=1 | 主键=1d | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681094240,"arg":0,"text":"方法首节点 | 确认观察存在并更新帧解释状态 | 来源=本能 | 子=1 | 主键=1Z | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681083008,"arg":0,"text":"方法条件节点 | 1a | 来源=未定义 | 子=1 | 主键=1a | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681084880,"arg":0,"text":"方法首节点 | 用空间范围投影覆盖原帧验证像素归属 | 来源=本能 | 子=1 | 主键=1W | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681084256,"arg":0,"text":"方法条件节点 | 1X | 来源=未定义 | 子=1 | 主键=1X | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681088624,"arg":0,"text":"方法首节点 | 观察单个空间候选并组合存在假设 | 来源=本能 | 子=1 | 主键=1T | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681089872,"arg":0,"text":"方法条件节点 | 1U | 来源=未定义 | 子=1 | 主键=1U | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777681088000,"arg":0,"text":"方法首节点 | 生成空间候选观察队列 | 来源=本能 | 子=1 | 主键=1Q | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681086752,"arg":0,"text":"方法条件节点 | 1R | 来源=未定义 | 子=1 | 主键=1R | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777679251968,"arg":0,"text":"方法首节点 | 判断空间候选相对独立性 | 来源=本能 | 子=1 | 主键=1N | 子种类=方法条件节点1","open":false,"lazy":true,"expandType":"method-node","children":[{"ptr":2777681090496,"arg":0,"text":"方法条件节点 | 1O | 来源=未定义 | 子=1 | 主键=1O | 子种类=方法结果节点1","open":false,"lazy":true,"expandType":"method-node","children":[]}]},{"ptr":2777674797456,"arg":16,"text":"... 省略 27 个结构子节点","open":false,"lazy":true,"expandType":"method-node-more","children":[]}]}]},
       "settings": {"ptr":0,"arg":0,"text":"参数设定 | 任务管理工作线程池大小=20 | 默认=20","open":true,"lazy":false,"expandType":"","children":[{"ptr":0,"arg":0,"text":"任务管理工作线程池大小 | 当前有效=20 | 待保存=20 | 范围=1-128","open":false,"lazy":false,"expandType":"","children":[]},{"ptr":0,"arg":0,"text":"参数保存 | 最近保存=尚未保存 | 最近错误=暂无数据","open":false,"lazy":false,"expandType":"","children":[]},{"ptr":0,"arg":0,"text":"参数应用 | 最近应用=尚未应用 | 参数版本=1","open":false,"lazy":false,"expandType":"","children":[]}]}
     };
+    const 自我场景复现数据 = {"ok":true,"scenePtr":2777675227856,"hostPtr":2777675227856,"sceneTitle":"自我所在场景#8I | 地址=0x286BA5862D0","hostTitle":"复现宿主#8I | 地址=0x286BA5862D0","width":640,"height":480,"depthFrame":3,"colorFrame":40,"currentFrame":1,"expectedPixels":307200,"pixelFeatures":307200,"depthValidPixels":133869,"pointCloudPixels":133869,"pixelCoverage":1,"unitMm":1,"rgbStructure":1,"rawDepthStructure":1,"filteredDepthStructure":1,"filledDepthStructure":1,"depthMaskStructure":1,"depthSourceStructure":1,"depthStabilityStructure":1,"depthNeighborhoodStructure":1,"fusedDepthStructure":1,"fusedDepthValidityStructure":1,"multiFrameStabilityStructure":1,"perPixelDepthVarianceStructure":1,"xyzStructure":1,"rawDepthSourcePixels":133869,"filteredDepthSourcePixels":104218,"filledDepthSourcePixels":55311,"noDepthSourcePixels":13802,"filledDepthLowConfidencePixels":55311,"depthStabilityAverage":7130,"depthNeighborhoodAverage":8089,"observationFrameGroupState":1,"observationFrameGroupCount":3,"fusedBasisFrameSetState":1,"fusedDepthValidPixels":228780,"fusedDepthValidRatio":7447,"fusedDepthHoleCompensationPixels":104218,"fusedDepthLowStabilityPixels":16378,"fusedDepthStabilityAverage":9349,"fusedDepthAverageVariance":5272289,"colorDepthAligned":1,"depthValidRatio":4357,"spaceValidRatio":4357,"frameQualityScore":5545,"depthHolePixels":173331,"depthHoleRegions":1099,"contourClosureRatio":10000,"contourBreakCount":0,"colorContourCount":6,"depthContourCount":69,"spaceProjectionContourCount":69,"fusedContourCount":69,"contourLayerState":1,"contourDepthSupport":10000,"contourColorSupport":10000,"contourSpaceSupport":10000,"fusedContourConfidence":9198,"depthBreakContourCount":0,"invalidDepthContourCount":69,"filledDepthContourCount":69,"boundaryDepthStability":10000,"candidateVerifyRatio":10000,"unexplainedRatio":5049,"observationGapState":1,"observationMissingReason":11,"refillObservationRegionCount":1168,"completionCandidateCount":69,"lowConfidenceContourCount":0,"insufficientCandidateCount":68,"pendingVerifyCandidateCount":0,"partialConfirmCandidateCount":1,"observationSuggestion":37,"diagnosticRegionCount":160,"diagnosticRegionSetState":1,"diagnosticRegionMaskState":1,"diagnosticRegions":[{"id":1,"layer":1,"source":-1,"rect":[0,0,639,479],"pixels":160835,"confidence":10000,"mask":1},{"id":15,"layer":1,"source":-1,"rect":[411,15,426,20],"pixels":68,"confidence":10000,"mask":1},{"id":32,"layer":1,"source":-1,"rect":[362,22,372,33],"pixels":73,"confidence":10000,"mask":1},{"id":50,"layer":1,"source":-1,"rect":[500,30,511,34],"pixels":34,"confidence":10000,"mask":1},{"id":56,"layer":1,"source":-1,"rect":[525,32,532,35],"pixels":24,"confidence":10000,"mask":1},{"id":62,"layer":1,"source":-1,"rect":[315,35,329,43],"pixels":75,"confidence":10000,"mask":1},{"id":63,"layer":1,"source":-1,"rect":[341,35,354,41],"pixels":34,"confidence":10000,"mask":1},{"id":67,"layer":1,"source":-1,"rect":[475,35,486,35],"pixels":12,"confidence":10000,"mask":1},{"id":73,"layer":1,"source":-1,"rect":[443,36,514,86],"pixels":1546,"confidence":10000,"mask":1},{"id":79,"layer":1,"source":-1,"rect":[245,39,253,41],"pixels":14,"confidence":10000,"mask":1},{"id":94,"layer":1,"source":-1,"rect":[358,45,369,56],"pixels":26,"confidence":10000,"mask":1},{"id":114,"layer":1,"source":-1,"rect":[319,50,353,72],"pixels":290,"confidence":10000,"mask":1},{"id":116,"layer":1,"source":-1,"rect":[498,50,507,51],"pixels":11,"confidence":10000,"mask":1},{"id":122,"layer":1,"source":-1,"rect":[386,52,393,56],"pixels":16,"confidence":10000,"mask":1},{"id":126,"layer":1,"source":-1,"rect":[516,53,525,54],"pixels":15,"confidence":10000,"mask":1},{"id":127,"layer":1,"source":-1,"rect":[324,54,329,59],"pixels":19,"confidence":10000,"mask":1},{"id":128,"layer":1,"source":-1,"rect":[250,56,263,60],"pixels":56,"confidence":10000,"mask":1},{"id":142,"layer":1,"source":-1,"rect":[527,59,534,67],"pixels":33,"confidence":10000,"mask":1},{"id":156,"layer":1,"source":-1,"rect":[269,66,291,82],"pixels":84,"confidence":10000,"mask":1},{"id":162,"layer":1,"source":-1,"rect":[543,68,548,70],"pixels":12,"confidence":10000,"mask":1},{"id":199,"layer":1,"source":-1,"rect":[518,77,521,81],"pixels":10,"confidence":10000,"mask":1},{"id":210,"layer":1,"source":-1,"rect":[52,80,66,84],"pixels":53,"confidence":10000,"mask":1},{"id":211,"layer":1,"source":-1,"rect":[352,80,358,88],"pixels":19,"confidence":10000,"mask":1},{"id":234,"layer":1,"source":-1,"rect":[467,88,474,90],"pixels":21,"confidence":10000,"mask":1},{"id":256,"layer":1,"source":-1,"rect":[362,98,367,100],"pixels":11,"confidence":10000,"mask":1},{"id":262,"layer":1,"source":-1,"rect":[391,100,394,104],"pixels":13,"confidence":10000,"mask":1},{"id":263,"layer":1,"source":-1,"rect":[428,100,442,106],"pixels":64,"confidence":10000,"mask":1},{"id":266,"layer":1,"source":-1,"rect":[372,103,375,106],"pixels":12,"confidence":10000,"mask":1},{"id":291,"layer":1,"source":-1,"rect":[356,116,375,125],"pixels":86,"confidence":10000,"mask":1},{"id":296,"layer":1,"source":-1,"rect":[500,121,511,130],"pixels":44,"confidence":10000,"mask":1},{"id":332,"layer":1,"source":-1,"rect":[420,134,424,136],"pixels":10,"confidence":10000,"mask":1},{"id":336,"layer":1,"source":-1,"rect":[409,136,416,137],"pixels":14,"confidence":10000,"mask":1},{"id":341,"layer":1,"source":-1,"rect":[446,138,454,140],"pixels":20,"confidence":10000,"mask":1},{"id":343,"layer":1,"source":-1,"rect":[352,141,361,145],"pixels":20,"confidence":10000,"mask":1},{"id":345,"layer":1,"source":-1,"rect":[484,141,491,143],"pixels":16,"confidence":10000,"mask":1},{"id":376,"layer":1,"source":-1,"rect":[392,154,406,158],"pixels":30,"confidence":10000,"mask":1},{"id":377,"layer":1,"source":-1,"rect":[376,155,384,157],"pixels":16,"confidence":10000,"mask":1},{"id":379,"layer":1,"source":-1,"rect":[581,161,591,163],"pixels":27,"confidence":10000,"mask":1},{"id":383,"layer":1,"source":-1,"rect":[581,164,585,167],"pixels":16,"confidence":10000,"mask":1},{"id":384,"layer":1,"source":-1,"rect":[368,168,394,188],"pixels":278,"confidence":10000,"mask":1},{"id":391,"layer":1,"source":-1,"rect":[259,173,264,178],"pixels":13,"confidence":10000,"mask":1},{"id":396,"layer":1,"source":-1,"rect":[596,176,605,179],"pixels":22,"confidence":10000,"mask":1},{"id":397,"layer":1,"source":-1,"rect":[558,179,569,185],"pixels":32,"confidence":10000,"mask":1},{"id":401,"layer":1,"source":-1,"rect":[395,182,401,184],"pixels":11,"confidence":10000,"mask":1},{"id":405,"layer":1,"source":-1,"rect":[514,187,522,190],"pixels":29,"confidence":10000,"mask":1},{"id":407,"layer":1,"source":-1,"rect":[541,189,581,208],"pixels":297,"confidence":10000,"mask":1},{"id":410,"layer":1,"source":-1,"rect":[391,196,413,203],"pixels":113,"confidence":10000,"mask":1},{"id":414,"layer":1,"source":-1,"rect":[423,201,437,208],"pixels":58,"confidence":10000,"mask":1},{"id":415,"layer":1,"source":-1,"rect":[295,202,315,211],"pixels":66,"confidence":10000,"mask":1},{"id":417,"layer":1,"source":-1,"rect":[510,202,523,209],"pixels":58,"confidence":10000,"mask":1},{"id":419,"layer":1,"source":-1,"rect":[379,203,390,209],"pixels":34,"confidence":10000,"mask":1},{"id":431,"layer":1,"source":-1,"rect":[409,208,415,209],"pixels":12,"confidence":10000,"mask":1},{"id":439,"layer":1,"source":-1,"rect":[58,210,63,212],"pixels":15,"confidence":10000,"mask":1},{"id":442,"layer":1,"source":-1,"rect":[561,210,567,214],"pixels":22,"confidence":10000,"mask":1},{"id":450,"layer":1,"source":-1,"rect":[401,213,412,217],"pixels":32,"confidence":10000,"mask":1},{"id":453,"layer":1,"source":-1,"rect":[298,214,413,258],"pixels":1327,"confidence":10000,"mask":1},{"id":455,"layer":1,"source":-1,"rect":[379,214,383,216],"pixels":14,"confidence":10000,"mask":1},{"id":457,"layer":1,"source":-1,"rect":[413,214,423,218],"pixels":36,"confidence":10000,"mask":1},{"id":477,"layer":1,"source":-1,"rect":[370,223,527,295],"pixels":2708,"confidence":10000,"mask":1},{"id":487,"layer":1,"source":-1,"rect":[462,230,467,235],"pixels":19,"confidence":10000,"mask":1},{"id":515,"layer":1,"source":-1,"rect":[390,238,397,242],"pixels":20,"confidence":10000,"mask":1},{"id":517,"layer":1,"source":-1,"rect":[380,239,385,242],"pixels":12,"confidence":10000,"mask":1},{"id":529,"layer":1,"source":-1,"rect":[378,243,403,258],"pixels":154,"confidence":10000,"mask":1},{"id":535,"layer":1,"source":-1,"rect":[558,246,573,266],"pixels":57,"confidence":10000,"mask":1},{"id":549,"layer":1,"source":-1,"rect":[264,256,269,259],"pixels":13,"confidence":10000,"mask":1},{"id":561,"layer":1,"source":-1,"rect":[494,261,500,264],"pixels":13,"confidence":10000,"mask":1},{"id":571,"layer":1,"source":-1,"rect":[389,263,396,264],"pixels":14,"confidence":10000,"mask":1},{"id":581,"layer":1,"source":-1,"rect":[364,266,366,286],"pixels":39,"confidence":10000,"mask":1},{"id":644,"layer":1,"source":-1,"rect":[448,290,462,300],"pixels":31,"confidence":10000,"mask":1},{"id":647,"layer":1,"source":-1,"rect":[522,290,528,303],"pixels":43,"confidence":10000,"mask":1},{"id":649,"layer":1,"source":-1,"rect":[477,292,490,299],"pixels":33,"confidence":10000,"mask":1},{"id":685,"layer":1,"source":-1,"rect":[511,299,516,303],"pixels":20,"confidence":10000,"mask":1},{"id":727,"layer":1,"source":-1,"rect":[566,309,570,316],"pixels":17,"confidence":10000,"mask":1},{"id":759,"layer":1,"source":-1,"rect":[207,316,220,324],"pixels":43,"confidence":10000,"mask":1},{"id":763,"layer":1,"source":-1,"rect":[386,316,391,318],"pixels":11,"confidence":10000,"mask":1},{"id":766,"layer":1,"source":-1,"rect":[541,316,551,317],"pixels":12,"confidence":10000,"mask":1},{"id":788,"layer":1,"source":-1,"rect":[218,327,228,333],"pixels":36,"confidence":10000,"mask":1},{"id":794,"layer":1,"source":-1,"rect":[364,328,368,331],"pixels":11,"confidence":10000,"mask":1},{"id":806,"layer":1,"source":-1,"rect":[235,332,245,335],"pixels":22,"confidence":10000,"mask":1},{"id":811,"layer":1,"source":-1,"rect":[190,334,197,341],"pixels":31,"confidence":10000,"mask":1},{"id":816,"layer":1,"source":-1,"rect":[196,336,207,337],"pixels":15,"confidence":10000,"mask":1},{"id":824,"layer":1,"source":-1,"rect":[198,338,258,363],"pixels":817,"confidence":10000,"mask":1},{"id":833,"layer":1,"source":-1,"rect":[450,340,462,344],"pixels":24,"confidence":10000,"mask":1},{"id":888,"layer":1,"source":-1,"rect":[453,355,469,357],"pixels":22,"confidence":10000,"mask":1},{"id":904,"layer":1,"source":-1,"rect":[519,362,526,363],"pixels":11,"confidence":10000,"mask":1},{"id":940,"layer":1,"source":-1,"rect":[70,373,108,397],"pixels":362,"confidence":10000,"mask":1},{"id":967,"layer":1,"source":-1,"rect":[115,383,122,387],"pixels":30,"confidence":10000,"mask":1},{"id":986,"layer":1,"source":-1,"rect":[112,392,127,410],"pixels":143,"confidence":10000,"mask":1},{"id":993,"layer":1,"source":-1,"rect":[219,395,224,396],"pixels":12,"confidence":10000,"mask":1},{"id":1003,"layer":1,"source":-1,"rect":[203,398,225,410],"pixels":199,"confidence":10000,"mask":1},{"id":1005,"layer":1,"source":-1,"rect":[238,398,240,401],"pixels":12,"confidence":10000,"mask":1},{"id":1010,"layer":1,"source":-1,"rect":[264,399,277,408],"pixels":72,"confidence":10000,"mask":1},{"id":1048,"layer":1,"source":-1,"rect":[228,411,236,415],"pixels":24,"confidence":10000,"mask":1},{"id":1066,"layer":1,"source":-1,"rect":[78,436,82,439],"pixels":13,"confidence":10000,"mask":1},{"id":1072,"layer":1,"source":-1,"rect":[72,447,77,450],"pixels":16,"confidence":10000,"mask":1},{"id":1077,"layer":1,"source":-1,"rect":[200,452,208,458],"pixels":25,"confidence":10000,"mask":1},{"id":1100,"layer":2,"source":0,"rect":[267,90,614,328],"pixels":48787,"confidence":5000,"mask":2},{"id":1103,"layer":2,"source":1,"rect":[209,7,581,145],"pixels":28029,"confidence":5000,"mask":2},{"id":1106,"layer":2,"source":2,"rect":[26,165,289,473],"pixels":23217,"confidence":5000,"mask":2},{"id":1109,"layer":2,"source":3,"rect":[176,301,425,463],"pixels":17713,"confidence":5000,"mask":2},{"id":1112,"layer":2,"source":4,"rect":[369,376,558,416],"pixels":2375,"confidence":5000,"mask":2},{"id":1115,"layer":2,"source":5,"rect":[405,350,575,382],"pixels":2195,"confidence":5000,"mask":2},{"id":1118,"layer":2,"source":6,"rect":[353,395,436,418],"pixels":1092,"confidence":5000,"mask":2},{"id":1121,"layer":2,"source":7,"rect":[427,331,511,349],"pixels":655,"confidence":5000,"mask":2},{"id":1124,"layer":2,"source":8,"rect":[499,450,539,472],"pixels":391,"confidence":5000,"mask":2},{"id":1127,"layer":2,"source":9,"rect":[482,339,536,348],"pixels":322,"confidence":5000,"mask":2},{"id":1130,"layer":2,"source":10,"rect":[391,237,416,258],"pixels":280,"confidence":5000,"mask":2},{"id":1133,"layer":2,"source":11,"rect":[141,154,173,168],"pixels":266,"confidence":5000,"mask":2},{"id":1136,"layer":2,"source":12,"rect":[494,427,523,437],"pixels":261,"confidence":5000,"mask":2},{"id":1139,"layer":2,"source":13,"rect":[557,339,586,349],"pixels":251,"confidence":5000,"mask":2},{"id":1142,"layer":2,"source":14,"rect":[71,179,100,189],"pixels":207,"confidence":5000,"mask":2},{"id":1145,"layer":2,"source":15,"rect":[449,458,471,473],"pixels":189,"confidence":5000,"mask":2},{"id":1148,"layer":2,"source":16,"rect":[591,441,614,451],"pixels":187,"confidence":5000,"mask":2},{"id":1151,"layer":2,"source":17,"rect":[291,162,310,174],"pixels":178,"confidence":5000,"mask":2},{"id":1154,"layer":2,"source":18,"rect":[284,105,310,119],"pixels":166,"confidence":5000,"mask":2},{"id":1157,"layer":2,"source":19,"rect":[478,445,494,460],"pixels":144,"confidence":5000,"mask":2},{"id":1160,"layer":2,"source":20,"rect":[87,71,105,82],"pixels":142,"confidence":5000,"mask":2},{"id":1163,"layer":2,"source":21,"rect":[127,178,145,187],"pixels":141,"confidence":5000,"mask":2},{"id":1101,"layer":3,"source":0,"rect":[267,90,614,328],"pixels":48787,"confidence":6500,"mask":2},{"id":1104,"layer":3,"source":1,"rect":[209,7,581,145],"pixels":28029,"confidence":6500,"mask":2},{"id":1107,"layer":3,"source":2,"rect":[26,165,289,473],"pixels":58359,"confidence":6500,"mask":2},{"id":1110,"layer":3,"source":3,"rect":[176,301,425,463],"pixels":23037,"confidence":6500,"mask":2},{"id":1113,"layer":3,"source":4,"rect":[369,376,558,416],"pixels":5415,"confidence":6500,"mask":2},{"id":1116,"layer":3,"source":5,"rect":[405,350,575,382],"pixels":3448,"confidence":6500,"mask":2},{"id":1119,"layer":3,"source":6,"rect":[353,395,436,418],"pixels":1092,"confidence":6500,"mask":2},{"id":1122,"layer":3,"source":7,"rect":[427,331,511,349],"pixels":960,"confidence":6500,"mask":2},{"id":1125,"layer":3,"source":8,"rect":[499,450,539,472],"pixels":552,"confidence":6500,"mask":2},{"id":1128,"layer":3,"source":9,"rect":[482,339,536,348],"pixels":322,"confidence":6500,"mask":2},{"id":1131,"layer":3,"source":10,"rect":[391,237,416,258],"pixels":292,"confidence":6500,"mask":2},{"id":1134,"layer":3,"source":11,"rect":[141,154,173,168],"pixels":266,"confidence":6500,"mask":2},{"id":1137,"layer":3,"source":12,"rect":[494,427,523,437],"pixels":261,"confidence":6500,"mask":2},{"id":1140,"layer":3,"source":13,"rect":[557,339,586,349],"pixels":251,"confidence":6500,"mask":2},{"id":1143,"layer":3,"source":14,"rect":[71,179,100,189],"pixels":207,"confidence":6500,"mask":2},{"id":1146,"layer":3,"source":15,"rect":[449,458,471,473],"pixels":189,"confidence":6500,"mask":2},{"id":1149,"layer":3,"source":16,"rect":[591,441,614,451],"pixels":187,"confidence":6500,"mask":2},{"id":1152,"layer":3,"source":17,"rect":[291,162,310,174],"pixels":178,"confidence":6500,"mask":2},{"id":1155,"layer":3,"source":18,"rect":[284,105,310,119],"pixels":239,"confidence":6500,"mask":2},{"id":1158,"layer":3,"source":19,"rect":[478,445,494,460],"pixels":144,"confidence":6500,"mask":2},{"id":1161,"layer":3,"source":20,"rect":[87,71,105,82],"pixels":142,"confidence":6500,"mask":2},{"id":1102,"layer":4,"source":0,"rect":[267,90,614,328],"pixels":48787,"confidence":9173,"mask":2},{"id":1105,"layer":4,"source":1,"rect":[209,7,581,145],"pixels":28029,"confidence":9081,"mask":2},{"id":1108,"layer":4,"source":2,"rect":[26,165,289,473],"pixels":58359,"confidence":8569,"mask":2},{"id":1111,"layer":4,"source":3,"rect":[176,301,425,463],"pixels":23037,"confidence":8869,"mask":2},{"id":1114,"layer":4,"source":4,"rect":[369,376,558,416],"pixels":5415,"confidence":8609,"mask":2},{"id":1117,"layer":4,"source":5,"rect":[405,350,575,382],"pixels":3448,"confidence":8777,"mask":2},{"id":1120,"layer":4,"source":6,"rect":[353,395,436,418],"pixels":1092,"confidence":9083,"mask":2},{"id":1123,"layer":4,"source":7,"rect":[427,331,511,349],"pixels":960,"confidence":8811,"mask":2},{"id":1126,"layer":4,"source":8,"rect":[499,450,539,472],"pixels":552,"confidence":8829,"mask":2},{"id":1129,"layer":4,"source":9,"rect":[482,339,536,348],"pixels":322,"confidence":9170,"mask":2},{"id":1132,"layer":4,"source":10,"rect":[391,237,416,258],"pixels":292,"confidence":8979,"mask":2},{"id":1135,"layer":4,"source":11,"rect":[141,154,173,168],"pixels":266,"confidence":9074,"mask":2},{"id":1138,"layer":4,"source":12,"rect":[494,427,523,437],"pixels":261,"confidence":9581,"mask":2},{"id":1141,"layer":4,"source":13,"rect":[557,339,586,349],"pixels":251,"confidence":9521,"mask":2},{"id":1144,"layer":4,"source":14,"rect":[71,179,100,189],"pixels":207,"confidence":9254,"mask":2},{"id":1147,"layer":4,"source":15,"rect":[449,458,471,473],"pixels":189,"confidence":9027,"mask":2},{"id":1150,"layer":4,"source":16,"rect":[591,441,614,451],"pixels":187,"confidence":9416,"mask":2},{"id":1153,"layer":4,"source":17,"rect":[291,162,310,174],"pixels":178,"confidence":9369,"mask":2},{"id":1156,"layer":4,"source":18,"rect":[284,105,310,119],"pixels":239,"confidence":8819,"mask":2},{"id":1159,"layer":4,"source":19,"rect":[478,445,494,460],"pixels":144,"confidence":9058,"mask":2},{"id":1162,"layer":4,"source":20,"rect":[87,71,105,82],"pixels":142,"confidence":9245,"mask":2}],"candidateCount":69,"candidateValidPixels":130686,"hypothesisState":1,"hypothesisSource":51,"hypothesisVerifyState":1,"hypothesisDistance":11073,"hypothesisSize":[201,259,203],"hypothesisValidRatio":4,"pixelOwnershipState":1,"fullFrameOwnershipState":1,"assignedPixels":1894,"unexplainedPixels":305306,"ownershipConflictPixels":0,"ownershipRatio":61,"depthConsistency":10000,"insideRangeRatio":10000,"projectionCoverage":10000,"contourMatch":6875,"verifiedFlag":1,"confirmState":1,"verifiedCount":21,"frameExplainState":1,"candidate":{"valid":true,"id":51,"pixels":53,"center":[-3910,30,11073],"min":[-4005,-93,10965],"max":[-3804,166,11168],"continuity":7005,"stability":8000}};
 
     
     const 菜单项列表 = Array.from(document.querySelectorAll('.menu-item'));
@@ -1635,6 +2028,9 @@
       页面标题节点.textContent = 目标页面.dataset.title || '控制面板';
       页面副标题节点.textContent = 目标页面.dataset.subtitle || '';
       渲染页面树(目标页面.dataset.page);
+      if (目标页面.dataset.page === 'self-scene') {
+        请求绘制自我场景();
+      }
       if (location.hash !== '#' + 目标页面.dataset.page) {
         history.replaceState(null, '', '#' + 目标页面.dataset.page);
       }
@@ -1833,6 +2229,681 @@
         raw.innerHTML = `<strong>原始文本</strong><br>${转义HTML(节点.text || '空')}`;
         host.appendChild(raw);
       }
+    }
+
+
+    let 自我场景GL状态 = null;
+
+    function 设置自我场景状态(text, kind = '') {
+      const status = document.getElementById('self-scene-status');
+      if (!status) return;
+      status.textContent = text || '';
+      status.classList.toggle('ok', kind === 'ok');
+      status.classList.toggle('error', kind === 'error');
+    }
+
+    function 设置自我场景文本(id, text) {
+      const node = document.getElementById(id);
+      if (node) node.textContent = text;
+    }
+
+    function 格式化场景数值(value) {
+      const n = Number(value || 0);
+      if (!Number.isFinite(n)) return '0';
+      return String(Math.round(n * 1000) / 1000);
+    }
+
+    function 格式化场景三元组(value) {
+      const arr = Array.isArray(value) ? value : [0, 0, 0];
+      return `${格式化场景数值(arr[0])}, ${格式化场景数值(arr[1])}, ${格式化场景数值(arr[2])}`;
+    }
+
+    function 格式化场景比例(value) {
+      return `${Number(value || 0)}/10000`;
+    }
+
+    function 场景万分比(value) {
+      const n = Number(value || 0);
+      if (!Number.isFinite(n)) return 0;
+      return Math.max(0, Math.min(10000, n));
+    }
+
+    function 场景像素比例(pixels, total) {
+      const p = Number(pixels || 0);
+      const t = Number(total || 0);
+      if (!Number.isFinite(p) || !Number.isFinite(t) || t <= 0) return 0;
+      return 场景万分比(Math.round(p * 10000 / t));
+    }
+
+    function 设置自我场景图层值(kind, text, ratio) {
+      设置自我场景文本(`scene-layer-${kind}-value`, text);
+      const meter = document.getElementById(`scene-layer-${kind}-meter`);
+      if (meter) {
+        meter.style.width = `${场景万分比(ratio) / 100}%`;
+      }
+    }
+
+    function 自我场景图层启用(id) {
+      const node = document.getElementById(`scene-layer-${id}`);
+      return !node || !!node.checked;
+    }
+
+    function 自我场景区域图层ID(layer) {
+      switch (Number(layer || 0)) {
+        case 1: return 'depth-hole';
+        case 2: return 'filled-depth';
+        case 3: return 'unexplained';
+        case 4: return 'contour-risk';
+        default: return '';
+      }
+    }
+
+    function 自我场景区域颜色(layer) {
+      switch (Number(layer || 0)) {
+        case 1: return '#ef4444';
+        case 2: return '#facc15';
+        case 3: return '#a78bfa';
+        case 4: return '#fb7185';
+        default: return '#94a3b8';
+      }
+    }
+
+    function 读取自我场景诊断区域(data) {
+      return Array.isArray(data?.diagnosticRegions)
+        ? data.diagnosticRegions.filter((region) => {
+            const rect = region?.rect || [];
+            return 自我场景区域图层ID(region?.layer)
+              && rect.length === 4
+              && Number(rect[2]) >= Number(rect[0])
+              && Number(rect[3]) >= Number(rect[1]);
+          })
+        : [];
+    }
+
+    function 读取自我场景图层摘要(data) {
+      const expected = Number(data.expectedPixels || data.pixelFeatures || 0);
+      const regions = 读取自我场景诊断区域(data);
+      const regionCounts = { 'depth-hole': 0, 'filled-depth': 0, unexplained: 0, 'contour-risk': 0 };
+      const regionPixels = { 'depth-hole': 0, 'filled-depth': 0, unexplained: 0, 'contour-risk': 0 };
+      regions.forEach((region) => {
+        const id = 自我场景区域图层ID(region.layer);
+        if (!id) return;
+        regionCounts[id] += 1;
+        regionPixels[id] += Math.max(0, Number(region.pixels || 0));
+      });
+      const depthHoleRatio = data.depthHolePixels
+        ? 场景像素比例(data.depthHolePixels, expected)
+        : 场景万分比(10000 - Number(data.depthValidRatio || 0));
+      const filledPixels = Number(data.filledDepthSourcePixels || data.fusedDepthHoleCompensationPixels || 0);
+      const filledRatio = 场景像素比例(filledPixels, expected);
+      const unexplainedRatio = data.unexplainedPixels
+        ? 场景像素比例(data.unexplainedPixels, expected)
+        : 场景万分比(data.unexplainedRatio || 0);
+      const contourTotal =
+        Number(data.colorContourCount || 0)
+        + Number(data.depthContourCount || 0)
+        + Number(data.spaceProjectionContourCount || 0)
+        + Number(data.fusedContourCount || 0);
+      const contourRiskCount =
+        Number(data.depthBreakContourCount || 0)
+        + Number(data.invalidDepthContourCount || 0)
+        + Number(data.filledDepthContourCount || 0)
+        + Number(data.lowConfidenceContourCount || 0);
+      const contourRiskRatio = contourTotal > 0
+        ? 场景万分比(Math.round(contourRiskCount * 10000 / contourTotal))
+        : 0;
+      return {
+        depthHoleRatio,
+        filledRatio,
+        unexplainedRatio,
+        contourRiskRatio,
+        filledPixels,
+        contourRiskCount,
+        contourTotal,
+        regionCounts,
+        regionPixels,
+        regionTotal: regions.length
+      };
+    }
+
+    function 更新自我场景图层摘要() {
+      const data = 自我场景复现数据 || {};
+      const summary = 读取自我场景图层摘要(data);
+      设置自我场景图层值(
+        'depth-hole',
+        `${data.depthHolePixels || 0} 像素 / ${data.depthHoleRegions || 0} 区 / 矩形 ${summary.regionCounts['depth-hole'] || 0} / ${格式化场景比例(summary.depthHoleRatio)}`,
+        summary.depthHoleRatio);
+      设置自我场景图层值(
+        'filled-depth',
+        `${summary.filledPixels || 0} 像素 / 候选 ${data.completionCandidateCount || 0} / 矩形 ${summary.regionCounts['filled-depth'] || 0} / ${格式化场景比例(summary.filledRatio)}`,
+        summary.filledRatio);
+      设置自我场景图层值(
+        'unexplained',
+        `${data.unexplainedPixels || 0} 像素 / 待补 ${data.refillObservationRegionCount || 0} / 矩形 ${summary.regionCounts.unexplained || 0} / ${格式化场景比例(summary.unexplainedRatio)}`,
+        summary.unexplainedRatio);
+      设置自我场景图层值(
+        'contour-risk',
+        `${summary.contourRiskCount || 0}/${summary.contourTotal || 0} / 矩形 ${summary.regionCounts['contour-risk'] || 0} / ${格式化场景比例(summary.contourRiskRatio)}`,
+        summary.contourRiskRatio);
+      const status = document.getElementById('scene-layer-status');
+      if (status) {
+        status.textContent = data.ok
+          ? (summary.regionTotal > 0
+              ? `区域矩形已落账 ${summary.regionTotal}/${data.diagnosticRegionCount || summary.regionTotal}；掩码状态 ${data.diagnosticRegionMaskState || 0}。`
+              : '当前为自我所在场景快照的摘要覆盖层；逐区域几何/掩码尚未落账。')
+          : '当前没有可复现快照，区域图层只保留占位状态。';
+      }
+    }
+
+    function 更新自我场景统计() {
+      const data = 自我场景复现数据 || {};
+      const candidate = data.candidate || {};
+      设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
+      设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
+      设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
+      设置自我场景文本('scene-candidate-stat', `${data.candidateCount || 0} / 有效点 ${data.candidateValidPixels || 0}`);
+      设置自我场景文本('scene-center-stat', candidate.valid ? 格式化场景三元组(candidate.center) : '--');
+      设置自我场景文本('scene-aabb-stat', candidate.valid ? `${格式化场景三元组(candidate.min)} -> ${格式化场景三元组(candidate.max)}` : '--');
+      设置自我场景文本('scene-score-stat', `${data.frameQualityScore || 0} / ${candidate.continuity || 0} / ${candidate.stability || 0}`);
+      设置自我场景文本('scene-verify-stat', `假设 ${data.hypothesisVerifyState || 0} / 像素 ${data.pixelOwnershipState || 0}:${data.fullFrameOwnershipState || 0} / 已归属 ${data.assignedPixels || 0}(${data.ownershipRatio || 0}) / 未解释 ${data.unexplainedPixels || 0} / 冲突 ${data.ownershipConflictPixels || 0} / 确认 ${data.confirmState || 0} / 已验证 ${data.verifiedCount || 0} / 补观察 ${data.observationGapState || 0}:${data.refillObservationRegionCount || 0}:${data.observationMissingReason || 0}`);
+      设置自我场景文本('scene-quality-structure-stat', `RGB ${data.rgbStructure || 0} / 原始 ${data.rawDepthStructure || 0} / 滤波 ${data.filteredDepthStructure || 0} / 补全 ${data.filledDepthStructure || 0} / Mask ${data.depthMaskStructure || 0} / XYZ ${data.xyzStructure || 0} / 对齐 ${data.colorDepthAligned || 0}`);
+      设置自我场景文本('scene-quality-ratio-stat', `质量 ${data.frameQualityScore || 0} / 深度 ${格式化场景比例(data.depthValidRatio)} / 空间 ${格式化场景比例(data.spaceValidRatio)} / 候选 ${格式化场景比例(data.candidateVerifyRatio)} / 未解释 ${格式化场景比例(data.unexplainedRatio)}`);
+      设置自我场景文本('scene-depth-source-stat', `原始 ${data.rawDepthSourcePixels || 0} / 滤波 ${data.filteredDepthSourcePixels || 0} / 补全 ${data.filledDepthSourcePixels || 0} / 无效 ${data.noDepthSourcePixels || 0} / 低置信 ${data.filledDepthLowConfidencePixels || 0}`);
+      设置自我场景文本('scene-depth-stability-stat', `结构 ${data.depthSourceStructure || 0}:${data.depthStabilityStructure || 0}:${data.depthNeighborhoodStructure || 0} / 稳定 ${data.depthStabilityAverage || 0} / 邻域 ${data.depthNeighborhoodAverage || 0} / 边界 ${data.boundaryDepthStability || 0}`);
+      设置自我场景文本('scene-fusion-stat', `状态 ${data.observationFrameGroupState || 0}:${data.fusedBasisFrameSetState || 0} / 帧 ${data.observationFrameGroupCount || 0} / 有效 ${data.fusedDepthValidPixels || 0}(${格式化场景比例(data.fusedDepthValidRatio)}) / 补洞 ${data.fusedDepthHoleCompensationPixels || 0} / 低稳 ${data.fusedDepthLowStabilityPixels || 0}`);
+      设置自我场景文本('scene-contour-layer-stat', `分层 ${data.contourLayerState || 0} / 彩 ${data.colorContourCount || 0} / 深 ${data.depthContourCount || 0} / 空间 ${data.spaceProjectionContourCount || 0} / 融合 ${data.fusedContourCount || 0} / 置信 ${data.fusedContourConfidence || 0}`);
+      设置自我场景文本('scene-contour-risk-stat', `深度支持 ${格式化场景比例(data.contourDepthSupport)} / 颜色 ${格式化场景比例(data.contourColorSupport)} / 空间 ${格式化场景比例(data.contourSpaceSupport)} / 断裂 ${data.depthBreakContourCount || 0} / 无效 ${data.invalidDepthContourCount || 0} / 补全 ${data.filledDepthContourCount || 0} / 低置信 ${data.lowConfidenceContourCount || 0}`);
+      设置自我场景文本('scene-gap-stat', `状态 ${data.observationGapState || 0} / 原因 ${data.observationMissingReason || 0} / 待补区域 ${data.refillObservationRegionCount || 0} / 诊断矩形 ${data.diagnosticRegionCount || 0}:${data.diagnosticRegionSetState || 0}:${data.diagnosticRegionMaskState || 0} / 建议 ${data.observationSuggestion || 0}`);
+      设置自我场景文本('scene-gap-candidate-stat', `补全 ${data.completionCandidateCount || 0} / 条件不足 ${data.insufficientCandidateCount || 0} / 待验证 ${data.pendingVerifyCandidateCount || 0} / 部分确认 ${data.partialConfirmCandidateCount || 0}`);
+      更新自我场景图层摘要();
+    }
+
+
+    function 场景向量减(a, b) {
+      return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+    }
+
+    function 场景向量叉乘(a, b) {
+      return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+      ];
+    }
+
+    function 场景向量点乘(a, b) {
+      return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    }
+
+    function 场景向量归一(v) {
+      const len = Math.hypot(v[0], v[1], v[2]) || 1;
+      return [v[0] / len, v[1] / len, v[2] / len];
+    }
+
+    function 场景矩阵相乘(a, b) {
+      const out = new Float32Array(16);
+      for (let col = 0; col < 4; ++col) {
+        for (let row = 0; row < 4; ++row) {
+          out[col * 4 + row] =
+            a[0 * 4 + row] * b[col * 4 + 0]
+            + a[1 * 4 + row] * b[col * 4 + 1]
+            + a[2 * 4 + row] * b[col * 4 + 2]
+            + a[3 * 4 + row] * b[col * 4 + 3];
+        }
+      }
+      return out;
+    }
+
+    function 场景透视矩阵(fovy, aspect, near, far) {
+      const f = 1 / Math.tan(fovy / 2);
+      const range = 1 / (near - far);
+      return new Float32Array([
+        f / aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (far + near) * range, -1,
+        0, 0, 2 * far * near * range, 0
+      ]);
+    }
+
+    function 场景视图矩阵(eye, center, up) {
+      const f = 场景向量归一(场景向量减(center, eye));
+      const s = 场景向量归一(场景向量叉乘(f, up));
+      const u = 场景向量叉乘(s, f);
+      return new Float32Array([
+        s[0], u[0], -f[0], 0,
+        s[1], u[1], -f[1], 0,
+        s[2], u[2], -f[2], 0,
+        -场景向量点乘(s, eye), -场景向量点乘(u, eye), 场景向量点乘(f, eye), 1
+      ]);
+    }
+
+    function 编译自我场景着色器(gl, type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        const log = gl.getShaderInfoLog(shader) || 'shader compile failed';
+        gl.deleteShader(shader);
+        throw new Error(log);
+      }
+      return shader;
+    }
+
+    function 创建自我场景程序(gl) {
+      const vertex = 编译自我场景着色器(gl, gl.VERTEX_SHADER, `
+        attribute vec3 a_position;
+        attribute vec3 a_color;
+        uniform mat4 u_matrix;
+        varying vec3 v_color;
+        void main() {
+          gl_Position = u_matrix * vec4(a_position, 1.0);
+          gl_PointSize = 9.0;
+          v_color = a_color;
+        }
+      `);
+      const fragment = 编译自我场景着色器(gl, gl.FRAGMENT_SHADER, `
+        precision mediump float;
+        varying vec3 v_color;
+        void main() {
+          gl_FragColor = vec4(v_color, 1.0);
+        }
+      `);
+      const program = gl.createProgram();
+      gl.attachShader(program, vertex);
+      gl.attachShader(program, fragment);
+      gl.linkProgram(program);
+      gl.deleteShader(vertex);
+      gl.deleteShader(fragment);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        const log = gl.getProgramInfoLog(program) || 'program link failed';
+        gl.deleteProgram(program);
+        throw new Error(log);
+      }
+      return program;
+    }
+
+
+    function 取自我场景范围(data) {
+      const candidate = data?.candidate || {};
+      const valid = !!candidate.valid;
+      const min = valid ? [...candidate.min] : [-1000, -100, -1000];
+      const max = valid ? [...candidate.max] : [1000, 900, 1000];
+      const points = [[0, 0, 0]];
+      if (valid) {
+        points.push(candidate.center || [0, 0, 0]);
+      }
+      points.forEach((p) => {
+        for (let i = 0; i < 3; ++i) {
+          min[i] = Math.min(min[i], Number(p[i] || 0));
+          max[i] = Math.max(max[i], Number(p[i] || 0));
+        }
+      });
+      const pad = Math.max(100, Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2]) * 0.18);
+      for (let i = 0; i < 3; ++i) {
+        min[i] -= pad;
+        max[i] += pad;
+      }
+      const center = [
+        (min[0] + max[0]) / 2,
+        (min[1] + max[1]) / 2,
+        (min[2] + max[2]) / 2
+      ];
+      const extent = Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2], 1);
+      return { min, max, center, extent, scale: 4 / extent };
+    }
+
+    function 构建自我场景几何(data) {
+      const range = 取自我场景范围(data || {});
+      const lines = [];
+      const points = [];
+      const transform = (p) => [
+        (Number(p[0] || 0) - range.center[0]) * range.scale,
+        (Number(p[1] || 0) - range.center[1]) * range.scale,
+        (Number(p[2] || 0) - range.center[2]) * range.scale
+      ];
+      const pushVertex = (target, p, color) => {
+        const q = transform(p);
+        target.push(q[0], q[1], q[2], color[0], color[1], color[2]);
+      };
+      const pushLine = (a, b, color) => {
+        pushVertex(lines, a, color);
+        pushVertex(lines, b, color);
+      };
+      const pushPoint = (p, color) => pushVertex(points, p, color);
+
+      const gridColor = [0.17, 0.26, 0.29];
+      const y = Math.min(0, range.min[1]);
+      const steps = 10;
+      for (let i = 0; i <= steps; ++i) {
+        const t = i / steps;
+        const x = range.min[0] + (range.max[0] - range.min[0]) * t;
+        const z = range.min[2] + (range.max[2] - range.min[2]) * t;
+        pushLine([x, y, range.min[2]], [x, y, range.max[2]], gridColor);
+        pushLine([range.min[0], y, z], [range.max[0], y, z], gridColor);
+      }
+
+      const axisLen = range.extent * 0.45;
+      pushLine([0, 0, 0], [axisLen, 0, 0], [0.95, 0.38, 0.38]);
+      pushLine([0, 0, 0], [0, axisLen, 0], [0.2, 0.83, 0.52]);
+      pushLine([0, 0, 0], [0, 0, axisLen], [0.38, 0.65, 0.98]);
+      pushPoint([0, 0, 0], [1.0, 1.0, 1.0]);
+
+      const candidate = data?.candidate || {};
+      if (candidate.valid) {
+        const mn = candidate.min || [0, 0, 0];
+        const mx = candidate.max || [0, 0, 0];
+        const boxColor = data?.verifiedFlag ? [0.06, 0.84, 0.56] : [0.96, 0.58, 0.12];
+        const pointColor = data?.verifiedFlag ? [0.78, 1.0, 0.72] : [0.06, 0.84, 0.56];
+        const corners = [
+          [mn[0], mn[1], mn[2]], [mx[0], mn[1], mn[2]], [mx[0], mx[1], mn[2]], [mn[0], mx[1], mn[2]],
+          [mn[0], mn[1], mx[2]], [mx[0], mn[1], mx[2]], [mx[0], mx[1], mx[2]], [mn[0], mx[1], mx[2]]
+        ];
+        [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach((edge) => {
+          pushLine(corners[edge[0]], corners[edge[1]], boxColor);
+        });
+        pushPoint(candidate.center || [0, 0, 0], pointColor);
+      }
+
+      return {
+        lineData: new Float32Array(lines),
+        pointData: new Float32Array(points),
+        lineCount: lines.length / 6,
+        pointCount: points.length / 6
+      };
+    }
+
+
+    function 调整自我场景画布尺寸(gl, canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const width = Math.max(1, Math.floor((rect.width || canvas.clientWidth || 960) * window.devicePixelRatio));
+      const height = Math.max(1, Math.floor((rect.height || canvas.clientHeight || 540) * window.devicePixelRatio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    }
+
+    function 绘制自我场景诊断覆盖层() {
+      const overlay = document.getElementById('self-scene-layer-overlay');
+      const source = document.getElementById('self-scene-gl');
+      if (!overlay || !source) return;
+      const rect = source.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.max(1, Math.floor((rect.width || source.clientWidth || 960) * dpr));
+      const height = Math.max(1, Math.floor((rect.height || source.clientHeight || 540) * dpr));
+      if (overlay.width !== width || overlay.height !== height) {
+        overlay.width = width;
+        overlay.height = height;
+      }
+      const ctx = overlay.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const cssWidth = width / dpr;
+      const cssHeight = height / dpr;
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+      const data = 自我场景复现数据 || {};
+      if (!data.ok) return;
+      const summary = 读取自我场景图层摘要(data);
+      const regions = 读取自我场景诊断区域(data).filter((region) => {
+        const layerId = 自我场景区域图层ID(region.layer);
+        return layerId && 自我场景图层启用(layerId);
+      });
+      const layers = [
+        {
+          id: 'depth-hole',
+          name: '深度空洞',
+          value: summary.depthHoleRatio,
+          color: '#ef4444',
+          text: `${data.depthHoleRegions || 0}区`
+        },
+        {
+          id: 'filled-depth',
+          name: '补全深度',
+          value: summary.filledRatio,
+          color: '#facc15',
+          text: `${data.completionCandidateCount || 0}候选`
+        },
+        {
+          id: 'unexplained',
+          name: '未解释',
+          value: summary.unexplainedRatio,
+          color: '#a78bfa',
+          text: `${data.refillObservationRegionCount || 0}待补`
+        },
+        {
+          id: 'contour-risk',
+          name: '轮廓风险',
+          value: summary.contourRiskRatio,
+          color: '#fb7185',
+          text: `${summary.contourRiskCount || 0}项`
+        }
+      ].filter((item) => 自我场景图层启用(item.id));
+
+      if (layers.length === 0) return;
+      const panelWidth = Math.min(430, Math.max(280, cssWidth * 0.46));
+      const rowHeight = 26;
+      const panelHeight = 44 + layers.length * rowHeight;
+      const x = 18;
+      const y = 18;
+      ctx.fillStyle = 'rgba(8, 13, 18, 0.72)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(x, y, panelWidth, panelHeight, 8);
+      } else {
+        ctx.rect(x, y, panelWidth, panelHeight);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.86)';
+      ctx.font = '700 12px system-ui, sans-serif';
+      ctx.fillText(regions.length > 0 ? '诊断区域矩形' : '诊断区域摘要覆盖', x + 12, y + 22);
+      ctx.font = '12px system-ui, sans-serif';
+      layers.forEach((layer, index) => {
+        const rowY = y + 42 + index * rowHeight;
+        const barX = x + 82;
+        const barWidth = panelWidth - 170;
+        const activeWidth = Math.max(2, barWidth * 场景万分比(layer.value) / 10000);
+        ctx.fillStyle = 'rgba(255,255,255,0.68)';
+        ctx.fillText(layer.name, x + 12, rowY + 12);
+        ctx.fillStyle = 'rgba(255,255,255,0.14)';
+        ctx.fillRect(barX, rowY, barWidth, 12);
+        ctx.fillStyle = layer.color;
+        ctx.globalAlpha = 0.86;
+        ctx.fillRect(barX, rowY, activeWidth, 12);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = 'rgba(255,255,255,0.78)';
+        ctx.fillText(`${layer.value}/10000 ${layer.text}`, barX + barWidth + 10, rowY + 11);
+      });
+
+      if (regions.length === 0) {
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.fillText('几何待落账', Math.max(18, cssWidth - 98), Math.max(32, cssHeight - 18));
+        return;
+      }
+
+      const frameW = Math.max(1, Number(data.width || 0));
+      const frameH = Math.max(1, Number(data.height || 0));
+      const mapMaxWidth = Math.min(430, Math.max(260, cssWidth * 0.44));
+      const mapWidth = Math.max(220, Math.min(mapMaxWidth, cssWidth - 36));
+      const mapHeight = Math.max(140, Math.min(260, mapWidth * frameH / frameW + 36));
+      const mapX = 18;
+      const mapY = y + panelHeight + 14;
+      if (mapY + mapHeight + 10 > cssHeight) {
+        ctx.fillStyle = 'rgba(255,255,255,0.62)';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.fillText(`${regions.length} 矩形`, Math.max(18, cssWidth - 88), Math.max(32, cssHeight - 18));
+        return;
+      }
+
+      ctx.fillStyle = 'rgba(8, 13, 18, 0.66)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(mapX, mapY, mapWidth, mapHeight, 8);
+      } else {
+        ctx.rect(mapX, mapY, mapWidth, mapHeight);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(255,255,255,0.82)';
+      ctx.font = '700 12px system-ui, sans-serif';
+      ctx.fillText(`${regions.length}/${data.diagnosticRegionCount || regions.length} 矩形`, mapX + 12, mapY + 21);
+
+      const innerX = mapX + 12;
+      const innerY = mapY + 32;
+      const innerW = mapWidth - 24;
+      const innerH = mapHeight - 44;
+      const scale = Math.min(innerW / frameW, innerH / frameH);
+      const drawW = frameW * scale;
+      const drawH = frameH * scale;
+      const originX = innerX + (innerW - drawW) / 2;
+      const originY = innerY + (innerH - drawH) / 2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+      ctx.strokeRect(originX, originY, drawW, drawH);
+
+      regions.slice(0, 180).forEach((region) => {
+        const rect = region.rect || [0, 0, 0, 0];
+        const minX = Math.max(0, Math.min(frameW - 1, Number(rect[0] || 0)));
+        const minY = Math.max(0, Math.min(frameH - 1, Number(rect[1] || 0)));
+        const maxX = Math.max(0, Math.min(frameW - 1, Number(rect[2] || 0)));
+        const maxY = Math.max(0, Math.min(frameH - 1, Number(rect[3] || 0)));
+        const rx = originX + Math.min(minX, maxX) * scale;
+        const ry = originY + Math.min(minY, maxY) * scale;
+        const rw = Math.max(2, (Math.abs(maxX - minX) + 1) * scale);
+        const rh = Math.max(2, (Math.abs(maxY - minY) + 1) * scale);
+        const color = 自我场景区域颜色(region.layer);
+        ctx.globalAlpha = region.layer === 1 ? 0.24 : 0.18;
+        ctx.fillStyle = color;
+        ctx.fillRect(rx, ry, rw, rh);
+        ctx.globalAlpha = 0.88;
+        ctx.strokeStyle = color;
+        ctx.strokeRect(rx, ry, rw, rh);
+      });
+      ctx.globalAlpha = 1;
+    }
+
+
+    function 初始化自我场景WebGL() {
+      if (自我场景GL状态) return 自我场景GL状态;
+      更新自我场景统计();
+      const canvas = document.getElementById('self-scene-gl');
+      if (!canvas) return null;
+      const gl = canvas.getContext('webgl', { antialias: true, alpha: false }) || canvas.getContext('experimental-webgl');
+      if (!gl) {
+        设置自我场景状态('OpenGL(WebGL) 初始化失败。', 'error');
+        return null;
+      }
+      try {
+        const program = 创建自我场景程序(gl);
+        const geometry = 构建自我场景几何(自我场景复现数据 || {});
+        const lineBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, lineBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, geometry.lineData, gl.STATIC_DRAW);
+        const pointBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, pointBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, geometry.pointData, gl.STATIC_DRAW);
+        自我场景GL状态 = {
+          gl,
+          canvas,
+          program,
+          lineBuffer,
+          pointBuffer,
+          lineCount: geometry.lineCount,
+          pointCount: geometry.pointCount,
+          position: gl.getAttribLocation(program, 'a_position'),
+          color: gl.getAttribLocation(program, 'a_color'),
+          matrix: gl.getUniformLocation(program, 'u_matrix'),
+          angle: 0.72,
+          rotating: true,
+          frame: 0
+        };
+        设置自我场景状态(
+          (自我场景复现数据 && 自我场景复现数据.ok)
+            ? '已用自我所在场景快照完成 OpenGL 复现。'
+            : '自我所在场景暂无可复现快照，已显示坐标基准。',
+          (自我场景复现数据 && 自我场景复现数据.ok) ? 'ok' : '');
+      } catch (error) {
+        设置自我场景状态(`OpenGL(WebGL) 渲染准备失败：${error.message || error}`, 'error');
+        自我场景GL状态 = null;
+      }
+      return 自我场景GL状态;
+    }
+
+    function 绘制自我场景() {
+      const state = 初始化自我场景WebGL();
+      if (!state) return;
+      const { gl, canvas, program } = state;
+      调整自我场景画布尺寸(gl, canvas);
+      gl.clearColor(0.03, 0.05, 0.07, 1);
+      gl.clearDepth(1);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LEQUAL);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.useProgram(program);
+
+      const aspect = Math.max(1, canvas.width) / Math.max(1, canvas.height);
+      const angle = state.angle;
+      const eye = [Math.sin(angle) * 6.4, 3.7, Math.cos(angle) * 6.4];
+      const projection = 场景透视矩阵(Math.PI / 4.5, aspect, 0.1, 100);
+      const view = 场景视图矩阵(eye, [0, 0, 0], [0, 1, 0]);
+      const matrix = 场景矩阵相乘(projection, view);
+      gl.uniformMatrix4fv(state.matrix, false, matrix);
+
+      const bindGeometry = (buffer) => {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.enableVertexAttribArray(state.position);
+        gl.vertexAttribPointer(state.position, 3, gl.FLOAT, false, 24, 0);
+        gl.enableVertexAttribArray(state.color);
+        gl.vertexAttribPointer(state.color, 3, gl.FLOAT, false, 24, 12);
+      };
+
+      bindGeometry(state.lineBuffer);
+      if (state.lineCount > 0) {
+        gl.drawArrays(gl.LINES, 0, state.lineCount);
+      }
+      bindGeometry(state.pointBuffer);
+      if (state.pointCount > 0) {
+        gl.drawArrays(gl.POINTS, 0, state.pointCount);
+      }
+      绘制自我场景诊断覆盖层();
+
+      if (state.rotating && document.querySelector('.page.active')?.dataset.page === 'self-scene') {
+        state.angle += 0.006;
+      }
+      state.frame = window.requestAnimationFrame(绘制自我场景);
+    }
+
+    function 请求绘制自我场景() {
+      const state = 初始化自我场景WebGL();
+      if (!state) return;
+      if (!state.frame) {
+        绘制自我场景();
+      }
+    }
+
+    function 重置自我场景视角() {
+      const state = 初始化自我场景WebGL();
+      if (!state) return;
+      state.angle = 0.72;
+      请求绘制自我场景();
+    }
+
+    function 切换自我场景旋转() {
+      const state = 初始化自我场景WebGL();
+      if (!state) return;
+      state.rotating = !state.rotating;
+      const button = document.getElementById('scene-toggle-rotation');
+      if (button) {
+        button.textContent = state.rotating ? '暂停旋转' : '继续旋转';
+      }
+      请求绘制自我场景();
     }
 
 
@@ -2068,6 +3139,25 @@
     if (相机停止按钮) {
       相机停止按钮.addEventListener('click', 停止相机采集);
     }
+
+    const 自我场景重置按钮 = document.getElementById('scene-reset-view');
+    const 自我场景旋转按钮 = document.getElementById('scene-toggle-rotation');
+    if (自我场景重置按钮) {
+      自我场景重置按钮.addEventListener('click', 重置自我场景视角);
+    }
+    if (自我场景旋转按钮) {
+      自我场景旋转按钮.addEventListener('click', 切换自我场景旋转);
+    }
+    ['depth-hole', 'filled-depth', 'unexplained', 'contour-risk'].forEach((layerId) => {
+      const checkbox = document.getElementById(`scene-layer-${layerId}`);
+      if (checkbox) {
+        checkbox.addEventListener('change', () => {
+          绘制自我场景诊断覆盖层();
+          请求绘制自我场景();
+        });
+      }
+    });
+    window.addEventListener('resize', 请求绘制自我场景);
 
     document.getElementById('refresh-page').addEventListener('click', () => {
       if (window.chrome && window.chrome.webview) {

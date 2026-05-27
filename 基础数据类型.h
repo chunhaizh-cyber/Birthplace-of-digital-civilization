@@ -1051,9 +1051,17 @@ struct 结构体_原始场景帧 {
     // 深度图 Z（mm），idx = v*宽度 + u
     std::vector<double> 深度;
 
+    // Q3 深度口径：主“深度”保持原始观察口径；滤波和补全只作并存候选，不覆盖原始事实。
+    std::vector<double> 原始深度;
+    std::vector<double> 滤波深度;
+    std::vector<double> 补全深度;
+
     // 深度有效掩膜（可选）：1=有效，0=无效/孔洞/被过滤
     // 用于“每个mask点都要三维坐标”的验收与调试
     std::vector<std::uint8_t> 深度有效;
+    std::vector<std::uint8_t> 原始深度有效;
+    std::vector<std::uint8_t> 滤波深度有效;
+    std::vector<std::uint8_t> 补全深度有效;
 
     // RGB 图（可选），size==深度.size() 时有效
     std::vector<Color> 颜色;

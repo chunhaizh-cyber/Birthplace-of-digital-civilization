@@ -27,6 +27,80 @@ namespace {
     inline constexpr I64 历史本能方法ID_改变特征值 = 6058;
     inline constexpr I64 历史本能方法ID_任务筹办 = 6062;
     inline constexpr I64 历史本能方法ID_任务执行 = 6063;
+    inline constexpr I64 空间候选独立状态_不确定 = 0;
+    inline constexpr I64 空间候选独立状态_相对独立 = 1;
+    inline constexpr I64 空间候选独立状态_不独立 = 2;
+    inline constexpr I64 空间候选独立状态_待拆分 = 3;
+    inline constexpr I64 空间候选独立状态_待合并 = 4;
+    inline constexpr I64 观察存在假设状态_未生成 = 0;
+    inline constexpr I64 观察存在假设状态_已生成 = 1;
+    inline constexpr I64 观察存在假设验证状态_待验证 = 1;
+    inline constexpr I64 像素归属验证状态_未生成 = 0;
+    inline constexpr I64 像素归属验证状态_已生成待确认 = 1;
+    inline constexpr I64 全帧像素归属账状态_未生成 = 0;
+    inline constexpr I64 全帧像素归属账状态_已生成 = 1;
+    inline constexpr I64 全帧像素归属账状态_有冲突 = 2;
+    inline constexpr I64 观察存在确认状态_未确认 = 0;
+    inline constexpr I64 观察存在确认状态_已验证 = 1;
+    inline constexpr I64 观察存在确认状态_待确认 = 2;
+    inline constexpr I64 观察存在确认状态_待拆分 = 3;
+    inline constexpr I64 观察存在确认状态_待合并 = 4;
+    inline constexpr I64 观察存在确认状态_已否定 = 5;
+    inline constexpr I64 帧解释状态_未生成 = 0;
+    inline constexpr I64 帧解释状态_已更新 = 1;
+    inline constexpr I64 帧解释状态_部分解释 = 2;
+    inline constexpr I64 观察确认补偿状态_部分确认 = 6;
+    inline constexpr I64 观察确认补偿状态_待验证 = 8;
+    inline constexpr I64 观察确认补偿状态_条件不足 = 7;
+    inline constexpr I64 内部世界状态_未建立 = 0;
+    inline constexpr I64 内部世界状态_已建立 = 1;
+    inline constexpr I64 内外接口状态_已建立 = 1;
+    inline constexpr I64 当前观察材料状态_已建立 = 1;
+    inline constexpr I64 子候选集合状态_已生成 = 1;
+    inline constexpr I64 成员存在集合状态_已更新 = 1;
+    inline constexpr I64 内部世界细分状态_未细分 = 0;
+    inline constexpr I64 内部世界细分状态_已完成 = 1;
+    inline constexpr I64 内部世界细分状态_部分完成 = 2;
+    inline constexpr I64 内部世界细分状态_无法细分 = 3;
+    inline constexpr I64 内部子候选类型_空间子候选 = 1;
+    inline constexpr I64 内部子候选类型_表面特征候选 = 2;
+    inline constexpr I64 内部子候选类型_叶子候选 = 5;
+    inline constexpr I64 内部子存在类型_表面特征存在 = 2;
+    inline constexpr I64 内部子存在类型_叶子特征块存在 = 5;
+    inline constexpr I64 历史对应状态_未匹配 = 0;
+    inline constexpr I64 历史对应状态_已匹配 = 1;
+    inline constexpr I64 历史对应状态_冲突 = 2;
+    inline constexpr I64 变化结果状态_未生成 = 0;
+    inline constexpr I64 变化结果状态_已生成 = 1;
+    inline constexpr I64 变化状态_未变化 = 0;
+    inline constexpr I64 变化状态_已移动 = 1;
+    inline constexpr I64 变化状态_已变大 = 2;
+    inline constexpr I64 变化状态_已变小 = 3;
+    inline constexpr I64 变化状态_内部结构变化 = 4;
+    inline constexpr I64 变化状态_不确定 = 5;
+    inline constexpr I64 观察变化事件集合状态_已生成 = 1;
+    inline constexpr I64 观察变化事件类型_无变化 = 0;
+    inline constexpr I64 观察变化事件类型_新增存在 = 1;
+    inline constexpr I64 观察变化事件类型_未命中 = 2;
+    inline constexpr I64 观察变化事件类型_位置变化 = 3;
+    inline constexpr I64 观察变化事件类型_范围变化 = 4;
+    inline constexpr I64 观察变化事件类型_尺寸变化 = 5;
+    inline constexpr I64 观察变化事件类型_内部结构变化 = 6;
+    inline constexpr I64 观察变化事件类型_不确定 = 9;
+    inline constexpr I64 场景识别快照状态_已生成 = 1;
+    inline constexpr I64 OpenGL复现数据状态_已生成 = 1;
+    inline constexpr I64 复现数据缓冲状态_摘要级 = 1;
+    inline constexpr I64 观察事实状态_未成立 = 0;
+    inline constexpr I64 观察事实状态_已取得 = 1;
+    inline constexpr I64 观察事实状态_已建立 = 1;
+    inline constexpr I64 观察事实状态_已覆盖 = 1;
+    inline constexpr I64 观察事实状态_已完成 = 1;
+    inline constexpr I64 观察事实状态_已完备 = 1;
+    inline constexpr I64 观察事实状态_新鲜 = 1;
+    inline constexpr I64 观察事实状态_可用 = 1;
+    inline constexpr I64 观察质量最低评分 = 5000;
+    inline constexpr I64 观察质量最低深度有效率 = 5000;
+    inline constexpr I64 观察质量最低空间坐标有效率 = 5000;
 
     inline const 语素入口节点类* 词_被动动作() noexcept
     {
@@ -1381,6 +1455,90 @@ namespace {
         return s_词;
     }
 
+    inline const 语素入口节点类* 类型_空间候选观察事实() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选观察事实", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_观察诊断区域() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察诊断区域", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_已确认观察存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("已确认观察存在", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 名称_存在内部世界() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("存在内部世界", 枚举_信息入口类型::场景实例入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_存在内外接口() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("存在内外接口", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_存在局部观察切片() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("存在局部观察切片", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_内部世界子候选() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("内部世界子候选", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_内部世界子存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("内部世界子存在", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_叶子特征块存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("叶子特征块存在", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_观察存在匹配关系() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察存在匹配关系", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_观察存在变化结果() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察存在变化结果", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_观察变化事件() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察变化事件", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_场景识别快照() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("场景识别快照", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 类型_OpenGL复现数据() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("OpenGL复现数据", 枚举_信息入口类型::存在概念入口);
+        return s_词;
+    }
+
     inline const 语素入口节点类* 特征_相机帧宽度() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("相机帧宽度", 枚举_信息入口类型::特征模板入口);
@@ -1408,6 +1566,1614 @@ namespace {
     inline const 语素入口节点类* 特征_轮廓数量() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_当前观察帧() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("当前观察帧", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_当前观察特征帧() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("当前观察特征帧", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_当前观察特征帧取得状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("当前观察特征帧取得状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_当前观察帧存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("当前观察帧存在", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_当前观察帧存在状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("当前观察帧存在状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察帧容器状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察帧容器状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察帧到自我场景接口() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察帧到自我场景接口", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_当前帧像素特征索引() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("当前帧像素特征索引", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素观察事实索引() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素观察事实索引", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素坐标X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素坐标X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素坐标Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素坐标Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素坐标对应像素观察事实() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素坐标对应像素观察事实", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_预期像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("预期像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素特征数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素特征数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素观察存在数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素观察存在数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_缺失像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("缺失像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_重复映射数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("重复映射数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_颜色像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("颜色像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度有效像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度有效像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_点云有效像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("点云有效像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素覆盖状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素覆盖状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素特征值承接状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素特征值承接状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_坐标回查可用状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("坐标回查可用状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_帧内编号回查可用状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("帧内编号回查可用状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察事实完备状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察事实完备状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察事实完备失败条件数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察事实完备失败条件数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_质量可用状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("质量可用状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_质量失败条件数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("质量失败条件数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_当前观察新鲜度状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("当前观察新鲜度状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_基础观察事实可用状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("基础观察事实可用状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_基础观察事实失败条件数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("基础观察事实失败条件数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间坐标单位毫米() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间坐标单位毫米", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_颜色RGB结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("颜色RGB结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_原始深度毫米结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("原始深度毫米结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_滤波深度毫米结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("滤波深度毫米结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_补全深度毫米结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("补全深度毫米结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度有效性Mask状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度有效性Mask状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度来源结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度来源结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度稳定性结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度稳定性结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度邻域一致性结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度邻域一致性结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间坐标毫米XYZ结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间坐标毫米XYZ结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_原始深度来源像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("原始深度来源像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_滤波深度来源像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("滤波深度来源像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_补全深度来源像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("补全深度来源像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_无有效深度来源像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("无有效深度来源像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_补全深度低置信像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("补全深度低置信像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度稳定性平均值() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度稳定性平均值", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度邻域一致性平均值() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度邻域一致性平均值", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察帧组状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察帧组状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察帧组帧数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察帧组帧数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合依据帧集合状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合依据帧集合状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合深度毫米结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合深度毫米结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合深度有效性结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合深度有效性结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_多帧深度稳定性结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("多帧深度稳定性结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_每像素深度方差结构状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("每像素深度方差结构状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合深度有效像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合深度有效像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合深度有效率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合深度有效率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合补偿深度空洞像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合补偿深度空洞像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合低稳定像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合低稳定像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合深度稳定性平均值() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合深度稳定性平均值", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合深度平均方差() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合深度平均方差", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_彩色深度已对齐() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("彩色深度已对齐", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_对齐目标() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("对齐目标", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度有效率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度有效率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间坐标有效率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间坐标有效率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_帧质量评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("帧质量评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察帧质量诊断摘要() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察帧质量诊断摘要", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度空洞数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度空洞数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度空洞区域数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度空洞区域数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度空洞区域集合() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度空洞区域集合", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域集合状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域集合状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域掩码状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域掩码状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域编号() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域编号", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域图层类型() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域图层类型", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域来源候选编号() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域来源候选编号", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域投影最小X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域投影最小X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域投影最大X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域投影最大X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域投影最小Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域投影最小Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域投影最大Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域投影最大Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断区域置信度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断区域置信度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_彩色深度对齐状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("彩色深度对齐状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓闭合率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓闭合率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓断裂数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓断裂数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_彩图轮廓数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("彩图轮廓数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度轮廓数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度轮廓数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间投影轮廓数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间投影轮廓数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合轮廓数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合轮廓数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓来源分层状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓来源分层状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓深度支持率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓深度支持率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓颜色支持率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓颜色支持率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓空间支持率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓空间支持率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_融合轮廓置信度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("融合轮廓置信度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_跨越深度断裂轮廓数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("跨越深度断裂轮廓数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_穿过深度无效区域轮廓数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("穿过深度无效区域轮廓数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_依赖补全深度轮廓数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("依赖补全深度轮廓数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间点有效率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间点有效率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_边界深度稳定率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("边界深度稳定率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_候选存在验证通过率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("候选存在验证通过率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_未解释区域比例() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("未解释区域比例", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_补观察缺口状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("补观察缺口状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_补观察缺失原因() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("补观察缺失原因", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_待补观察区域数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("待补观察区域数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_补全候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("补全候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_低置信轮廓数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("低置信轮廓数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_条件不足候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("条件不足候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_待验证候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("待验证候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_部分确认候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("部分确认候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_补观察需求建议() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("补观察需求建议", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_帧解释状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("帧解释状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选集合() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选集合", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选有效点数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选有效点数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_主空间候选编号() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("主空间候选编号", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_主空间候选像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("主空间候选像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选编号() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选编号", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选像素数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选像素数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选有效点比例() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选有效点比例", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_目标存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("目标存在", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_内部世界() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("内部世界", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_内部世界状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("内部世界状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_内部世界场景类型() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("内部世界场景类型", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_所属父存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("所属父存在", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_父场景() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("父场景", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_局部坐标原点X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("局部坐标原点X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_局部坐标原点Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("局部坐标原点Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_局部坐标原点Z() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("局部坐标原点Z", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_存在内外场景接口() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("存在内外场景接口", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_接口状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("接口状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_外部场景() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("外部场景", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_内部场景() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("内部场景", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_内部世界当前观察材料() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("内部世界当前观察材料", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_局部观察切片() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("局部观察切片", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_来源局部观察切片() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("来源局部观察切片", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_局部边界框宽度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("局部边界框宽度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_局部边界框高度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("局部边界框高度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_局部像素索引状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("局部像素索引状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_内部世界子候选集合() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("内部世界子候选集合", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_子候选类型() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("子候选类型", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_成员存在集合() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("成员存在集合", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_子存在类型() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("子存在类型", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_内部世界细分状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("内部世界细分状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_细分层级数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("细分层级数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_不再细分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("不再细分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_可绘制状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("可绘制状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_当前观察存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("当前观察存在", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_历史观察存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("历史观察存在", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_上一观察存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("上一观察存在", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_历史对应状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("历史对应状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察存在匹配关系() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察存在匹配关系", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_中心坐标差() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("中心坐标差", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围坐标重叠率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围坐标重叠率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_尺寸差() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("尺寸差", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_匹配置信度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("匹配置信度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察存在变化结果() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察存在变化结果", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_变化状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("变化状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_位置变化量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("位置变化量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围变化量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围变化量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_尺寸变化量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("尺寸变化量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_距离变化量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("距离变化量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察变化事件集合() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察变化事件集合", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察变化事件类型() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察变化事件类型", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_变化事件置信度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("变化事件置信度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_场景识别快照() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("场景识别快照", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_快照状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("快照状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_OpenGL复现数据() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("OpenGL复现数据", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_复现数据状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("复现数据状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素颜色层() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素颜色层", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度层() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度层", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间点层() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间点层", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选层() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选层", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_已确认观察存在层() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("已确认观察存在层", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_存在内部世界展开层() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("存在内部世界展开层", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_变化事件层() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("变化事件层", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_诊断摘要状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("诊断摘要状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_顶点缓冲() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("顶点缓冲", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_颜色缓冲() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("颜色缓冲", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度缓冲() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度缓冲", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_存在ID缓冲() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("存在ID缓冲", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_AABB绘制状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("AABB绘制状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_绘制顶点数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("绘制顶点数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_绘制线段数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("绘制线段数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_绘制点数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("绘制点数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_中心空间坐标X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("中心空间坐标X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_中心空间坐标Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("中心空间坐标Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_中心空间坐标Z() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("中心空间坐标Z", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围坐标AABB最小X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围坐标AABB最小X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围坐标AABB最大X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围坐标AABB最大X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围坐标AABB最小Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围坐标AABB最小Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围坐标AABB最大Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围坐标AABB最大Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围坐标AABB最小Z() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围坐标AABB最小Z", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围坐标AABB最大Z() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围坐标AABB最大Z", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_投影范围最小X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("投影范围最小X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_投影范围最大X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("投影范围最大X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_投影范围最小Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("投影范围最小Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_投影范围最大Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("投影范围最大Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_平均深度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("平均深度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_最近深度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("最近深度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_最远深度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("最远深度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间连续性评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间连续性评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围稳定性评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围稳定性评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选相对独立性判断() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选相对独立性判断", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_相对独立空间候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("相对独立空间候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_不独立空间候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("不独立空间候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_待拆分空间候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("待拆分空间候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_待合并空间候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("待合并空间候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_不确定空间候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("不确定空间候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_主空间候选相对独立状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("主空间候选相对独立状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_主空间候选分离度评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("主空间候选分离度评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选观察队列() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选观察队列", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察队列候选数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察队列候选数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_首选观察候选编号() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("首选观察候选编号", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_首选观察候选优先级评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("首选观察候选优先级评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_首选观察候选相对独立状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("首选观察候选相对独立状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_首选观察候选中心接近评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("首选观察候选中心接近评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_首选观察候选范围大小评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("首选观察候选范围大小评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察队列排序位次() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察队列排序位次", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选优先级评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选优先级评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选中心接近评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选中心接近评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选范围大小评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选范围大小评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间候选相对独立状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间候选相对独立状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察存在假设() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察存在假设", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_来源空间候选编号() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("来源空间候选编号", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_存在假设验证状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("存在假设验证状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_候选像素掩码状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("候选像素掩码状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_投影轮廓状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("投影轮廓状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_假设距离() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("假设距离", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_假设尺寸X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("假设尺寸X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_假设尺寸Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("假设尺寸Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_假设尺寸Z() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("假设尺寸Z", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_假设方位X() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("假设方位X", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_假设方位Y() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("假设方位Y", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_假设有效点比例() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("假设有效点比例", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓支持评分() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓支持评分", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓来源类型() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓来源类型", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓闭合度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓闭合度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素归属验证结果() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素归属验证结果", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间覆盖像素数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间覆盖像素数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间匹配像素数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间匹配像素数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_空间冲突像素数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("空间冲突像素数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓支持像素数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓支持像素数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓冲突像素数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓冲突像素数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_深度一致率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("深度一致率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_范围内点比例() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("范围内点比例", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_投影覆盖率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("投影覆盖率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓吻合率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓吻合率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓跨越深度断裂() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓跨越深度断裂", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓穿过深度无效区域() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓穿过深度无效区域", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓依赖补全深度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓依赖补全深度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_轮廓置信度() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("轮廓置信度", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_遮挡像素数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("遮挡像素数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_未解释像素数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("未解释像素数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_已归属像素数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("已归属像素数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_归属冲突像素数() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("归属冲突像素数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素归属率() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素归属率", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_全帧像素归属账状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("全帧像素归属账状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素归属验证状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素归属验证状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察确认补偿状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察确认补偿状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_缺失原因() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("缺失原因", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_未解释区域状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("未解释区域状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_补全候选状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("补全候选状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_低置信轮廓状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("低置信轮廓状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_已验证观察存在() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("已验证观察存在", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_观察存在确认状态() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("观察存在确认状态", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_已验证观察存在数量() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("已验证观察存在数量", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_像素归属更新() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("像素归属更新", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_未解释区域更新() noexcept
+    {
+        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("未解释区域更新", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
@@ -3500,8 +5266,975 @@ namespace {
         int 高度 = 0;
         std::uint32_t 深度帧号 = 0;
         std::uint32_t 彩色帧号 = 0;
+        I64 预期像素数量 = 0;
+        I64 像素特征数量 = 0;
+        I64 像素观察存在数量 = 0;
+        I64 缺失像素数量 = 0;
+        I64 重复映射数量 = 0;
+        I64 颜色像素数量 = 0;
+        I64 深度有效像素数量 = 0;
+        I64 点云有效像素数量 = 0;
+        I64 当前观察特征帧取得状态 = 0;
+        I64 观察帧容器状态 = 0;
+        I64 像素覆盖状态 = 0;
+        I64 像素特征值承接状态 = 0;
+        I64 坐标回查可用状态 = 0;
+        I64 帧内编号回查可用状态 = 0;
+        I64 观察事实完备状态 = 0;
+        I64 观察事实完备失败条件数量 = 0;
+        std::string 观察事实完备失败原因摘要{};
+        I64 质量可用状态 = 0;
+        I64 质量失败条件数量 = 0;
+        std::string 质量失败原因摘要{};
+        I64 当前观察新鲜度状态 = 0;
+        I64 基础观察事实可用状态 = 0;
+        I64 基础观察事实失败条件数量 = 0;
+        I64 空间坐标单位毫米 = 1;
+        I64 颜色RGB结构状态 = 0;
+        I64 原始深度毫米结构状态 = 0;
+        I64 滤波深度毫米结构状态 = 0;
+        I64 补全深度毫米结构状态 = 0;
+        I64 深度有效性Mask状态 = 0;
+        I64 深度来源结构状态 = 0;
+        I64 深度稳定性结构状态 = 0;
+        I64 深度邻域一致性结构状态 = 0;
+        I64 融合深度毫米结构状态 = 0;
+        I64 融合深度有效性结构状态 = 0;
+        I64 多帧深度稳定性结构状态 = 0;
+        I64 每像素深度方差结构状态 = 0;
+        I64 空间坐标毫米XYZ结构状态 = 0;
+        I64 原始深度来源像素数量 = 0;
+        I64 滤波深度来源像素数量 = 0;
+        I64 补全深度来源像素数量 = 0;
+        I64 无有效深度来源像素数量 = 0;
+        I64 补全深度低置信像素数量 = 0;
+        I64 深度稳定性平均值 = 0;
+        I64 深度邻域一致性平均值 = 0;
+        I64 观察帧组状态 = 0;
+        I64 观察帧组帧数 = 0;
+        I64 融合依据帧集合状态 = 0;
+        I64 融合深度有效像素数量 = 0;
+        I64 融合深度有效率 = 0;
+        I64 融合补偿深度空洞像素数量 = 0;
+        I64 融合低稳定像素数量 = 0;
+        I64 融合深度稳定性平均值 = 0;
+        I64 融合深度平均方差 = 0;
+        I64 彩色深度已对齐 = 0;
+        I64 对齐目标 = 0;
+        I64 深度有效率 = 0;
+        I64 空间坐标有效率 = 0;
+        I64 帧质量评分 = 0;
+        I64 观察帧质量诊断摘要 = 0;
+        I64 深度空洞数量 = 0;
+        I64 深度空洞区域数量 = 0;
+        I64 深度空洞区域集合状态 = 0;
+        I64 彩色深度对齐状态 = 0;
+        I64 轮廓闭合率 = 0;
+        I64 轮廓断裂数量 = 0;
+        I64 彩图轮廓数量 = 0;
+        I64 深度轮廓数量 = 0;
+        I64 空间投影轮廓数量 = 0;
+        I64 融合轮廓数量 = 0;
+        I64 轮廓来源分层状态 = 0;
+        I64 轮廓深度支持率 = 0;
+        I64 轮廓颜色支持率 = 0;
+        I64 轮廓空间支持率 = 0;
+        I64 融合轮廓置信度 = 0;
+        I64 跨越深度断裂轮廓数量 = 0;
+        I64 穿过深度无效区域轮廓数量 = 0;
+        I64 依赖补全深度轮廓数量 = 0;
+        I64 空间点有效率 = 0;
+        I64 边界深度稳定率 = 0;
+        I64 候选存在验证通过率 = 0;
+        I64 未解释区域比例 = 0;
+        I64 补观察缺口状态 = 0;
+        I64 补观察缺失原因 = 0;
+        I64 待补观察区域数量 = 0;
+        I64 补全候选数量 = 0;
+        I64 低置信轮廓数量 = 0;
+        I64 条件不足候选数量 = 0;
+        I64 待验证候选数量 = 0;
+        I64 部分确认候选数量 = 0;
+        I64 补观察需求建议 = 0;
+        I64 诊断区域数量 = 0;
+        I64 诊断区域集合状态 = 0;
+        I64 诊断区域掩码状态 = 0;
+        I64 空间候选数量 = 0;
+        I64 空间候选有效点数量 = 0;
+        std::vector<双目相机本能适配器::空间候选摘要> 空间候选列表{};
+        std::vector<双目相机本能适配器::诊断区域摘要> 诊断区域列表{};
         std::size_t 轮廓数量 = 0;
     };
+
+    inline I64 观察事实布尔状态(bool 条件) noexcept
+    {
+        return 条件 ? 观察事实状态_可用 : 观察事实状态_未成立;
+    }
+
+    inline void 补全基础观察事实状态(结构_双目相机调用结果& 结果) noexcept
+    {
+        const I64 预期像素数量 = 结果.预期像素数量 > 0
+            ? 结果.预期像素数量
+            : static_cast<I64>(结果.宽度) * static_cast<I64>(结果.高度);
+        if (结果.预期像素数量 <= 0 && 预期像素数量 > 0) {
+            结果.预期像素数量 = 预期像素数量;
+        }
+
+        const bool 帧尺寸有效 = 结果.宽度 > 0 && 结果.高度 > 0 && 预期像素数量 > 0;
+        const bool 帧号可追溯 = 结果.彩色帧号 > 0 || 结果.深度帧号 > 0;
+        结果.像素观察存在数量 = std::max<I64>(0, 结果.像素特征数量);
+        结果.缺失像素数量 = 预期像素数量 > 结果.像素观察存在数量
+            ? 预期像素数量 - 结果.像素观察存在数量
+            : 0;
+        结果.重复映射数量 = 结果.像素观察存在数量 > 预期像素数量
+            ? 结果.像素观察存在数量 - 预期像素数量
+            : 0;
+        结果.当前观察特征帧取得状态 = 观察事实布尔状态(结果.成功 && 帧尺寸有效 && 帧号可追溯);
+        结果.观察帧容器状态 = 观察事实布尔状态(
+            结果.当前观察特征帧取得状态 == 观察事实状态_已取得
+            && 结果.预期像素数量 == static_cast<I64>(结果.宽度) * static_cast<I64>(结果.高度));
+
+        结果.像素覆盖状态 = 观察事实布尔状态(
+            帧尺寸有效
+            && 结果.像素观察存在数量 == 结果.预期像素数量
+            && 结果.缺失像素数量 == 0
+            && 结果.重复映射数量 == 0);
+
+        结果.坐标回查可用状态 = 观察事实布尔状态(
+            结果.像素覆盖状态 == 观察事实状态_已覆盖
+            && 帧尺寸有效);
+        结果.帧内编号回查可用状态 = 观察事实布尔状态(
+            结果.像素覆盖状态 == 观察事实状态_已覆盖
+            && 结果.像素观察存在数量 == 结果.预期像素数量
+            && 结果.缺失像素数量 == 0
+            && 结果.重复映射数量 == 0);
+        结果.像素特征值承接状态 = 观察事实布尔状态(
+            结果.像素覆盖状态 == 观察事实状态_已覆盖
+            && 结果.像素特征数量 == 结果.预期像素数量
+            && 结果.颜色像素数量 == 结果.预期像素数量
+            && 结果.颜色RGB结构状态 == 1
+            && 结果.原始深度毫米结构状态 == 1
+            && 结果.深度有效性Mask状态 == 1
+            && 结果.空间坐标毫米XYZ结构状态 == 1);
+        结果.观察事实完备状态 = 观察事实布尔状态(
+            结果.像素覆盖状态 == 观察事实状态_已覆盖
+            && 结果.像素特征值承接状态 == 观察事实状态_已完成
+            && 结果.坐标回查可用状态 == 观察事实状态_可用
+            && 结果.帧内编号回查可用状态 == 观察事实状态_可用);
+        std::vector<const char*> 完备失败条件{};
+        if (结果.像素覆盖状态 != 观察事实状态_已覆盖) 完备失败条件.push_back("像素未覆盖");
+        if (结果.像素特征值承接状态 != 观察事实状态_已完成) 完备失败条件.push_back("像素特征值未承接");
+        if (结果.坐标回查可用状态 != 观察事实状态_可用) 完备失败条件.push_back("坐标回查不可用");
+        if (结果.帧内编号回查可用状态 != 观察事实状态_可用) 完备失败条件.push_back("帧内编号回查不可用");
+        结果.观察事实完备失败条件数量 = static_cast<I64>(完备失败条件.size());
+        if (完备失败条件.empty()) {
+            结果.观察事实完备失败原因摘要 = "无";
+        } else {
+            std::ostringstream 摘要;
+            for (std::size_t i = 0; i < 完备失败条件.size(); ++i) {
+                if (i > 0) 摘要 << ';';
+                摘要 << 完备失败条件[i];
+            }
+            结果.观察事实完备失败原因摘要 = 摘要.str();
+        }
+        结果.质量可用状态 = 观察事实布尔状态(
+            结果.观察帧质量诊断摘要 == 1
+            && 结果.帧质量评分 >= 观察质量最低评分
+            && 结果.深度有效率 >= 观察质量最低深度有效率
+            && 结果.空间坐标有效率 >= 观察质量最低空间坐标有效率);
+        std::vector<const char*> 质量失败条件{};
+        if (结果.观察帧质量诊断摘要 != 1) 质量失败条件.push_back("观察帧质量诊断摘要缺失");
+        if (结果.帧质量评分 < 观察质量最低评分) 质量失败条件.push_back("帧质量评分不足");
+        if (结果.深度有效率 < 观察质量最低深度有效率) 质量失败条件.push_back("深度有效率不足");
+        if (结果.空间坐标有效率 < 观察质量最低空间坐标有效率) 质量失败条件.push_back("空间坐标有效率不足");
+        结果.质量失败条件数量 = static_cast<I64>(质量失败条件.size());
+        if (质量失败条件.empty()) {
+            结果.质量失败原因摘要 = "无";
+        } else {
+            std::ostringstream 摘要;
+            for (std::size_t i = 0; i < 质量失败条件.size(); ++i) {
+                if (i > 0) 摘要 << ';';
+                摘要 << 质量失败条件[i];
+            }
+            结果.质量失败原因摘要 = 摘要.str();
+        }
+        结果.当前观察新鲜度状态 = 观察事实布尔状态(
+            结果.当前观察特征帧取得状态 == 观察事实状态_已取得
+            && 结果.观察帧容器状态 == 观察事实状态_已建立);
+        结果.基础观察事实可用状态 = 观察事实布尔状态(
+            结果.当前观察特征帧取得状态 == 观察事实状态_已取得
+            && 结果.观察帧容器状态 == 观察事实状态_已建立
+            && 结果.像素覆盖状态 == 观察事实状态_已覆盖
+            && 结果.像素特征值承接状态 == 观察事实状态_已完成
+            && 结果.观察事实完备状态 == 观察事实状态_已完备
+            && 结果.质量可用状态 == 观察事实状态_可用
+            && 结果.当前观察新鲜度状态 == 观察事实状态_新鲜);
+
+        I64 失败条件 = 0;
+        失败条件 += 结果.当前观察特征帧取得状态 == 观察事实状态_已取得 ? 0 : 1;
+        失败条件 += 结果.观察帧容器状态 == 观察事实状态_已建立 ? 0 : 1;
+        失败条件 += 结果.像素覆盖状态 == 观察事实状态_已覆盖 ? 0 : 1;
+        失败条件 += 结果.像素特征值承接状态 == 观察事实状态_已完成 ? 0 : 1;
+        失败条件 += 结果.观察事实完备状态 == 观察事实状态_已完备 ? 0 : 1;
+        失败条件 += 结果.质量可用状态 == 观察事实状态_可用 ? 0 : 1;
+        失败条件 += 结果.当前观察新鲜度状态 == 观察事实状态_新鲜 ? 0 : 1;
+        结果.基础观察事实失败条件数量 = 失败条件;
+    }
+
+    inline std::string 基础观察事实失败条件摘要(const 结构_双目相机调用结果& 结果)
+    {
+        std::vector<const char*> 条件{};
+        if (结果.当前观察特征帧取得状态 != 观察事实状态_已取得) 条件.push_back("当前观察特征帧未取得");
+        if (结果.观察帧容器状态 != 观察事实状态_已建立) 条件.push_back("观察帧容器未建立");
+        if (结果.像素覆盖状态 != 观察事实状态_已覆盖) 条件.push_back("像素未覆盖");
+        if (结果.像素特征值承接状态 != 观察事实状态_已完成) 条件.push_back("像素特征值未承接");
+        if (结果.观察事实完备状态 != 观察事实状态_已完备) 条件.push_back("观察事实未完备");
+        if (结果.质量可用状态 != 观察事实状态_可用) 条件.push_back("质量不可用");
+        if (结果.当前观察新鲜度状态 != 观察事实状态_新鲜) 条件.push_back("观察不新鲜");
+        if (条件.empty()) {
+            return "无";
+        }
+        std::ostringstream 输出;
+        for (std::size_t i = 0; i < 条件.size(); ++i) {
+            if (i > 0) 输出 << ';';
+            输出 << 条件[i];
+        }
+        return 输出.str();
+    }
+
+    struct 结构_空间候选独立性判断结果 {
+        I64 判断状态 = 0;
+        I64 相对独立数量 = 0;
+        I64 不独立数量 = 0;
+        I64 待拆分数量 = 0;
+        I64 待合并数量 = 0;
+        I64 不确定数量 = 0;
+        I64 主候选状态 = 空间候选独立状态_不确定;
+        I64 主候选分离度评分 = 0;
+    };
+
+    struct 结构_空间候选观察队列项 {
+        I64 排序位次 = 0;
+        I64 候选编号 = 0;
+        I64 优先级评分 = 0;
+        I64 相对独立状态 = 空间候选独立状态_不确定;
+        I64 中心接近评分 = 0;
+        I64 范围大小评分 = 0;
+    };
+
+    struct 结构_空间候选观察队列结果 {
+        I64 队列状态 = 0;
+        I64 候选数量 = 0;
+        std::vector<结构_空间候选观察队列项> 队列{};
+    };
+
+    struct 结构_观察存在假设结果 {
+        I64 假设状态 = 观察存在假设状态_未生成;
+        I64 来源候选编号 = -1;
+        I64 来源队列位次 = -1;
+        I64 相对独立状态 = 空间候选独立状态_不确定;
+        I64 验证状态 = 0;
+        I64 候选像素掩码状态 = 0;
+        I64 投影轮廓状态 = 0;
+        I64 距离 = 0;
+        I64 尺寸X = 0;
+        I64 尺寸Y = 0;
+        I64 尺寸Z = 0;
+        I64 方位X = 0;
+        I64 方位Y = 0;
+        I64 有效点比例 = 0;
+        I64 轮廓支持评分 = 0;
+        双目相机本能适配器::空间候选摘要 候选{};
+    };
+
+    struct 结构_像素归属验证结果 {
+        I64 结果状态 = 像素归属验证状态_未生成;
+        I64 来源候选编号 = -1;
+        I64 空间覆盖像素数 = 0;
+        I64 空间匹配像素数 = 0;
+        I64 空间冲突像素数 = 0;
+        I64 轮廓支持像素数 = 0;
+        I64 轮廓冲突像素数 = 0;
+        I64 深度一致率 = 0;
+        I64 范围内点比例 = 0;
+        I64 投影覆盖率 = 0;
+        I64 轮廓吻合率 = 0;
+        I64 遮挡像素数 = 0;
+        I64 未解释像素数 = 0;
+        I64 验证状态 = 像素归属验证状态_未生成;
+    };
+
+    struct 结构_观察存在确认结果 {
+        I64 确认状态 = 观察存在确认状态_未确认;
+        I64 来源候选编号 = -1;
+        I64 已验证观察存在数量 = 0;
+        I64 像素归属更新 = 0;
+        I64 未解释区域更新 = 0;
+        I64 帧解释状态 = 帧解释状态_未生成;
+        I64 空间连续性评分 = 0;
+        I64 范围稳定性评分 = 0;
+        I64 范围内点比例 = 0;
+        I64 深度一致率 = 0;
+        I64 投影覆盖率 = 0;
+        I64 轮廓吻合率 = 0;
+    };
+
+    struct 结构_已验证观察存在项 {
+        结构_观察存在假设结果 假设{};
+        结构_像素归属验证结果 验证{};
+    };
+
+    struct 结构_全帧像素归属账本结果 {
+        I64 账本状态 = 全帧像素归属账状态_未生成;
+        I64 已验证观察存在数量 = 0;
+        I64 预期像素数量 = 0;
+        I64 已归属像素数 = 0;
+        I64 未解释像素数 = 0;
+        I64 归属冲突像素数 = 0;
+        I64 像素归属率 = 0;
+    };
+
+    inline I64 正差I64(I64 最大值, I64 最小值) noexcept
+    {
+        return 最大值 >= 最小值 ? 最大值 - 最小值 : 0;
+    }
+
+    inline I64 绝对差I64(I64 a, I64 b) noexcept
+    {
+        return a >= b ? a - b : b - a;
+    }
+
+    inline I64 区间间隔I64(I64 aMin, I64 aMax, I64 bMin, I64 bMax) noexcept
+    {
+        if (aMax < bMin) return bMin - aMax;
+        if (bMax < aMin) return aMin - bMax;
+        return 0;
+    }
+
+    inline bool 空间候选范围有效(const 双目相机本能适配器::空间候选摘要& 候选) noexcept
+    {
+        return 候选.像素数量 > 0
+            && 候选.范围最大X >= 候选.范围最小X
+            && 候选.范围最大Y >= 候选.范围最小Y
+            && 候选.范围最大Z >= 候选.范围最小Z;
+    }
+
+    inline I64 空间候选AABB间隔(
+        const 双目相机本能适配器::空间候选摘要& A,
+        const 双目相机本能适配器::空间候选摘要& B) noexcept
+    {
+        const I64 x = 区间间隔I64(A.范围最小X, A.范围最大X, B.范围最小X, B.范围最大X);
+        const I64 y = 区间间隔I64(A.范围最小Y, A.范围最大Y, B.范围最小Y, B.范围最大Y);
+        const I64 z = 区间间隔I64(A.范围最小Z, A.范围最大Z, B.范围最小Z, B.范围最大Z);
+        return std::max(x, std::max(y, z));
+    }
+
+    inline I64 空间候选最大范围跨度(const 双目相机本能适配器::空间候选摘要& 候选) noexcept
+    {
+        const I64 x = 正差I64(候选.范围最大X, 候选.范围最小X);
+        const I64 y = 正差I64(候选.范围最大Y, 候选.范围最小Y);
+        const I64 z = 正差I64(候选.范围最大Z, 候选.范围最小Z);
+        return std::max(x, std::max(y, z));
+    }
+
+    inline I64 计算空间候选分离度评分(
+        const std::vector<双目相机本能适配器::空间候选摘要>& 候选集,
+        std::size_t 索引) noexcept
+    {
+        if (索引 >= 候选集.size()) return 0;
+        if (候选集.size() <= 1) return 10000;
+
+        I64 最近间隔 = std::numeric_limits<I64>::max();
+        const auto& 当前 = 候选集[索引];
+        for (std::size_t i = 0; i < 候选集.size(); ++i) {
+            if (i == 索引) continue;
+            最近间隔 = std::min(最近间隔, 空间候选AABB间隔(当前, 候选集[i]));
+        }
+        if (最近间隔 == std::numeric_limits<I64>::max()) return 10000;
+        if (最近间隔 <= 0) return 2000;
+        if (最近间隔 >= 600) return 10000;
+        return 2000 + 最近间隔 * 8000 / 600;
+    }
+
+    inline bool 空间候选存在待合并邻居(
+        const std::vector<双目相机本能适配器::空间候选摘要>& 候选集,
+        std::size_t 索引) noexcept
+    {
+        if (索引 >= 候选集.size() || 候选集.size() <= 1) return false;
+        const auto& 当前 = 候选集[索引];
+        for (std::size_t i = 0; i < 候选集.size(); ++i) {
+            if (i == 索引) continue;
+            const auto& 其他 = 候选集[i];
+            if (空间候选AABB间隔(当前, 其他) <= 120
+                && 绝对差I64(当前.中心Z, 其他.中心Z) <= 180) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    inline I64 判断单个空间候选独立状态(
+        const std::vector<双目相机本能适配器::空间候选摘要>& 候选集,
+        std::size_t 索引) noexcept
+    {
+        if (索引 >= 候选集.size()) return 空间候选独立状态_不确定;
+        const auto& 候选 = 候选集[索引];
+        if (!空间候选范围有效(候选)
+            || 候选.空间连续性评分 < 4500
+            || 候选.范围稳定性评分 < 4500) {
+            return 空间候选独立状态_不独立;
+        }
+        if (空间候选存在待合并邻居(候选集, 索引)) {
+            return 空间候选独立状态_待合并;
+        }
+
+        const I64 深度跨度 = 正差I64(候选.最远深度, 候选.最近深度);
+        const I64 拆分深度阈值 = std::max<I64>(300, 绝对差I64(候选.平均深度, 0) / 5);
+        if (候选.像素数量 >= 256
+            && 深度跨度 > 拆分深度阈值
+            && 空间候选最大范围跨度(候选) > 350) {
+            return 空间候选独立状态_待拆分;
+        }
+
+        const I64 分离度评分 = 计算空间候选分离度评分(候选集, 索引);
+        if (候选.空间连续性评分 >= 6500
+            && 候选.范围稳定性评分 >= 6500
+            && 分离度评分 >= 5000
+            && 候选.有效点比例 > 0) {
+            return 空间候选独立状态_相对独立;
+        }
+        return 空间候选独立状态_不确定;
+    }
+
+    inline 结构_空间候选独立性判断结果 计算空间候选独立性判断(
+        const 结构_双目相机调用结果& 结果) noexcept
+    {
+        结构_空间候选独立性判断结果 输出{};
+        输出.判断状态 = 结果.成功 ? 1 : 0;
+        for (std::size_t i = 0; i < 结果.空间候选列表.size(); ++i) {
+            const I64 状态 = 判断单个空间候选独立状态(结果.空间候选列表, i);
+            if (i == 0) {
+                输出.主候选状态 = 状态;
+                输出.主候选分离度评分 = 计算空间候选分离度评分(结果.空间候选列表, i);
+            }
+            switch (状态) {
+            case 空间候选独立状态_相对独立:
+                ++输出.相对独立数量;
+                break;
+            case 空间候选独立状态_不独立:
+                ++输出.不独立数量;
+                break;
+            case 空间候选独立状态_待拆分:
+                ++输出.待拆分数量;
+                break;
+            case 空间候选独立状态_待合并:
+                ++输出.待合并数量;
+                break;
+            default:
+                ++输出.不确定数量;
+                break;
+            }
+        }
+        return 输出;
+    }
+
+    inline I64 计算空间候选中心接近评分(
+        const 双目相机本能适配器::空间候选摘要& 候选,
+        int 宽度,
+        int 高度) noexcept
+    {
+        if (宽度 <= 0 || 高度 <= 0) return 0;
+        const I64 中心X2 = 候选.投影最小X + 候选.投影最大X;
+        const I64 中心Y2 = 候选.投影最小Y + 候选.投影最大Y;
+        const I64 dx = 绝对差I64(中心X2, static_cast<I64>(宽度));
+        const I64 dy = 绝对差I64(中心Y2, static_cast<I64>(高度));
+        const I64 分子 = dx * dx + dy * dy;
+        const I64 分母 = static_cast<I64>(宽度) * static_cast<I64>(宽度)
+            + static_cast<I64>(高度) * static_cast<I64>(高度);
+        if (分母 <= 0) return 0;
+        const I64 扣分 = std::min<I64>(10000, 分子 * 10000 / 分母);
+        return 10000 - 扣分;
+    }
+
+    inline I64 空间候选独立状态惩罚(I64 状态) noexcept
+    {
+        switch (状态) {
+        case 空间候选独立状态_相对独立:
+            return 0;
+        case 空间候选独立状态_待合并:
+            return 1000;
+        case 空间候选独立状态_待拆分:
+            return 1500;
+        case 空间候选独立状态_不确定:
+            return 500;
+        case 空间候选独立状态_不独立:
+            return 4000;
+        default:
+            return 750;
+        }
+    }
+
+    inline I64 空间候选观察状态排序优先级(I64 状态) noexcept
+    {
+        switch (状态) {
+        case 空间候选独立状态_相对独立:
+            return 0;
+        case 空间候选独立状态_待合并:
+            return 1;
+        case 空间候选独立状态_不确定:
+            return 2;
+        case 空间候选独立状态_待拆分:
+            return 3;
+        case 空间候选独立状态_不独立:
+            return 4;
+        default:
+            return 5;
+        }
+    }
+
+    inline 结构_空间候选观察队列结果 生成空间候选观察队列(
+        const 结构_双目相机调用结果& 结果) noexcept
+    {
+        结构_空间候选观察队列结果 输出{};
+        输出.队列状态 = 结果.成功 ? 1 : 0;
+        if (!结果.成功 || 结果.空间候选列表.empty()) {
+            return 输出;
+        }
+
+        I64 最大像素数量 = 0;
+        for (const auto& 候选 : 结果.空间候选列表) {
+            最大像素数量 = std::max(最大像素数量, 候选.像素数量);
+        }
+        if (最大像素数量 <= 0) 最大像素数量 = 1;
+
+        输出.队列.reserve(结果.空间候选列表.size());
+        for (std::size_t i = 0; i < 结果.空间候选列表.size(); ++i) {
+            const auto& 候选 = 结果.空间候选列表[i];
+            结构_空间候选观察队列项 项{};
+            项.候选编号 = 候选.候选编号;
+            项.相对独立状态 = 判断单个空间候选独立状态(结果.空间候选列表, i);
+            项.中心接近评分 = 计算空间候选中心接近评分(候选, 结果.宽度, 结果.高度);
+            项.范围大小评分 = std::clamp<I64>(候选.像素数量 * 10000 / 最大像素数量, 0, 10000);
+            const I64 有效点比例评分 = std::clamp<I64>(候选.有效点比例, 0, 10000);
+            const I64 基础分 =
+                候选.空间连续性评分 * 30 / 100
+                + 候选.范围稳定性评分 * 25 / 100
+                + 项.中心接近评分 * 20 / 100
+                + 有效点比例评分 * 15 / 100
+                + 项.范围大小评分 * 10 / 100;
+            项.优先级评分 = std::clamp<I64>(
+                基础分 - 空间候选独立状态惩罚(项.相对独立状态),
+                0,
+                10000);
+            输出.队列.push_back(项);
+        }
+        std::sort(
+            输出.队列.begin(),
+            输出.队列.end(),
+            [](const auto& a, const auto& b) noexcept {
+                const I64 状态优先级A = 空间候选观察状态排序优先级(a.相对独立状态);
+                const I64 状态优先级B = 空间候选观察状态排序优先级(b.相对独立状态);
+                if (状态优先级A != 状态优先级B) {
+                    return 状态优先级A < 状态优先级B;
+                }
+                if (a.优先级评分 != b.优先级评分) {
+                    return a.优先级评分 > b.优先级评分;
+                }
+                return a.候选编号 < b.候选编号;
+            });
+        for (std::size_t i = 0; i < 输出.队列.size(); ++i) {
+            输出.队列[i].排序位次 = static_cast<I64>(i);
+        }
+        输出.候选数量 = static_cast<I64>(输出.队列.size());
+        return 输出;
+    }
+
+    inline const 双目相机本能适配器::空间候选摘要* 查找空间候选摘要(
+        const std::vector<双目相机本能适配器::空间候选摘要>& 候选集,
+        I64 候选编号) noexcept
+    {
+        for (const auto& 候选 : 候选集) {
+            if (候选.候选编号 == 候选编号) {
+                return &候选;
+            }
+        }
+        return nullptr;
+    }
+
+    inline I64 计算投影轮廓状态(const 双目相机本能适配器::空间候选摘要& 候选) noexcept
+    {
+        return 候选.投影最大X >= 候选.投影最小X
+            && 候选.投影最大Y >= 候选.投影最小Y
+            ? 1
+            : 0;
+    }
+
+    inline I64 计算轮廓支持评分(const 双目相机本能适配器::空间候选摘要& 候选) noexcept
+    {
+        if (!计算投影轮廓状态(候选)) return 0;
+        const I64 投影宽 = 正差I64(候选.投影最大X, 候选.投影最小X) + 1;
+        const I64 投影高 = 正差I64(候选.投影最大Y, 候选.投影最小Y) + 1;
+        const I64 投影面积 = std::max<I64>(1, 投影宽 * 投影高);
+        const I64 覆盖比例 = std::clamp<I64>(候选.像素数量 * 10000 / 投影面积, 0, 10000);
+        return 覆盖比例;
+    }
+
+    inline I64 计算比例万分比I64(I64 分子, I64 分母) noexcept
+    {
+        if (分子 <= 0 || 分母 <= 0) return 0;
+        return std::clamp<I64>(分子 * 10000 / 分母, 0, 10000);
+    }
+
+    inline void 累加非负I64(I64& 累计, I64 值) noexcept
+    {
+        if (值 <= 0) return;
+        const I64 上限 = std::numeric_limits<I64>::max();
+        累计 = 累计 > 上限 - 值 ? 上限 : 累计 + 值;
+    }
+
+    inline 双目相机本能适配器::空间候选摘要 合并相邻待合并空间候选(
+        const std::vector<双目相机本能适配器::空间候选摘要>& 候选集,
+        const 双目相机本能适配器::空间候选摘要& 基准,
+        bool& 已合并) noexcept
+    {
+        auto 输出 = 基准;
+        已合并 = false;
+        I64 总像素 = std::max<I64>(0, 基准.像素数量);
+        I64 加权X = 基准.中心X * std::max<I64>(1, 基准.像素数量);
+        I64 加权Y = 基准.中心Y * std::max<I64>(1, 基准.像素数量);
+        I64 加权Z = 基准.中心Z * std::max<I64>(1, 基准.像素数量);
+
+        for (const auto& 其他 : 候选集) {
+            if (其他.候选编号 == 基准.候选编号) {
+                continue;
+            }
+            if (空间候选AABB间隔(基准, 其他) > 120
+                || 绝对差I64(基准.中心Z, 其他.中心Z) > 180) {
+                continue;
+            }
+
+            已合并 = true;
+            const I64 像素 = std::max<I64>(1, 其他.像素数量);
+            总像素 += 其他.像素数量;
+            加权X += 其他.中心X * 像素;
+            加权Y += 其他.中心Y * 像素;
+            加权Z += 其他.中心Z * 像素;
+            输出.范围最小X = std::min(输出.范围最小X, 其他.范围最小X);
+            输出.范围最大X = std::max(输出.范围最大X, 其他.范围最大X);
+            输出.范围最小Y = std::min(输出.范围最小Y, 其他.范围最小Y);
+            输出.范围最大Y = std::max(输出.范围最大Y, 其他.范围最大Y);
+            输出.范围最小Z = std::min(输出.范围最小Z, 其他.范围最小Z);
+            输出.范围最大Z = std::max(输出.范围最大Z, 其他.范围最大Z);
+            输出.投影最小X = std::min(输出.投影最小X, 其他.投影最小X);
+            输出.投影最大X = std::max(输出.投影最大X, 其他.投影最大X);
+            输出.投影最小Y = std::min(输出.投影最小Y, 其他.投影最小Y);
+            输出.投影最大Y = std::max(输出.投影最大Y, 其他.投影最大Y);
+            输出.最近深度 = std::min(输出.最近深度, 其他.最近深度);
+            输出.最远深度 = std::max(输出.最远深度, 其他.最远深度);
+            输出.空间连续性评分 = std::min(输出.空间连续性评分, 其他.空间连续性评分);
+            输出.范围稳定性评分 = std::min(输出.范围稳定性评分, 其他.范围稳定性评分);
+            输出.有效点比例 = std::min<I64>(10000, 输出.有效点比例 + 其他.有效点比例);
+            输出.空间覆盖像素数 += 其他.空间覆盖像素数;
+            输出.空间匹配像素数 += 其他.空间匹配像素数;
+            输出.空间冲突像素数 += 其他.空间冲突像素数;
+            输出.轮廓支持像素数 += 其他.轮廓支持像素数;
+            输出.轮廓冲突像素数 += 其他.轮廓冲突像素数;
+            输出.遮挡像素数 += 其他.遮挡像素数;
+            输出.未解释像素数 += 其他.未解释像素数;
+            输出.深度一致率 = std::min(输出.深度一致率, 其他.深度一致率);
+            输出.范围内点比例 = std::min(输出.范围内点比例, 其他.范围内点比例);
+            输出.投影覆盖率 = std::min(输出.投影覆盖率, 其他.投影覆盖率);
+        }
+
+        if (!已合并 || 总像素 <= 0) {
+            return 输出;
+        }
+
+        输出.像素数量 = 总像素;
+        输出.中心X = 加权X / 总像素;
+        输出.中心Y = 加权Y / 总像素;
+        输出.中心Z = 加权Z / 总像素;
+        输出.平均深度 = 输出.中心Z;
+        const I64 投影宽 = 正差I64(输出.投影最大X, 输出.投影最小X) + 1;
+        const I64 投影高 = 正差I64(输出.投影最大Y, 输出.投影最小Y) + 1;
+        const I64 投影面积 = std::max<I64>(1, 投影宽 * 投影高);
+        输出.轮廓吻合率 = 计算比例万分比I64(输出.轮廓支持像素数, 投影面积);
+        输出.轮廓冲突像素数 = std::max<I64>(0, 投影面积 - 输出.轮廓支持像素数);
+        输出.未解释像素数 = 输出.轮廓冲突像素数;
+        输出.像素归属验证状态 = 输出.空间匹配像素数 > 0 ? 1 : 0;
+        return 输出;
+    }
+
+    inline 结构_观察存在假设结果 构建观察存在假设(
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选观察队列项& 队列项) noexcept
+    {
+        结构_观察存在假设结果 输出{};
+        if (!结果.成功) {
+            return 输出;
+        }
+        const auto* 候选 = 查找空间候选摘要(
+            结果.空间候选列表,
+            队列项.候选编号);
+        if (!候选) {
+            return 输出;
+        }
+        bool 已合并 = false;
+        const auto 候选摘要 = 队列项.相对独立状态 == 空间候选独立状态_待合并
+            ? 合并相邻待合并空间候选(结果.空间候选列表, *候选, 已合并)
+            : *候选;
+        输出.假设状态 = 观察存在假设状态_已生成;
+        输出.来源候选编号 = 候选->候选编号;
+        输出.来源队列位次 = 队列项.排序位次;
+        输出.相对独立状态 = 已合并
+            ? 空间候选独立状态_相对独立
+            : 队列项.相对独立状态;
+        输出.验证状态 = 观察存在假设验证状态_待验证;
+        输出.候选像素掩码状态 = 候选摘要.像素数量 > 0 ? 1 : 0;
+        输出.投影轮廓状态 = 计算投影轮廓状态(候选摘要);
+        输出.距离 = 候选摘要.中心Z;
+        输出.尺寸X = 正差I64(候选摘要.范围最大X, 候选摘要.范围最小X);
+        输出.尺寸Y = 正差I64(候选摘要.范围最大Y, 候选摘要.范围最小Y);
+        输出.尺寸Z = 正差I64(候选摘要.范围最大Z, 候选摘要.范围最小Z);
+        输出.方位X = 候选摘要.中心X;
+        输出.方位Y = 候选摘要.中心Y;
+        输出.有效点比例 = 候选摘要.有效点比例;
+        输出.轮廓支持评分 = 计算轮廓支持评分(候选摘要);
+        输出.候选 = 候选摘要;
+        return 输出;
+    }
+
+    inline 结构_观察存在假设结果 组合观察存在假设(
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选观察队列结果& 队列) noexcept
+    {
+        结构_观察存在假设结果 输出{};
+        if (!结果.成功 || 队列.队列.empty()) {
+            return 输出;
+        }
+
+        for (const auto& 队列项 : 队列.队列) {
+            if (队列项.相对独立状态 != 空间候选独立状态_相对独立) {
+                continue;
+            }
+            auto 候选假设 = 构建观察存在假设(结果, 队列项);
+            if (候选假设.假设状态 == 观察存在假设状态_已生成) {
+                return 候选假设;
+            }
+        }
+
+        return 构建观察存在假设(结果, 队列.队列.front());
+    }
+
+    inline 结构_像素归属验证结果 组合像素归属验证结果(
+        const 结构_双目相机调用结果& 结果,
+        const 结构_观察存在假设结果& 假设) noexcept
+    {
+        结构_像素归属验证结果 输出{};
+        if (!结果.成功 || 假设.假设状态 != 观察存在假设状态_已生成) {
+            return 输出;
+        }
+        输出.结果状态 = 像素归属验证状态_已生成待确认;
+        输出.来源候选编号 = 假设.来源候选编号;
+        输出.空间覆盖像素数 = 假设.候选.空间覆盖像素数;
+        输出.空间匹配像素数 = 假设.候选.空间匹配像素数;
+        输出.空间冲突像素数 = 假设.候选.空间冲突像素数;
+        输出.轮廓支持像素数 = 假设.候选.轮廓支持像素数;
+        输出.轮廓冲突像素数 = 假设.候选.轮廓冲突像素数;
+        输出.深度一致率 = 假设.候选.深度一致率;
+        输出.范围内点比例 = 假设.候选.范围内点比例;
+        输出.投影覆盖率 = 假设.候选.投影覆盖率;
+        输出.轮廓吻合率 = 假设.候选.轮廓吻合率;
+        输出.遮挡像素数 = 假设.候选.遮挡像素数;
+        输出.未解释像素数 = 假设.候选.未解释像素数;
+        输出.验证状态 = 假设.候选.像素归属验证状态 > 0
+            ? 像素归属验证状态_已生成待确认
+            : 像素归属验证状态_未生成;
+        return 输出;
+    }
+
+    inline bool 观察存在空间证据通过(
+        const 结构_观察存在假设结果& 假设) noexcept
+    {
+        return 假设.候选.空间连续性评分 >= 6500
+            && 假设.候选.范围稳定性评分 >= 6500
+            && 假设.候选.像素数量 >= 32;
+    }
+
+    inline bool 观察存在归属证据通过(
+        const 结构_像素归属验证结果& 验证) noexcept
+    {
+        return 验证.空间匹配像素数 >= 32
+            && 验证.范围内点比例 >= 6500
+            && 验证.深度一致率 >= 6500
+            && 验证.投影覆盖率 >= 5000;
+    }
+
+    inline bool 观察存在候选已验证(
+        const 结构_观察存在假设结果& 假设,
+        const 结构_像素归属验证结果& 验证) noexcept
+    {
+        return 假设.假设状态 == 观察存在假设状态_已生成
+            && 假设.相对独立状态 == 空间候选独立状态_相对独立
+            && 验证.结果状态 == 像素归属验证状态_已生成待确认
+            && 验证.验证状态 == 像素归属验证状态_已生成待确认
+            && 空间候选范围有效(假设.候选)
+            && 观察存在空间证据通过(假设)
+            && 观察存在归属证据通过(验证);
+    }
+
+    inline I64 统计已验证观察存在数量(
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选观察队列结果& 队列) noexcept
+    {
+        if (!结果.成功) {
+            return 0;
+        }
+        I64 数量 = 0;
+        for (const auto& 队列项 : 队列.队列) {
+            if (队列项.相对独立状态 != 空间候选独立状态_相对独立) {
+                continue;
+            }
+            const auto 假设 = 构建观察存在假设(结果, 队列项);
+            const auto 验证 = 组合像素归属验证结果(结果, 假设);
+            if (观察存在候选已验证(假设, 验证)) {
+                ++数量;
+            }
+        }
+        return 数量;
+    }
+
+    inline std::vector<结构_已验证观察存在项> 生成已验证观察存在项集合(
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选观察队列结果& 队列,
+        const 结构_观察存在假设结果& 主假设,
+        const 结构_像素归属验证结果& 主验证) noexcept
+    {
+        std::vector<结构_已验证观察存在项> 输出{};
+        if (!结果.成功) {
+            return 输出;
+        }
+        for (const auto& 队列项 : 队列.队列) {
+            if (队列项.相对独立状态 != 空间候选独立状态_相对独立) {
+                continue;
+            }
+            const auto 假设 = 构建观察存在假设(结果, 队列项);
+            const auto 验证 = 组合像素归属验证结果(结果, 假设);
+            if (观察存在候选已验证(假设, 验证)) {
+                输出.push_back({ 假设, 验证 });
+            }
+        }
+        if (观察存在候选已验证(主假设, 主验证)) {
+            const bool 已存在 = std::any_of(
+                输出.begin(),
+                输出.end(),
+                [&](const auto& 项) noexcept {
+                    return 项.假设.来源候选编号 == 主假设.来源候选编号;
+                });
+            if (!已存在) {
+                输出.push_back({ 主假设, 主验证 });
+            }
+        }
+        return 输出;
+    }
+
+    inline 结构_全帧像素归属账本结果 计算全帧像素归属账本(
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选观察队列结果& 队列,
+        const 结构_观察存在假设结果& 主假设,
+        const 结构_像素归属验证结果& 主验证) noexcept
+    {
+        结构_全帧像素归属账本结果 输出{};
+        if (!结果.成功) {
+            return 输出;
+        }
+
+        输出.预期像素数量 = std::max<I64>(0, 结果.预期像素数量);
+        for (const auto& 项 : 生成已验证观察存在项集合(结果, 队列, 主假设, 主验证)) {
+            ++输出.已验证观察存在数量;
+            累加非负I64(输出.已归属像素数, 项.验证.空间匹配像素数);
+            累加非负I64(输出.归属冲突像素数, 项.验证.空间冲突像素数);
+        }
+
+        if (输出.预期像素数量 > 0) {
+            const I64 原始已归属像素数 = 输出.已归属像素数;
+            if (原始已归属像素数 > 输出.预期像素数量) {
+                累加非负I64(输出.归属冲突像素数, 原始已归属像素数 - 输出.预期像素数量);
+            }
+            输出.已归属像素数 = std::min(输出.已归属像素数, 输出.预期像素数量);
+            输出.未解释像素数 = std::max<I64>(0, 输出.预期像素数量 - 输出.已归属像素数);
+            输出.像素归属率 = 计算比例万分比I64(输出.已归属像素数, 输出.预期像素数量);
+        }
+        输出.账本状态 = 输出.归属冲突像素数 > 0
+            ? 全帧像素归属账状态_有冲突
+            : 全帧像素归属账状态_已生成;
+        return 输出;
+    }
+
+    inline 结构_观察存在确认结果 确认观察存在结果(
+        const 结构_双目相机调用结果& 结果,
+        const 结构_观察存在假设结果& 假设,
+        const 结构_像素归属验证结果& 验证,
+        const 结构_空间候选观察队列结果& 队列) noexcept
+    {
+        结构_观察存在确认结果 输出{};
+        输出.来源候选编号 = 假设.来源候选编号;
+        输出.空间连续性评分 = 假设.候选.空间连续性评分;
+        输出.范围稳定性评分 = 假设.候选.范围稳定性评分;
+        输出.范围内点比例 = 验证.范围内点比例;
+        输出.深度一致率 = 验证.深度一致率;
+        输出.投影覆盖率 = 验证.投影覆盖率;
+        输出.轮廓吻合率 = 验证.轮廓吻合率;
+
+        if (假设.假设状态 != 观察存在假设状态_已生成
+            || 验证.结果状态 != 像素归属验证状态_已生成待确认
+            || 验证.验证状态 != 像素归属验证状态_已生成待确认) {
+            输出.确认状态 = 观察存在确认状态_未确认;
+            return 输出;
+        }
+
+        const I64 相对独立状态 = 假设.相对独立状态;
+        const I64 已验证数量 = 统计已验证观察存在数量(结果, 队列);
+        if (相对独立状态 == 空间候选独立状态_待拆分) {
+            输出.确认状态 = 观察存在确认状态_待拆分;
+            输出.已验证观察存在数量 = 已验证数量;
+            输出.帧解释状态 = 帧解释状态_部分解释;
+            return 输出;
+        }
+        if (相对独立状态 == 空间候选独立状态_待合并) {
+            输出.确认状态 = 观察存在确认状态_待合并;
+            输出.已验证观察存在数量 = 已验证数量;
+            输出.帧解释状态 = 帧解释状态_部分解释;
+            return 输出;
+        }
+
+        const bool 范围有效 = 空间候选范围有效(假设.候选);
+
+        if (观察存在候选已验证(假设, 验证)) {
+            输出.确认状态 = 观察存在确认状态_已验证;
+            输出.已验证观察存在数量 = std::max<I64>(1, 已验证数量);
+            输出.像素归属更新 = 1;
+            输出.未解释区域更新 = 1;
+            输出.帧解释状态 = 帧解释状态_已更新;
+            return 输出;
+        }
+
+        if (!范围有效
+            || 相对独立状态 == 空间候选独立状态_不独立
+            || 假设.候选.空间连续性评分 < 4500
+            || 假设.候选.范围稳定性评分 < 4500
+            || 验证.投影覆盖率 < 1000) {
+            输出.确认状态 = 观察存在确认状态_已否定;
+            输出.已验证观察存在数量 = 已验证数量;
+            输出.帧解释状态 = 帧解释状态_部分解释;
+            return 输出;
+        }
+
+        输出.确认状态 = 观察存在确认状态_待确认;
+        输出.已验证观察存在数量 = 已验证数量;
+        输出.帧解释状态 = 帧解释状态_部分解释;
+        return 输出;
+    }
 
     inline const 语素入口节点类* 双目相机失败原因词(
         双目相机本能适配器::失败原因 原因) noexcept
@@ -3535,7 +6268,88 @@ namespace {
         结果.高度 = 来源.高度;
         结果.深度帧号 = 来源.深度帧号;
         结果.彩色帧号 = 来源.彩色帧号;
+        结果.预期像素数量 = static_cast<I64>(来源.预期像素数量);
+        结果.像素特征数量 = static_cast<I64>(来源.像素特征数量);
+        结果.颜色像素数量 = static_cast<I64>(来源.颜色像素数量);
+        结果.深度有效像素数量 = static_cast<I64>(来源.深度有效像素数量);
+        结果.点云有效像素数量 = static_cast<I64>(来源.点云有效像素数量);
+        结果.像素覆盖状态 = static_cast<I64>(来源.像素覆盖状态);
+        结果.空间坐标单位毫米 = static_cast<I64>(来源.空间坐标单位毫米);
+        结果.颜色RGB结构状态 = static_cast<I64>(来源.颜色RGB结构状态);
+        结果.原始深度毫米结构状态 = static_cast<I64>(来源.原始深度毫米结构状态);
+        结果.滤波深度毫米结构状态 = static_cast<I64>(来源.滤波深度毫米结构状态);
+        结果.补全深度毫米结构状态 = static_cast<I64>(来源.补全深度毫米结构状态);
+        结果.深度有效性Mask状态 = static_cast<I64>(来源.深度有效性Mask状态);
+        结果.深度来源结构状态 = static_cast<I64>(来源.深度来源结构状态);
+        结果.深度稳定性结构状态 = static_cast<I64>(来源.深度稳定性结构状态);
+        结果.深度邻域一致性结构状态 = static_cast<I64>(来源.深度邻域一致性结构状态);
+        结果.融合深度毫米结构状态 = static_cast<I64>(来源.融合深度毫米结构状态);
+        结果.融合深度有效性结构状态 = static_cast<I64>(来源.融合深度有效性结构状态);
+        结果.多帧深度稳定性结构状态 = static_cast<I64>(来源.多帧深度稳定性结构状态);
+        结果.每像素深度方差结构状态 = static_cast<I64>(来源.每像素深度方差结构状态);
+        结果.空间坐标毫米XYZ结构状态 = static_cast<I64>(来源.空间坐标毫米XYZ结构状态);
+        结果.原始深度来源像素数量 = static_cast<I64>(来源.原始深度来源像素数量);
+        结果.滤波深度来源像素数量 = static_cast<I64>(来源.滤波深度来源像素数量);
+        结果.补全深度来源像素数量 = static_cast<I64>(来源.补全深度来源像素数量);
+        结果.无有效深度来源像素数量 = static_cast<I64>(来源.无有效深度来源像素数量);
+        结果.补全深度低置信像素数量 = static_cast<I64>(来源.补全深度低置信像素数量);
+        结果.深度稳定性平均值 = static_cast<I64>(来源.深度稳定性平均值);
+        结果.深度邻域一致性平均值 = static_cast<I64>(来源.深度邻域一致性平均值);
+        结果.观察帧组状态 = static_cast<I64>(来源.观察帧组状态);
+        结果.观察帧组帧数 = static_cast<I64>(来源.观察帧组帧数);
+        结果.融合依据帧集合状态 = static_cast<I64>(来源.融合依据帧集合状态);
+        结果.融合深度有效像素数量 = static_cast<I64>(来源.融合深度有效像素数量);
+        结果.融合深度有效率 = static_cast<I64>(来源.融合深度有效率);
+        结果.融合补偿深度空洞像素数量 = static_cast<I64>(来源.融合补偿深度空洞像素数量);
+        结果.融合低稳定像素数量 = static_cast<I64>(来源.融合低稳定像素数量);
+        结果.融合深度稳定性平均值 = static_cast<I64>(来源.融合深度稳定性平均值);
+        结果.融合深度平均方差 = static_cast<I64>(来源.融合深度平均方差);
+        结果.彩色深度已对齐 = static_cast<I64>(来源.彩色深度已对齐);
+        结果.对齐目标 = static_cast<I64>(来源.对齐目标);
+        结果.深度有效率 = static_cast<I64>(来源.深度有效率);
+        结果.空间坐标有效率 = static_cast<I64>(来源.空间坐标有效率);
+        结果.帧质量评分 = static_cast<I64>(来源.帧质量评分);
+        结果.观察帧质量诊断摘要 = 来源.成功 ? 1 : 0;
+        结果.深度空洞数量 = static_cast<I64>(来源.深度空洞数量);
+        结果.深度空洞区域数量 = static_cast<I64>(来源.深度空洞区域数量);
+        结果.深度空洞区域集合状态 = static_cast<I64>(来源.深度空洞区域集合状态);
+        结果.彩色深度对齐状态 = static_cast<I64>(来源.彩色深度对齐状态);
+        结果.轮廓闭合率 = static_cast<I64>(来源.轮廓闭合率);
+        结果.轮廓断裂数量 = static_cast<I64>(来源.轮廓断裂数量);
+        结果.彩图轮廓数量 = static_cast<I64>(来源.彩图轮廓数量);
+        结果.深度轮廓数量 = static_cast<I64>(来源.深度轮廓数量);
+        结果.空间投影轮廓数量 = static_cast<I64>(来源.空间投影轮廓数量);
+        结果.融合轮廓数量 = static_cast<I64>(来源.融合轮廓数量);
+        结果.轮廓来源分层状态 = static_cast<I64>(来源.轮廓来源分层状态);
+        结果.轮廓深度支持率 = static_cast<I64>(来源.轮廓深度支持率);
+        结果.轮廓颜色支持率 = static_cast<I64>(来源.轮廓颜色支持率);
+        结果.轮廓空间支持率 = static_cast<I64>(来源.轮廓空间支持率);
+        结果.融合轮廓置信度 = static_cast<I64>(来源.融合轮廓置信度);
+        结果.跨越深度断裂轮廓数量 = static_cast<I64>(来源.跨越深度断裂轮廓数量);
+        结果.穿过深度无效区域轮廓数量 = static_cast<I64>(来源.穿过深度无效区域轮廓数量);
+        结果.依赖补全深度轮廓数量 = static_cast<I64>(来源.依赖补全深度轮廓数量);
+        结果.空间点有效率 = static_cast<I64>(来源.空间点有效率);
+        结果.边界深度稳定率 = static_cast<I64>(来源.边界深度稳定率);
+        结果.候选存在验证通过率 = static_cast<I64>(来源.候选存在验证通过率);
+        结果.未解释区域比例 = static_cast<I64>(来源.未解释区域比例);
+        结果.补观察缺口状态 = static_cast<I64>(来源.补观察缺口状态);
+        结果.补观察缺失原因 = static_cast<I64>(来源.补观察缺失原因);
+        结果.待补观察区域数量 = static_cast<I64>(来源.待补观察区域数量);
+        结果.补全候选数量 = static_cast<I64>(来源.补全候选数量);
+        结果.低置信轮廓数量 = static_cast<I64>(来源.低置信轮廓数量);
+        结果.条件不足候选数量 = static_cast<I64>(来源.条件不足候选数量);
+        结果.待验证候选数量 = static_cast<I64>(来源.待验证候选数量);
+        结果.部分确认候选数量 = static_cast<I64>(来源.部分确认候选数量);
+        结果.补观察需求建议 = static_cast<I64>(来源.补观察需求建议);
+        结果.诊断区域数量 = static_cast<I64>(来源.诊断区域数量);
+        结果.诊断区域集合状态 = static_cast<I64>(来源.诊断区域集合状态);
+        结果.诊断区域掩码状态 = static_cast<I64>(来源.诊断区域掩码状态);
+        结果.空间候选数量 = static_cast<I64>(来源.空间候选数量);
+        结果.空间候选有效点数量 = static_cast<I64>(来源.空间候选有效点数量);
+        结果.空间候选列表 = 来源.空间候选列表;
+        结果.诊断区域列表 = 来源.诊断区域列表;
         结果.轮廓数量 = 来源.轮廓数量;
+        补全基础观察事实状态(结果);
         return 结果;
     }
 
@@ -3564,7 +6378,9 @@ namespace {
         存在节点类* 相机存在,
         基础信息节点类* 目标宿主,
         动态节点类* 动态,
-        存在节点类* 输出运行) noexcept
+        存在节点类* 输出运行,
+        const 语素入口节点类* 输出特征 = nullptr,
+        const char* 输出特征名 = nullptr) noexcept
     {
         std::ostringstream 输出;
         输出 << "双目相机本能方法结果"
@@ -3578,11 +6394,105 @@ namespace {
             << " | 目标外设=" << 基础节点日志文本(reinterpret_cast<基础信息节点类*>(相机存在))
             << " | 目标宿主=" << 基础节点日志文本(目标宿主)
             << " | 动作动态=" << 基础节点日志文本(reinterpret_cast<基础信息节点类*>(动态))
+            << " | 输出特征=" << (输出特征名 ? 输出特征名 : 语素入口日志文本(输出特征))
             << " | 输出运行=" << 基础节点日志文本(reinterpret_cast<基础信息节点类*>(输出运行))
             << " | 宽度=" << 结果.宽度
             << " | 高度=" << 结果.高度
             << " | 深度帧号=" << 结果.深度帧号
             << " | 彩色帧号=" << 结果.彩色帧号
+            << " | 预期像素数量=" << 结果.预期像素数量
+            << " | 像素特征数量=" << 结果.像素特征数量
+            << " | 像素观察存在数量=" << 结果.像素观察存在数量
+            << " | 缺失像素数量=" << 结果.缺失像素数量
+            << " | 重复映射数量=" << 结果.重复映射数量
+            << " | 颜色像素数量=" << 结果.颜色像素数量
+            << " | 深度有效像素数量=" << 结果.深度有效像素数量
+            << " | 点云有效像素数量=" << 结果.点云有效像素数量
+            << " | 像素覆盖状态=" << 结果.像素覆盖状态
+            << " | 当前观察特征帧取得状态=" << 结果.当前观察特征帧取得状态
+            << " | 观察帧容器状态=" << 结果.观察帧容器状态
+            << " | 像素特征值承接状态=" << 结果.像素特征值承接状态
+            << " | 坐标回查可用状态=" << 结果.坐标回查可用状态
+            << " | 帧内编号回查可用状态=" << 结果.帧内编号回查可用状态
+            << " | 观察事实完备状态=" << 结果.观察事实完备状态
+            << " | 观察事实完备失败条件数量=" << 结果.观察事实完备失败条件数量
+            << " | 观察事实完备失败原因摘要=" << 结果.观察事实完备失败原因摘要
+            << " | 质量可用状态=" << 结果.质量可用状态
+            << " | 质量失败条件数量=" << 结果.质量失败条件数量
+            << " | 质量失败原因摘要=" << 结果.质量失败原因摘要
+            << " | 质量最低帧质量评分=" << 观察质量最低评分
+            << " | 质量最低深度有效率=" << 观察质量最低深度有效率
+            << " | 质量最低空间坐标有效率=" << 观察质量最低空间坐标有效率
+            << " | 当前观察新鲜度状态=" << 结果.当前观察新鲜度状态
+            << " | 基础观察事实可用状态=" << 结果.基础观察事实可用状态
+            << " | 基础观察事实失败条件数量=" << 结果.基础观察事实失败条件数量
+            << " | 空间坐标单位毫米=" << 结果.空间坐标单位毫米
+            << " | 颜色RGB结构状态=" << 结果.颜色RGB结构状态
+            << " | 原始深度毫米结构状态=" << 结果.原始深度毫米结构状态
+            << " | 滤波深度毫米结构状态=" << 结果.滤波深度毫米结构状态
+            << " | 补全深度毫米结构状态=" << 结果.补全深度毫米结构状态
+            << " | 深度有效性Mask状态=" << 结果.深度有效性Mask状态
+            << " | 深度来源结构状态=" << 结果.深度来源结构状态
+            << " | 深度稳定性结构状态=" << 结果.深度稳定性结构状态
+            << " | 深度邻域一致性结构状态=" << 结果.深度邻域一致性结构状态
+            << " | 融合深度毫米结构状态=" << 结果.融合深度毫米结构状态
+            << " | 融合深度有效性结构状态=" << 结果.融合深度有效性结构状态
+            << " | 多帧深度稳定性结构状态=" << 结果.多帧深度稳定性结构状态
+            << " | 每像素深度方差结构状态=" << 结果.每像素深度方差结构状态
+            << " | 空间坐标毫米XYZ结构状态=" << 结果.空间坐标毫米XYZ结构状态
+            << " | 原始深度来源像素数量=" << 结果.原始深度来源像素数量
+            << " | 滤波深度来源像素数量=" << 结果.滤波深度来源像素数量
+            << " | 补全深度来源像素数量=" << 结果.补全深度来源像素数量
+            << " | 无有效深度来源像素数量=" << 结果.无有效深度来源像素数量
+            << " | 补全深度低置信像素数量=" << 结果.补全深度低置信像素数量
+            << " | 深度稳定性平均值=" << 结果.深度稳定性平均值
+            << " | 深度邻域一致性平均值=" << 结果.深度邻域一致性平均值
+            << " | 观察帧组状态=" << 结果.观察帧组状态
+            << " | 观察帧组帧数=" << 结果.观察帧组帧数
+            << " | 融合依据帧集合状态=" << 结果.融合依据帧集合状态
+            << " | 融合深度有效像素数量=" << 结果.融合深度有效像素数量
+            << " | 融合深度有效率=" << 结果.融合深度有效率
+            << " | 融合补偿深度空洞像素数量=" << 结果.融合补偿深度空洞像素数量
+            << " | 融合低稳定像素数量=" << 结果.融合低稳定像素数量
+            << " | 融合深度稳定性平均值=" << 结果.融合深度稳定性平均值
+            << " | 融合深度平均方差=" << 结果.融合深度平均方差
+            << " | 彩色深度已对齐=" << 结果.彩色深度已对齐
+            << " | 深度有效率=" << 结果.深度有效率
+            << " | 空间坐标有效率=" << 结果.空间坐标有效率
+            << " | 帧质量评分=" << 结果.帧质量评分
+            << " | 观察帧质量诊断摘要=" << 结果.观察帧质量诊断摘要
+            << " | 深度空洞数量=" << 结果.深度空洞数量
+            << " | 深度空洞区域数量=" << 结果.深度空洞区域数量
+            << " | 轮廓闭合率=" << 结果.轮廓闭合率
+            << " | 轮廓断裂数量=" << 结果.轮廓断裂数量
+            << " | 彩图轮廓数量=" << 结果.彩图轮廓数量
+            << " | 深度轮廓数量=" << 结果.深度轮廓数量
+            << " | 空间投影轮廓数量=" << 结果.空间投影轮廓数量
+            << " | 融合轮廓数量=" << 结果.融合轮廓数量
+            << " | 轮廓来源分层状态=" << 结果.轮廓来源分层状态
+            << " | 轮廓深度支持率=" << 结果.轮廓深度支持率
+            << " | 轮廓颜色支持率=" << 结果.轮廓颜色支持率
+            << " | 轮廓空间支持率=" << 结果.轮廓空间支持率
+            << " | 融合轮廓置信度=" << 结果.融合轮廓置信度
+            << " | 跨越深度断裂轮廓数量=" << 结果.跨越深度断裂轮廓数量
+            << " | 穿过深度无效区域轮廓数量=" << 结果.穿过深度无效区域轮廓数量
+            << " | 依赖补全深度轮廓数量=" << 结果.依赖补全深度轮廓数量
+            << " | 候选存在验证通过率=" << 结果.候选存在验证通过率
+            << " | 未解释区域比例=" << 结果.未解释区域比例
+            << " | 补观察缺口状态=" << 结果.补观察缺口状态
+            << " | 补观察缺失原因=" << 结果.补观察缺失原因
+            << " | 待补观察区域数量=" << 结果.待补观察区域数量
+            << " | 补全候选数量=" << 结果.补全候选数量
+            << " | 低置信轮廓数量=" << 结果.低置信轮廓数量
+            << " | 条件不足候选数量=" << 结果.条件不足候选数量
+            << " | 待验证候选数量=" << 结果.待验证候选数量
+            << " | 部分确认候选数量=" << 结果.部分确认候选数量
+            << " | 补观察需求建议=" << 结果.补观察需求建议
+            << " | 诊断区域数量=" << 结果.诊断区域数量
+            << " | 诊断区域集合状态=" << 结果.诊断区域集合状态
+            << " | 诊断区域掩码状态=" << 结果.诊断区域掩码状态
+            << " | 空间候选数量=" << 结果.空间候选数量
+            << " | 空间候选有效点数量=" << 结果.空间候选有效点数量
             << " | 轮廓数量=" << 结果.轮廓数量;
         if (!结果.成功) {
             项目运行错误日志(输出.str());
@@ -3623,6 +6533,2299 @@ namespace {
         auto 结果 = 转换双目相机调用结果(双目相机本能适配器::采集一帧());
         记录双目相机适配器失败(结果);
         return 结果;
+    }
+
+    inline 存在节点类* 取或创建空间候选观察事实(
+        基础信息节点类* 宿主,
+        I64 候选编号) noexcept
+    {
+        return 宿主
+            ? 世界树.取或创建子存在_按类型并按特征I64(
+                宿主,
+                类型_空间候选观察事实(),
+                特征_空间候选编号(),
+                候选编号)
+            : nullptr;
+    }
+
+    inline void 写入空间候选事实(
+        基础信息节点类* 宿主,
+        const 双目相机本能适配器::空间候选摘要& 候选,
+        时间戳 now) noexcept
+    {
+        auto* 候选存在 = 取或创建空间候选观察事实(宿主, 候选.候选编号);
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(候选存在);
+        if (!节点) return;
+        (void)写入基础节点I64(节点, 特征_空间候选编号(), 候选.候选编号, now);
+        (void)写入基础节点I64(节点, 特征_空间候选像素数量(), 候选.像素数量, now);
+        (void)写入基础节点I64(节点, 特征_空间候选有效点比例(), 候选.有效点比例, now);
+        (void)写入基础节点I64(节点, 特征_中心空间坐标X(), 候选.中心X, now);
+        (void)写入基础节点I64(节点, 特征_中心空间坐标Y(), 候选.中心Y, now);
+        (void)写入基础节点I64(节点, 特征_中心空间坐标Z(), 候选.中心Z, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小X(), 候选.范围最小X, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大X(), 候选.范围最大X, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Y(), 候选.范围最小Y, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Y(), 候选.范围最大Y, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Z(), 候选.范围最小Z, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Z(), 候选.范围最大Z, now);
+        (void)写入基础节点I64(节点, 特征_投影范围最小X(), 候选.投影最小X, now);
+        (void)写入基础节点I64(节点, 特征_投影范围最大X(), 候选.投影最大X, now);
+        (void)写入基础节点I64(节点, 特征_投影范围最小Y(), 候选.投影最小Y, now);
+        (void)写入基础节点I64(节点, 特征_投影范围最大Y(), 候选.投影最大Y, now);
+        (void)写入基础节点I64(节点, 特征_平均深度(), 候选.平均深度, now);
+        (void)写入基础节点I64(节点, 特征_最近深度(), 候选.最近深度, now);
+        (void)写入基础节点I64(节点, 特征_最远深度(), 候选.最远深度, now);
+        (void)写入基础节点I64(节点, 特征_空间连续性评分(), 候选.空间连续性评分, now);
+        (void)写入基础节点I64(节点, 特征_范围稳定性评分(), 候选.范围稳定性评分, now);
+        (void)写入基础节点I64(节点, 特征_空间覆盖像素数(), 候选.空间覆盖像素数, now);
+        (void)写入基础节点I64(节点, 特征_空间匹配像素数(), 候选.空间匹配像素数, now);
+        (void)写入基础节点I64(节点, 特征_空间冲突像素数(), 候选.空间冲突像素数, now);
+        (void)写入基础节点I64(节点, 特征_轮廓支持像素数(), 候选.轮廓支持像素数, now);
+        (void)写入基础节点I64(节点, 特征_轮廓冲突像素数(), 候选.轮廓冲突像素数, now);
+        (void)写入基础节点I64(节点, 特征_深度一致率(), 候选.深度一致率, now);
+        (void)写入基础节点I64(节点, 特征_范围内点比例(), 候选.范围内点比例, now);
+        (void)写入基础节点I64(节点, 特征_投影覆盖率(), 候选.投影覆盖率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓吻合率(), 候选.轮廓吻合率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓来源类型(), 候选.轮廓来源类型, now);
+        (void)写入基础节点I64(节点, 特征_轮廓闭合度(), 候选.轮廓闭合度, now);
+        (void)写入基础节点I64(节点, 特征_轮廓深度支持率(), 候选.轮廓深度支持率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓颜色支持率(), 候选.轮廓颜色支持率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓空间支持率(), 候选.轮廓空间支持率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓跨越深度断裂(), 候选.轮廓跨越深度断裂, now);
+        (void)写入基础节点I64(节点, 特征_轮廓穿过深度无效区域(), 候选.轮廓穿过深度无效区域, now);
+        (void)写入基础节点I64(节点, 特征_轮廓依赖补全深度(), 候选.轮廓依赖补全深度, now);
+        (void)写入基础节点I64(节点, 特征_轮廓置信度(), 候选.轮廓置信度, now);
+        (void)写入基础节点I64(节点, 特征_遮挡像素数(), 候选.遮挡像素数, now);
+        (void)写入基础节点I64(节点, 特征_未解释像素数(), 候选.未解释像素数, now);
+        (void)写入基础节点I64(节点, 特征_像素归属验证状态(), 候选.像素归属验证状态, now);
+        (void)写入基础节点I64(节点, 特征_观察确认补偿状态(), 候选.观察确认补偿状态, now);
+        (void)写入基础节点I64(节点, 特征_缺失原因(), 候选.缺失原因, now);
+        (void)写入基础节点I64(节点, 特征_未解释区域状态(), 候选.未解释区域状态, now);
+        (void)写入基础节点I64(节点, 特征_待补观察区域数量(), 候选.待补观察区域数量, now);
+        (void)写入基础节点I64(节点, 特征_补全候选状态(), 候选.补全候选状态, now);
+        (void)写入基础节点I64(节点, 特征_低置信轮廓状态(), 候选.低置信轮廓状态, now);
+        (void)写入基础节点I64(节点, 特征_补观察需求建议(), 候选.补观察需求建议, now);
+    }
+
+    inline void 写入空间候选逐项账本(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        for (const auto& 候选 : 结果.空间候选列表) {
+            写入空间候选事实(宿主, 候选, now);
+        }
+    }
+
+    inline bool 读取空间候选事实(
+        存在节点类* 候选存在,
+        双目相机本能适配器::空间候选摘要& 候选) noexcept
+    {
+        候选 = {};
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(候选存在);
+        if (!节点) return false;
+        if (!读取基础节点I64(节点, 特征_空间候选编号(), 候选.候选编号)) {
+            return false;
+        }
+        (void)读取基础节点I64(节点, 特征_空间候选像素数量(), 候选.像素数量);
+        (void)读取基础节点I64(节点, 特征_空间候选有效点比例(), 候选.有效点比例);
+        (void)读取基础节点I64(节点, 特征_中心空间坐标X(), 候选.中心X);
+        (void)读取基础节点I64(节点, 特征_中心空间坐标Y(), 候选.中心Y);
+        (void)读取基础节点I64(节点, 特征_中心空间坐标Z(), 候选.中心Z);
+        (void)读取基础节点I64(节点, 特征_范围坐标AABB最小X(), 候选.范围最小X);
+        (void)读取基础节点I64(节点, 特征_范围坐标AABB最大X(), 候选.范围最大X);
+        (void)读取基础节点I64(节点, 特征_范围坐标AABB最小Y(), 候选.范围最小Y);
+        (void)读取基础节点I64(节点, 特征_范围坐标AABB最大Y(), 候选.范围最大Y);
+        (void)读取基础节点I64(节点, 特征_范围坐标AABB最小Z(), 候选.范围最小Z);
+        (void)读取基础节点I64(节点, 特征_范围坐标AABB最大Z(), 候选.范围最大Z);
+        (void)读取基础节点I64(节点, 特征_投影范围最小X(), 候选.投影最小X);
+        (void)读取基础节点I64(节点, 特征_投影范围最大X(), 候选.投影最大X);
+        (void)读取基础节点I64(节点, 特征_投影范围最小Y(), 候选.投影最小Y);
+        (void)读取基础节点I64(节点, 特征_投影范围最大Y(), 候选.投影最大Y);
+        (void)读取基础节点I64(节点, 特征_平均深度(), 候选.平均深度);
+        (void)读取基础节点I64(节点, 特征_最近深度(), 候选.最近深度);
+        (void)读取基础节点I64(节点, 特征_最远深度(), 候选.最远深度);
+        (void)读取基础节点I64(节点, 特征_空间连续性评分(), 候选.空间连续性评分);
+        (void)读取基础节点I64(节点, 特征_范围稳定性评分(), 候选.范围稳定性评分);
+        (void)读取基础节点I64(节点, 特征_空间覆盖像素数(), 候选.空间覆盖像素数);
+        (void)读取基础节点I64(节点, 特征_空间匹配像素数(), 候选.空间匹配像素数);
+        (void)读取基础节点I64(节点, 特征_空间冲突像素数(), 候选.空间冲突像素数);
+        (void)读取基础节点I64(节点, 特征_轮廓支持像素数(), 候选.轮廓支持像素数);
+        (void)读取基础节点I64(节点, 特征_轮廓冲突像素数(), 候选.轮廓冲突像素数);
+        (void)读取基础节点I64(节点, 特征_深度一致率(), 候选.深度一致率);
+        (void)读取基础节点I64(节点, 特征_范围内点比例(), 候选.范围内点比例);
+        (void)读取基础节点I64(节点, 特征_投影覆盖率(), 候选.投影覆盖率);
+        (void)读取基础节点I64(节点, 特征_轮廓吻合率(), 候选.轮廓吻合率);
+        (void)读取基础节点I64(节点, 特征_轮廓来源类型(), 候选.轮廓来源类型);
+        (void)读取基础节点I64(节点, 特征_轮廓闭合度(), 候选.轮廓闭合度);
+        (void)读取基础节点I64(节点, 特征_轮廓深度支持率(), 候选.轮廓深度支持率);
+        (void)读取基础节点I64(节点, 特征_轮廓颜色支持率(), 候选.轮廓颜色支持率);
+        (void)读取基础节点I64(节点, 特征_轮廓空间支持率(), 候选.轮廓空间支持率);
+        (void)读取基础节点I64(节点, 特征_轮廓跨越深度断裂(), 候选.轮廓跨越深度断裂);
+        (void)读取基础节点I64(节点, 特征_轮廓穿过深度无效区域(), 候选.轮廓穿过深度无效区域);
+        (void)读取基础节点I64(节点, 特征_轮廓依赖补全深度(), 候选.轮廓依赖补全深度);
+        (void)读取基础节点I64(节点, 特征_轮廓置信度(), 候选.轮廓置信度);
+        (void)读取基础节点I64(节点, 特征_遮挡像素数(), 候选.遮挡像素数);
+        (void)读取基础节点I64(节点, 特征_未解释像素数(), 候选.未解释像素数);
+        (void)读取基础节点I64(节点, 特征_像素归属验证状态(), 候选.像素归属验证状态);
+        (void)读取基础节点I64(节点, 特征_观察确认补偿状态(), 候选.观察确认补偿状态);
+        (void)读取基础节点I64(节点, 特征_缺失原因(), 候选.缺失原因);
+        (void)读取基础节点I64(节点, 特征_未解释区域状态(), 候选.未解释区域状态);
+        (void)读取基础节点I64(节点, 特征_待补观察区域数量(), 候选.待补观察区域数量);
+        (void)读取基础节点I64(节点, 特征_补全候选状态(), 候选.补全候选状态);
+        (void)读取基础节点I64(节点, 特征_低置信轮廓状态(), 候选.低置信轮廓状态);
+        (void)读取基础节点I64(节点, 特征_补观察需求建议(), 候选.补观察需求建议);
+        return true;
+    }
+
+    inline bool 读取空间候选逐项账本(
+        基础信息节点类* 宿主,
+        std::vector<双目相机本能适配器::空间候选摘要>& 候选列表) noexcept
+    {
+        候选列表.clear();
+        if (!宿主) return false;
+        for (auto* 子存在 : 世界树.存在().获取子存在(宿主)) {
+            const auto* 主信息 = 世界树.存在().取存在主信息(子存在);
+            if (!主信息 || 主信息->类型 != 类型_空间候选观察事实()) {
+                continue;
+            }
+            双目相机本能适配器::空间候选摘要 候选{};
+            if (读取空间候选事实(子存在, 候选)) {
+                候选列表.push_back(候选);
+            }
+        }
+        std::sort(
+            候选列表.begin(),
+            候选列表.end(),
+            [](const auto& a, const auto& b) noexcept {
+                return a.候选编号 < b.候选编号;
+            });
+        return !候选列表.empty();
+    }
+
+    inline 存在节点类* 取或创建观察诊断区域事实(
+        基础信息节点类* 宿主,
+        I64 图层类型,
+        I64 区域编号) noexcept
+    {
+        auto* 区域存在 = 宿主
+            ? 世界树.取或创建子存在_按类型并按特征I64(
+                宿主,
+                类型_观察诊断区域(),
+                特征_诊断区域编号(),
+                区域编号)
+            : nullptr;
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(区域存在);
+        if (节点) {
+            (void)写入基础节点I64(
+                节点,
+                特征_诊断区域图层类型(),
+                图层类型,
+                结构体_时间戳::当前_微秒());
+        }
+        return 区域存在;
+    }
+
+    inline void 写入观察诊断区域事实(
+        基础信息节点类* 宿主,
+        const 双目相机本能适配器::诊断区域摘要& 区域,
+        时间戳 now) noexcept
+    {
+        auto* 区域存在 = 取或创建观察诊断区域事实(宿主, 区域.图层类型, 区域.区域编号);
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(区域存在);
+        if (!节点) return;
+        (void)写入基础节点I64(节点, 特征_诊断区域编号(), 区域.区域编号, now);
+        (void)写入基础节点I64(节点, 特征_诊断区域图层类型(), 区域.图层类型, now);
+        (void)写入基础节点I64(节点, 特征_诊断区域来源候选编号(), 区域.来源候选编号, now);
+        (void)写入基础节点I64(节点, 特征_诊断区域投影最小X(), 区域.投影最小X, now);
+        (void)写入基础节点I64(节点, 特征_诊断区域投影最大X(), 区域.投影最大X, now);
+        (void)写入基础节点I64(节点, 特征_诊断区域投影最小Y(), 区域.投影最小Y, now);
+        (void)写入基础节点I64(节点, 特征_诊断区域投影最大Y(), 区域.投影最大Y, now);
+        (void)写入基础节点I64(节点, 特征_诊断区域像素数量(), 区域.像素数量, now);
+        (void)写入基础节点I64(节点, 特征_诊断区域置信度(), 区域.置信度, now);
+        (void)写入基础节点I64(节点, 特征_诊断区域掩码状态(), 区域.掩码状态, now);
+    }
+
+    inline void 写入观察诊断区域逐项账本(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        for (const auto& 区域 : 结果.诊断区域列表) {
+            写入观察诊断区域事实(宿主, 区域, now);
+        }
+    }
+
+    inline bool 读取观察诊断区域事实(
+        存在节点类* 区域存在,
+        双目相机本能适配器::诊断区域摘要& 区域) noexcept
+    {
+        区域 = {};
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(区域存在);
+        if (!节点) return false;
+        if (!读取基础节点I64(节点, 特征_诊断区域编号(), 区域.区域编号)) {
+            return false;
+        }
+        (void)读取基础节点I64(节点, 特征_诊断区域图层类型(), 区域.图层类型);
+        (void)读取基础节点I64(节点, 特征_诊断区域来源候选编号(), 区域.来源候选编号);
+        (void)读取基础节点I64(节点, 特征_诊断区域投影最小X(), 区域.投影最小X);
+        (void)读取基础节点I64(节点, 特征_诊断区域投影最大X(), 区域.投影最大X);
+        (void)读取基础节点I64(节点, 特征_诊断区域投影最小Y(), 区域.投影最小Y);
+        (void)读取基础节点I64(节点, 特征_诊断区域投影最大Y(), 区域.投影最大Y);
+        (void)读取基础节点I64(节点, 特征_诊断区域像素数量(), 区域.像素数量);
+        (void)读取基础节点I64(节点, 特征_诊断区域置信度(), 区域.置信度);
+        (void)读取基础节点I64(节点, 特征_诊断区域掩码状态(), 区域.掩码状态);
+        return 区域.图层类型 > 0;
+    }
+
+    inline bool 读取观察诊断区域逐项账本(
+        基础信息节点类* 宿主,
+        std::vector<双目相机本能适配器::诊断区域摘要>& 区域列表) noexcept
+    {
+        区域列表.clear();
+        if (!宿主) return false;
+        for (auto* 子存在 : 世界树.存在().获取子存在(宿主)) {
+            const auto* 主信息 = 世界树.存在().取存在主信息(子存在);
+            if (!主信息 || 主信息->类型 != 类型_观察诊断区域()) {
+                continue;
+            }
+            双目相机本能适配器::诊断区域摘要 区域{};
+            if (读取观察诊断区域事实(子存在, 区域)) {
+                区域列表.push_back(区域);
+            }
+        }
+        std::sort(
+            区域列表.begin(),
+            区域列表.end(),
+            [](const auto& a, const auto& b) noexcept {
+                if (a.图层类型 != b.图层类型) {
+                    return a.图层类型 < b.图层类型;
+                }
+                return a.区域编号 < b.区域编号;
+            });
+        return !区域列表.empty();
+    }
+
+    inline void 写入双目相机观察帧摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        (void)写入基础节点I64(宿主, 特征_当前观察特征帧(), 1, now);
+        (void)写入基础节点I64(宿主, 特征_当前观察帧(), 1, now);
+        (void)写入基础节点I64(宿主, 特征_相机帧宽度(), static_cast<I64>(结果.宽度), now);
+        (void)写入基础节点I64(宿主, 特征_相机帧高度(), static_cast<I64>(结果.高度), now);
+        (void)写入基础节点I64(宿主, 特征_深度帧号(), static_cast<I64>(结果.深度帧号), now);
+        (void)写入基础节点I64(宿主, 特征_彩色帧号(), static_cast<I64>(结果.彩色帧号), now);
+        (void)写入基础节点I64(宿主, 特征_预期像素数量(), 结果.预期像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_像素特征数量(), 结果.像素特征数量, now);
+        (void)写入基础节点I64(宿主, 特征_像素观察存在数量(), 结果.像素观察存在数量, now);
+        (void)写入基础节点I64(宿主, 特征_缺失像素数量(), 结果.缺失像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_重复映射数量(), 结果.重复映射数量, now);
+        (void)写入基础节点I64(宿主, 特征_颜色像素数量(), 结果.颜色像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_深度有效像素数量(), 结果.深度有效像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_点云有效像素数量(), 结果.点云有效像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_像素覆盖状态(), 结果.像素覆盖状态, now);
+        (void)写入基础节点I64(宿主, 特征_当前观察特征帧取得状态(), 结果.当前观察特征帧取得状态, now);
+        (void)写入基础节点I64(宿主, 特征_观察帧容器状态(), 结果.观察帧容器状态, now);
+        (void)写入基础节点I64(宿主, 特征_像素特征值承接状态(), 结果.像素特征值承接状态, now);
+        (void)写入基础节点I64(宿主, 特征_坐标回查可用状态(), 结果.坐标回查可用状态, now);
+        (void)写入基础节点I64(宿主, 特征_帧内编号回查可用状态(), 结果.帧内编号回查可用状态, now);
+        (void)写入基础节点I64(宿主, 特征_观察事实完备状态(), 结果.观察事实完备状态, now);
+        (void)写入基础节点I64(宿主, 特征_观察事实完备失败条件数量(), 结果.观察事实完备失败条件数量, now);
+        (void)写入基础节点I64(宿主, 特征_质量可用状态(), 结果.质量可用状态, now);
+        (void)写入基础节点I64(宿主, 特征_质量失败条件数量(), 结果.质量失败条件数量, now);
+        (void)写入基础节点I64(宿主, 特征_当前观察新鲜度状态(), 结果.当前观察新鲜度状态, now);
+        (void)写入基础节点I64(宿主, 特征_基础观察事实可用状态(), 结果.基础观察事实可用状态, now);
+        (void)写入基础节点I64(宿主, 特征_基础观察事实失败条件数量(), 结果.基础观察事实失败条件数量, now);
+        (void)写入基础节点I64(宿主, 特征_空间坐标单位毫米(), 结果.空间坐标单位毫米, now);
+        (void)写入基础节点I64(宿主, 特征_颜色RGB结构状态(), 结果.颜色RGB结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_原始深度毫米结构状态(), 结果.原始深度毫米结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_滤波深度毫米结构状态(), 结果.滤波深度毫米结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_补全深度毫米结构状态(), 结果.补全深度毫米结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_深度有效性Mask状态(), 结果.深度有效性Mask状态, now);
+        (void)写入基础节点I64(宿主, 特征_深度来源结构状态(), 结果.深度来源结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_深度稳定性结构状态(), 结果.深度稳定性结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_深度邻域一致性结构状态(), 结果.深度邻域一致性结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_融合深度毫米结构状态(), 结果.融合深度毫米结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_融合深度有效性结构状态(), 结果.融合深度有效性结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_多帧深度稳定性结构状态(), 结果.多帧深度稳定性结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_每像素深度方差结构状态(), 结果.每像素深度方差结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_空间坐标毫米XYZ结构状态(), 结果.空间坐标毫米XYZ结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_原始深度来源像素数量(), 结果.原始深度来源像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_滤波深度来源像素数量(), 结果.滤波深度来源像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_补全深度来源像素数量(), 结果.补全深度来源像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_无有效深度来源像素数量(), 结果.无有效深度来源像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_补全深度低置信像素数量(), 结果.补全深度低置信像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_深度稳定性平均值(), 结果.深度稳定性平均值, now);
+        (void)写入基础节点I64(宿主, 特征_深度邻域一致性平均值(), 结果.深度邻域一致性平均值, now);
+        (void)写入基础节点I64(宿主, 特征_观察帧组状态(), 结果.观察帧组状态, now);
+        (void)写入基础节点I64(宿主, 特征_观察帧组帧数(), 结果.观察帧组帧数, now);
+        (void)写入基础节点I64(宿主, 特征_融合依据帧集合状态(), 结果.融合依据帧集合状态, now);
+        (void)写入基础节点I64(宿主, 特征_融合深度有效像素数量(), 结果.融合深度有效像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_融合深度有效率(), 结果.融合深度有效率, now);
+        (void)写入基础节点I64(宿主, 特征_融合补偿深度空洞像素数量(), 结果.融合补偿深度空洞像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_融合低稳定像素数量(), 结果.融合低稳定像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_融合深度稳定性平均值(), 结果.融合深度稳定性平均值, now);
+        (void)写入基础节点I64(宿主, 特征_融合深度平均方差(), 结果.融合深度平均方差, now);
+        (void)写入基础节点I64(宿主, 特征_彩色深度已对齐(), 结果.彩色深度已对齐, now);
+        (void)写入基础节点I64(宿主, 特征_对齐目标(), 结果.对齐目标, now);
+        (void)写入基础节点I64(宿主, 特征_深度有效率(), 结果.深度有效率, now);
+        (void)写入基础节点I64(宿主, 特征_空间坐标有效率(), 结果.空间坐标有效率, now);
+        (void)写入基础节点I64(宿主, 特征_帧质量评分(), 结果.帧质量评分, now);
+        (void)写入基础节点I64(宿主, 特征_观察帧质量诊断摘要(), 结果.观察帧质量诊断摘要, now);
+        (void)写入基础节点I64(宿主, 特征_深度空洞数量(), 结果.深度空洞数量, now);
+        (void)写入基础节点I64(宿主, 特征_深度空洞区域数量(), 结果.深度空洞区域数量, now);
+        (void)写入基础节点I64(宿主, 特征_深度空洞区域集合(), 结果.深度空洞区域集合状态, now);
+        (void)写入基础节点I64(宿主, 特征_彩色深度对齐状态(), 结果.彩色深度对齐状态, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓闭合率(), 结果.轮廓闭合率, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓断裂数量(), 结果.轮廓断裂数量, now);
+        (void)写入基础节点I64(宿主, 特征_彩图轮廓数量(), 结果.彩图轮廓数量, now);
+        (void)写入基础节点I64(宿主, 特征_深度轮廓数量(), 结果.深度轮廓数量, now);
+        (void)写入基础节点I64(宿主, 特征_空间投影轮廓数量(), 结果.空间投影轮廓数量, now);
+        (void)写入基础节点I64(宿主, 特征_融合轮廓数量(), 结果.融合轮廓数量, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓来源分层状态(), 结果.轮廓来源分层状态, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓深度支持率(), 结果.轮廓深度支持率, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓颜色支持率(), 结果.轮廓颜色支持率, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓空间支持率(), 结果.轮廓空间支持率, now);
+        (void)写入基础节点I64(宿主, 特征_融合轮廓置信度(), 结果.融合轮廓置信度, now);
+        (void)写入基础节点I64(宿主, 特征_跨越深度断裂轮廓数量(), 结果.跨越深度断裂轮廓数量, now);
+        (void)写入基础节点I64(宿主, 特征_穿过深度无效区域轮廓数量(), 结果.穿过深度无效区域轮廓数量, now);
+        (void)写入基础节点I64(宿主, 特征_依赖补全深度轮廓数量(), 结果.依赖补全深度轮廓数量, now);
+        (void)写入基础节点I64(宿主, 特征_空间点有效率(), 结果.空间点有效率, now);
+        (void)写入基础节点I64(宿主, 特征_边界深度稳定率(), 结果.边界深度稳定率, now);
+        (void)写入基础节点I64(宿主, 特征_候选存在验证通过率(), 结果.候选存在验证通过率, now);
+        (void)写入基础节点I64(宿主, 特征_未解释区域比例(), 结果.未解释区域比例, now);
+        (void)写入基础节点I64(宿主, 特征_补观察缺口状态(), 结果.补观察缺口状态, now);
+        (void)写入基础节点I64(宿主, 特征_补观察缺失原因(), 结果.补观察缺失原因, now);
+        (void)写入基础节点I64(宿主, 特征_待补观察区域数量(), 结果.待补观察区域数量, now);
+        (void)写入基础节点I64(宿主, 特征_补全候选数量(), 结果.补全候选数量, now);
+        (void)写入基础节点I64(宿主, 特征_低置信轮廓数量(), 结果.低置信轮廓数量, now);
+        (void)写入基础节点I64(宿主, 特征_条件不足候选数量(), 结果.条件不足候选数量, now);
+        (void)写入基础节点I64(宿主, 特征_待验证候选数量(), 结果.待验证候选数量, now);
+        (void)写入基础节点I64(宿主, 特征_部分确认候选数量(), 结果.部分确认候选数量, now);
+        (void)写入基础节点I64(宿主, 特征_补观察需求建议(), 结果.补观察需求建议, now);
+        (void)写入基础节点I64(宿主, 特征_诊断区域数量(), 结果.诊断区域数量, now);
+        (void)写入基础节点I64(宿主, 特征_诊断区域集合状态(), 结果.诊断区域集合状态, now);
+        (void)写入基础节点I64(宿主, 特征_诊断区域掩码状态(), 结果.诊断区域掩码状态, now);
+        (void)写入基础节点I64(宿主, 特征_帧解释状态(), 0, now);
+        写入空间候选逐项账本(宿主, 结果, now);
+        写入观察诊断区域逐项账本(宿主, 结果, now);
+    }
+
+    inline void 写入双目相机像素特征索引摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入双目相机观察帧摘要(宿主, 结果, now);
+        (void)写入基础节点I64(宿主, 特征_当前帧像素特征索引(), 1, now);
+        (void)写入基础节点I64(宿主, 特征_像素观察事实索引(), 1, now);
+    }
+
+    inline void 写入自我像素观察事实索引摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        (void)写入基础节点I64(宿主, 特征_当前观察帧(), 1, now);
+        (void)写入基础节点I64(宿主, 特征_当前帧像素特征索引(), 1, now);
+        (void)写入基础节点I64(宿主, 特征_像素观察事实索引(), 1, now);
+        (void)写入基础节点I64(宿主, 特征_相机帧宽度(), static_cast<I64>(结果.宽度), now);
+        (void)写入基础节点I64(宿主, 特征_相机帧高度(), static_cast<I64>(结果.高度), now);
+        (void)写入基础节点I64(宿主, 特征_预期像素数量(), 结果.预期像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_像素特征数量(), 结果.像素特征数量, now);
+        (void)写入基础节点I64(宿主, 特征_像素观察存在数量(), 结果.像素观察存在数量, now);
+        (void)写入基础节点I64(宿主, 特征_缺失像素数量(), 结果.缺失像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_重复映射数量(), 结果.重复映射数量, now);
+        (void)写入基础节点I64(宿主, 特征_像素覆盖状态(), 结果.像素覆盖状态, now);
+        (void)写入基础节点I64(宿主, 特征_坐标回查可用状态(), 结果.坐标回查可用状态, now);
+        (void)写入基础节点I64(宿主, 特征_帧内编号回查可用状态(), 结果.帧内编号回查可用状态, now);
+    }
+
+    inline void 写入自我像素特征值承接摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入自我像素观察事实索引摘要(宿主, 结果, now);
+        (void)写入基础节点I64(宿主, 特征_颜色像素数量(), 结果.颜色像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_深度有效像素数量(), 结果.深度有效像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_点云有效像素数量(), 结果.点云有效像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_颜色RGB结构状态(), 结果.颜色RGB结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_原始深度毫米结构状态(), 结果.原始深度毫米结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_深度有效性Mask状态(), 结果.深度有效性Mask状态, now);
+        (void)写入基础节点I64(宿主, 特征_空间坐标毫米XYZ结构状态(), 结果.空间坐标毫米XYZ结构状态, now);
+        (void)写入基础节点I64(宿主, 特征_像素特征值承接状态(), 结果.像素特征值承接状态, now);
+    }
+
+    inline void 写入自我观察事实完备摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入自我像素特征值承接摘要(宿主, 结果, now);
+        (void)写入基础节点I64(宿主, 特征_坐标回查可用状态(), 结果.坐标回查可用状态, now);
+        (void)写入基础节点I64(宿主, 特征_帧内编号回查可用状态(), 结果.帧内编号回查可用状态, now);
+        (void)写入基础节点I64(宿主, 特征_观察事实完备状态(), 结果.观察事实完备状态, now);
+        (void)写入基础节点I64(宿主, 特征_观察事实完备失败条件数量(), 结果.观察事实完备失败条件数量, now);
+    }
+
+    inline void 写入自我观察帧质量摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入自我观察事实完备摘要(宿主, 结果, now);
+        (void)写入基础节点I64(宿主, 特征_质量可用状态(), 结果.质量可用状态, now);
+        (void)写入基础节点I64(宿主, 特征_质量失败条件数量(), 结果.质量失败条件数量, now);
+        (void)写入基础节点I64(宿主, 特征_观察帧质量诊断摘要(), 结果.观察帧质量诊断摘要, now);
+        (void)写入基础节点I64(宿主, 特征_帧质量评分(), 结果.帧质量评分, now);
+        (void)写入基础节点I64(宿主, 特征_深度有效率(), 结果.深度有效率, now);
+        (void)写入基础节点I64(宿主, 特征_空间坐标有效率(), 结果.空间坐标有效率, now);
+        (void)写入基础节点I64(宿主, 特征_融合深度有效率(), 结果.融合深度有效率, now);
+        (void)写入基础节点I64(宿主, 特征_未解释区域比例(), 结果.未解释区域比例, now);
+        (void)写入基础节点I64(宿主, 特征_补观察缺口状态(), 结果.补观察缺口状态, now);
+        (void)写入基础节点I64(宿主, 特征_补观察缺失原因(), 结果.补观察缺失原因, now);
+    }
+
+    inline void 写入自我观察帧存在摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || 结果.观察帧容器状态 != 观察事实状态_已建立) return;
+        (void)写入基础节点I64(宿主, 特征_当前观察帧(), 1, now);
+        (void)写入基础节点I64(宿主, 特征_当前观察帧存在(), 1, now);
+        (void)写入基础节点I64(宿主, 特征_当前观察帧存在状态(), 结果.观察帧容器状态, now);
+        (void)写入基础节点I64(宿主, 特征_观察帧容器状态(), 结果.观察帧容器状态, now);
+        (void)写入基础节点I64(宿主, 特征_相机帧宽度(), static_cast<I64>(结果.宽度), now);
+        (void)写入基础节点I64(宿主, 特征_相机帧高度(), static_cast<I64>(结果.高度), now);
+        (void)写入基础节点I64(宿主, 特征_深度帧号(), static_cast<I64>(结果.深度帧号), now);
+        (void)写入基础节点I64(宿主, 特征_彩色帧号(), static_cast<I64>(结果.彩色帧号), now);
+        (void)写入基础节点I64(宿主, 特征_预期像素数量(), 结果.预期像素数量, now);
+    }
+
+    inline void 写入自我观察帧接口摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入自我观察帧存在摘要(宿主, 结果, now);
+        (void)写入基础节点I64(宿主, 特征_观察帧到自我场景接口(), 1, now);
+    }
+
+    inline bool 读取观察摘要I64(
+        基础信息节点类* 目标宿主,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景,
+        const 语素入口节点类* 特征类型,
+        I64& 输出值) noexcept
+    {
+        return 读取基础节点I64(目标宿主, 特征类型, 输出值)
+            || 读取场景I64特征(输入参数场景, 特征类型, 输出值)
+            || 读取场景I64特征(输出结果场景, 特征类型, 输出值);
+    }
+
+    inline bool 读取已落账观察特征帧摘要(
+        基础信息节点类* 目标宿主,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景,
+        结构_双目相机调用结果& 结果) noexcept
+    {
+        结果 = {};
+        I64 已取得 = 0;
+        if (!读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_当前观察特征帧(), 已取得)
+            || 已取得 <= 0) {
+            结果.失败原因 = 值_执行缺口_当前方法条件不满足();
+            结果.消息 = "缺少已落账当前观察特征帧";
+            return false;
+        }
+
+        I64 宽度 = 0;
+        I64 高度 = 0;
+        if (!读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_相机帧宽度(), 宽度)
+            || !读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_相机帧高度(), 高度)
+            || 宽度 <= 0
+            || 高度 <= 0) {
+            结果.失败原因 = 值_执行缺口_当前方法条件不满足();
+            结果.消息 = "当前观察特征帧缺少宽高摘要";
+            return false;
+        }
+
+        I64 值 = 0;
+        结果.成功 = true;
+        结果.相机已打开 = true;
+        结果.消息 = "读取已落账观察特征帧摘要";
+        结果.宽度 = static_cast<int>(宽度);
+        结果.高度 = static_cast<int>(高度);
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度帧号(), 值)) {
+            结果.深度帧号 = static_cast<std::uint32_t>(std::max<I64>(0, 值));
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_彩色帧号(), 值)) {
+            结果.彩色帧号 = static_cast<std::uint32_t>(std::max<I64>(0, 值));
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_预期像素数量(), 值)) {
+            结果.预期像素数量 = 值;
+        } else {
+            结果.预期像素数量 = 宽度 * 高度;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_像素特征数量(), 值)) {
+            结果.像素特征数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_颜色像素数量(), 值)) {
+            结果.颜色像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度有效像素数量(), 值)) {
+            结果.深度有效像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_点云有效像素数量(), 值)) {
+            结果.点云有效像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_像素覆盖状态(), 值)) {
+            结果.像素覆盖状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_空间坐标单位毫米(), 值)) {
+            结果.空间坐标单位毫米 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_颜色RGB结构状态(), 值)) {
+            结果.颜色RGB结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_原始深度毫米结构状态(), 值)) {
+            结果.原始深度毫米结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_滤波深度毫米结构状态(), 值)) {
+            结果.滤波深度毫米结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_补全深度毫米结构状态(), 值)) {
+            结果.补全深度毫米结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度有效性Mask状态(), 值)) {
+            结果.深度有效性Mask状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度来源结构状态(), 值)) {
+            结果.深度来源结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度稳定性结构状态(), 值)) {
+            结果.深度稳定性结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度邻域一致性结构状态(), 值)) {
+            结果.深度邻域一致性结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合深度毫米结构状态(), 值)) {
+            结果.融合深度毫米结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合深度有效性结构状态(), 值)) {
+            结果.融合深度有效性结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_多帧深度稳定性结构状态(), 值)) {
+            结果.多帧深度稳定性结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_每像素深度方差结构状态(), 值)) {
+            结果.每像素深度方差结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_空间坐标毫米XYZ结构状态(), 值)) {
+            结果.空间坐标毫米XYZ结构状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_原始深度来源像素数量(), 值)) {
+            结果.原始深度来源像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_滤波深度来源像素数量(), 值)) {
+            结果.滤波深度来源像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_补全深度来源像素数量(), 值)) {
+            结果.补全深度来源像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_无有效深度来源像素数量(), 值)) {
+            结果.无有效深度来源像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_补全深度低置信像素数量(), 值)) {
+            结果.补全深度低置信像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度稳定性平均值(), 值)) {
+            结果.深度稳定性平均值 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度邻域一致性平均值(), 值)) {
+            结果.深度邻域一致性平均值 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_观察帧组状态(), 值)) {
+            结果.观察帧组状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_观察帧组帧数(), 值)) {
+            结果.观察帧组帧数 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合依据帧集合状态(), 值)) {
+            结果.融合依据帧集合状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合深度有效像素数量(), 值)) {
+            结果.融合深度有效像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合深度有效率(), 值)) {
+            结果.融合深度有效率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合补偿深度空洞像素数量(), 值)) {
+            结果.融合补偿深度空洞像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合低稳定像素数量(), 值)) {
+            结果.融合低稳定像素数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合深度稳定性平均值(), 值)) {
+            结果.融合深度稳定性平均值 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合深度平均方差(), 值)) {
+            结果.融合深度平均方差 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_彩色深度已对齐(), 值)) {
+            结果.彩色深度已对齐 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_对齐目标(), 值)) {
+            结果.对齐目标 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度有效率(), 值)) {
+            结果.深度有效率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_空间坐标有效率(), 值)) {
+            结果.空间坐标有效率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_帧质量评分(), 值)) {
+            结果.帧质量评分 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_观察帧质量诊断摘要(), 值)) {
+            结果.观察帧质量诊断摘要 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度空洞数量(), 值)) {
+            结果.深度空洞数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度空洞区域数量(), 值)) {
+            结果.深度空洞区域数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度空洞区域集合(), 值)) {
+            结果.深度空洞区域集合状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_彩色深度对齐状态(), 值)) {
+            结果.彩色深度对齐状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_轮廓闭合率(), 值)) {
+            结果.轮廓闭合率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_轮廓断裂数量(), 值)) {
+            结果.轮廓断裂数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_彩图轮廓数量(), 值)) {
+            结果.彩图轮廓数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_深度轮廓数量(), 值)) {
+            结果.深度轮廓数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_空间投影轮廓数量(), 值)) {
+            结果.空间投影轮廓数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合轮廓数量(), 值)) {
+            结果.融合轮廓数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_轮廓来源分层状态(), 值)) {
+            结果.轮廓来源分层状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_轮廓深度支持率(), 值)) {
+            结果.轮廓深度支持率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_轮廓颜色支持率(), 值)) {
+            结果.轮廓颜色支持率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_轮廓空间支持率(), 值)) {
+            结果.轮廓空间支持率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_融合轮廓置信度(), 值)) {
+            结果.融合轮廓置信度 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_跨越深度断裂轮廓数量(), 值)) {
+            结果.跨越深度断裂轮廓数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_穿过深度无效区域轮廓数量(), 值)) {
+            结果.穿过深度无效区域轮廓数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_依赖补全深度轮廓数量(), 值)) {
+            结果.依赖补全深度轮廓数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_空间点有效率(), 值)) {
+            结果.空间点有效率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_边界深度稳定率(), 值)) {
+            结果.边界深度稳定率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_候选存在验证通过率(), 值)) {
+            结果.候选存在验证通过率 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_未解释区域比例(), 值)) {
+            结果.未解释区域比例 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_补观察缺口状态(), 值)) {
+            结果.补观察缺口状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_补观察缺失原因(), 值)) {
+            结果.补观察缺失原因 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_待补观察区域数量(), 值)) {
+            结果.待补观察区域数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_补全候选数量(), 值)) {
+            结果.补全候选数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_低置信轮廓数量(), 值)) {
+            结果.低置信轮廓数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_条件不足候选数量(), 值)) {
+            结果.条件不足候选数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_待验证候选数量(), 值)) {
+            结果.待验证候选数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_部分确认候选数量(), 值)) {
+            结果.部分确认候选数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_补观察需求建议(), 值)) {
+            结果.补观察需求建议 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_诊断区域数量(), 值)) {
+            结果.诊断区域数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_诊断区域集合状态(), 值)) {
+            结果.诊断区域集合状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_诊断区域掩码状态(), 值)) {
+            结果.诊断区域掩码状态 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_空间候选数量(), 值)) {
+            结果.空间候选数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_空间候选有效点数量(), 值)) {
+            结果.空间候选有效点数量 = 值;
+        }
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_轮廓数量(), 值)) {
+            结果.轮廓数量 = static_cast<std::size_t>(std::max<I64>(0, 值));
+        }
+        补全基础观察事实状态(结果);
+        return true;
+    }
+
+    inline bool 读取已落账空间候选集合(
+        基础信息节点类* 目标宿主,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景,
+        结构_双目相机调用结果& 结果) noexcept
+    {
+        if (!读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 输出结果场景, 结果)) {
+            return false;
+        }
+
+        std::vector<双目相机本能适配器::空间候选摘要> 候选列表{};
+        if (!读取空间候选逐项账本(目标宿主, 候选列表)
+            && !读取空间候选逐项账本(reinterpret_cast<基础信息节点类*>(输出结果场景), 候选列表)
+            && !读取空间候选逐项账本(reinterpret_cast<基础信息节点类*>(输入参数场景), 候选列表)) {
+            结果.成功 = false;
+            结果.失败原因 = 值_执行缺口_当前方法条件不满足();
+            结果.消息 = "缺少已落账逐项空间候选账本";
+            return false;
+        }
+
+        结果.成功 = true;
+        结果.空间候选列表 = 候选列表;
+        结果.空间候选数量 = static_cast<I64>(结果.空间候选列表.size());
+        std::vector<双目相机本能适配器::诊断区域摘要> 区域列表{};
+        if (读取观察诊断区域逐项账本(目标宿主, 区域列表)
+            || 读取观察诊断区域逐项账本(reinterpret_cast<基础信息节点类*>(输出结果场景), 区域列表)
+            || 读取观察诊断区域逐项账本(reinterpret_cast<基础信息节点类*>(输入参数场景), 区域列表)) {
+            结果.诊断区域列表 = 区域列表;
+            if (结果.诊断区域数量 <= 0) {
+                结果.诊断区域数量 = static_cast<I64>(结果.诊断区域列表.size());
+            }
+            if (!结果.诊断区域列表.empty()) {
+                结果.诊断区域集合状态 = 1;
+                结果.诊断区域掩码状态 = 1;
+            }
+        }
+        I64 有效点数量 = 0;
+        for (const auto& 候选 : 结果.空间候选列表) {
+            有效点数量 += std::max<I64>(0, 候选.像素数量);
+        }
+        if (结果.空间候选有效点数量 <= 0) {
+            结果.空间候选有效点数量 = 有效点数量;
+        }
+        return true;
+    }
+
+    inline bool 已落账像素观察事实索引(
+        基础信息节点类* 目标宿主,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        I64 索引状态 = 0;
+        if (读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_像素观察事实索引(), 索引状态)
+            && 索引状态 > 0) {
+            return true;
+        }
+        return 读取观察摘要I64(目标宿主, 输入参数场景, 输出结果场景, 特征_当前帧像素特征索引(), 索引状态)
+            && 索引状态 > 0;
+    }
+
+    inline void 写入空间候选观察队列逐项账本(
+        基础信息节点类* 宿主,
+        const 结构_空间候选观察队列结果& 队列,
+        时间戳 now) noexcept
+    {
+        if (!宿主) return;
+        for (const auto& 队列项 : 队列.队列) {
+            auto* 候选存在 = 取或创建空间候选观察事实(宿主, 队列项.候选编号);
+            auto* 节点 = reinterpret_cast<基础信息节点类*>(候选存在);
+            if (!节点) continue;
+            (void)写入基础节点I64(节点, 特征_观察队列排序位次(), 队列项.排序位次, now);
+            (void)写入基础节点I64(节点, 特征_空间候选优先级评分(), 队列项.优先级评分, now);
+            (void)写入基础节点I64(节点, 特征_空间候选相对独立状态(), 队列项.相对独立状态, now);
+            (void)写入基础节点I64(节点, 特征_空间候选中心接近评分(), 队列项.中心接近评分, now);
+            (void)写入基础节点I64(节点, 特征_空间候选范围大小评分(), 队列项.范围大小评分, now);
+        }
+    }
+
+    inline 存在节点类* 取或创建已确认观察存在(
+        基础信息节点类* 宿主,
+        I64 来源候选编号) noexcept
+    {
+        return 宿主
+            ? 世界树.取或创建子存在_按类型并按特征I64(
+                宿主,
+                类型_已确认观察存在(),
+                特征_来源空间候选编号(),
+                来源候选编号)
+            : nullptr;
+    }
+
+    inline void 写入单个已确认观察存在(
+        基础信息节点类* 宿主,
+        const 结构_观察存在假设结果& 假设,
+        const 结构_像素归属验证结果& 验证,
+        时间戳 now) noexcept
+    {
+        auto* 观察存在 = 取或创建已确认观察存在(宿主, 假设.来源候选编号);
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(观察存在);
+        if (!节点) return;
+        (void)写入基础节点I64(节点, 特征_来源空间候选编号(), 假设.来源候选编号, now);
+        (void)写入基础节点I64(节点, 特征_观察存在确认状态(), 观察存在确认状态_已验证, now);
+        (void)写入基础节点I64(节点, 特征_中心空间坐标X(), 假设.候选.中心X, now);
+        (void)写入基础节点I64(节点, 特征_中心空间坐标Y(), 假设.候选.中心Y, now);
+        (void)写入基础节点I64(节点, 特征_中心空间坐标Z(), 假设.候选.中心Z, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小X(), 假设.候选.范围最小X, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大X(), 假设.候选.范围最大X, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Y(), 假设.候选.范围最小Y, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Y(), 假设.候选.范围最大Y, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Z(), 假设.候选.范围最小Z, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Z(), 假设.候选.范围最大Z, now);
+        (void)写入基础节点I64(节点, 特征_投影范围最小X(), 假设.候选.投影最小X, now);
+        (void)写入基础节点I64(节点, 特征_投影范围最大X(), 假设.候选.投影最大X, now);
+        (void)写入基础节点I64(节点, 特征_投影范围最小Y(), 假设.候选.投影最小Y, now);
+        (void)写入基础节点I64(节点, 特征_投影范围最大Y(), 假设.候选.投影最大Y, now);
+        (void)写入基础节点I64(节点, 特征_假设距离(), 假设.距离, now);
+        (void)写入基础节点I64(节点, 特征_假设尺寸X(), 假设.尺寸X, now);
+        (void)写入基础节点I64(节点, 特征_假设尺寸Y(), 假设.尺寸Y, now);
+        (void)写入基础节点I64(节点, 特征_假设尺寸Z(), 假设.尺寸Z, now);
+        (void)写入基础节点I64(节点, 特征_假设方位X(), 假设.方位X, now);
+        (void)写入基础节点I64(节点, 特征_假设方位Y(), 假设.方位Y, now);
+        (void)写入基础节点I64(节点, 特征_候选像素掩码状态(), 假设.候选像素掩码状态, now);
+        (void)写入基础节点I64(节点, 特征_像素归属验证状态(), 验证.验证状态, now);
+        (void)写入基础节点I64(节点, 特征_空间覆盖像素数(), 验证.空间覆盖像素数, now);
+        (void)写入基础节点I64(节点, 特征_空间匹配像素数(), 验证.空间匹配像素数, now);
+        (void)写入基础节点I64(节点, 特征_空间冲突像素数(), 验证.空间冲突像素数, now);
+        (void)写入基础节点I64(节点, 特征_遮挡像素数(), 验证.遮挡像素数, now);
+        (void)写入基础节点I64(节点, 特征_未解释像素数(), 验证.未解释像素数, now);
+        (void)写入基础节点I64(节点, 特征_已归属像素数(), 验证.空间匹配像素数, now);
+        (void)写入基础节点I64(节点, 特征_范围内点比例(), 验证.范围内点比例, now);
+        (void)写入基础节点I64(节点, 特征_深度一致率(), 验证.深度一致率, now);
+        (void)写入基础节点I64(节点, 特征_投影覆盖率(), 验证.投影覆盖率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓吻合率(), 验证.轮廓吻合率, now);
+    }
+
+    inline void 写入全帧像素归属账本摘要(
+        基础信息节点类* 宿主,
+        const 结构_全帧像素归属账本结果& 账本,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || 账本.账本状态 == 全帧像素归属账状态_未生成) return;
+        (void)写入基础节点I64(宿主, 特征_全帧像素归属账状态(), 账本.账本状态, now);
+        (void)写入基础节点I64(宿主, 特征_已验证观察存在数量(), 账本.已验证观察存在数量, now);
+        (void)写入基础节点I64(宿主, 特征_已归属像素数(), 账本.已归属像素数, now);
+        (void)写入基础节点I64(宿主, 特征_未解释像素数(), 账本.未解释像素数, now);
+        (void)写入基础节点I64(宿主, 特征_归属冲突像素数(), 账本.归属冲突像素数, now);
+        (void)写入基础节点I64(宿主, 特征_像素归属率(), 账本.像素归属率, now);
+    }
+
+    inline void 写入已验证观察存在逐项账本(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选观察队列结果& 队列,
+        const 结构_观察存在假设结果& 主假设,
+        const 结构_像素归属验证结果& 主验证,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        for (const auto& 项 : 生成已验证观察存在项集合(结果, 队列, 主假设, 主验证)) {
+            写入单个已确认观察存在(宿主, 项.假设, 项.验证, now);
+        }
+    }
+
+    inline void 写入双目相机空间候选摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入双目相机像素特征索引摘要(宿主, 结果, now);
+        (void)写入基础节点I64(宿主, 特征_空间候选集合(), 1, now);
+        (void)写入基础节点I64(宿主, 特征_空间候选数量(), 结果.空间候选数量, now);
+        (void)写入基础节点I64(宿主, 特征_空间候选有效点数量(), 结果.空间候选有效点数量, now);
+        if (结果.空间候选列表.empty()) {
+            return;
+        }
+        const auto& 主候选 = 结果.空间候选列表.front();
+        (void)写入基础节点I64(宿主, 特征_主空间候选编号(), 主候选.候选编号, now);
+        (void)写入基础节点I64(宿主, 特征_主空间候选像素数量(), 主候选.像素数量, now);
+        (void)写入基础节点I64(宿主, 特征_中心空间坐标X(), 主候选.中心X, now);
+        (void)写入基础节点I64(宿主, 特征_中心空间坐标Y(), 主候选.中心Y, now);
+        (void)写入基础节点I64(宿主, 特征_中心空间坐标Z(), 主候选.中心Z, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最小X(), 主候选.范围最小X, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最大X(), 主候选.范围最大X, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最小Y(), 主候选.范围最小Y, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最大Y(), 主候选.范围最大Y, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最小Z(), 主候选.范围最小Z, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最大Z(), 主候选.范围最大Z, now);
+        (void)写入基础节点I64(宿主, 特征_平均深度(), 主候选.平均深度, now);
+        (void)写入基础节点I64(宿主, 特征_最近深度(), 主候选.最近深度, now);
+        (void)写入基础节点I64(宿主, 特征_最远深度(), 主候选.最远深度, now);
+        (void)写入基础节点I64(宿主, 特征_空间连续性评分(), 主候选.空间连续性评分, now);
+        (void)写入基础节点I64(宿主, 特征_范围稳定性评分(), 主候选.范围稳定性评分, now);
+    }
+
+    inline void 写入双目相机空间候选独立性摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选独立性判断结果& 判断,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入双目相机空间候选摘要(宿主, 结果, now);
+        (void)写入基础节点I64(宿主, 特征_空间候选相对独立性判断(), 判断.判断状态, now);
+        (void)写入基础节点I64(宿主, 特征_相对独立空间候选数量(), 判断.相对独立数量, now);
+        (void)写入基础节点I64(宿主, 特征_不独立空间候选数量(), 判断.不独立数量, now);
+        (void)写入基础节点I64(宿主, 特征_待拆分空间候选数量(), 判断.待拆分数量, now);
+        (void)写入基础节点I64(宿主, 特征_待合并空间候选数量(), 判断.待合并数量, now);
+        (void)写入基础节点I64(宿主, 特征_不确定空间候选数量(), 判断.不确定数量, now);
+        (void)写入基础节点I64(宿主, 特征_主空间候选相对独立状态(), 判断.主候选状态, now);
+        (void)写入基础节点I64(宿主, 特征_主空间候选分离度评分(), 判断.主候选分离度评分, now);
+    }
+
+    inline void 写入双目相机空间候选观察队列摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选独立性判断结果& 判断,
+        const 结构_空间候选观察队列结果& 队列,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入双目相机空间候选独立性摘要(宿主, 结果, 判断, now);
+        (void)写入基础节点I64(宿主, 特征_空间候选观察队列(), 队列.队列状态, now);
+        (void)写入基础节点I64(宿主, 特征_观察队列候选数量(), 队列.候选数量, now);
+        写入空间候选观察队列逐项账本(宿主, 队列, now);
+        if (队列.队列.empty()) {
+            return;
+        }
+        const auto& 首选 = 队列.队列.front();
+        (void)写入基础节点I64(宿主, 特征_首选观察候选编号(), 首选.候选编号, now);
+        (void)写入基础节点I64(宿主, 特征_首选观察候选优先级评分(), 首选.优先级评分, now);
+        (void)写入基础节点I64(宿主, 特征_首选观察候选相对独立状态(), 首选.相对独立状态, now);
+        (void)写入基础节点I64(宿主, 特征_首选观察候选中心接近评分(), 首选.中心接近评分, now);
+        (void)写入基础节点I64(宿主, 特征_首选观察候选范围大小评分(), 首选.范围大小评分, now);
+    }
+
+    inline void 写入双目相机观察存在假设摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选独立性判断结果& 判断,
+        const 结构_空间候选观察队列结果& 队列,
+        const 结构_观察存在假设结果& 假设,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入双目相机空间候选观察队列摘要(宿主, 结果, 判断, 队列, now);
+        (void)写入基础节点I64(宿主, 特征_观察存在假设(), 假设.假设状态, now);
+        if (假设.假设状态 != 观察存在假设状态_已生成) {
+            return;
+        }
+        (void)写入基础节点I64(宿主, 特征_来源空间候选编号(), 假设.来源候选编号, now);
+        (void)写入基础节点I64(宿主, 特征_存在假设验证状态(), 假设.验证状态, now);
+        (void)写入基础节点I64(宿主, 特征_候选像素掩码状态(), 假设.候选像素掩码状态, now);
+        (void)写入基础节点I64(宿主, 特征_投影轮廓状态(), 假设.投影轮廓状态, now);
+        (void)写入基础节点I64(宿主, 特征_假设距离(), 假设.距离, now);
+        (void)写入基础节点I64(宿主, 特征_假设尺寸X(), 假设.尺寸X, now);
+        (void)写入基础节点I64(宿主, 特征_假设尺寸Y(), 假设.尺寸Y, now);
+        (void)写入基础节点I64(宿主, 特征_假设尺寸Z(), 假设.尺寸Z, now);
+        (void)写入基础节点I64(宿主, 特征_假设方位X(), 假设.方位X, now);
+        (void)写入基础节点I64(宿主, 特征_假设方位Y(), 假设.方位Y, now);
+        (void)写入基础节点I64(宿主, 特征_假设有效点比例(), 假设.有效点比例, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓支持评分(), 假设.轮廓支持评分, now);
+        (void)写入基础节点I64(宿主, 特征_中心空间坐标X(), 假设.候选.中心X, now);
+        (void)写入基础节点I64(宿主, 特征_中心空间坐标Y(), 假设.候选.中心Y, now);
+        (void)写入基础节点I64(宿主, 特征_中心空间坐标Z(), 假设.候选.中心Z, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最小X(), 假设.候选.范围最小X, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最大X(), 假设.候选.范围最大X, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最小Y(), 假设.候选.范围最小Y, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最大Y(), 假设.候选.范围最大Y, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最小Z(), 假设.候选.范围最小Z, now);
+        (void)写入基础节点I64(宿主, 特征_范围坐标AABB最大Z(), 假设.候选.范围最大Z, now);
+        (void)写入基础节点I64(宿主, 特征_空间连续性评分(), 假设.候选.空间连续性评分, now);
+        (void)写入基础节点I64(宿主, 特征_范围稳定性评分(), 假设.候选.范围稳定性评分, now);
+    }
+
+    inline void 写入双目相机像素归属验证摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选独立性判断结果& 判断,
+        const 结构_空间候选观察队列结果& 队列,
+        const 结构_观察存在假设结果& 假设,
+        const 结构_像素归属验证结果& 验证,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入双目相机观察存在假设摘要(宿主, 结果, 判断, 队列, 假设, now);
+        (void)写入基础节点I64(宿主, 特征_像素归属验证结果(), 验证.结果状态, now);
+        if (验证.结果状态 != 像素归属验证状态_已生成待确认) {
+            return;
+        }
+        (void)写入基础节点I64(宿主, 特征_来源空间候选编号(), 验证.来源候选编号, now);
+        (void)写入基础节点I64(宿主, 特征_空间覆盖像素数(), 验证.空间覆盖像素数, now);
+        (void)写入基础节点I64(宿主, 特征_空间匹配像素数(), 验证.空间匹配像素数, now);
+        (void)写入基础节点I64(宿主, 特征_空间冲突像素数(), 验证.空间冲突像素数, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓支持像素数(), 验证.轮廓支持像素数, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓冲突像素数(), 验证.轮廓冲突像素数, now);
+        (void)写入基础节点I64(宿主, 特征_深度一致率(), 验证.深度一致率, now);
+        (void)写入基础节点I64(宿主, 特征_范围内点比例(), 验证.范围内点比例, now);
+        (void)写入基础节点I64(宿主, 特征_投影覆盖率(), 验证.投影覆盖率, now);
+        (void)写入基础节点I64(宿主, 特征_轮廓吻合率(), 验证.轮廓吻合率, now);
+        (void)写入基础节点I64(宿主, 特征_遮挡像素数(), 验证.遮挡像素数, now);
+        (void)写入基础节点I64(宿主, 特征_未解释像素数(), 验证.未解释像素数, now);
+        (void)写入基础节点I64(宿主, 特征_像素归属验证状态(), 验证.验证状态, now);
+    }
+
+    inline void 写入双目相机观察存在确认摘要(
+        基础信息节点类* 宿主,
+        const 结构_双目相机调用结果& 结果,
+        const 结构_空间候选独立性判断结果& 判断,
+        const 结构_空间候选观察队列结果& 队列,
+        const 结构_观察存在假设结果& 假设,
+        const 结构_像素归属验证结果& 验证,
+        const 结构_观察存在确认结果& 确认,
+        const 结构_全帧像素归属账本结果& 归属账本,
+        时间戳 now) noexcept
+    {
+        if (!宿主 || !结果.成功) return;
+        写入双目相机像素归属验证摘要(宿主, 结果, 判断, 队列, 假设, 验证, now);
+        (void)写入基础节点I64(宿主, 特征_已验证观察存在(), 确认.已验证观察存在数量 > 0 ? 1 : 0, now);
+        (void)写入基础节点I64(宿主, 特征_观察存在确认状态(), 确认.确认状态, now);
+        (void)写入基础节点I64(宿主, 特征_已验证观察存在数量(), 确认.已验证观察存在数量, now);
+        (void)写入基础节点I64(宿主, 特征_像素归属更新(), 确认.像素归属更新, now);
+        (void)写入基础节点I64(宿主, 特征_未解释区域更新(), 确认.未解释区域更新, now);
+        (void)写入基础节点I64(宿主, 特征_帧解释状态(), 确认.帧解释状态, now);
+        写入已验证观察存在逐项账本(宿主, 结果, 队列, 假设, 验证, now);
+        写入全帧像素归属账本摘要(宿主, 归属账本, now);
+    }
+
+    struct 结构_内部世界上下文 {
+        存在节点类* 目标存在 = nullptr;
+        场景节点类* 外部场景 = nullptr;
+        场景节点类* 内部世界 = nullptr;
+        存在节点类* 内外接口 = nullptr;
+        存在节点类* 局部切片 = nullptr;
+        存在节点类* 子候选 = nullptr;
+        存在节点类* 子存在 = nullptr;
+        I64 来源候选编号 = 0;
+        I64 最小X = 0;
+        I64 最大X = 0;
+        I64 最小Y = 0;
+        I64 最大Y = 0;
+        I64 最小Z = 0;
+        I64 最大Z = 0;
+        I64 投影最小X = 0;
+        I64 投影最大X = 0;
+        I64 投影最小Y = 0;
+        I64 投影最大Y = 0;
+        I64 宽度 = 0;
+        I64 高度 = 0;
+        I64 深度 = 0;
+        I64 投影宽度 = 0;
+        I64 投影高度 = 0;
+        I64 平均深度 = 0;
+        I64 像素数量 = 0;
+    };
+
+    inline bool 存在类型是(存在节点类* 节点, const 语素入口节点类* 类型) noexcept
+    {
+        const auto* 主信息 = 世界树.存在().取存在主信息(节点);
+        return 主信息 && 主信息->类型 == 类型;
+    }
+
+    inline bool 已确认观察存在节点(存在节点类* 节点) noexcept
+    {
+        if (!节点) return false;
+        if (存在类型是(节点, 类型_已确认观察存在())) return true;
+        I64 确认状态 = 0;
+        return 读取基础节点I64(
+            reinterpret_cast<基础信息节点类*>(节点),
+            特征_观察存在确认状态(),
+            确认状态)
+            && 确认状态 == 观察存在确认状态_已验证;
+    }
+
+    inline 场景节点类* 取存在所在场景(存在节点类* 节点) noexcept
+    {
+        auto* 当前 = 节点 ? static_cast<基础信息节点类*>(节点->父) : nullptr;
+        while (当前) {
+            if (dynamic_cast<场景节点主信息类*>(当前->主信息)) {
+                return reinterpret_cast<场景节点类*>(当前);
+            }
+            当前 = static_cast<基础信息节点类*>(当前->父);
+        }
+        return 世界树.取或创建自我现实场景();
+    }
+
+    inline 存在节点类* 查找首个已确认观察存在(基础信息节点类* 宿主) noexcept
+    {
+        if (!宿主) return nullptr;
+        if (auto* 自身 = dynamic_cast<存在节点主信息类*>(宿主->主信息);
+            自身 && 已确认观察存在节点(reinterpret_cast<存在节点类*>(宿主))) {
+            return reinterpret_cast<存在节点类*>(宿主);
+        }
+        for (auto* 子存在 : 世界树.存在().获取子存在(宿主)) {
+            if (已确认观察存在节点(子存在)) {
+                return 子存在;
+            }
+        }
+        return nullptr;
+    }
+
+    inline 存在节点类* 解析目标观察存在(
+        场景节点类* 输入参数场景,
+        基础信息节点类* 默认宿主,
+        场景节点类* 输出结果场景) noexcept
+    {
+        void* 指针 = nullptr;
+        if (读取输入参数指针(输入参数场景, 特征_目标存在(), 指针)
+            || 读取输入参数指针(输入参数场景, 特征_已验证观察存在(), 指针)) {
+            auto* 目标 = reinterpret_cast<存在节点类*>(指针);
+            if (已确认观察存在节点(目标)) {
+                return 目标;
+            }
+        }
+        if (auto* 命中 = 查找首个已确认观察存在(默认宿主)) return 命中;
+        if (auto* 命中 = 查找首个已确认观察存在(reinterpret_cast<基础信息节点类*>(输出结果场景))) return 命中;
+        return 查找首个已确认观察存在(reinterpret_cast<基础信息节点类*>(输入参数场景));
+    }
+
+    inline I64 读取I64或0(基础信息节点类* 节点, const 语素入口节点类* 特征类型) noexcept
+    {
+        I64 值 = 0;
+        (void)读取基础节点I64(节点, 特征类型, 值);
+        return 值;
+    }
+
+    inline I64 正范围(I64 最小值, I64 最大值) noexcept
+    {
+        return 最大值 >= 最小值 ? (最大值 - 最小值) : 0;
+    }
+
+    inline I64 投影尺寸(I64 最小值, I64 最大值, I64 兜底) noexcept
+    {
+        if (最大值 >= 最小值) {
+            return std::max<I64>(1, 最大值 - 最小值 + 1);
+        }
+        return std::max<I64>(1, 兜底);
+    }
+
+    inline 结构_内部世界上下文 读取内部世界上下文(
+        存在节点类* 目标存在,
+        bool 确保内部世界,
+        时间戳 now) noexcept
+    {
+        结构_内部世界上下文 上下文{};
+        上下文.目标存在 = 目标存在;
+        auto* 目标节点 = reinterpret_cast<基础信息节点类*>(目标存在);
+        if (!目标节点) return 上下文;
+
+        上下文.外部场景 = 取存在所在场景(目标存在);
+        上下文.内部世界 = 确保内部世界
+            ? 世界树.取或创建存在内部世界(目标存在, 名称_存在内部世界())
+            : 世界树.取存在内部世界(目标存在);
+
+        上下文.来源候选编号 = 读取I64或0(目标节点, 特征_来源空间候选编号());
+        上下文.最小X = 读取I64或0(目标节点, 特征_范围坐标AABB最小X());
+        上下文.最大X = 读取I64或0(目标节点, 特征_范围坐标AABB最大X());
+        上下文.最小Y = 读取I64或0(目标节点, 特征_范围坐标AABB最小Y());
+        上下文.最大Y = 读取I64或0(目标节点, 特征_范围坐标AABB最大Y());
+        上下文.最小Z = 读取I64或0(目标节点, 特征_范围坐标AABB最小Z());
+        上下文.最大Z = 读取I64或0(目标节点, 特征_范围坐标AABB最大Z());
+        上下文.投影最小X = 读取I64或0(目标节点, 特征_投影范围最小X());
+        上下文.投影最大X = 读取I64或0(目标节点, 特征_投影范围最大X());
+        上下文.投影最小Y = 读取I64或0(目标节点, 特征_投影范围最小Y());
+        上下文.投影最大Y = 读取I64或0(目标节点, 特征_投影范围最大Y());
+        上下文.宽度 = 正范围(上下文.最小X, 上下文.最大X);
+        上下文.高度 = 正范围(上下文.最小Y, 上下文.最大Y);
+        上下文.深度 = 正范围(上下文.最小Z, 上下文.最大Z);
+        上下文.投影宽度 = 投影尺寸(上下文.投影最小X, 上下文.投影最大X, 上下文.宽度);
+        上下文.投影高度 = 投影尺寸(上下文.投影最小Y, 上下文.投影最大Y, 上下文.高度);
+        上下文.平均深度 = 读取I64或0(目标节点, 特征_假设距离());
+        上下文.像素数量 = 读取I64或0(目标节点, 特征_空间匹配像素数());
+        (void)now;
+        return 上下文;
+    }
+
+    inline bool 局部区域达到叶子阈值(const 结构_内部世界上下文& 上下文) noexcept
+    {
+        return 上下文.投影宽度 <= 8 && 上下文.投影高度 <= 8;
+    }
+
+    inline void 写入内部世界基础摘要(
+        const 结构_内部世界上下文& 上下文,
+        时间戳 now) noexcept
+    {
+        auto* 目标节点 = reinterpret_cast<基础信息节点类*>(上下文.目标存在);
+        auto* 内部节点 = reinterpret_cast<基础信息节点类*>(上下文.内部世界);
+        if (目标节点 && 上下文.内部世界) {
+            (void)写入基础节点指针(目标节点, 特征_内部世界(), 上下文.内部世界, now);
+            (void)写入基础节点I64(目标节点, 特征_内部世界状态(), 内部世界状态_已建立, now);
+        }
+        if (!内部节点) return;
+        (void)写入基础节点I64(内部节点, 特征_内部世界场景类型(), 1, now);
+        (void)写入基础节点I64(内部节点, 特征_内部世界状态(), 内部世界状态_已建立, now);
+        (void)写入基础节点I64(内部节点, 特征_空间坐标单位毫米(), 1, now);
+        (void)写入基础节点I64(内部节点, 特征_局部坐标原点X(), 上下文.最小X, now);
+        (void)写入基础节点I64(内部节点, 特征_局部坐标原点Y(), 上下文.最小Y, now);
+        (void)写入基础节点I64(内部节点, 特征_局部坐标原点Z(), 上下文.最小Z, now);
+        (void)写入基础节点I64(内部节点, 特征_范围坐标AABB最小X(), 0, now);
+        (void)写入基础节点I64(内部节点, 特征_范围坐标AABB最小Y(), 0, now);
+        (void)写入基础节点I64(内部节点, 特征_范围坐标AABB最小Z(), 0, now);
+        (void)写入基础节点I64(内部节点, 特征_范围坐标AABB最大X(), 上下文.宽度, now);
+        (void)写入基础节点I64(内部节点, 特征_范围坐标AABB最大Y(), 上下文.高度, now);
+        (void)写入基础节点I64(内部节点, 特征_范围坐标AABB最大Z(), 上下文.深度, now);
+        (void)写入基础节点I64(内部节点, 特征_内部世界细分状态(), 内部世界细分状态_未细分, now);
+        (void)写入基础节点I64(内部节点, 特征_可绘制状态(), 1, now);
+        (void)写入基础节点指针(内部节点, 特征_所属父存在(), 上下文.目标存在, now);
+        if (上下文.外部场景) {
+            (void)写入基础节点指针(内部节点, 特征_父场景(), 上下文.外部场景, now);
+        }
+    }
+
+    inline 存在节点类* 取或创建内外接口(结构_内部世界上下文& 上下文, 时间戳 now) noexcept
+    {
+        auto* 内部节点 = reinterpret_cast<基础信息节点类*>(上下文.内部世界);
+        if (!内部节点) return nullptr;
+        auto* 接口 = 世界树.取或创建子存在_按类型(内部节点, 类型_存在内外接口());
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(接口);
+        if (!节点) return nullptr;
+        (void)写入基础节点I64(节点, 特征_接口状态(), 内外接口状态_已建立, now);
+        (void)写入基础节点I64(节点, 特征_局部坐标原点X(), 上下文.最小X, now);
+        (void)写入基础节点I64(节点, 特征_局部坐标原点Y(), 上下文.最小Y, now);
+        (void)写入基础节点I64(节点, 特征_局部坐标原点Z(), 上下文.最小Z, now);
+        (void)写入基础节点指针(节点, 特征_所属父存在(), 上下文.目标存在, now);
+        (void)写入基础节点指针(节点, 特征_内部场景(), 上下文.内部世界, now);
+        if (上下文.外部场景) {
+            (void)写入基础节点指针(节点, 特征_外部场景(), 上下文.外部场景, now);
+        }
+        (void)写入基础节点指针(内部节点, 特征_存在内外场景接口(), 接口, now);
+        (void)写入基础节点I64(内部节点, 特征_接口状态(), 内外接口状态_已建立, now);
+        上下文.内外接口 = 接口;
+        return 接口;
+    }
+
+    inline 存在节点类* 取或创建局部观察切片(结构_内部世界上下文& 上下文, 时间戳 now) noexcept
+    {
+        auto* 内部节点 = reinterpret_cast<基础信息节点类*>(上下文.内部世界);
+        if (!内部节点) return nullptr;
+        auto* 切片 = 世界树.取或创建子存在_按类型并按特征I64(
+            内部节点,
+            类型_存在局部观察切片(),
+            特征_来源空间候选编号(),
+            上下文.来源候选编号);
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(切片);
+        if (!节点) return nullptr;
+        (void)写入基础节点I64(节点, 特征_来源空间候选编号(), 上下文.来源候选编号, now);
+        (void)写入基础节点I64(节点, 特征_内部世界当前观察材料(), 当前观察材料状态_已建立, now);
+        (void)写入基础节点I64(节点, 特征_局部边界框宽度(), 上下文.投影宽度, now);
+        (void)写入基础节点I64(节点, 特征_局部边界框高度(), 上下文.投影高度, now);
+        (void)写入基础节点I64(节点, 特征_局部像素索引状态(), 1, now);
+        (void)写入基础节点I64(节点, 特征_像素特征数量(), 上下文.像素数量, now);
+        (void)写入基础节点I64(节点, 特征_平均深度(), 上下文.平均深度, now);
+        (void)写入基础节点指针(节点, 特征_所属父存在(), 上下文.目标存在, now);
+        (void)写入基础节点指针(节点, 特征_内部世界(), 上下文.内部世界, now);
+        if (上下文.内外接口) {
+            (void)写入基础节点指针(节点, 特征_存在内外场景接口(), 上下文.内外接口, now);
+        }
+        (void)写入基础节点指针(内部节点, 特征_局部观察切片(), 切片, now);
+        (void)写入基础节点I64(内部节点, 特征_内部世界当前观察材料(), 当前观察材料状态_已建立, now);
+        上下文.局部切片 = 切片;
+        return 切片;
+    }
+
+    inline 存在节点类* 取或创建内部世界子候选(结构_内部世界上下文& 上下文, 时间戳 now) noexcept
+    {
+        auto* 内部节点 = reinterpret_cast<基础信息节点类*>(上下文.内部世界);
+        if (!内部节点) return nullptr;
+        auto* 子候选 = 世界树.取或创建子存在_按类型并按特征I64(
+            内部节点,
+            类型_内部世界子候选(),
+            特征_来源空间候选编号(),
+            上下文.来源候选编号);
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(子候选);
+        if (!节点) return nullptr;
+        const bool 是叶子 = 局部区域达到叶子阈值(上下文);
+        (void)写入基础节点I64(节点, 特征_来源空间候选编号(), 上下文.来源候选编号, now);
+        (void)写入基础节点I64(节点, 特征_子候选类型(), 是叶子 ? 内部子候选类型_叶子候选 : 内部子候选类型_表面特征候选, now);
+        (void)写入基础节点I64(节点, 特征_局部边界框宽度(), 上下文.投影宽度, now);
+        (void)写入基础节点I64(节点, 特征_局部边界框高度(), 上下文.投影高度, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小X(), 0, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Y(), 0, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Z(), 0, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大X(), 上下文.宽度, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Y(), 上下文.高度, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Z(), 上下文.深度, now);
+        (void)写入基础节点I64(节点, 特征_平均深度(), 上下文.平均深度, now);
+        (void)写入基础节点指针(节点, 特征_来源局部观察切片(), 上下文.局部切片, now);
+        (void)写入基础节点指针(节点, 特征_内部世界(), 上下文.内部世界, now);
+        (void)写入基础节点I64(内部节点, 特征_内部世界子候选集合(), 子候选集合状态_已生成, now);
+        上下文.子候选 = 子候选;
+        return 子候选;
+    }
+
+    inline 存在节点类* 取或创建内部世界子存在(结构_内部世界上下文& 上下文, 时间戳 now) noexcept
+    {
+        auto* 内部节点 = reinterpret_cast<基础信息节点类*>(上下文.内部世界);
+        if (!内部节点) return nullptr;
+        const bool 是叶子 = 局部区域达到叶子阈值(上下文);
+        auto* 类型 = 是叶子 ? 类型_叶子特征块存在() : 类型_内部世界子存在();
+        auto* 子存在 = 世界树.取或创建子存在_按类型并按特征I64(
+            内部节点,
+            类型,
+            特征_来源空间候选编号(),
+            上下文.来源候选编号);
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(子存在);
+        if (!节点) return nullptr;
+        (void)写入基础节点I64(节点, 特征_来源空间候选编号(), 上下文.来源候选编号, now);
+        (void)写入基础节点I64(节点, 特征_子存在类型(), 是叶子 ? 内部子存在类型_叶子特征块存在 : 内部子存在类型_表面特征存在, now);
+        (void)写入基础节点I64(节点, 特征_局部边界框宽度(), 上下文.投影宽度, now);
+        (void)写入基础节点I64(节点, 特征_局部边界框高度(), 上下文.投影高度, now);
+        (void)写入基础节点I64(节点, 特征_不再细分(), 是叶子 ? 1 : 0, now);
+        (void)写入基础节点I64(节点, 特征_平均深度(), 上下文.平均深度, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小X(), 0, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Y(), 0, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Z(), 0, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大X(), 上下文.宽度, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Y(), 上下文.高度, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Z(), 上下文.深度, now);
+        (void)写入基础节点指针(节点, 特征_所属父存在(), 上下文.目标存在, now);
+        (void)写入基础节点指针(节点, 特征_来源局部观察切片(), 上下文.局部切片, now);
+        (void)写入基础节点指针(节点, 特征_内部世界(), 上下文.内部世界, now);
+        (void)写入基础节点I64(内部节点, 特征_成员存在集合(), 成员存在集合状态_已更新, now);
+        上下文.子存在 = 子存在;
+        return 子存在;
+    }
+
+    inline void 写入内部世界方法结果(
+        基础信息节点类* 宿主,
+        bool 成功,
+        const 结构_内部世界上下文& 上下文,
+        动态节点类* 动态,
+        const 语素入口节点类* 失败原因,
+        时间戳 now) noexcept
+    {
+        if (!宿主) return;
+        (void)写入方法执行情况(宿主, 成功 ? 值_执行成功() : 值_执行失败(), now);
+        if (上下文.目标存在) {
+            (void)写入基础节点指针(宿主, 特征_目标存在(), 上下文.目标存在, now);
+        }
+        if (上下文.内部世界) {
+            (void)写入基础节点指针(宿主, 特征_内部世界(), 上下文.内部世界, now);
+            (void)写入基础节点I64(宿主, 特征_内部世界状态(), 内部世界状态_已建立, now);
+        }
+        if (上下文.内外接口) {
+            (void)写入基础节点指针(宿主, 特征_存在内外场景接口(), 上下文.内外接口, now);
+        }
+        if (上下文.局部切片) {
+            (void)写入基础节点指针(宿主, 特征_局部观察切片(), 上下文.局部切片, now);
+        }
+        if (上下文.子候选) {
+            (void)写入基础节点指针(宿主, 特征_内部世界子候选集合(), 上下文.子候选, now);
+        }
+        if (上下文.子存在) {
+            (void)写入基础节点指针(宿主, 特征_成员存在集合(), 上下文.子存在, now);
+        }
+        if (动态) {
+            (void)写入基础节点指针(宿主, 特征_动作动态(), 动态, now);
+        }
+        if (失败原因) {
+            (void)写入基础节点指针(宿主, 特征_失败原因(), 失败原因, now);
+        }
+    }
+
+    struct 结构_观察存在摘要 {
+        存在节点类* 存在 = nullptr;
+        I64 来源候选编号 = 0;
+        I64 中心X = 0;
+        I64 中心Y = 0;
+        I64 中心Z = 0;
+        I64 最小X = 0;
+        I64 最大X = 0;
+        I64 最小Y = 0;
+        I64 最大Y = 0;
+        I64 最小Z = 0;
+        I64 最大Z = 0;
+        I64 尺寸X = 0;
+        I64 尺寸Y = 0;
+        I64 尺寸Z = 0;
+        I64 距离 = 0;
+        bool 有效 = false;
+    };
+
+    struct 结构_观察变化上下文 {
+        基础信息节点类* 宿主 = nullptr;
+        存在节点类* 当前存在 = nullptr;
+        存在节点类* 历史存在 = nullptr;
+        存在节点类* 匹配关系 = nullptr;
+        存在节点类* 变化结果 = nullptr;
+        存在节点类* 变化事件 = nullptr;
+        I64 历史对应状态 = 历史对应状态_未匹配;
+        I64 中心坐标差 = 0;
+        I64 范围坐标重叠率 = 0;
+        I64 尺寸差 = 0;
+        I64 匹配置信度 = 0;
+        I64 变化状态 = 变化状态_不确定;
+        I64 位置变化量 = 0;
+        I64 范围变化量 = 0;
+        I64 尺寸变化量 = 0;
+        I64 距离变化量 = 0;
+        I64 事件类型 = 观察变化事件类型_不确定;
+        I64 事件置信度 = 0;
+    };
+
+    inline I64 最大3(I64 a, I64 b, I64 c) noexcept
+    {
+        return std::max(a, std::max(b, c));
+    }
+
+    inline 结构_观察存在摘要 读取观察存在摘要(存在节点类* 存在) noexcept
+    {
+        结构_观察存在摘要 摘要{};
+        摘要.存在 = 存在;
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(存在);
+        if (!节点) return 摘要;
+        摘要.来源候选编号 = 读取I64或0(节点, 特征_来源空间候选编号());
+        摘要.中心X = 读取I64或0(节点, 特征_中心空间坐标X());
+        摘要.中心Y = 读取I64或0(节点, 特征_中心空间坐标Y());
+        摘要.中心Z = 读取I64或0(节点, 特征_中心空间坐标Z());
+        摘要.最小X = 读取I64或0(节点, 特征_范围坐标AABB最小X());
+        摘要.最大X = 读取I64或0(节点, 特征_范围坐标AABB最大X());
+        摘要.最小Y = 读取I64或0(节点, 特征_范围坐标AABB最小Y());
+        摘要.最大Y = 读取I64或0(节点, 特征_范围坐标AABB最大Y());
+        摘要.最小Z = 读取I64或0(节点, 特征_范围坐标AABB最小Z());
+        摘要.最大Z = 读取I64或0(节点, 特征_范围坐标AABB最大Z());
+        摘要.尺寸X = 正范围(摘要.最小X, 摘要.最大X);
+        摘要.尺寸Y = 正范围(摘要.最小Y, 摘要.最大Y);
+        摘要.尺寸Z = 正范围(摘要.最小Z, 摘要.最大Z);
+        摘要.距离 = 读取I64或0(节点, 特征_假设距离());
+        摘要.有效 = 已确认观察存在节点(存在);
+        return 摘要;
+    }
+
+    inline 存在节点类* 解析当前观察存在(
+        场景节点类* 输入参数场景,
+        基础信息节点类* 默认宿主,
+        场景节点类* 输出结果场景) noexcept
+    {
+        void* 指针 = nullptr;
+        if (读取输入参数指针(输入参数场景, 特征_当前观察存在(), 指针)
+            || 读取输入参数指针(输入参数场景, 特征_目标存在(), 指针)
+            || 读取输入参数指针(输入参数场景, 特征_已验证观察存在(), 指针)) {
+            auto* 目标 = reinterpret_cast<存在节点类*>(指针);
+            if (已确认观察存在节点(目标)) {
+                return 目标;
+            }
+        }
+        return 解析目标观察存在(输入参数场景, 默认宿主, 输出结果场景);
+    }
+
+    inline 存在节点类* 解析历史观察存在(
+        场景节点类* 输入参数场景,
+        基础信息节点类* 默认宿主,
+        场景节点类* 输出结果场景,
+        存在节点类* 当前存在) noexcept
+    {
+        void* 指针 = nullptr;
+        if (读取输入参数指针(输入参数场景, 特征_历史观察存在(), 指针)
+            || 读取输入参数指针(输入参数场景, 特征_上一观察存在(), 指针)) {
+            auto* 历史 = reinterpret_cast<存在节点类*>(指针);
+            if (历史 && 历史 != 当前存在 && 已确认观察存在节点(历史)) {
+                return 历史;
+            }
+        }
+        if (读取基础节点指针(默认宿主, 特征_历史观察存在(), 指针)
+            || 读取基础节点指针(默认宿主, 特征_上一观察存在(), 指针)
+            || 读取基础节点指针(reinterpret_cast<基础信息节点类*>(输出结果场景), 特征_历史观察存在(), 指针)
+            || 读取基础节点指针(reinterpret_cast<基础信息节点类*>(输出结果场景), 特征_上一观察存在(), 指针)) {
+            auto* 历史 = reinterpret_cast<存在节点类*>(指针);
+            if (历史 && 历史 != 当前存在 && 已确认观察存在节点(历史)) {
+                return 历史;
+            }
+        }
+        return nullptr;
+    }
+
+    inline I64 范围轴重叠率(I64 aMin, I64 aMax, I64 bMin, I64 bMax) noexcept
+    {
+        const I64 aLen = std::max<I64>(1, 正范围(aMin, aMax));
+        const I64 bLen = std::max<I64>(1, 正范围(bMin, bMax));
+        const I64 重叠 = std::max<I64>(0, std::min(aMax, bMax) - std::max(aMin, bMin));
+        return std::min<I64>(10000, 重叠 * 10000 / std::max(aLen, bLen));
+    }
+
+    inline I64 计算范围坐标重叠率(
+        const 结构_观察存在摘要& 当前,
+        const 结构_观察存在摘要& 历史) noexcept
+    {
+        const I64 x = 范围轴重叠率(当前.最小X, 当前.最大X, 历史.最小X, 历史.最大X);
+        const I64 y = 范围轴重叠率(当前.最小Y, 当前.最大Y, 历史.最小Y, 历史.最大Y);
+        const I64 z = 范围轴重叠率(当前.最小Z, 当前.最大Z, 历史.最小Z, 历史.最大Z);
+        return (x + y + z) / 3;
+    }
+
+    inline I64 计算存在中心坐标差(
+        const 结构_观察存在摘要& 当前,
+        const 结构_观察存在摘要& 历史) noexcept
+    {
+        return 最大3(
+            绝对差I64(当前.中心X, 历史.中心X),
+            绝对差I64(当前.中心Y, 历史.中心Y),
+            绝对差I64(当前.中心Z, 历史.中心Z));
+    }
+
+    inline I64 计算存在尺寸差(
+        const 结构_观察存在摘要& 当前,
+        const 结构_观察存在摘要& 历史) noexcept
+    {
+        return 最大3(
+            绝对差I64(当前.尺寸X, 历史.尺寸X),
+            绝对差I64(当前.尺寸Y, 历史.尺寸Y),
+            绝对差I64(当前.尺寸Z, 历史.尺寸Z));
+    }
+
+    inline I64 计算匹配置信度(
+        const 结构_观察存在摘要& 当前,
+        const 结构_观察存在摘要& 历史,
+        I64 中心差,
+        I64 重叠率,
+        I64 尺寸差) noexcept
+    {
+        const I64 当前尺度 = std::max<I64>(1, 当前.尺寸X + 当前.尺寸Y + 当前.尺寸Z);
+        const I64 历史尺度 = std::max<I64>(1, 历史.尺寸X + 历史.尺寸Y + 历史.尺寸Z);
+        const I64 尺度 = std::max<I64>(300, (当前尺度 + 历史尺度) / 6);
+        const I64 中心扣分 = std::min<I64>(10000, 中心差 * 10000 / 尺度);
+        const I64 尺寸扣分 = std::min<I64>(5000, 尺寸差 * 5000 / 尺度);
+        const I64 置信 = (重叠率 * 2 + (10000 - 中心扣分)) / 3 - 尺寸扣分 / 4;
+        return std::clamp<I64>(置信, 0, 10000);
+    }
+
+    inline 存在节点类* 取或创建观察存在匹配关系(
+        基础信息节点类* 宿主,
+        I64 关系键) noexcept
+    {
+        return 宿主
+            ? 世界树.取或创建子存在_按类型并按特征I64(
+                宿主,
+                类型_观察存在匹配关系(),
+                特征_来源空间候选编号(),
+                关系键)
+            : nullptr;
+    }
+
+    inline 存在节点类* 取或创建观察存在变化结果(
+        基础信息节点类* 宿主,
+        I64 关系键) noexcept
+    {
+        return 宿主
+            ? 世界树.取或创建子存在_按类型并按特征I64(
+                宿主,
+                类型_观察存在变化结果(),
+                特征_来源空间候选编号(),
+                关系键)
+            : nullptr;
+    }
+
+    inline 存在节点类* 取或创建观察变化事件(
+        基础信息节点类* 宿主,
+        I64 关系键) noexcept
+    {
+        return 宿主
+            ? 世界树.取或创建子存在_按类型并按特征I64(
+                宿主,
+                类型_观察变化事件(),
+                特征_来源空间候选编号(),
+                关系键)
+            : nullptr;
+    }
+
+    inline I64 观察变化关系键(
+        const 结构_观察存在摘要& 当前,
+        const 结构_观察存在摘要& 历史) noexcept
+    {
+        if (当前.存在) return 当前.来源候选编号;
+        if (历史.存在) return -100000 - 历史.来源候选编号;
+        return 0;
+    }
+
+    inline void 计算观察存在匹配关系(结构_观察变化上下文& 上下文, 时间戳 now) noexcept
+    {
+        const auto 当前 = 读取观察存在摘要(上下文.当前存在);
+        const auto 历史 = 读取观察存在摘要(上下文.历史存在);
+        const I64 关系键 = 观察变化关系键(当前, 历史);
+        上下文.匹配关系 = 取或创建观察存在匹配关系(上下文.宿主, 关系键);
+
+        if (当前.有效 && 历史.有效) {
+            上下文.中心坐标差 = 计算存在中心坐标差(当前, 历史);
+            上下文.范围坐标重叠率 = 计算范围坐标重叠率(当前, 历史);
+            上下文.尺寸差 = 计算存在尺寸差(当前, 历史);
+            上下文.匹配置信度 = 计算匹配置信度(
+                当前,
+                历史,
+                上下文.中心坐标差,
+                上下文.范围坐标重叠率,
+                上下文.尺寸差);
+            上下文.历史对应状态 = 上下文.匹配置信度 >= 3500
+                ? 历史对应状态_已匹配
+                : 历史对应状态_冲突;
+        } else {
+            上下文.历史对应状态 = 历史对应状态_未匹配;
+            上下文.匹配置信度 = 0;
+        }
+
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(上下文.匹配关系);
+        if (!节点) return;
+        (void)写入基础节点I64(节点, 特征_来源空间候选编号(), 关系键, now);
+        (void)写入基础节点I64(节点, 特征_历史对应状态(), 上下文.历史对应状态, now);
+        (void)写入基础节点I64(节点, 特征_中心坐标差(), 上下文.中心坐标差, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标重叠率(), 上下文.范围坐标重叠率, now);
+        (void)写入基础节点I64(节点, 特征_尺寸差(), 上下文.尺寸差, now);
+        (void)写入基础节点I64(节点, 特征_匹配置信度(), 上下文.匹配置信度, now);
+        (void)写入基础节点指针(节点, 特征_当前观察存在(), 上下文.当前存在, now);
+        if (上下文.历史存在) {
+            (void)写入基础节点指针(节点, 特征_历史观察存在(), 上下文.历史存在, now);
+        }
+    }
+
+    inline void 计算观察存在变化结果(结构_观察变化上下文& 上下文, 时间戳 now) noexcept
+    {
+        if (!上下文.匹配关系) {
+            计算观察存在匹配关系(上下文, now);
+        }
+        const auto 当前 = 读取观察存在摘要(上下文.当前存在);
+        const auto 历史 = 读取观察存在摘要(上下文.历史存在);
+        const I64 关系键 = 观察变化关系键(当前, 历史);
+        上下文.变化结果 = 取或创建观察存在变化结果(上下文.宿主, 关系键);
+
+        if (上下文.历史对应状态 == 历史对应状态_已匹配 && 当前.有效 && 历史.有效) {
+            上下文.位置变化量 = 上下文.中心坐标差;
+            上下文.范围变化量 = 10000 - 上下文.范围坐标重叠率;
+            上下文.尺寸变化量 = 上下文.尺寸差;
+            上下文.距离变化量 = 绝对差I64(当前.距离, 历史.距离);
+
+            const I64 当前尺寸和 = 当前.尺寸X + 当前.尺寸Y + 当前.尺寸Z;
+            const I64 历史尺寸和 = 历史.尺寸X + 历史.尺寸Y + 历史.尺寸Z;
+            const I64 尺寸阈值 = std::max<I64>(80, std::max<I64>(当前尺寸和, 历史尺寸和) / 12);
+            if (上下文.位置变化量 > std::max<I64>(120, std::max<I64>(当前尺寸和, 历史尺寸和) / 18)) {
+                上下文.变化状态 = 变化状态_已移动;
+            } else if (当前尺寸和 > 历史尺寸和 + 尺寸阈值) {
+                上下文.变化状态 = 变化状态_已变大;
+            } else if (历史尺寸和 > 当前尺寸和 + 尺寸阈值) {
+                上下文.变化状态 = 变化状态_已变小;
+            } else if (上下文.范围变化量 > 4000) {
+                上下文.变化状态 = 变化状态_已移动;
+            } else {
+                上下文.变化状态 = 变化状态_未变化;
+            }
+        } else {
+            上下文.变化状态 = 变化状态_不确定;
+        }
+
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(上下文.变化结果);
+        if (!节点) return;
+        (void)写入基础节点I64(节点, 特征_来源空间候选编号(), 关系键, now);
+        (void)写入基础节点I64(节点, 特征_观察存在变化结果(), 变化结果状态_已生成, now);
+        (void)写入基础节点I64(节点, 特征_变化状态(), 上下文.变化状态, now);
+        (void)写入基础节点I64(节点, 特征_位置变化量(), 上下文.位置变化量, now);
+        (void)写入基础节点I64(节点, 特征_范围变化量(), 上下文.范围变化量, now);
+        (void)写入基础节点I64(节点, 特征_尺寸变化量(), 上下文.尺寸变化量, now);
+        (void)写入基础节点I64(节点, 特征_距离变化量(), 上下文.距离变化量, now);
+        (void)写入基础节点指针(节点, 特征_观察存在匹配关系(), 上下文.匹配关系, now);
+        (void)写入基础节点指针(节点, 特征_当前观察存在(), 上下文.当前存在, now);
+        if (上下文.历史存在) {
+            (void)写入基础节点指针(节点, 特征_历史观察存在(), 上下文.历史存在, now);
+        }
+    }
+
+    inline void 计算观察变化事件(结构_观察变化上下文& 上下文, 时间戳 now) noexcept
+    {
+        if (!上下文.变化结果) {
+            计算观察存在变化结果(上下文, now);
+        }
+        const auto 当前 = 读取观察存在摘要(上下文.当前存在);
+        const auto 历史 = 读取观察存在摘要(上下文.历史存在);
+        const I64 关系键 = 观察变化关系键(当前, 历史);
+        上下文.变化事件 = 取或创建观察变化事件(上下文.宿主, 关系键);
+
+        if (上下文.历史对应状态 == 历史对应状态_已匹配) {
+            switch (上下文.变化状态) {
+            case 变化状态_未变化:
+                上下文.事件类型 = 观察变化事件类型_无变化;
+                break;
+            case 变化状态_已移动:
+                上下文.事件类型 = 观察变化事件类型_位置变化;
+                break;
+            case 变化状态_已变大:
+            case 变化状态_已变小:
+                上下文.事件类型 = 观察变化事件类型_尺寸变化;
+                break;
+            case 变化状态_内部结构变化:
+                上下文.事件类型 = 观察变化事件类型_内部结构变化;
+                break;
+            default:
+                上下文.事件类型 = 观察变化事件类型_不确定;
+                break;
+            }
+            上下文.事件置信度 = 上下文.匹配置信度;
+        } else if (!当前.有效 && 历史.有效) {
+            上下文.事件类型 = 观察变化事件类型_未命中;
+            上下文.事件置信度 = 0;
+        } else if (当前.有效 && 历史.有效 && 上下文.历史对应状态 == 历史对应状态_冲突) {
+            上下文.事件类型 = 观察变化事件类型_不确定;
+            上下文.事件置信度 = 上下文.匹配置信度;
+        } else {
+            上下文.事件类型 = 观察变化事件类型_不确定;
+            上下文.事件置信度 = 0;
+        }
+
+        auto* 节点 = reinterpret_cast<基础信息节点类*>(上下文.变化事件);
+        if (!节点) return;
+        (void)写入基础节点I64(节点, 特征_来源空间候选编号(), 关系键, now);
+        (void)写入基础节点I64(节点, 特征_观察变化事件集合(), 观察变化事件集合状态_已生成, now);
+        (void)写入基础节点I64(节点, 特征_观察变化事件类型(), 上下文.事件类型, now);
+        (void)写入基础节点I64(节点, 特征_变化事件置信度(), 上下文.事件置信度, now);
+        (void)写入基础节点I64(节点, 特征_变化状态(), 上下文.变化状态, now);
+        (void)写入基础节点指针(节点, 特征_观察存在匹配关系(), 上下文.匹配关系, now);
+        (void)写入基础节点指针(节点, 特征_观察存在变化结果(), 上下文.变化结果, now);
+        if (上下文.当前存在) {
+            (void)写入基础节点指针(节点, 特征_当前观察存在(), 上下文.当前存在, now);
+        }
+        if (上下文.历史存在) {
+            (void)写入基础节点指针(节点, 特征_历史观察存在(), 上下文.历史存在, now);
+        }
+        if (上下文.宿主) {
+            (void)写入基础节点I64(上下文.宿主, 特征_观察变化事件集合(), 观察变化事件集合状态_已生成, now);
+        }
+    }
+
+    inline void 写入观察变化方法结果(
+        基础信息节点类* 宿主,
+        bool 成功,
+        const 结构_观察变化上下文& 上下文,
+        动态节点类* 动态,
+        const 语素入口节点类* 失败原因,
+        时间戳 now) noexcept
+    {
+        if (!宿主) return;
+        (void)写入方法执行情况(宿主, 成功 ? 值_执行成功() : 值_执行失败(), now);
+        if (上下文.当前存在) {
+            (void)写入基础节点指针(宿主, 特征_当前观察存在(), 上下文.当前存在, now);
+        }
+        if (上下文.历史存在) {
+            (void)写入基础节点指针(宿主, 特征_历史观察存在(), 上下文.历史存在, now);
+        }
+        if (上下文.匹配关系) {
+            (void)写入基础节点指针(宿主, 特征_观察存在匹配关系(), 上下文.匹配关系, now);
+        }
+        if (上下文.变化结果) {
+            (void)写入基础节点指针(宿主, 特征_观察存在变化结果(), 上下文.变化结果, now);
+        }
+        if (上下文.变化事件) {
+            (void)写入基础节点指针(宿主, 特征_观察变化事件集合(), 上下文.变化事件, now);
+        }
+        (void)写入基础节点I64(宿主, 特征_历史对应状态(), 上下文.历史对应状态, now);
+        (void)写入基础节点I64(宿主, 特征_匹配置信度(), 上下文.匹配置信度, now);
+        (void)写入基础节点I64(宿主, 特征_变化状态(), 上下文.变化状态, now);
+        (void)写入基础节点I64(宿主, 特征_观察变化事件类型(), 上下文.事件类型, now);
+        if (动态) {
+            (void)写入基础节点指针(宿主, 特征_动作动态(), 动态, now);
+        }
+        if (失败原因) {
+            (void)写入基础节点指针(宿主, 特征_失败原因(), 失败原因, now);
+        }
+    }
+
+    struct 结构_场景复现上下文 {
+        基础信息节点类* 宿主 = nullptr;
+        存在节点类* 场景识别快照 = nullptr;
+        存在节点类* OpenGL复现数据 = nullptr;
+        I64 当前观察帧 = 0;
+        I64 帧宽度 = 0;
+        I64 帧高度 = 0;
+        I64 深度帧号 = 0;
+        I64 彩色帧号 = 0;
+        I64 预期像素数量 = 0;
+        I64 像素特征数量 = 0;
+        I64 深度有效像素数量 = 0;
+        I64 点云有效像素数量 = 0;
+        I64 像素覆盖状态 = 0;
+        I64 空间坐标单位毫米 = 0;
+        I64 颜色RGB结构状态 = 0;
+        I64 原始深度毫米结构状态 = 0;
+        I64 滤波深度毫米结构状态 = 0;
+        I64 补全深度毫米结构状态 = 0;
+        I64 深度有效性Mask状态 = 0;
+        I64 深度来源结构状态 = 0;
+        I64 深度稳定性结构状态 = 0;
+        I64 深度邻域一致性结构状态 = 0;
+        I64 融合深度毫米结构状态 = 0;
+        I64 融合深度有效性结构状态 = 0;
+        I64 多帧深度稳定性结构状态 = 0;
+        I64 每像素深度方差结构状态 = 0;
+        I64 空间坐标毫米XYZ结构状态 = 0;
+        I64 原始深度来源像素数量 = 0;
+        I64 滤波深度来源像素数量 = 0;
+        I64 补全深度来源像素数量 = 0;
+        I64 无有效深度来源像素数量 = 0;
+        I64 补全深度低置信像素数量 = 0;
+        I64 深度稳定性平均值 = 0;
+        I64 深度邻域一致性平均值 = 0;
+        I64 观察帧组状态 = 0;
+        I64 观察帧组帧数 = 0;
+        I64 融合依据帧集合状态 = 0;
+        I64 融合深度有效像素数量 = 0;
+        I64 融合深度有效率 = 0;
+        I64 融合补偿深度空洞像素数量 = 0;
+        I64 融合低稳定像素数量 = 0;
+        I64 融合深度稳定性平均值 = 0;
+        I64 融合深度平均方差 = 0;
+        I64 彩色深度已对齐 = 0;
+        I64 对齐目标 = 0;
+        I64 深度有效率 = 0;
+        I64 空间坐标有效率 = 0;
+        I64 帧质量评分 = 0;
+        I64 观察帧质量诊断摘要 = 0;
+        I64 深度空洞数量 = 0;
+        I64 深度空洞区域数量 = 0;
+        I64 深度空洞区域集合状态 = 0;
+        I64 彩色深度对齐状态 = 0;
+        I64 轮廓闭合率 = 0;
+        I64 轮廓断裂数量 = 0;
+        I64 彩图轮廓数量 = 0;
+        I64 深度轮廓数量 = 0;
+        I64 空间投影轮廓数量 = 0;
+        I64 融合轮廓数量 = 0;
+        I64 轮廓来源分层状态 = 0;
+        I64 轮廓深度支持率 = 0;
+        I64 轮廓颜色支持率 = 0;
+        I64 轮廓空间支持率 = 0;
+        I64 融合轮廓置信度 = 0;
+        I64 跨越深度断裂轮廓数量 = 0;
+        I64 穿过深度无效区域轮廓数量 = 0;
+        I64 依赖补全深度轮廓数量 = 0;
+        I64 空间点有效率 = 0;
+        I64 边界深度稳定率 = 0;
+        I64 候选存在验证通过率 = 0;
+        I64 未解释区域比例 = 0;
+        I64 补观察缺口状态 = 0;
+        I64 补观察缺失原因 = 0;
+        I64 待补观察区域数量 = 0;
+        I64 补全候选数量 = 0;
+        I64 低置信轮廓数量 = 0;
+        I64 条件不足候选数量 = 0;
+        I64 待验证候选数量 = 0;
+        I64 部分确认候选数量 = 0;
+        I64 补观察需求建议 = 0;
+        I64 空间候选数量 = 0;
+        I64 空间候选有效点数量 = 0;
+        I64 主空间候选编号 = 0;
+        I64 主空间候选像素数量 = 0;
+        I64 中心X = 0;
+        I64 中心Y = 0;
+        I64 中心Z = 0;
+        I64 最小X = 0;
+        I64 最大X = 0;
+        I64 最小Y = 0;
+        I64 最大Y = 0;
+        I64 最小Z = 0;
+        I64 最大Z = 0;
+        I64 空间连续性评分 = 0;
+        I64 范围稳定性评分 = 0;
+        I64 观察存在假设 = 0;
+        I64 来源空间候选编号 = 0;
+        I64 存在假设验证状态 = 0;
+        I64 假设距离 = 0;
+        I64 假设尺寸X = 0;
+        I64 假设尺寸Y = 0;
+        I64 假设尺寸Z = 0;
+        I64 假设有效点比例 = 0;
+        I64 像素归属验证状态 = 0;
+        I64 深度一致率 = 0;
+        I64 范围内点比例 = 0;
+        I64 投影覆盖率 = 0;
+        I64 轮廓吻合率 = 0;
+        I64 已验证观察存在 = 0;
+        I64 观察存在确认状态 = 0;
+        I64 已验证观察存在数量 = 0;
+        I64 帧解释状态 = 0;
+        I64 内部世界状态 = 0;
+        I64 观察变化事件集合 = 0;
+        bool 有识别材料 = false;
+    };
+
+    inline bool 场景复现候选范围有效(const 结构_场景复现上下文& 上下文) noexcept
+    {
+        return 上下文.最大X > 上下文.最小X
+            || 上下文.最大Y > 上下文.最小Y
+            || 上下文.最大Z > 上下文.最小Z;
+    }
+
+    inline 存在节点类* 取或创建场景识别快照(基础信息节点类* 宿主) noexcept
+    {
+        return 宿主 ? 世界树.取或创建子存在_按类型(宿主, 类型_场景识别快照()) : nullptr;
+    }
+
+    inline 存在节点类* 取或创建OpenGL复现数据(基础信息节点类* 宿主) noexcept
+    {
+        return 宿主 ? 世界树.取或创建子存在_按类型(宿主, 类型_OpenGL复现数据()) : nullptr;
+    }
+
+    inline 结构_场景复现上下文 读取场景复现上下文(基础信息节点类* 宿主) noexcept
+    {
+        结构_场景复现上下文 上下文{};
+        上下文.宿主 = 宿主;
+        if (!宿主) {
+            return 上下文;
+        }
+
+        上下文.当前观察帧 = 读取I64或0(宿主, 特征_当前观察帧());
+        上下文.帧宽度 = 读取I64或0(宿主, 特征_相机帧宽度());
+        上下文.帧高度 = 读取I64或0(宿主, 特征_相机帧高度());
+        上下文.深度帧号 = 读取I64或0(宿主, 特征_深度帧号());
+        上下文.彩色帧号 = 读取I64或0(宿主, 特征_彩色帧号());
+        上下文.预期像素数量 = 读取I64或0(宿主, 特征_预期像素数量());
+        上下文.像素特征数量 = 读取I64或0(宿主, 特征_像素特征数量());
+        上下文.深度有效像素数量 = 读取I64或0(宿主, 特征_深度有效像素数量());
+        上下文.点云有效像素数量 = 读取I64或0(宿主, 特征_点云有效像素数量());
+        上下文.像素覆盖状态 = 读取I64或0(宿主, 特征_像素覆盖状态());
+        上下文.空间坐标单位毫米 = 读取I64或0(宿主, 特征_空间坐标单位毫米());
+        上下文.颜色RGB结构状态 = 读取I64或0(宿主, 特征_颜色RGB结构状态());
+        上下文.原始深度毫米结构状态 = 读取I64或0(宿主, 特征_原始深度毫米结构状态());
+        上下文.滤波深度毫米结构状态 = 读取I64或0(宿主, 特征_滤波深度毫米结构状态());
+        上下文.补全深度毫米结构状态 = 读取I64或0(宿主, 特征_补全深度毫米结构状态());
+        上下文.深度有效性Mask状态 = 读取I64或0(宿主, 特征_深度有效性Mask状态());
+        上下文.深度来源结构状态 = 读取I64或0(宿主, 特征_深度来源结构状态());
+        上下文.深度稳定性结构状态 = 读取I64或0(宿主, 特征_深度稳定性结构状态());
+        上下文.深度邻域一致性结构状态 = 读取I64或0(宿主, 特征_深度邻域一致性结构状态());
+        上下文.融合深度毫米结构状态 = 读取I64或0(宿主, 特征_融合深度毫米结构状态());
+        上下文.融合深度有效性结构状态 = 读取I64或0(宿主, 特征_融合深度有效性结构状态());
+        上下文.多帧深度稳定性结构状态 = 读取I64或0(宿主, 特征_多帧深度稳定性结构状态());
+        上下文.每像素深度方差结构状态 = 读取I64或0(宿主, 特征_每像素深度方差结构状态());
+        上下文.空间坐标毫米XYZ结构状态 = 读取I64或0(宿主, 特征_空间坐标毫米XYZ结构状态());
+        上下文.原始深度来源像素数量 = 读取I64或0(宿主, 特征_原始深度来源像素数量());
+        上下文.滤波深度来源像素数量 = 读取I64或0(宿主, 特征_滤波深度来源像素数量());
+        上下文.补全深度来源像素数量 = 读取I64或0(宿主, 特征_补全深度来源像素数量());
+        上下文.无有效深度来源像素数量 = 读取I64或0(宿主, 特征_无有效深度来源像素数量());
+        上下文.补全深度低置信像素数量 = 读取I64或0(宿主, 特征_补全深度低置信像素数量());
+        上下文.深度稳定性平均值 = 读取I64或0(宿主, 特征_深度稳定性平均值());
+        上下文.深度邻域一致性平均值 = 读取I64或0(宿主, 特征_深度邻域一致性平均值());
+        上下文.观察帧组状态 = 读取I64或0(宿主, 特征_观察帧组状态());
+        上下文.观察帧组帧数 = 读取I64或0(宿主, 特征_观察帧组帧数());
+        上下文.融合依据帧集合状态 = 读取I64或0(宿主, 特征_融合依据帧集合状态());
+        上下文.融合深度有效像素数量 = 读取I64或0(宿主, 特征_融合深度有效像素数量());
+        上下文.融合深度有效率 = 读取I64或0(宿主, 特征_融合深度有效率());
+        上下文.融合补偿深度空洞像素数量 = 读取I64或0(宿主, 特征_融合补偿深度空洞像素数量());
+        上下文.融合低稳定像素数量 = 读取I64或0(宿主, 特征_融合低稳定像素数量());
+        上下文.融合深度稳定性平均值 = 读取I64或0(宿主, 特征_融合深度稳定性平均值());
+        上下文.融合深度平均方差 = 读取I64或0(宿主, 特征_融合深度平均方差());
+        上下文.彩色深度已对齐 = 读取I64或0(宿主, 特征_彩色深度已对齐());
+        上下文.对齐目标 = 读取I64或0(宿主, 特征_对齐目标());
+        上下文.深度有效率 = 读取I64或0(宿主, 特征_深度有效率());
+        上下文.空间坐标有效率 = 读取I64或0(宿主, 特征_空间坐标有效率());
+        上下文.帧质量评分 = 读取I64或0(宿主, 特征_帧质量评分());
+        上下文.观察帧质量诊断摘要 = 读取I64或0(宿主, 特征_观察帧质量诊断摘要());
+        上下文.深度空洞数量 = 读取I64或0(宿主, 特征_深度空洞数量());
+        上下文.深度空洞区域数量 = 读取I64或0(宿主, 特征_深度空洞区域数量());
+        上下文.深度空洞区域集合状态 = 读取I64或0(宿主, 特征_深度空洞区域集合());
+        上下文.彩色深度对齐状态 = 读取I64或0(宿主, 特征_彩色深度对齐状态());
+        上下文.轮廓闭合率 = 读取I64或0(宿主, 特征_轮廓闭合率());
+        上下文.轮廓断裂数量 = 读取I64或0(宿主, 特征_轮廓断裂数量());
+        上下文.彩图轮廓数量 = 读取I64或0(宿主, 特征_彩图轮廓数量());
+        上下文.深度轮廓数量 = 读取I64或0(宿主, 特征_深度轮廓数量());
+        上下文.空间投影轮廓数量 = 读取I64或0(宿主, 特征_空间投影轮廓数量());
+        上下文.融合轮廓数量 = 读取I64或0(宿主, 特征_融合轮廓数量());
+        上下文.轮廓来源分层状态 = 读取I64或0(宿主, 特征_轮廓来源分层状态());
+        上下文.轮廓深度支持率 = 读取I64或0(宿主, 特征_轮廓深度支持率());
+        上下文.轮廓颜色支持率 = 读取I64或0(宿主, 特征_轮廓颜色支持率());
+        上下文.轮廓空间支持率 = 读取I64或0(宿主, 特征_轮廓空间支持率());
+        上下文.融合轮廓置信度 = 读取I64或0(宿主, 特征_融合轮廓置信度());
+        上下文.跨越深度断裂轮廓数量 = 读取I64或0(宿主, 特征_跨越深度断裂轮廓数量());
+        上下文.穿过深度无效区域轮廓数量 = 读取I64或0(宿主, 特征_穿过深度无效区域轮廓数量());
+        上下文.依赖补全深度轮廓数量 = 读取I64或0(宿主, 特征_依赖补全深度轮廓数量());
+        上下文.空间点有效率 = 读取I64或0(宿主, 特征_空间点有效率());
+        上下文.边界深度稳定率 = 读取I64或0(宿主, 特征_边界深度稳定率());
+        上下文.候选存在验证通过率 = 读取I64或0(宿主, 特征_候选存在验证通过率());
+        上下文.未解释区域比例 = 读取I64或0(宿主, 特征_未解释区域比例());
+        上下文.补观察缺口状态 = 读取I64或0(宿主, 特征_补观察缺口状态());
+        上下文.补观察缺失原因 = 读取I64或0(宿主, 特征_补观察缺失原因());
+        上下文.待补观察区域数量 = 读取I64或0(宿主, 特征_待补观察区域数量());
+        上下文.补全候选数量 = 读取I64或0(宿主, 特征_补全候选数量());
+        上下文.低置信轮廓数量 = 读取I64或0(宿主, 特征_低置信轮廓数量());
+        上下文.条件不足候选数量 = 读取I64或0(宿主, 特征_条件不足候选数量());
+        上下文.待验证候选数量 = 读取I64或0(宿主, 特征_待验证候选数量());
+        上下文.部分确认候选数量 = 读取I64或0(宿主, 特征_部分确认候选数量());
+        上下文.补观察需求建议 = 读取I64或0(宿主, 特征_补观察需求建议());
+        上下文.空间候选数量 = 读取I64或0(宿主, 特征_空间候选数量());
+        上下文.空间候选有效点数量 = 读取I64或0(宿主, 特征_空间候选有效点数量());
+        上下文.主空间候选编号 = 读取I64或0(宿主, 特征_主空间候选编号());
+        上下文.主空间候选像素数量 = 读取I64或0(宿主, 特征_主空间候选像素数量());
+        上下文.中心X = 读取I64或0(宿主, 特征_中心空间坐标X());
+        上下文.中心Y = 读取I64或0(宿主, 特征_中心空间坐标Y());
+        上下文.中心Z = 读取I64或0(宿主, 特征_中心空间坐标Z());
+        上下文.最小X = 读取I64或0(宿主, 特征_范围坐标AABB最小X());
+        上下文.最大X = 读取I64或0(宿主, 特征_范围坐标AABB最大X());
+        上下文.最小Y = 读取I64或0(宿主, 特征_范围坐标AABB最小Y());
+        上下文.最大Y = 读取I64或0(宿主, 特征_范围坐标AABB最大Y());
+        上下文.最小Z = 读取I64或0(宿主, 特征_范围坐标AABB最小Z());
+        上下文.最大Z = 读取I64或0(宿主, 特征_范围坐标AABB最大Z());
+        上下文.空间连续性评分 = 读取I64或0(宿主, 特征_空间连续性评分());
+        上下文.范围稳定性评分 = 读取I64或0(宿主, 特征_范围稳定性评分());
+        上下文.观察存在假设 = 读取I64或0(宿主, 特征_观察存在假设());
+        上下文.来源空间候选编号 = 读取I64或0(宿主, 特征_来源空间候选编号());
+        if (上下文.来源空间候选编号 == 0) {
+            上下文.来源空间候选编号 = 上下文.主空间候选编号;
+        }
+        上下文.存在假设验证状态 = 读取I64或0(宿主, 特征_存在假设验证状态());
+        上下文.假设距离 = 读取I64或0(宿主, 特征_假设距离());
+        上下文.假设尺寸X = 读取I64或0(宿主, 特征_假设尺寸X());
+        上下文.假设尺寸Y = 读取I64或0(宿主, 特征_假设尺寸Y());
+        上下文.假设尺寸Z = 读取I64或0(宿主, 特征_假设尺寸Z());
+        上下文.假设有效点比例 = 读取I64或0(宿主, 特征_假设有效点比例());
+        上下文.像素归属验证状态 = 读取I64或0(宿主, 特征_像素归属验证状态());
+        上下文.深度一致率 = 读取I64或0(宿主, 特征_深度一致率());
+        上下文.范围内点比例 = 读取I64或0(宿主, 特征_范围内点比例());
+        上下文.投影覆盖率 = 读取I64或0(宿主, 特征_投影覆盖率());
+        上下文.轮廓吻合率 = 读取I64或0(宿主, 特征_轮廓吻合率());
+        上下文.已验证观察存在 = 读取I64或0(宿主, 特征_已验证观察存在());
+        上下文.观察存在确认状态 = 读取I64或0(宿主, 特征_观察存在确认状态());
+        上下文.已验证观察存在数量 = 读取I64或0(宿主, 特征_已验证观察存在数量());
+        上下文.帧解释状态 = 读取I64或0(宿主, 特征_帧解释状态());
+        上下文.内部世界状态 = 读取I64或0(宿主, 特征_内部世界状态());
+        上下文.观察变化事件集合 = 读取I64或0(宿主, 特征_观察变化事件集合());
+        上下文.有识别材料 = 上下文.当前观察帧 != 0
+            || 上下文.帧宽度 > 0
+            || 上下文.空间候选数量 > 0
+            || 上下文.观察存在假设 != 0
+            || 上下文.已验证观察存在数量 > 0
+            || 上下文.像素特征数量 > 0;
+        return 上下文;
+    }
+
+    inline void 写入场景识别快照摘要(
+        基础信息节点类* 节点,
+        const 结构_场景复现上下文& 上下文,
+        时间戳 now) noexcept
+    {
+        if (!节点) return;
+        (void)写入基础节点I64(节点, 特征_场景识别快照(), 场景识别快照状态_已生成, now);
+        (void)写入基础节点I64(节点, 特征_快照状态(), 场景识别快照状态_已生成, now);
+        (void)写入基础节点I64(节点, 特征_当前观察帧(), 上下文.当前观察帧, now);
+        (void)写入基础节点I64(节点, 特征_相机帧宽度(), 上下文.帧宽度, now);
+        (void)写入基础节点I64(节点, 特征_相机帧高度(), 上下文.帧高度, now);
+        (void)写入基础节点I64(节点, 特征_深度帧号(), 上下文.深度帧号, now);
+        (void)写入基础节点I64(节点, 特征_彩色帧号(), 上下文.彩色帧号, now);
+        (void)写入基础节点I64(节点, 特征_预期像素数量(), 上下文.预期像素数量, now);
+        (void)写入基础节点I64(节点, 特征_像素特征数量(), 上下文.像素特征数量, now);
+        (void)写入基础节点I64(节点, 特征_深度有效像素数量(), 上下文.深度有效像素数量, now);
+        (void)写入基础节点I64(节点, 特征_点云有效像素数量(), 上下文.点云有效像素数量, now);
+        (void)写入基础节点I64(节点, 特征_像素覆盖状态(), 上下文.像素覆盖状态, now);
+        (void)写入基础节点I64(节点, 特征_空间坐标单位毫米(), 上下文.空间坐标单位毫米, now);
+        (void)写入基础节点I64(节点, 特征_颜色RGB结构状态(), 上下文.颜色RGB结构状态, now);
+        (void)写入基础节点I64(节点, 特征_原始深度毫米结构状态(), 上下文.原始深度毫米结构状态, now);
+        (void)写入基础节点I64(节点, 特征_滤波深度毫米结构状态(), 上下文.滤波深度毫米结构状态, now);
+        (void)写入基础节点I64(节点, 特征_补全深度毫米结构状态(), 上下文.补全深度毫米结构状态, now);
+        (void)写入基础节点I64(节点, 特征_深度有效性Mask状态(), 上下文.深度有效性Mask状态, now);
+        (void)写入基础节点I64(节点, 特征_深度来源结构状态(), 上下文.深度来源结构状态, now);
+        (void)写入基础节点I64(节点, 特征_深度稳定性结构状态(), 上下文.深度稳定性结构状态, now);
+        (void)写入基础节点I64(节点, 特征_深度邻域一致性结构状态(), 上下文.深度邻域一致性结构状态, now);
+        (void)写入基础节点I64(节点, 特征_融合深度毫米结构状态(), 上下文.融合深度毫米结构状态, now);
+        (void)写入基础节点I64(节点, 特征_融合深度有效性结构状态(), 上下文.融合深度有效性结构状态, now);
+        (void)写入基础节点I64(节点, 特征_多帧深度稳定性结构状态(), 上下文.多帧深度稳定性结构状态, now);
+        (void)写入基础节点I64(节点, 特征_每像素深度方差结构状态(), 上下文.每像素深度方差结构状态, now);
+        (void)写入基础节点I64(节点, 特征_空间坐标毫米XYZ结构状态(), 上下文.空间坐标毫米XYZ结构状态, now);
+        (void)写入基础节点I64(节点, 特征_原始深度来源像素数量(), 上下文.原始深度来源像素数量, now);
+        (void)写入基础节点I64(节点, 特征_滤波深度来源像素数量(), 上下文.滤波深度来源像素数量, now);
+        (void)写入基础节点I64(节点, 特征_补全深度来源像素数量(), 上下文.补全深度来源像素数量, now);
+        (void)写入基础节点I64(节点, 特征_无有效深度来源像素数量(), 上下文.无有效深度来源像素数量, now);
+        (void)写入基础节点I64(节点, 特征_补全深度低置信像素数量(), 上下文.补全深度低置信像素数量, now);
+        (void)写入基础节点I64(节点, 特征_深度稳定性平均值(), 上下文.深度稳定性平均值, now);
+        (void)写入基础节点I64(节点, 特征_深度邻域一致性平均值(), 上下文.深度邻域一致性平均值, now);
+        (void)写入基础节点I64(节点, 特征_观察帧组状态(), 上下文.观察帧组状态, now);
+        (void)写入基础节点I64(节点, 特征_观察帧组帧数(), 上下文.观察帧组帧数, now);
+        (void)写入基础节点I64(节点, 特征_融合依据帧集合状态(), 上下文.融合依据帧集合状态, now);
+        (void)写入基础节点I64(节点, 特征_融合深度有效像素数量(), 上下文.融合深度有效像素数量, now);
+        (void)写入基础节点I64(节点, 特征_融合深度有效率(), 上下文.融合深度有效率, now);
+        (void)写入基础节点I64(节点, 特征_融合补偿深度空洞像素数量(), 上下文.融合补偿深度空洞像素数量, now);
+        (void)写入基础节点I64(节点, 特征_融合低稳定像素数量(), 上下文.融合低稳定像素数量, now);
+        (void)写入基础节点I64(节点, 特征_融合深度稳定性平均值(), 上下文.融合深度稳定性平均值, now);
+        (void)写入基础节点I64(节点, 特征_融合深度平均方差(), 上下文.融合深度平均方差, now);
+        (void)写入基础节点I64(节点, 特征_彩色深度已对齐(), 上下文.彩色深度已对齐, now);
+        (void)写入基础节点I64(节点, 特征_对齐目标(), 上下文.对齐目标, now);
+        (void)写入基础节点I64(节点, 特征_深度有效率(), 上下文.深度有效率, now);
+        (void)写入基础节点I64(节点, 特征_空间坐标有效率(), 上下文.空间坐标有效率, now);
+        (void)写入基础节点I64(节点, 特征_帧质量评分(), 上下文.帧质量评分, now);
+        (void)写入基础节点I64(节点, 特征_观察帧质量诊断摘要(), 上下文.观察帧质量诊断摘要, now);
+        (void)写入基础节点I64(节点, 特征_深度空洞数量(), 上下文.深度空洞数量, now);
+        (void)写入基础节点I64(节点, 特征_深度空洞区域数量(), 上下文.深度空洞区域数量, now);
+        (void)写入基础节点I64(节点, 特征_深度空洞区域集合(), 上下文.深度空洞区域集合状态, now);
+        (void)写入基础节点I64(节点, 特征_彩色深度对齐状态(), 上下文.彩色深度对齐状态, now);
+        (void)写入基础节点I64(节点, 特征_轮廓闭合率(), 上下文.轮廓闭合率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓断裂数量(), 上下文.轮廓断裂数量, now);
+        (void)写入基础节点I64(节点, 特征_彩图轮廓数量(), 上下文.彩图轮廓数量, now);
+        (void)写入基础节点I64(节点, 特征_深度轮廓数量(), 上下文.深度轮廓数量, now);
+        (void)写入基础节点I64(节点, 特征_空间投影轮廓数量(), 上下文.空间投影轮廓数量, now);
+        (void)写入基础节点I64(节点, 特征_融合轮廓数量(), 上下文.融合轮廓数量, now);
+        (void)写入基础节点I64(节点, 特征_轮廓来源分层状态(), 上下文.轮廓来源分层状态, now);
+        (void)写入基础节点I64(节点, 特征_轮廓深度支持率(), 上下文.轮廓深度支持率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓颜色支持率(), 上下文.轮廓颜色支持率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓空间支持率(), 上下文.轮廓空间支持率, now);
+        (void)写入基础节点I64(节点, 特征_融合轮廓置信度(), 上下文.融合轮廓置信度, now);
+        (void)写入基础节点I64(节点, 特征_跨越深度断裂轮廓数量(), 上下文.跨越深度断裂轮廓数量, now);
+        (void)写入基础节点I64(节点, 特征_穿过深度无效区域轮廓数量(), 上下文.穿过深度无效区域轮廓数量, now);
+        (void)写入基础节点I64(节点, 特征_依赖补全深度轮廓数量(), 上下文.依赖补全深度轮廓数量, now);
+        (void)写入基础节点I64(节点, 特征_空间点有效率(), 上下文.空间点有效率, now);
+        (void)写入基础节点I64(节点, 特征_边界深度稳定率(), 上下文.边界深度稳定率, now);
+        (void)写入基础节点I64(节点, 特征_候选存在验证通过率(), 上下文.候选存在验证通过率, now);
+        (void)写入基础节点I64(节点, 特征_未解释区域比例(), 上下文.未解释区域比例, now);
+        (void)写入基础节点I64(节点, 特征_补观察缺口状态(), 上下文.补观察缺口状态, now);
+        (void)写入基础节点I64(节点, 特征_补观察缺失原因(), 上下文.补观察缺失原因, now);
+        (void)写入基础节点I64(节点, 特征_待补观察区域数量(), 上下文.待补观察区域数量, now);
+        (void)写入基础节点I64(节点, 特征_补全候选数量(), 上下文.补全候选数量, now);
+        (void)写入基础节点I64(节点, 特征_低置信轮廓数量(), 上下文.低置信轮廓数量, now);
+        (void)写入基础节点I64(节点, 特征_条件不足候选数量(), 上下文.条件不足候选数量, now);
+        (void)写入基础节点I64(节点, 特征_待验证候选数量(), 上下文.待验证候选数量, now);
+        (void)写入基础节点I64(节点, 特征_部分确认候选数量(), 上下文.部分确认候选数量, now);
+        (void)写入基础节点I64(节点, 特征_补观察需求建议(), 上下文.补观察需求建议, now);
+        (void)写入基础节点I64(节点, 特征_空间候选数量(), 上下文.空间候选数量, now);
+        (void)写入基础节点I64(节点, 特征_空间候选有效点数量(), 上下文.空间候选有效点数量, now);
+        (void)写入基础节点I64(节点, 特征_主空间候选编号(), 上下文.主空间候选编号, now);
+        (void)写入基础节点I64(节点, 特征_主空间候选像素数量(), 上下文.主空间候选像素数量, now);
+        (void)写入基础节点I64(节点, 特征_来源空间候选编号(), 上下文.来源空间候选编号, now);
+        (void)写入基础节点I64(节点, 特征_中心空间坐标X(), 上下文.中心X, now);
+        (void)写入基础节点I64(节点, 特征_中心空间坐标Y(), 上下文.中心Y, now);
+        (void)写入基础节点I64(节点, 特征_中心空间坐标Z(), 上下文.中心Z, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小X(), 上下文.最小X, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大X(), 上下文.最大X, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Y(), 上下文.最小Y, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Y(), 上下文.最大Y, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最小Z(), 上下文.最小Z, now);
+        (void)写入基础节点I64(节点, 特征_范围坐标AABB最大Z(), 上下文.最大Z, now);
+        (void)写入基础节点I64(节点, 特征_空间连续性评分(), 上下文.空间连续性评分, now);
+        (void)写入基础节点I64(节点, 特征_范围稳定性评分(), 上下文.范围稳定性评分, now);
+        (void)写入基础节点I64(节点, 特征_观察存在假设(), 上下文.观察存在假设, now);
+        (void)写入基础节点I64(节点, 特征_存在假设验证状态(), 上下文.存在假设验证状态, now);
+        (void)写入基础节点I64(节点, 特征_假设距离(), 上下文.假设距离, now);
+        (void)写入基础节点I64(节点, 特征_假设尺寸X(), 上下文.假设尺寸X, now);
+        (void)写入基础节点I64(节点, 特征_假设尺寸Y(), 上下文.假设尺寸Y, now);
+        (void)写入基础节点I64(节点, 特征_假设尺寸Z(), 上下文.假设尺寸Z, now);
+        (void)写入基础节点I64(节点, 特征_假设有效点比例(), 上下文.假设有效点比例, now);
+        (void)写入基础节点I64(节点, 特征_像素归属验证状态(), 上下文.像素归属验证状态, now);
+        (void)写入基础节点I64(节点, 特征_深度一致率(), 上下文.深度一致率, now);
+        (void)写入基础节点I64(节点, 特征_范围内点比例(), 上下文.范围内点比例, now);
+        (void)写入基础节点I64(节点, 特征_投影覆盖率(), 上下文.投影覆盖率, now);
+        (void)写入基础节点I64(节点, 特征_轮廓吻合率(), 上下文.轮廓吻合率, now);
+        (void)写入基础节点I64(节点, 特征_已验证观察存在(), 上下文.已验证观察存在, now);
+        (void)写入基础节点I64(节点, 特征_观察存在确认状态(), 上下文.观察存在确认状态, now);
+        (void)写入基础节点I64(节点, 特征_已验证观察存在数量(), 上下文.已验证观察存在数量, now);
+        (void)写入基础节点I64(节点, 特征_帧解释状态(), 上下文.帧解释状态, now);
+        (void)写入基础节点I64(节点, 特征_内部世界状态(), 上下文.内部世界状态, now);
+        (void)写入基础节点I64(节点, 特征_观察变化事件集合(), 上下文.观察变化事件集合, now);
+        (void)写入基础节点I64(节点, 特征_像素颜色层(), 上下文.像素特征数量 > 0 ? 1 : 0, now);
+        (void)写入基础节点I64(节点, 特征_深度层(), 上下文.深度有效像素数量 > 0 ? 1 : 0, now);
+        (void)写入基础节点I64(节点, 特征_空间点层(), 上下文.点云有效像素数量 > 0 ? 1 : 0, now);
+        (void)写入基础节点I64(节点, 特征_空间候选层(), 上下文.空间候选数量 > 0 ? 1 : 0, now);
+        (void)写入基础节点I64(节点, 特征_已确认观察存在层(), 上下文.已验证观察存在数量 > 0 ? 1 : 0, now);
+        (void)写入基础节点I64(节点, 特征_存在内部世界展开层(), 上下文.内部世界状态 > 0 ? 1 : 0, now);
+        (void)写入基础节点I64(节点, 特征_变化事件层(), 上下文.观察变化事件集合 > 0 ? 1 : 0, now);
+        (void)写入基础节点I64(节点, 特征_诊断摘要状态(), 1, now);
+    }
+
+    inline void 写入OpenGL复现数据摘要(
+        基础信息节点类* 节点,
+        const 结构_场景复现上下文& 上下文,
+        时间戳 now) noexcept
+    {
+        if (!节点) return;
+        const bool 候选范围有效 = 场景复现候选范围有效(上下文);
+        const I64 基准线段数 = 25;
+        const I64 AABB线段数 = 候选范围有效 ? 12 : 0;
+        const I64 点数量 = 上下文.已验证观察存在数量 > 0 ? 上下文.已验证观察存在数量 : (候选范围有效 ? 1 : 0);
+        const I64 线段数量 = 基准线段数 + AABB线段数;
+        const I64 顶点数量 = 线段数量 * 2 + 点数量;
+
+        写入场景识别快照摘要(节点, 上下文, now);
+        (void)写入基础节点I64(节点, 特征_OpenGL复现数据(), OpenGL复现数据状态_已生成, now);
+        (void)写入基础节点I64(节点, 特征_复现数据状态(), OpenGL复现数据状态_已生成, now);
+        (void)写入基础节点I64(节点, 特征_顶点缓冲(), 复现数据缓冲状态_摘要级, now);
+        (void)写入基础节点I64(节点, 特征_颜色缓冲(), 复现数据缓冲状态_摘要级, now);
+        (void)写入基础节点I64(节点, 特征_深度缓冲(), 上下文.深度有效像素数量 > 0 ? 复现数据缓冲状态_摘要级 : 0, now);
+        (void)写入基础节点I64(节点, 特征_存在ID缓冲(), 上下文.已验证观察存在数量 > 0 ? 复现数据缓冲状态_摘要级 : 0, now);
+        (void)写入基础节点I64(节点, 特征_AABB绘制状态(), 候选范围有效 ? 1 : 0, now);
+        (void)写入基础节点I64(节点, 特征_绘制线段数量(), 线段数量, now);
+        (void)写入基础节点I64(节点, 特征_绘制点数量(), 点数量, now);
+        (void)写入基础节点I64(节点, 特征_绘制顶点数量(), 顶点数量, now);
+    }
+
+    inline void 写入场景复现方法结果(
+        基础信息节点类* 宿主,
+        bool 成功,
+        const 结构_场景复现上下文& 上下文,
+        动态节点类* 动态,
+        const 语素入口节点类* 失败原因,
+        时间戳 now) noexcept
+    {
+        if (!宿主) return;
+        (void)写入方法执行情况(宿主, 成功 ? 值_执行成功() : 值_执行失败(), now);
+        if (上下文.场景识别快照) {
+            (void)写入基础节点指针(宿主, 特征_场景识别快照(), 上下文.场景识别快照, now);
+            (void)写入基础节点I64(宿主, 特征_快照状态(), 场景识别快照状态_已生成, now);
+        }
+        if (上下文.OpenGL复现数据) {
+            (void)写入基础节点指针(宿主, 特征_OpenGL复现数据(), 上下文.OpenGL复现数据, now);
+            (void)写入基础节点I64(宿主, 特征_复现数据状态(), OpenGL复现数据状态_已生成, now);
+        }
+        if (动态) {
+            (void)写入基础节点指针(宿主, 特征_动作动态(), 动态, now);
+        }
+        if (失败原因) {
+            (void)写入基础节点指针(宿主, 特征_失败原因(), 失败原因, now);
+        }
     }
 
 }
@@ -3720,6 +8923,820 @@ export namespace 自我动作实现模块::外设模块 {
             ok = 取或创建子特征(宿主, 特征_失败原因()) && ok;
         }
         ok = 确保方法结果能力I64(方法首节点, 特征_当前观察场景(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认双目相机取得当前观察帧规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = true;
+        ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_外设可用性(), 值类型_I64(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_运行状态(), 值类型_I64(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标外设(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标宿主(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_当前方法运行存在(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_输入条件包(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_外设可用性(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_运行状态(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_目标外设(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_目标宿主(), false, now) && ok;
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_目标外设()) && ok;
+            ok = 取或创建子特征(宿主, 特征_目标宿主()) && ok;
+            ok = 取或创建子特征(宿主, 特征_当前观察帧()) && ok;
+            ok = 取或创建子特征(宿主, 特征_相机帧宽度()) && ok;
+            ok = 取或创建子特征(宿主, 特征_相机帧高度()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度帧号()) && ok;
+            ok = 取或创建子特征(宿主, 特征_彩色帧号()) && ok;
+            ok = 取或创建子特征(宿主, 特征_预期像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素特征数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度有效像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_点云有效像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素覆盖状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间坐标单位毫米()) && ok;
+            ok = 取或创建子特征(宿主, 特征_动作动态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_失败原因()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_当前观察帧(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认双目相机取得当前观察特征帧规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认双目相机取得当前观察帧规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_当前观察特征帧()) && ok;
+            ok = 取或创建子特征(宿主, 特征_当前观察特征帧取得状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_颜色RGB结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_原始深度毫米结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_滤波深度毫米结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补全深度毫米结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度有效性Mask状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度来源结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度稳定性结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度邻域一致性结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察帧组状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察帧组帧数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合依据帧集合状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合深度毫米结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合深度有效性结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_多帧深度稳定性结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_每像素深度方差结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合深度有效像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合深度有效率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合补偿深度空洞像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合低稳定像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合深度稳定性平均值()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合深度平均方差()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间坐标毫米XYZ结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_原始深度来源像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_滤波深度来源像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补全深度来源像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_无有效深度来源像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补全深度低置信像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度稳定性平均值()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度邻域一致性平均值()) && ok;
+            ok = 取或创建子特征(宿主, 特征_彩色深度已对齐()) && ok;
+            ok = 取或创建子特征(宿主, 特征_对齐目标()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度有效率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间坐标有效率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_帧质量评分()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察帧质量诊断摘要()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度空洞数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度空洞区域数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度空洞区域集合()) && ok;
+            ok = 取或创建子特征(宿主, 特征_诊断区域数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_诊断区域集合状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_诊断区域掩码状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_彩色深度对齐状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓闭合率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓断裂数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_彩图轮廓数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度轮廓数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间投影轮廓数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合轮廓数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓来源分层状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓深度支持率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓颜色支持率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓空间支持率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合轮廓置信度()) && ok;
+            ok = 取或创建子特征(宿主, 特征_跨越深度断裂轮廓数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_穿过深度无效区域轮廓数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_依赖补全深度轮廓数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间点有效率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_边界深度稳定率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_候选存在验证通过率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_未解释区域比例()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察缺口状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察缺失原因()) && ok;
+            ok = 取或创建子特征(宿主, 特征_待补观察区域数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补全候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_低置信轮廓数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_条件不足候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_待验证候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_部分确认候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察需求建议()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_当前观察特征帧(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_当前观察特征帧取得状态(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_观察帧质量诊断摘要(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_观察帧组状态(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_融合深度毫米结构状态(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认双目相机建立当前帧像素特征索引规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认双目相机取得当前观察帧规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_当前帧像素特征索引()) && ok;
+            ok = 取或创建子特征(宿主, 特征_颜色像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_帧解释状态()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_当前帧像素特征索引(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_像素覆盖状态(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我建立观察帧存在规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认双目相机取得当前观察特征帧规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_当前观察帧存在()) && ok;
+            ok = 取或创建子特征(宿主, 特征_当前观察帧存在状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察帧容器状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_相机帧宽度()) && ok;
+            ok = 取或创建子特征(宿主, 特征_相机帧高度()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度帧号()) && ok;
+            ok = 取或创建子特征(宿主, 特征_彩色帧号()) && ok;
+            ok = 取或创建子特征(宿主, 特征_预期像素数量()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_当前观察帧存在(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_当前观察帧存在状态(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_观察帧容器状态(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我建立观察帧到自我场景接口规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我建立观察帧存在规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_观察帧到自我场景接口()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_观察帧到自我场景接口(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我建立像素观察事实索引规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我建立观察帧存在规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_当前帧像素特征索引()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素观察事实索引()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素观察存在数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_缺失像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_重复映射数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素覆盖状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_坐标回查可用状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_帧内编号回查可用状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_颜色像素数量()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_像素观察事实索引(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_像素覆盖状态(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_坐标回查可用状态(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_帧内编号回查可用状态(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我承接像素特征值规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我建立像素观察事实索引规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_颜色像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度有效像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_点云有效像素数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_颜色RGB结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_原始深度毫米结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度有效性Mask状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间坐标毫米XYZ结构状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素特征值承接状态()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_像素特征值承接状态(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我校验观察事实完备性规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我承接像素特征值规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_观察事实完备状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察事实完备失败条件数量()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_观察事实完备状态(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我评估观察帧质量规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我校验观察事实完备性规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_质量可用状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_质量失败条件数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察帧质量诊断摘要()) && ok;
+            ok = 取或创建子特征(宿主, 特征_帧质量评分()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度有效率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间坐标有效率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_融合深度有效率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_未解释区域比例()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察缺口状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察缺失原因()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_质量可用状态(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我补观察质量占位规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = true;
+        ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标外设(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标宿主(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_当前方法运行存在(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_质量可用状态(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_质量失败条件数量(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_深度有效率(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_空间坐标有效率(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_目标外设(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_目标宿主(), false, now) && ok;
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_补观察缺口状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察需求建议()) && ok;
+            ok = 取或创建子特征(宿主, 特征_动作动态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_失败原因()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_补观察缺口状态(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我诊断观察质量缺口并派生补观察需求规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        return 确认自我补观察质量占位规格(方法首节点, 方法存在, now);
+    }
+
+    inline bool 确认自我调整相机参数并重采样规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        return 确认自我补观察质量占位规格(方法首节点, 方法存在, now);
+    }
+
+    inline bool 确认自我按ROI重算观察质量规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        return 确认自我补观察质量占位规格(方法首节点, 方法存在, now);
+    }
+
+    inline bool 确认自我执行多帧重采样并择优规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        return 确认自我补观察质量占位规格(方法首节点, 方法存在, now);
+    }
+
+    inline bool 确认自我生成低置信补偿观察候选规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        return 确认自我补观察质量占位规格(方法首节点, 方法存在, now);
+    }
+
+    inline bool 确认自我调整外设观察姿态规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        return 确认自我补观察质量占位规格(方法首节点, 方法存在, now);
+    }
+
+    inline bool 确认自我调整观察位置规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        return 确认自我补观察质量占位规格(方法首节点, 方法存在, now);
+    }
+
+    inline bool 确认自我按像素坐标回查观察事实规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我建立像素观察事实索引规格(方法首节点, 方法存在, now);
+        ok = 声明形参规格(方法首节点, 特征_像素坐标X(), 值类型_I64(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_像素坐标Y(), 值类型_I64(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_像素坐标X(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_像素坐标Y(), now) && ok;
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_像素坐标对应像素观察事实()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素坐标X()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素坐标Y()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_像素坐标对应像素观察事实(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我提取空间候选规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = true;
+        ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_外设可用性(), 值类型_I64(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_运行状态(), 值类型_I64(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标外设(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标宿主(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_当前方法运行存在(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_输入条件包(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_外设可用性(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_运行状态(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_目标外设(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_目标宿主(), false, now) && ok;
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_目标外设()) && ok;
+            ok = 取或创建子特征(宿主, 特征_目标宿主()) && ok;
+            ok = 取或创建子特征(宿主, 特征_当前观察帧()) && ok;
+            ok = 取或创建子特征(宿主, 特征_当前帧像素特征索引()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间候选集合()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间候选有效点数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_中心空间坐标X()) && ok;
+            ok = 取或创建子特征(宿主, 特征_中心空间坐标Y()) && ok;
+            ok = 取或创建子特征(宿主, 特征_中心空间坐标Z()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围坐标AABB最小X()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围坐标AABB最大X()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围坐标AABB最小Y()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围坐标AABB最大Y()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围坐标AABB最小Z()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围坐标AABB最大Z()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间连续性评分()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围稳定性评分()) && ok;
+            ok = 取或创建子特征(宿主, 特征_动作动态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_失败原因()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_空间候选集合(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我判断空间候选相对独立性规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我提取空间候选规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_空间候选相对独立性判断()) && ok;
+            ok = 取或创建子特征(宿主, 特征_相对独立空间候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_不独立空间候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_待拆分空间候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_待合并空间候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_不确定空间候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_主空间候选相对独立状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_主空间候选分离度评分()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_空间候选相对独立性判断(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我生成空间候选观察队列规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我判断空间候选相对独立性规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_空间候选观察队列()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察队列候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_首选观察候选编号()) && ok;
+            ok = 取或创建子特征(宿主, 特征_首选观察候选优先级评分()) && ok;
+            ok = 取或创建子特征(宿主, 特征_首选观察候选相对独立状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_首选观察候选中心接近评分()) && ok;
+            ok = 取或创建子特征(宿主, 特征_首选观察候选范围大小评分()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_空间候选观察队列(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我观察单个空间候选并组合存在假设规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我生成空间候选观察队列规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_观察存在假设()) && ok;
+            ok = 取或创建子特征(宿主, 特征_来源空间候选编号()) && ok;
+            ok = 取或创建子特征(宿主, 特征_存在假设验证状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_候选像素掩码状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_投影轮廓状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_假设距离()) && ok;
+            ok = 取或创建子特征(宿主, 特征_假设尺寸X()) && ok;
+            ok = 取或创建子特征(宿主, 特征_假设尺寸Y()) && ok;
+            ok = 取或创建子特征(宿主, 特征_假设尺寸Z()) && ok;
+            ok = 取或创建子特征(宿主, 特征_假设方位X()) && ok;
+            ok = 取或创建子特征(宿主, 特征_假设方位Y()) && ok;
+            ok = 取或创建子特征(宿主, 特征_假设有效点比例()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓支持评分()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_观察存在假设(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我用空间范围投影覆盖原帧验证像素归属规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我观察单个空间候选并组合存在假设规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_像素归属验证结果()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间覆盖像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间匹配像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间冲突像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓支持像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓冲突像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度一致率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围内点比例()) && ok;
+            ok = 取或创建子特征(宿主, 特征_投影覆盖率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓吻合率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_遮挡像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_未解释像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素归属验证状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察确认补偿状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_缺失原因()) && ok;
+            ok = 取或创建子特征(宿主, 特征_未解释区域状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_待补观察区域数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补全候选状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_低置信轮廓状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察需求建议()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_像素归属验证结果(), 1) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我确认观察存在并更新帧解释状态规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = 确认自我用空间范围投影覆盖原帧验证像素归属规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_已验证观察存在()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察存在确认状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_已验证观察存在数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素归属更新()) && ok;
+            ok = 取或创建子特征(宿主, 特征_未解释区域更新()) && ok;
+            ok = 取或创建子特征(宿主, 特征_帧解释状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_全帧像素归属账状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_已归属像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_未解释像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_归属冲突像素数()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素归属率()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_已验证观察存在(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_帧解释状态(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_全帧像素归属账状态(), 全帧像素归属账状态_已生成) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我内部世界基础规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = true;
+        ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标存在(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标宿主(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_当前方法运行存在(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_输入条件包(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_目标存在(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_目标宿主(), false, now) && ok;
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_目标存在()) && ok;
+            ok = 取或创建子特征(宿主, 特征_内部世界()) && ok;
+            ok = 取或创建子特征(宿主, 特征_内部世界状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_动作动态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_失败原因()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_内部世界(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_内部世界状态(), 内部世界状态_已建立) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我确保存在内部世界规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        return 确认自我内部世界基础规格(方法首节点, 方法存在, now);
+    }
+
+    inline bool 确认自我建立存在内外场景接口规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        bool ok = 确认自我内部世界基础规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_存在内外场景接口()) && ok;
+            ok = 取或创建子特征(宿主, 特征_接口状态()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_存在内外场景接口(), 1) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_接口状态(), 内外接口状态_已建立) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我将存在局部观察切片映射到内部世界规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        bool ok = 确认自我建立存在内外场景接口规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_内部世界当前观察材料()) && ok;
+            ok = 取或创建子特征(宿主, 特征_局部观察切片()) && ok;
+            ok = 取或创建子特征(宿主, 特征_局部边界框宽度()) && ok;
+            ok = 取或创建子特征(宿主, 特征_局部边界框高度()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_内部世界当前观察材料(), 当前观察材料状态_已建立) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我在内部世界提取子候选规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        bool ok = 确认自我将存在局部观察切片映射到内部世界规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_内部世界子候选集合()) && ok;
+            ok = 取或创建子特征(宿主, 特征_子候选类型()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_内部世界子候选集合(), 子候选集合状态_已生成) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我确认内部世界子存在规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        bool ok = 确认自我在内部世界提取子候选规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_成员存在集合()) && ok;
+            ok = 取或创建子特征(宿主, 特征_子存在类型()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_成员存在集合(), 成员存在集合状态_已更新) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我递归细分存在内部世界规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        bool ok = 确认自我确认内部世界子存在规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_内部世界细分状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_细分层级数()) && ok;
+        }
+        ok = 确保方法结果能力方向(
+            方法首节点,
+            特征_内部世界细分状态(),
+            枚举_结果变化方向::已识别) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我匹配当前观察存在与历史观察存在规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = true;
+        ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_当前观察存在(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_历史观察存在(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标宿主(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_当前方法运行存在(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_输入条件包(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_当前观察存在(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_历史观察存在(), false, now) && ok;
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_观察存在匹配关系()) && ok;
+            ok = 取或创建子特征(宿主, 特征_历史对应状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_中心坐标差()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围坐标重叠率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_尺寸差()) && ok;
+            ok = 取或创建子特征(宿主, 特征_匹配置信度()) && ok;
+            ok = 取或创建子特征(宿主, 特征_动作动态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_失败原因()) && ok;
+        }
+        ok = 确保方法结果能力方向(
+            方法首节点,
+            特征_历史对应状态(),
+            枚举_结果变化方向::已识别) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我比较存在特征变化规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        bool ok = 确认自我匹配当前观察存在与历史观察存在规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_观察存在变化结果()) && ok;
+            ok = 取或创建子特征(宿主, 特征_变化状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_位置变化量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_范围变化量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_尺寸变化量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_距离变化量()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_观察存在变化结果(), 变化结果状态_已生成) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我生成观察变化事件规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        bool ok = 确认自我比较存在特征变化规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_观察变化事件集合()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察变化事件类型()) && ok;
+            ok = 取或创建子特征(宿主, 特征_变化事件置信度()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_观察变化事件集合(), 观察变化事件集合状态_已生成) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我导出当前场景识别快照规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        if (!方法首节点 || !方法存在) return false;
+        bool ok = true;
+        ok = 声明形参规格(方法首节点, 特征_输入条件包(), 值类型_场景指针(), 值_来源_输入条件包(), true, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_目标宿主(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明形参规格(方法首节点, 特征_当前方法运行存在(), 值类型_场景指针(), 值_来源_输入条件包(), false, now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_输入条件包(), now) && ok;
+        ok = 声明条件特征(方法首节点, 特征_目标宿主(), false, now) && ok;
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_场景识别快照()) && ok;
+            ok = 取或创建子特征(宿主, 特征_快照状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_像素颜色层()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度层()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间点层()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间候选层()) && ok;
+            ok = 取或创建子特征(宿主, 特征_已确认观察存在层()) && ok;
+            ok = 取或创建子特征(宿主, 特征_存在内部世界展开层()) && ok;
+            ok = 取或创建子特征(宿主, 特征_变化事件层()) && ok;
+            ok = 取或创建子特征(宿主, 特征_诊断摘要状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度有效率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_空间坐标有效率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_帧质量评分()) && ok;
+            ok = 取或创建子特征(宿主, 特征_观察帧质量诊断摘要()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度空洞数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度空洞区域数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_轮廓闭合率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_边界深度稳定率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_候选存在验证通过率()) && ok;
+            ok = 取或创建子特征(宿主, 特征_未解释区域比例()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察缺口状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察缺失原因()) && ok;
+            ok = 取或创建子特征(宿主, 特征_待补观察区域数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补全候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_低置信轮廓数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_条件不足候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_待验证候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_部分确认候选数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_补观察需求建议()) && ok;
+            ok = 取或创建子特征(宿主, 特征_动作动态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_失败原因()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_场景识别快照(), 场景识别快照状态_已生成) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_快照状态(), 场景识别快照状态_已生成) && ok;
+        return ok;
+    }
+
+    inline bool 确认自我导出OpenGL复现数据规格(
+        方法类::节点类* 方法首节点,
+        存在节点类* 方法存在,
+        时间戳 now) noexcept
+    {
+        bool ok = 确认自我导出当前场景识别快照规格(方法首节点, 方法存在, now);
+        if (auto* 结果根 = 方法规格根(方法首节点, 特征_结果表(), now)) {
+            auto* 宿主 = reinterpret_cast<基础信息节点类*>(结果根);
+            ok = 取或创建子特征(宿主, 特征_OpenGL复现数据()) && ok;
+            ok = 取或创建子特征(宿主, 特征_复现数据状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_顶点缓冲()) && ok;
+            ok = 取或创建子特征(宿主, 特征_颜色缓冲()) && ok;
+            ok = 取或创建子特征(宿主, 特征_深度缓冲()) && ok;
+            ok = 取或创建子特征(宿主, 特征_存在ID缓冲()) && ok;
+            ok = 取或创建子特征(宿主, 特征_AABB绘制状态()) && ok;
+            ok = 取或创建子特征(宿主, 特征_绘制顶点数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_绘制线段数量()) && ok;
+            ok = 取或创建子特征(宿主, 特征_绘制点数量()) && ok;
+        }
+        ok = 确保方法结果能力I64(方法首节点, 特征_OpenGL复现数据(), OpenGL复现数据状态_已生成) && ok;
+        ok = 确保方法结果能力I64(方法首节点, 特征_复现数据状态(), OpenGL复现数据状态_已生成) && ok;
         return ok;
     }
 
@@ -4186,6 +10203,1970 @@ export namespace 自我动作实现模块::外设模块 {
             目标宿主,
             动态,
             输出运行);
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 用双目相机取得当前观察帧(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::双目相机_取得当前观察帧,
+            输出结果场景,
+            now,
+            "双目相机_取得当前观察帧",
+            确认双目相机取得当前观察帧规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        const auto 结果 = 采集双目相机帧();
+        const bool 成功 = 结果.成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_当前观察帧(),
+            成功 ? 1 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入双目相机观察帧摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "双目相机_取得当前观察帧",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 用双目相机取得当前观察特征帧(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::双目相机_取得当前观察特征帧,
+            输出结果场景,
+            now,
+            "双目相机_取得当前观察特征帧",
+            确认双目相机取得当前观察特征帧规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        const auto 结果 = 采集双目相机帧();
+        const bool 成功 = 结果.当前观察特征帧取得状态 == 观察事实状态_已取得;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_当前观察特征帧取得状态(),
+            结果.当前观察特征帧取得状态,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入双目相机观察帧摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "双目相机_取得当前观察特征帧",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行,
+            特征_当前观察特征帧取得状态(),
+            "当前观察特征帧取得状态");
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我建立观察帧存在(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_建立观察帧存在,
+            输出结果场景,
+            now,
+            "自我_建立观察帧存在",
+            确认自我建立观察帧存在规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const bool 成功 = 结果.观察帧容器状态 == 观察事实状态_已建立;
+        结果.成功 = 成功;
+        if (!成功 && !结果.失败原因) {
+            结果.失败原因 = 值_执行缺口_当前方法条件不满足();
+            结果.消息 = "当前观察特征帧不足以建立观察帧容器";
+        }
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_观察帧容器状态(),
+            结果.观察帧容器状态,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入自我观察帧存在摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "自我_建立观察帧存在",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行,
+            特征_观察帧容器状态(),
+            "观察帧容器状态");
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我建立观察帧到自我场景接口(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_建立观察帧到自我场景接口,
+            输出结果场景,
+            now,
+            "自我_建立观察帧到自我场景接口",
+            确认自我建立观察帧到自我场景接口规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const bool 成功 = 结果.成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_观察帧到自我场景接口(),
+            成功 ? 1 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入自我观察帧接口摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "自我_建立观察帧到自我场景接口",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 用双目相机建立当前帧像素特征索引(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::双目相机_建立当前帧像素特征索引,
+            输出结果场景,
+            now,
+            "双目相机_建立当前帧像素特征索引",
+            确认双目相机建立当前帧像素特征索引规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const bool 成功 = 结果.成功 && 结果.像素覆盖状态 == 1;
+        const auto* 失败原因 = 结果.失败原因
+            ? 结果.失败原因
+            : (成功 ? nullptr : 值_执行失败());
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_当前帧像素特征索引(),
+            成功 ? 1 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 失败原因, now);
+            写入双目相机像素特征索引摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        auto 记录结果 = 结果;
+        记录结果.成功 = 成功;
+        记录结果.失败原因 = 失败原因;
+        记录双目相机本能动作结果(
+            "双目相机_建立当前帧像素特征索引",
+            记录结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我建立像素观察事实索引(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_建立像素观察事实索引,
+            输出结果场景,
+            now,
+            "自我_建立像素观察事实索引",
+            确认自我建立像素观察事实索引规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const bool 像素索引证据闭合 =
+            结果.观察帧容器状态 == 观察事实状态_已建立
+            && 结果.像素观察存在数量 == 结果.预期像素数量
+            && 结果.缺失像素数量 == 0
+            && 结果.重复映射数量 == 0
+            && 结果.坐标回查可用状态 == 观察事实状态_可用
+            && 结果.帧内编号回查可用状态 == 观察事实状态_可用;
+        const bool 成功 = 结果.成功
+            && 像素索引证据闭合
+            && 结果.像素覆盖状态 == 观察事实状态_已覆盖;
+        if (!成功 && !结果.失败原因) {
+            结果.失败原因 = 值_执行缺口_当前方法条件不满足();
+            结果.消息 = "像素观察事实索引证据不足";
+        }
+        结果.成功 = 成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_像素覆盖状态(),
+            结果.像素覆盖状态,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入自我像素观察事实索引摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        auto 记录结果 = 结果;
+        记录结果.成功 = 成功;
+        记录双目相机本能动作结果(
+            "自我_建立像素观察事实索引",
+            记录结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行,
+            特征_像素覆盖状态(),
+            "像素覆盖状态");
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我承接像素特征值(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_承接像素特征值,
+            输出结果场景,
+            now,
+            "自我_承接像素特征值",
+            确认自我承接像素特征值规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const bool 像素特征证据闭合 =
+            结果.像素覆盖状态 == 观察事实状态_已覆盖
+            && 结果.像素观察存在数量 == 结果.预期像素数量
+            && 结果.颜色像素数量 == 结果.预期像素数量
+            && 结果.颜色RGB结构状态 == 1
+            && 结果.原始深度毫米结构状态 == 1
+            && 结果.深度有效性Mask状态 == 1
+            && 结果.空间坐标毫米XYZ结构状态 == 1;
+        const bool 成功 = 结果.成功
+            && 像素特征证据闭合
+            && 结果.像素特征值承接状态 == 观察事实状态_已完成;
+        if (!成功 && !结果.失败原因) {
+            结果.失败原因 = 值_执行缺口_当前方法条件不满足();
+            结果.消息 = "像素特征值承接证据不足";
+        }
+        结果.成功 = 成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_像素特征值承接状态(),
+            结果.像素特征值承接状态,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入自我像素特征值承接摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        auto 记录结果 = 结果;
+        记录结果.成功 = 成功;
+        记录双目相机本能动作结果(
+            "自我_承接像素特征值",
+            记录结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行,
+            特征_像素特征值承接状态(),
+            "像素特征值承接状态");
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我校验观察事实完备性(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_校验观察事实完备性,
+            输出结果场景,
+            now,
+            "自我_校验观察事实完备性",
+            确认自我校验观察事实完备性规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        const bool 摘要闭合 = 读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const bool 完备证据闭合 =
+            摘要闭合
+            && 结果.像素覆盖状态 == 观察事实状态_已覆盖
+            && 结果.像素特征值承接状态 == 观察事实状态_已完成
+            && 结果.坐标回查可用状态 == 观察事实状态_可用
+            && 结果.帧内编号回查可用状态 == 观察事实状态_可用;
+        const bool 成功 = 完备证据闭合
+            && 结果.观察事实完备状态 == 观察事实状态_已完备;
+        if (!成功 && !结果.失败原因) {
+            结果.失败原因 = 值_执行缺口_当前方法条件不满足();
+            结果.消息 = std::string("观察事实完备性条件不足:") + 结果.观察事实完备失败原因摘要;
+        }
+        结果.成功 = 成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_观察事实完备状态(),
+            结果.观察事实完备状态,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入自我观察事实完备摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        auto 记录结果 = 结果;
+        记录结果.成功 = 成功;
+        记录双目相机本能动作结果(
+            "自我_校验观察事实完备性",
+            记录结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行,
+            特征_观察事实完备状态(),
+            "观察事实完备状态");
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我评估观察帧质量(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_评估观察帧质量,
+            输出结果场景,
+            now,
+            "自我_评估观察帧质量",
+            确认自我评估观察帧质量规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        const bool 摘要闭合 = 读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const bool 质量证据闭合 =
+            摘要闭合
+            && 结果.观察帧质量诊断摘要 == 1
+            && 结果.帧质量评分 >= 观察质量最低评分
+            && 结果.深度有效率 >= 观察质量最低深度有效率
+            && 结果.空间坐标有效率 >= 观察质量最低空间坐标有效率;
+        const bool 成功 = 质量证据闭合
+            && 结果.质量可用状态 == 观察事实状态_可用;
+        if (!成功 && !结果.失败原因) {
+            结果.失败原因 = 值_执行缺口_当前方法条件不满足();
+            结果.消息 = std::string("观察帧质量条件不足:") + 结果.质量失败原因摘要;
+        }
+        结果.成功 = 成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_质量可用状态(),
+            结果.质量可用状态,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入自我观察帧质量摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        auto 记录结果 = 结果;
+        记录结果.成功 = 成功;
+        记录双目相机本能动作结果(
+            "自我_评估观察帧质量",
+            记录结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行,
+            特征_质量可用状态(),
+            "质量可用状态");
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我补观察质量占位方法(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景,
+        枚举_本能方法ID 本能ID,
+        const char* 方法名,
+        const char* 待实现说明) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            本能ID,
+            输出结果场景,
+            now,
+            方法名,
+            确认自我补观察质量占位规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        结果.成功 = false;
+        结果.补观察缺口状态 = 1;
+        结果.补观察需求建议 = 0;
+        结果.失败原因 = 值_执行缺口_当前方法条件不满足();
+        结果.消息 = std::string(方法名 ? 方法名 : "自我补观察质量占位方法")
+            + "占位待实现:"
+            + (待实现说明 ? 待实现说明 : "缺少执行接口");
+
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_补观察缺口状态(),
+            结果.补观察缺口状态,
+            false,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写占位结果 = [&](基础信息节点类* 宿主) noexcept {
+            if (!宿主) return;
+            写入双目相机通用结果(宿主, false, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            (void)写入基础节点I64(宿主, 特征_补观察缺口状态(), 结果.补观察缺口状态, now);
+            (void)写入基础节点I64(宿主, 特征_补观察需求建议(), 结果.补观察需求建议, now);
+        };
+        写占位结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写占位结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写占位结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            方法名 ? 方法名 : "自我补观察质量占位方法",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行,
+            特征_补观察缺口状态(),
+            "补观察缺口状态");
+        更新方法运行账(环境.方法首节点, 输出运行, false, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我诊断观察质量缺口并派生补观察需求(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 自我补观察质量占位方法(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_诊断观察质量缺口并派生补观察需求,
+            "自我_诊断观察质量缺口并派生补观察需求",
+            "缺少补观察需求派生和自我线程入树接口");
+    }
+
+    inline 存在节点类* 自我调整相机参数并重采样(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 自我补观察质量占位方法(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_调整相机参数并重采样,
+            "自我_调整相机参数并重采样",
+            "缺少安全参数搜索和真实重采样执行接口");
+    }
+
+    inline 存在节点类* 自我按ROI重算观察质量(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 自我补观察质量占位方法(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_按ROI重算观察质量,
+            "自我_按ROI重算观察质量",
+            "缺少ROI选择和局部质量重算接口");
+    }
+
+    inline 存在节点类* 自我执行多帧重采样并择优(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 自我补观察质量占位方法(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_执行多帧重采样并择优,
+            "自我_执行多帧重采样并择优",
+            "缺少多帧采集、评分和择优落账接口");
+    }
+
+    inline 存在节点类* 自我生成低置信补偿观察候选(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 自我补观察质量占位方法(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_生成低置信补偿观察候选,
+            "自我_生成低置信补偿观察候选",
+            "缺少低置信候选生成和待验证证据落账接口");
+    }
+
+    inline 存在节点类* 自我调整外设观察姿态(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 自我补观察质量占位方法(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_调整外设观察姿态,
+            "自我_调整外设观察姿态",
+            "缺少可控云台、舵机或相机姿态接口");
+    }
+
+    inline 存在节点类* 自我调整观察位置(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 自我补观察质量占位方法(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_调整观察位置,
+            "自我_调整观察位置",
+            "缺少可控移动底盘、机械臂或可确认位移接口");
+    }
+
+    inline bool 读取像素坐标参数(
+        场景节点类* 输入参数场景,
+        I64& 像素X,
+        I64& 像素Y) noexcept
+    {
+        const bool 有X =
+            读取场景I64特征(输入参数场景, 特征_像素坐标X(), 像素X)
+            || 读取输入包I64(输入参数场景, 特征_输入条件包(), 特征_像素坐标X(), 像素X)
+            || 读取输入包I64(输入参数场景, 特征_运行参数(), 特征_像素坐标X(), 像素X)
+            || 读取输入包I64(输入参数场景, 特征_任务参数包(), 特征_像素坐标X(), 像素X);
+        const bool 有Y =
+            读取场景I64特征(输入参数场景, 特征_像素坐标Y(), 像素Y)
+            || 读取输入包I64(输入参数场景, 特征_输入条件包(), 特征_像素坐标Y(), 像素Y)
+            || 读取输入包I64(输入参数场景, 特征_运行参数(), 特征_像素坐标Y(), 像素Y)
+            || 读取输入包I64(输入参数场景, 特征_任务参数包(), 特征_像素坐标Y(), 像素Y);
+        return 有X && 有Y;
+    }
+
+    inline 存在节点类* 自我按像素坐标回查观察事实(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_按像素坐标回查观察事实,
+            输出结果场景,
+            now,
+            "自我_按像素坐标回查观察事实",
+            确认自我按像素坐标回查观察事实规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        I64 像素X = 0;
+        I64 像素Y = 0;
+        const bool 坐标闭合 = 读取像素坐标参数(输入参数场景, 像素X, 像素Y);
+        结构_双目相机调用结果 结果{};
+        const bool 观察帧闭合 = 坐标闭合
+            && 读取已落账观察特征帧摘要(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const bool 像素索引闭合 = 观察帧闭合
+            && 已落账像素观察事实索引(目标宿主, 输入参数场景, 实际输出场景);
+        const bool 坐标在范围 =
+            坐标闭合
+            && 结果.成功
+            && 像素X >= 0
+            && 像素Y >= 0
+            && 像素X < static_cast<I64>(结果.宽度)
+            && 像素Y < static_cast<I64>(结果.高度);
+        const bool 成功 = 坐标在范围 && 像素索引闭合 && 结果.像素覆盖状态 == 1;
+        const auto* 失败原因 = 坐标闭合
+            ? (结果.失败原因 ? 结果.失败原因 : (成功 ? nullptr : 值_执行失败()))
+            : 值_执行缺口_可执行输入参数场景缺失();
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_像素坐标对应像素观察事实(),
+            成功 ? 1 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 失败原因, now);
+            if (!宿主) return;
+            if (坐标闭合) {
+                (void)写入基础节点I64(宿主, 特征_像素坐标X(), 像素X, now);
+                (void)写入基础节点I64(宿主, 特征_像素坐标Y(), 像素Y, now);
+            }
+            if (结果.成功) {
+                写入双目相机像素特征索引摘要(宿主, 结果, now);
+            }
+            (void)写入基础节点I64(宿主, 特征_像素坐标对应像素观察事实(), 成功 ? 1 : 0, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        auto 记录结果 = 结果;
+        记录结果.成功 = 成功;
+        记录结果.失败原因 = 失败原因;
+        记录双目相机本能动作结果(
+            "自我_按像素坐标回查观察事实",
+            记录结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    enum class 枚举_内部世界动作阶段 : std::uint8_t {
+        确保内部世界,
+        建立内外接口,
+        映射局部切片,
+        提取子候选,
+        确认子存在,
+        递归细分
+    };
+
+    inline 存在节点类* 执行自我内部世界动作(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景,
+        枚举_本能方法ID 本能ID,
+        const char* 方法名,
+        bool (*确认规格)(方法类::节点类*, 存在节点类*, 时间戳) noexcept,
+        枚举_内部世界动作阶段 阶段,
+        const 语素入口节点类* 主结果特征,
+        I64 主结果值) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            本能ID,
+            输出结果场景,
+            now,
+            方法名,
+            确认规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 默认宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        auto* 目标存在 = 解析目标观察存在(输入参数场景, 默认宿主, 实际输出场景);
+
+        auto 上下文 = 读取内部世界上下文(目标存在, true, now);
+        bool 成功 = 上下文.目标存在 && 上下文.内部世界;
+        if (成功) {
+            写入内部世界基础摘要(上下文, now);
+        }
+        if (成功 && 阶段 >= 枚举_内部世界动作阶段::建立内外接口) {
+            成功 = 取或创建内外接口(上下文, now) != nullptr;
+        }
+        if (成功 && 阶段 >= 枚举_内部世界动作阶段::映射局部切片) {
+            if (!上下文.内外接口) {
+                (void)取或创建内外接口(上下文, now);
+            }
+            成功 = 取或创建局部观察切片(上下文, now) != nullptr;
+        }
+        if (成功 && 阶段 >= 枚举_内部世界动作阶段::提取子候选) {
+            if (!上下文.局部切片) {
+                (void)取或创建局部观察切片(上下文, now);
+            }
+            成功 = 取或创建内部世界子候选(上下文, now) != nullptr;
+        }
+        if (成功 && 阶段 >= 枚举_内部世界动作阶段::确认子存在) {
+            if (!上下文.子候选) {
+                (void)取或创建内部世界子候选(上下文, now);
+            }
+            成功 = 取或创建内部世界子存在(上下文, now) != nullptr;
+        }
+        if (成功 && 阶段 >= 枚举_内部世界动作阶段::递归细分) {
+            auto* 内部节点 = reinterpret_cast<基础信息节点类*>(上下文.内部世界);
+            const I64 细分状态 = 局部区域达到叶子阈值(上下文)
+                ? 内部世界细分状态_已完成
+                : 内部世界细分状态_部分完成;
+            (void)写入基础节点I64(内部节点, 特征_内部世界细分状态(), 细分状态, now);
+            (void)写入基础节点I64(内部节点, 特征_细分层级数(), 1, now);
+        }
+
+        const auto* 失败原因 = 成功 ? nullptr : 值_执行缺口_当前方法条件不满足();
+        auto* 动态宿主 = reinterpret_cast<基础信息节点类*>(
+            上下文.内部世界
+                ? static_cast<基础信息节点类*>(上下文.内部世界)
+                : (上下文.目标存在
+                    ? static_cast<基础信息节点类*>(上下文.目标存在)
+                    : 默认宿主));
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            动态宿主,
+            nullptr,
+            主结果特征,
+            成功 ? 主结果值 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入内部世界方法结果(宿主, 成功, 上下文, 动态, 失败原因, now);
+            if (!宿主 || !成功) return;
+            (void)写入基础节点I64(宿主, 主结果特征, 主结果值, now);
+            if (阶段 >= 枚举_内部世界动作阶段::递归细分 && 上下文.内部世界) {
+                const I64 细分状态 = 局部区域达到叶子阈值(上下文)
+                    ? 内部世界细分状态_已完成
+                    : 内部世界细分状态_部分完成;
+                (void)写入基础节点I64(宿主, 特征_内部世界细分状态(), 细分状态, now);
+            }
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(reinterpret_cast<基础信息节点类*>(上下文.目标存在));
+        写结果(reinterpret_cast<基础信息节点类*>(上下文.内部世界));
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        {
+            std::ostringstream 输出;
+            输出 << 方法名
+                << " | 成功=" << (成功 ? 1 : 0)
+                << " | 目标存在=" << (上下文.目标存在 ? 上下文.目标存在->获取主键() : std::string{})
+                << " | 内部世界=" << (上下文.内部世界 ? 上下文.内部世界->获取主键() : std::string{})
+                << " | 内外接口=" << (上下文.内外接口 ? 上下文.内外接口->获取主键() : std::string{})
+                << " | 局部切片=" << (上下文.局部切片 ? 上下文.局部切片->获取主键() : std::string{})
+                << " | 子候选=" << (上下文.子候选 ? 上下文.子候选->获取主键() : std::string{})
+                << " | 子存在=" << (上下文.子存在 ? 上下文.子存在->获取主键() : std::string{})
+                << " | 投影宽高=" << 上下文.投影宽度 << "x" << 上下文.投影高度
+                << " | 失败原因=" << (失败原因 ? 失败原因->获取主键() : std::string{});
+            项目运行日志(输出.str());
+        }
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我确保存在内部世界(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我内部世界动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_确保存在内部世界,
+            "自我_确保存在内部世界",
+            确认自我确保存在内部世界规格,
+            枚举_内部世界动作阶段::确保内部世界,
+            特征_内部世界(),
+            1);
+    }
+
+    inline 存在节点类* 自我建立存在内外场景接口(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我内部世界动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_建立存在内外场景接口,
+            "自我_建立存在内外场景接口",
+            确认自我建立存在内外场景接口规格,
+            枚举_内部世界动作阶段::建立内外接口,
+            特征_存在内外场景接口(),
+            1);
+    }
+
+    inline 存在节点类* 自我将存在局部观察切片映射到内部世界(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我内部世界动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_将存在局部观察切片映射到内部世界,
+            "自我_将存在局部观察切片映射到内部世界",
+            确认自我将存在局部观察切片映射到内部世界规格,
+            枚举_内部世界动作阶段::映射局部切片,
+            特征_内部世界当前观察材料(),
+            当前观察材料状态_已建立);
+    }
+
+    inline 存在节点类* 自我在内部世界提取子候选(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我内部世界动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_在内部世界提取子候选,
+            "自我_在内部世界提取子候选",
+            确认自我在内部世界提取子候选规格,
+            枚举_内部世界动作阶段::提取子候选,
+            特征_内部世界子候选集合(),
+            子候选集合状态_已生成);
+    }
+
+    inline 存在节点类* 自我确认内部世界子存在(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我内部世界动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_确认内部世界子存在,
+            "自我_确认内部世界子存在",
+            确认自我确认内部世界子存在规格,
+            枚举_内部世界动作阶段::确认子存在,
+            特征_成员存在集合(),
+            成员存在集合状态_已更新);
+    }
+
+    inline 存在节点类* 自我递归细分存在内部世界(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我内部世界动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_递归细分存在内部世界,
+            "自我_递归细分存在内部世界",
+            确认自我递归细分存在内部世界规格,
+            枚举_内部世界动作阶段::递归细分,
+            特征_内部世界细分状态(),
+            内部世界细分状态_部分完成);
+    }
+
+    enum class 枚举_变化发现动作阶段 : std::uint8_t {
+        匹配关系,
+        特征变化,
+        变化事件
+    };
+
+    inline 存在节点类* 执行自我变化发现动作(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景,
+        枚举_本能方法ID 本能ID,
+        const char* 方法名,
+        bool (*确认规格)(方法类::节点类*, 存在节点类*, 时间戳) noexcept,
+        枚举_变化发现动作阶段 阶段,
+        const 语素入口节点类* 主结果特征,
+        I64 主结果值) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            本能ID,
+            输出结果场景,
+            now,
+            方法名,
+            确认规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+
+        结构_观察变化上下文 上下文{};
+        上下文.宿主 = 目标宿主 ? 目标宿主 : reinterpret_cast<基础信息节点类*>(实际输出场景);
+        上下文.当前存在 = 解析当前观察存在(输入参数场景, 上下文.宿主, 实际输出场景);
+        上下文.历史存在 = 解析历史观察存在(
+            输入参数场景,
+            上下文.宿主,
+            实际输出场景,
+            上下文.当前存在);
+
+        bool 成功 = 上下文.当前存在 != nullptr || 上下文.历史存在 != nullptr;
+        if (成功) {
+            计算观察存在匹配关系(上下文, now);
+        }
+        if (成功 && 阶段 >= 枚举_变化发现动作阶段::特征变化) {
+            计算观察存在变化结果(上下文, now);
+        }
+        if (成功 && 阶段 >= 枚举_变化发现动作阶段::变化事件) {
+            计算观察变化事件(上下文, now);
+        }
+
+        const auto* 失败原因 = 成功 ? nullptr : 值_执行缺口_当前方法条件不满足();
+        const I64 实际主结果值 = (主结果特征 == 特征_历史对应状态())
+            ? 上下文.历史对应状态
+            : 主结果值;
+        auto* 动态宿主 = reinterpret_cast<基础信息节点类*>(
+            上下文.变化事件
+                ? 上下文.变化事件
+                : (上下文.变化结果
+                    ? 上下文.变化结果
+                    : (上下文.匹配关系
+                        ? 上下文.匹配关系
+                        : (上下文.当前存在 ? 上下文.当前存在 : 上下文.历史存在))));
+        if (!动态宿主) {
+            动态宿主 = 上下文.宿主;
+        }
+
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            动态宿主,
+            nullptr,
+            主结果特征,
+            成功 ? 实际主结果值 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入观察变化方法结果(宿主, 成功, 上下文, 动态, 失败原因, now);
+            if (!宿主 || !成功) return;
+            (void)写入基础节点I64(宿主, 主结果特征, 实际主结果值, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(上下文.宿主);
+        写结果(reinterpret_cast<基础信息节点类*>(上下文.当前存在));
+        写结果(reinterpret_cast<基础信息节点类*>(上下文.历史存在));
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        {
+            std::ostringstream 输出;
+            输出 << 方法名
+                << " | 成功=" << (成功 ? 1 : 0)
+                << " | 当前存在=" << (上下文.当前存在 ? 上下文.当前存在->获取主键() : std::string{})
+                << " | 历史存在=" << (上下文.历史存在 ? 上下文.历史存在->获取主键() : std::string{})
+                << " | 历史对应状态=" << 上下文.历史对应状态
+                << " | 匹配置信度=" << 上下文.匹配置信度
+                << " | 变化状态=" << 上下文.变化状态
+                << " | 事件类型=" << 上下文.事件类型
+                << " | 说明=未命中不等于消失";
+            项目运行日志(输出.str());
+        }
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我匹配当前观察存在与历史观察存在(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我变化发现动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_匹配当前观察存在与历史观察存在,
+            "自我_匹配当前观察存在与历史观察存在",
+            确认自我匹配当前观察存在与历史观察存在规格,
+            枚举_变化发现动作阶段::匹配关系,
+            特征_历史对应状态(),
+            历史对应状态_已匹配);
+    }
+
+    inline 存在节点类* 自我比较存在特征变化(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我变化发现动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_比较存在特征变化,
+            "自我_比较存在特征变化",
+            确认自我比较存在特征变化规格,
+            枚举_变化发现动作阶段::特征变化,
+            特征_观察存在变化结果(),
+            变化结果状态_已生成);
+    }
+
+    inline 存在节点类* 自我生成观察变化事件(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我变化发现动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_生成观察变化事件,
+            "自我_生成观察变化事件",
+            确认自我生成观察变化事件规格,
+            枚举_变化发现动作阶段::变化事件,
+            特征_观察变化事件集合(),
+            观察变化事件集合状态_已生成);
+    }
+
+    enum class 枚举_场景复现导出阶段 : std::uint8_t {
+        识别快照,
+        OpenGL复现数据
+    };
+
+    inline 存在节点类* 执行自我场景复现导出动作(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景,
+        枚举_本能方法ID 本能ID,
+        const char* 方法名,
+        bool (*确认规格)(方法类::节点类*, 存在节点类*, 时间戳) noexcept,
+        枚举_场景复现导出阶段 阶段,
+        const 语素入口节点类* 主结果特征,
+        I64 主结果值) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            本能ID,
+            输出结果场景,
+            now,
+            方法名,
+            确认规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 默认宿主 = reinterpret_cast<基础信息节点类*>(
+            世界树.自我所在场景 ? 世界树.自我所在场景 : 世界树.取或创建自我现实场景());
+        auto* 目标宿主 = 解析双目相机目标宿主(输入参数场景, 默认宿主);
+        结构_场景复现上下文 上下文 = 读取场景复现上下文(目标宿主);
+
+        bool 成功 = 上下文.宿主 && 上下文.有识别材料;
+        if (成功) {
+            上下文.场景识别快照 = 取或创建场景识别快照(上下文.宿主);
+            写入场景识别快照摘要(
+                reinterpret_cast<基础信息节点类*>(上下文.场景识别快照),
+                上下文,
+                now);
+            (void)写入基础节点指针(上下文.宿主, 特征_场景识别快照(), 上下文.场景识别快照, now);
+            (void)写入基础节点I64(上下文.宿主, 特征_快照状态(), 场景识别快照状态_已生成, now);
+        }
+        if (成功 && 阶段 >= 枚举_场景复现导出阶段::OpenGL复现数据) {
+            上下文.OpenGL复现数据 = 取或创建OpenGL复现数据(上下文.宿主);
+            写入OpenGL复现数据摘要(
+                reinterpret_cast<基础信息节点类*>(上下文.OpenGL复现数据),
+                上下文,
+                now);
+            (void)写入基础节点指针(上下文.宿主, 特征_OpenGL复现数据(), 上下文.OpenGL复现数据, now);
+            (void)写入基础节点I64(上下文.宿主, 特征_复现数据状态(), OpenGL复现数据状态_已生成, now);
+        }
+
+        const auto* 失败原因 = 成功 ? nullptr : 值_执行缺口_当前方法条件不满足();
+        auto* 动态宿主 = reinterpret_cast<基础信息节点类*>(
+            上下文.OpenGL复现数据
+                ? 上下文.OpenGL复现数据
+                : (上下文.场景识别快照 ? 上下文.场景识别快照 : nullptr));
+        if (!动态宿主) {
+            动态宿主 = 上下文.宿主;
+        }
+
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            动态宿主,
+            nullptr,
+            主结果特征,
+            成功 ? 主结果值 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入场景复现方法结果(宿主, 成功, 上下文, 动态, 失败原因, now);
+            if (!宿主 || !成功) return;
+            (void)写入基础节点I64(宿主, 主结果特征, 主结果值, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(上下文.宿主);
+        写结果(reinterpret_cast<基础信息节点类*>(上下文.场景识别快照));
+        写结果(reinterpret_cast<基础信息节点类*>(上下文.OpenGL复现数据));
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        {
+            std::ostringstream 输出;
+            输出 << 方法名
+                << " | 成功=" << (成功 ? 1 : 0)
+                << " | 帧=" << 上下文.帧宽度 << 'x' << 上下文.帧高度
+                << " | 像素特征=" << 上下文.像素特征数量
+                << " | 空间候选=" << 上下文.空间候选数量
+                << " | 已确认观察存在=" << 上下文.已验证观察存在数量
+                << " | 内部世界状态=" << 上下文.内部世界状态
+                << " | 说明=仅导出自我所在场景识别结果,不读取相机预览,不回写控制面板";
+            项目运行日志(输出.str());
+        }
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我导出当前场景识别快照(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我场景复现导出动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_导出当前场景识别快照,
+            "自我_导出当前场景识别快照",
+            确认自我导出当前场景识别快照规格,
+            枚举_场景复现导出阶段::识别快照,
+            特征_场景识别快照(),
+            场景识别快照状态_已生成);
+    }
+
+    inline 存在节点类* 自我导出OpenGL复现数据(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        return 执行自我场景复现导出动作(
+            方法首节点,
+            输入参数场景,
+            输出结果场景,
+            枚举_本能方法ID::自我_导出OpenGL复现数据,
+            "自我_导出OpenGL复现数据",
+            确认自我导出OpenGL复现数据规格,
+            枚举_场景复现导出阶段::OpenGL复现数据,
+            特征_OpenGL复现数据(),
+            OpenGL复现数据状态_已生成);
+    }
+
+    inline 存在节点类* 自我提取空间候选(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_提取空间候选,
+            输出结果场景,
+            now,
+            "自我_提取空间候选",
+            确认自我提取空间候选规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账空间候选集合(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const bool 成功 = 结果.成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_空间候选集合(),
+            成功 ? 1 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入双目相机空间候选摘要(宿主, 结果, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "自我_提取空间候选",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我判断空间候选相对独立性(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_判断空间候选相对独立性,
+            输出结果场景,
+            now,
+            "自我_判断空间候选相对独立性",
+            确认自我判断空间候选相对独立性规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账空间候选集合(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const auto 判断 = 计算空间候选独立性判断(结果);
+        const bool 成功 = 结果.成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_空间候选相对独立性判断(),
+            成功 ? 1 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入双目相机空间候选独立性摘要(宿主, 结果, 判断, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "自我_判断空间候选相对独立性",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        if (成功) {
+            项目运行日志(
+                "空间候选相对独立性判断"
+                " | 相对独立=" + std::to_string(判断.相对独立数量)
+                + " | 不独立=" + std::to_string(判断.不独立数量)
+                + " | 待拆分=" + std::to_string(判断.待拆分数量)
+                + " | 待合并=" + std::to_string(判断.待合并数量)
+                + " | 不确定=" + std::to_string(判断.不确定数量)
+                + " | 主候选状态=" + std::to_string(判断.主候选状态)
+                + " | 主候选分离度评分=" + std::to_string(判断.主候选分离度评分));
+        }
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我生成空间候选观察队列(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_生成空间候选观察队列,
+            输出结果场景,
+            now,
+            "自我_生成空间候选观察队列",
+            确认自我生成空间候选观察队列规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账空间候选集合(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const auto 判断 = 计算空间候选独立性判断(结果);
+        const auto 队列 = 生成空间候选观察队列(结果);
+        const bool 成功 = 结果.成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_空间候选观察队列(),
+            成功 ? 1 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入双目相机空间候选观察队列摘要(宿主, 结果, 判断, 队列, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "自我_生成空间候选观察队列",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        if (成功) {
+            const auto* 首选 = 队列.队列.empty() ? nullptr : &队列.队列.front();
+            项目运行日志(
+                "空间候选观察队列"
+                " | 候选数量=" + std::to_string(队列.候选数量)
+                + " | 首选编号=" + std::to_string(首选 ? 首选->候选编号 : -1)
+                + " | 首选优先级评分=" + std::to_string(首选 ? 首选->优先级评分 : 0)
+                + " | 首选相对独立状态=" + std::to_string(首选 ? 首选->相对独立状态 : 空间候选独立状态_不确定)
+                + " | 首选中心接近评分=" + std::to_string(首选 ? 首选->中心接近评分 : 0)
+                + " | 首选范围大小评分=" + std::to_string(首选 ? 首选->范围大小评分 : 0));
+        }
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我观察单个空间候选并组合存在假设(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_观察单个空间候选并组合存在假设,
+            输出结果场景,
+            now,
+            "自我_观察单个空间候选并组合存在假设",
+            确认自我观察单个空间候选并组合存在假设规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账空间候选集合(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const auto 判断 = 计算空间候选独立性判断(结果);
+        const auto 队列 = 生成空间候选观察队列(结果);
+        const auto 假设 = 组合观察存在假设(结果, 队列);
+        const bool 成功 = 结果.成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_观察存在假设(),
+            成功 ? 假设.假设状态 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入双目相机观察存在假设摘要(宿主, 结果, 判断, 队列, 假设, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "自我_观察单个空间候选并组合存在假设",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        if (成功) {
+            项目运行日志(
+                "观察存在假设"
+                " | 假设状态=" + std::to_string(假设.假设状态)
+                + " | 来源候选编号=" + std::to_string(假设.来源候选编号)
+                + " | 验证状态=" + std::to_string(假设.验证状态)
+                + " | 距离=" + std::to_string(假设.距离)
+                + " | 尺寸X=" + std::to_string(假设.尺寸X)
+                + " | 尺寸Y=" + std::to_string(假设.尺寸Y)
+                + " | 尺寸Z=" + std::to_string(假设.尺寸Z)
+                + " | 方位X=" + std::to_string(假设.方位X)
+                + " | 方位Y=" + std::to_string(假设.方位Y)
+                + " | 轮廓支持评分=" + std::to_string(假设.轮廓支持评分));
+        }
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我用空间范围投影覆盖原帧验证像素归属(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_用空间范围投影覆盖原帧验证像素归属,
+            输出结果场景,
+            now,
+            "自我_用空间范围投影覆盖原帧验证像素归属",
+            确认自我用空间范围投影覆盖原帧验证像素归属规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账空间候选集合(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const auto 判断 = 计算空间候选独立性判断(结果);
+        const auto 队列 = 生成空间候选观察队列(结果);
+        const auto 假设 = 组合观察存在假设(结果, 队列);
+        const auto 验证 = 组合像素归属验证结果(结果, 假设);
+        const bool 成功 = 结果.成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_像素归属验证结果(),
+            成功 ? 验证.结果状态 : 0,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入双目相机像素归属验证摘要(宿主, 结果, 判断, 队列, 假设, 验证, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "自我_用空间范围投影覆盖原帧验证像素归属",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        if (成功) {
+            项目运行日志(
+                "像素归属验证结果"
+                " | 结果状态=" + std::to_string(验证.结果状态)
+                + " | 来源候选编号=" + std::to_string(验证.来源候选编号)
+                + " | 空间覆盖像素数=" + std::to_string(验证.空间覆盖像素数)
+                + " | 空间匹配像素数=" + std::to_string(验证.空间匹配像素数)
+                + " | 空间冲突像素数=" + std::to_string(验证.空间冲突像素数)
+                + " | 深度一致率=" + std::to_string(验证.深度一致率)
+                + " | 范围内点比例=" + std::to_string(验证.范围内点比例)
+                + " | 投影覆盖率=" + std::to_string(验证.投影覆盖率)
+                + " | 轮廓吻合率=" + std::to_string(验证.轮廓吻合率)
+                + " | 未解释像素数=" + std::to_string(验证.未解释像素数)
+                + " | 验证状态=" + std::to_string(验证.验证状态));
+        }
+        更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
+        return 输出运行;
+    }
+
+    inline 存在节点类* 自我确认观察存在并更新帧解释状态(
+        方法类::节点类* 方法首节点,
+        场景节点类* 输入参数场景,
+        场景节点类* 输出结果场景) noexcept
+    {
+        const auto now = 结构体_时间戳::当前_微秒();
+        auto 环境 = 确保本能方法自身环境(
+            方法首节点,
+            枚举_本能方法ID::自我_确认观察存在并更新帧解释状态,
+            输出结果场景,
+            now,
+            "自我_确认观察存在并更新帧解释状态",
+            确认自我确认观察存在并更新帧解释状态规格);
+        if (!环境.已成功) {
+            return 输出本能方法自身环境失败(环境, 输入参数场景, 输出结果场景, now);
+        }
+
+        auto* 实际输出场景 = 双目相机实际输出场景(环境.方法首节点, 输出结果场景, now);
+        auto* 相机存在 = 解析双目相机目标外设(输入参数场景, 实际输出场景);
+        auto* 目标宿主 = 解析双目相机目标宿主(
+            输入参数场景,
+            reinterpret_cast<基础信息节点类*>(实际输出场景));
+        结构_双目相机调用结果 结果{};
+        (void)读取已落账空间候选集合(目标宿主, 输入参数场景, 实际输出场景, 结果);
+        const auto 判断 = 计算空间候选独立性判断(结果);
+        const auto 队列 = 生成空间候选观察队列(结果);
+        const auto 假设 = 组合观察存在假设(结果, 队列);
+        const auto 验证 = 组合像素归属验证结果(结果, 假设);
+        const auto 确认 = 确认观察存在结果(结果, 假设, 验证, 队列);
+        const auto 归属账本 = 计算全帧像素归属账本(结果, 队列, 假设, 验证);
+        const bool 成功 = 结果.成功;
+        auto* 动态 = 写入双目相机I64事实与动态(
+            环境.方法首节点,
+            实际输出场景,
+            目标宿主,
+            相机存在,
+            特征_帧解释状态(),
+            成功 ? 确认.帧解释状态 : 帧解释状态_未生成,
+            成功,
+            输入参数场景,
+            实际输出场景,
+            环境.本轮运行虚拟存在,
+            now);
+
+        auto 写结果 = [&](基础信息节点类* 宿主) noexcept {
+            写入双目相机通用结果(宿主, 成功, 相机存在, 目标宿主, 动态, 结果.失败原因, now);
+            写入双目相机观察存在确认摘要(宿主, 结果, 判断, 队列, 假设, 验证, 确认, 归属账本, now);
+        };
+        写结果(reinterpret_cast<基础信息节点类*>(环境.本轮运行虚拟存在));
+        写结果(reinterpret_cast<基础信息节点类*>(实际输出场景));
+        写结果(目标宿主);
+
+        auto* 输出运行 = 输出运行虚拟存在(
+            环境.本轮运行虚拟存在,
+            输入参数场景,
+            实际输出场景,
+            now);
+        记录双目相机本能动作结果(
+            "自我_确认观察存在并更新帧解释状态",
+            结果,
+            输入参数场景,
+            实际输出场景,
+            相机存在,
+            目标宿主,
+            动态,
+            输出运行);
+        if (成功) {
+            项目运行日志(
+                "观察存在确认结果"
+                " | 确认状态=" + std::to_string(确认.确认状态)
+                + " | 来源候选编号=" + std::to_string(确认.来源候选编号)
+                + " | 来源队列位次=" + std::to_string(假设.来源队列位次)
+                + " | 相对独立状态=" + std::to_string(假设.相对独立状态)
+                + " | 相对独立候选数=" + std::to_string(判断.相对独立数量)
+                + " | 待拆分候选数=" + std::to_string(判断.待拆分数量)
+                + " | 待合并候选数=" + std::to_string(判断.待合并数量)
+                + " | 已验证观察存在数量=" + std::to_string(确认.已验证观察存在数量)
+                + " | 帧解释状态=" + std::to_string(确认.帧解释状态)
+                + " | 像素归属更新=" + std::to_string(确认.像素归属更新)
+                + " | 未解释区域更新=" + std::to_string(确认.未解释区域更新)
+                + " | 全帧像素归属账状态=" + std::to_string(归属账本.账本状态)
+                + " | 已归属像素数=" + std::to_string(归属账本.已归属像素数)
+                + " | 未解释像素数=" + std::to_string(归属账本.未解释像素数)
+                + " | 归属冲突像素数=" + std::to_string(归属账本.归属冲突像素数)
+                + " | 像素归属率=" + std::to_string(归属账本.像素归属率)
+                + " | 空间连续性评分=" + std::to_string(确认.空间连续性评分)
+                + " | 范围稳定性评分=" + std::to_string(确认.范围稳定性评分)
+                + " | 范围内点比例=" + std::to_string(确认.范围内点比例)
+                + " | 深度一致率=" + std::to_string(确认.深度一致率)
+                + " | 投影覆盖率=" + std::to_string(确认.投影覆盖率)
+                + " | 轮廓吻合率=" + std::to_string(确认.轮廓吻合率));
+        }
         更新方法运行账(环境.方法首节点, 输出运行, 成功, now);
         return 输出运行;
     }

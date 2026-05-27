@@ -55,6 +55,9 @@ bool 提交任务权重固化请求(
 bool 提交任务价值结算回执(
     const 任务管理线程协议::结构_任务价值结算回执& 回执) noexcept;
 
+bool 提交派生需求入树回执(
+    const 任务管理线程协议::结构_派生需求入树回执& 回执) noexcept;
+
 bool 提取任务管理上行消息(
     std::vector<结构_任务管理上行消息>* 输出,
     std::size_t 最大数量 = 0) noexcept;

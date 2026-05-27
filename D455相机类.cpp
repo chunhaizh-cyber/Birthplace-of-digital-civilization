@@ -27,7 +27,7 @@ public:
 
     explicit 实现(配置项 cfg = {})
         : cfg(cfg),
-        对齐器(RS2_STREAM_DEPTH),
+        对齐器(RS2_STREAM_COLOR),
         深度到视差(true),
         视差到深度(false) {
     }
@@ -87,11 +87,11 @@ public:
             rs2::frameset frames = 管道.wait_for_frames();
             rs2::frameset aligned = 对齐器.process(frames);
 
-            rs2::depth_frame depth = aligned.get_depth_frame();
+            rs2::depth_frame rawDepth = aligned.get_depth_frame();
             rs2::video_frame color = aligned.get_color_frame();
-            if (!depth || !color) return false;
+            if (!rawDepth || !color) return false;
 
-            rs2::frame filtered = depth;
+            rs2::frame filtered = rawDepth;
             if (cfg.启用降采样) {
                 filtered = 降采样滤波.process(filtered);
             }
@@ -107,40 +107,46 @@ public:
             if (cfg.启用视差域处理) {
                 filtered = 视差到深度.process(filtered);
             }
+
+            rs2::depth_frame filteredDepth = filtered.as<rs2::depth_frame>();
+            rs2::depth_frame filledDepth = filteredDepth;
             if (cfg.启用填洞滤波) {
-                filtered = 填洞滤波.process(filtered);
+                filledDepth = 填洞滤波.process(filtered).as<rs2::depth_frame>();
             }
 
-            depth = filtered.as<rs2::depth_frame>();
-            if (!depth) return false;
+            const bool 有非填洞滤波 = cfg.启用降采样 || cfg.启用空间滤波 || cfg.启用时间滤波;
 
-            const int w = depth.get_width();
-            const int h = depth.get_height();
+            const int w = rawDepth.get_width();
+            const int h = rawDepth.get_height();
             const std::size_t N = static_cast<std::size_t>(w) * static_cast<std::size_t>(h);
 
             输出 = {};
             输出.时间戳.系统到达时间_us = 结构体_时间戳::当前_微秒();
-            输出.时间戳.设备时间_us = static_cast<std::uint64_t>(std::max(0.0, depth.get_timestamp()) * 1000.0);
-            输出.时间戳.域 = 转换时间域(depth.get_frame_timestamp_domain());
-            输出.时间戳.深度帧号 = static_cast<std::uint32_t>(depth.get_frame_number());
+            输出.时间戳.设备时间_us = static_cast<std::uint64_t>(std::max(0.0, rawDepth.get_timestamp()) * 1000.0);
+            输出.时间戳.域 = 转换时间域(rawDepth.get_frame_timestamp_domain());
+            输出.时间戳.深度帧号 = static_cast<std::uint32_t>(rawDepth.get_frame_number());
             输出.时间戳.彩色帧号 = static_cast<std::uint32_t>(color.get_frame_number());
             输出.宽度 = w;
             输出.高度 = h;
+            const auto 当前深度Profile = rawDepth.get_profile().as<rs2::video_stream_profile>();
+            深度内参 = 当前深度Profile.get_intrinsics();
             输出.深度内参 = 结构体_相机内参{ 深度内参.fx, 深度内参.fy, 深度内参.ppx, 深度内参.ppy, w, h, true };
-            输出.深度已对齐到彩色 = false;
+            输出.深度已对齐到彩色 = color.get_width() == w && color.get_height() == h;
             输出.深度单位_mm = 深度尺度 * 1000.0;
 
-            输出.深度.assign(N, 0.0);
-            输出.深度有效.assign(N, 0);
             输出.颜色.assign(N, Color{ 255, 255, 255 });
             输出.点云.assign(N, Vector3D{ 0, 0, 0 });
 
-            const std::uint16_t* dp = static_cast<const std::uint16_t*>(depth.get_data());
-            if (!dp) return false;
-
-            for (std::size_t i = 0; i < N; ++i) {
-                输出.深度[i] = static_cast<double>(dp[i]) * 深度尺度 * 1000.0;
-                输出.深度有效[i] = dp[i] != 0 ? 1 : 0;
+            if (!复制深度帧毫米(rawDepth, w, h, 输出.原始深度, 输出.原始深度有效)) {
+                return false;
+            }
+            输出.深度 = 输出.原始深度;
+            输出.深度有效 = 输出.原始深度有效;
+            if (有非填洞滤波) {
+                (void)复制深度帧毫米(filteredDepth, w, h, 输出.滤波深度, 输出.滤波深度有效);
+            }
+            if (cfg.启用填洞滤波) {
+                (void)复制深度帧毫米(filledDepth, w, h, 输出.补全深度, 输出.补全深度有效);
             }
 
             读取对齐彩色(color, 输出);
@@ -244,6 +250,34 @@ private:
 
     static inline bool 在范围内(int x, int a, int b) {
         return x >= a && x <= b;
+    }
+
+    bool 复制深度帧毫米(
+        const rs2::depth_frame& depth,
+        int expectedW,
+        int expectedH,
+        std::vector<double>& 深度输出,
+        std::vector<std::uint8_t>& 有效输出) const {
+        深度输出.clear();
+        有效输出.clear();
+        if (!depth || depth.get_width() != expectedW || depth.get_height() != expectedH) {
+            return false;
+        }
+
+        const std::uint16_t* dp = static_cast<const std::uint16_t*>(depth.get_data());
+        if (!dp) {
+            return false;
+        }
+
+        const std::size_t N = static_cast<std::size_t>(expectedW) * static_cast<std::size_t>(expectedH);
+        深度输出.assign(N, 0.0);
+        有效输出.assign(N, 0);
+        for (std::size_t i = 0; i < N; ++i) {
+            const double mm = static_cast<double>(dp[i]) * 深度尺度 * 1000.0;
+            深度输出[i] = mm;
+            有效输出[i] = dp[i] != 0 ? 1 : 0;
+        }
+        return true;
     }
 
     static inline std::uint8_t clamp_u8(int x) {
