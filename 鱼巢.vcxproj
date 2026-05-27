@@ -151,6 +151,7 @@
     <ClCompile Include="D455相机类.cpp" Condition="'$(Platform)'=='x64'" />
     <ClCompile Include="双目相机本能适配器.cpp" Condition="'$(Platform)'=='x64'" />
     <ClCompile Include="日志模块.ixx" />
+    <ClCompile Include="外设线程_D455深度相机.ixx" />
     <ClCompile Include="基础信息类.cpp" />
     <ClCompile Include="鱼巢.cpp" />
     <ClCompile Include="控制面板类.ixx" />
