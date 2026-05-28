@@ -1,0 +1,8 @@
+version: v0.1-book-rc2
+date: 2026-05-28
+book: 人工智能之数字生命：从会回答的机器到会生存的系统
+book_status: 发布候选稿
+repository_role: 鱼巢工程原型仓库 / 随书工程材料仓库 / 研究性 C++ 原型仓库
+branch_note: main is active development; cite the fixed tag for book references.
+boundary: This snapshot is engineering material and is not proof that digital life, self-awareness, artificial life, self-awakening, or initial maturity has been completed.
+license: See LICENSE. Third-party components remain under their own licenses; see THIRD_PARTY_NOTICES.md.

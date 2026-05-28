@@ -1,0 +1,10 @@
+HY-Ego / 鱼巢 engineering prototype
+Copyright (c) 2026 chunhaizh-cyber and contributors.
+
+This repository is a research C++ prototype and companion engineering material
+for the book draft 《人工智能之数字生命》. It is not a declaration that digital
+life, self-awareness, artificial life, or a production-ready AI product has
+been completed.
+
+Third-party components bundled with or referenced by this repository are
+covered by their own licenses and notices. See THIRD_PARTY_NOTICES.md.
