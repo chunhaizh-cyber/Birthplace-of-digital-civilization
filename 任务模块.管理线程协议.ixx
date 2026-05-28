@@ -17,6 +17,7 @@ export import 任务模块.治理协议;
 export import 任务模块.筹办;
 export import 任务模块.执行;
 export import 任务模块.运行包;
+export import 外设观察报告队列;
 
 export namespace 任务管理线程协议 {
 
@@ -213,6 +214,9 @@ struct 结构_任务工作项 {
 
     std::string 任务摘要{};
     std::string 摘要{};
+
+    bool 存在外设观察等待项 = false;
+    结构_外设观察等待项 外设观察等待项{};
 };
 
 struct 结构_任务筹办情况 {
@@ -300,6 +304,14 @@ struct 结构_任务工作结果 {
     bool 已生成回流结算包 = false;
     任务运行包::结构_一步治理任务包 一步治理请求包{};
     任务运行包::结构_回流结算包 回流结算包{};
+
+    bool 存在外设消息承接结果 = false;
+    bool 外设消息命中报告 = false;
+    std::uint64_t 外设观察等待项ID = 0;
+    std::uint64_t 外设观察报告ID = 0;
+    std::uint64_t 外设观察承接上行消息数 = 0;
+    // 仅供程序调试和日志展示，绝不能作为逻辑语义、业务判断、去重、结算或因果依据。
+    std::string 外设消息承接摘要{};
 
     std::string 摘要{};
 };
