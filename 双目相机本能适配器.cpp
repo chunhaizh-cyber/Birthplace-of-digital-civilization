@@ -950,6 +950,12 @@ namespace {
                 候选.平均深度 = 候选.中心Z;
                 候选.最近深度 = 转换毫米(minZ);
                 候选.最远深度 = 转换毫米(maxZ);
+                候选.像素索引集合.reserve(队列.size());
+                for (const auto 像素索引 : 队列) {
+                    if (像素索引 <= static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max())) {
+                        候选.像素索引集合.push_back(static_cast<std::uint32_t>(像素索引));
+                    }
+                }
                 候选.空间连续性评分 = std::min<std::int64_t>(
                     10000,
                     7000 + static_cast<std::int64_t>(std::min<std::size_t>(队列.size(), 3000) / 10));

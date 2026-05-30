@@ -2509,10 +2509,25 @@ bool 私有_需求派生来源是方法_线程侧(
     return true;
 }
 
+bool 私有_需求允许同方法学习任务过滤_线程侧(const 需求节点* 需求节点) noexcept
+{
+    if (!需求节点) {
+        return false;
+    }
+    const auto 派生类型值 = 需求节点->主信息.派生需求类型值;
+    if (派生类型值 == static_cast<I64>(枚举_任务管理派生需求类型::执行缺失)) {
+        return false;
+    }
+    return true;
+}
+
 任务节点* 私有_查找同方法活跃学习任务_线程侧(
     自我类& 自我对象,
     const 需求节点* 当前需求) noexcept
 {
+    if (!私有_需求允许同方法学习任务过滤_线程侧(当前需求)) {
+        return nullptr;
+    }
     std::string 来源方法主键{};
     if (!私有_需求派生来源是方法_线程侧(自我对象, 当前需求, &来源方法主键)) {
         return nullptr;
@@ -4092,6 +4107,16 @@ bool 私有_文本在集合_线程侧(
                 "资源状态明确状态",
                 "资源状态足够状态",
                 "权限边界明确状态",
+                "当前观察特征帧取得状态",
+                "当前观察帧存在",
+                "当前观察帧存在状态",
+                "观察帧容器状态",
+                "像素覆盖状态",
+                "像素特征值承接状态",
+                "观察事实完备状态",
+                "质量可用状态",
+                "当前观察新鲜度状态",
+                "基础观察事实可用状态",
                 "风险状态明确状态",
                 "风险状态可控状态",
             })) {
@@ -6678,13 +6703,22 @@ bool 私有_落单个治理变化到自我内部世界(
         return false;
     }
 
+    特征值 动态旧值 = 旧值;
+    if (std::holds_alternative<std::monostate>(动态旧值)) {
+        if (std::holds_alternative<I64>(新值)) {
+            动态旧值 = 特征值{ static_cast<I64>(0) };
+        } else if (std::holds_alternative<指针句柄>(新值)) {
+            动态旧值 = 特征值{ 指针句柄{} };
+        }
+    }
+
     状态节点类* 旧状态节点 = nullptr;
-    if (!std::holds_alternative<std::monostate>(旧值)) {
+    if (!std::holds_alternative<std::monostate>(动态旧值)) {
         旧状态节点 = 私有_创建治理状态节点(
             自我内部世界,
             主体存在,
             特征节点,
-            旧值,
+            动态旧值,
             now,
             false,
             动作语义键,

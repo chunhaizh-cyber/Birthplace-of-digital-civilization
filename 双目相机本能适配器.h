@@ -76,6 +76,7 @@ namespace 双目相机本能适配器 {
         std::int64_t 补全候选状态 = 0;
         std::int64_t 低置信轮廓状态 = 0;
         std::int64_t 补观察需求建议 = 0;
+        std::vector<std::uint32_t> 像素索引集合{};
     };
 
     struct 诊断区域摘要 {
