@@ -114,6 +114,7 @@ struct 结构_控制面板快照 {
     std::size_t 需求树非阻塞需求数 = 0;
     std::size_t 需求树已截止需求数 = 0;
     std::size_t 需求树派生归因需求数 = 0;
+    std::size_t 需求树派生来源因果需求数 = 0;
     bool 需求树存在重复目标风险 = false;
     std::size_t 需求树重复目标组数 = 0;
     std::size_t 需求树重复目标需求数 = 0;
