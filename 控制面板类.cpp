@@ -1470,6 +1470,85 @@ namespace {
         return 最佳宿主 ? 最佳宿主 : 场景宿主;
     }
 
+    int 私有_场景安全评估宿主评分(const 基础信息节点类* 宿主) noexcept
+    {
+        if (!宿主) {
+            return 0;
+        }
+
+        int 评分 = 0;
+        I64 值 = 0;
+        const auto 读到加分 = [&](const char* 特征名, int 加分) noexcept {
+            if (私有_读取场景复现I64(宿主, 特征名, 值)) {
+                评分 += 加分;
+            }
+        };
+
+        读到加分("基础观察事实可用状态", 16);
+        读到加分("基础风险判断状态", 16);
+        读到加分("风险状态明确状态", 16);
+        读到加分("基础风险值计算状态", 10);
+        读到加分("当前场景评估安全值候选", 12);
+        读到加分("当前场景安全度候选", 12);
+        读到加分("当前场景安全判定状态", 10);
+        读到加分("安全评估证据不足原因", 10);
+        读到加分("风险安全_场景影响部分候选", 8);
+        读到加分("风险安全层候选", 8);
+        读到加分("风险安全层投影候选", 8);
+        读到加分("风险安全层缺失因素数量", 4);
+        读到加分("当前场景已确认存在数量", 4);
+        return 评分;
+    }
+
+    基础信息节点类* 私有_选择自我场景安全评估宿主(场景节点类* 自我所在场景) noexcept
+    {
+        auto* 场景宿主 = reinterpret_cast<基础信息节点类*>(自我所在场景);
+        if (!场景宿主) {
+            return nullptr;
+        }
+
+        基础信息节点类* 最佳宿主 = nullptr;
+        int 最佳评分 = 0;
+        I64 最佳深度帧号 = -1;
+        I64 最佳观察帧 = -1;
+        std::vector<基础信息节点类*> 栈{};
+        栈.push_back(场景宿主);
+
+        std::size_t 已扫描 = 0;
+        while (!栈.empty() && 已扫描 < 4096) {
+            auto* 当前 = 栈.back();
+            栈.pop_back();
+            ++已扫描;
+            if (!当前) {
+                continue;
+            }
+
+            const int 当前评分 = 私有_场景安全评估宿主评分(当前);
+            I64 当前深度帧号 = -1;
+            I64 当前观察帧 = -1;
+            (void)私有_读取场景复现I64(当前, "深度帧号", 当前深度帧号);
+            (void)私有_读取场景复现I64(当前, "当前观察帧", 当前观察帧);
+            if (当前评分 > 最佳评分
+                || (当前评分 == 最佳评分
+                    && 当前评分 > 0
+                    && (当前深度帧号 > 最佳深度帧号
+                        || (当前深度帧号 == 最佳深度帧号 && 当前观察帧 > 最佳观察帧)))) {
+                最佳宿主 = 当前;
+                最佳评分 = 当前评分;
+                最佳深度帧号 = 当前深度帧号;
+                最佳观察帧 = 当前观察帧;
+            }
+
+            for (auto* 子节点 : 世界树.基础信息().枚举子节点(当前)) {
+                if (子节点) {
+                    栈.push_back(子节点);
+                }
+            }
+        }
+
+        return 最佳宿主;
+    }
+
     void 私有_读取自我场景诊断区域列表(
         基础信息节点类* 宿主,
         结构_控制面板快照& 快照) noexcept
@@ -1554,6 +1633,11 @@ namespace {
         快照.自我场景复现宿主标题 = 宿主
             ? 私有_安全节点摘要(宿主, "复现宿主")
             : std::string("空");
+        auto* 安全宿主 = 私有_选择自我场景安全评估宿主(自我所在场景);
+        快照.自我场景安全评估宿主指针 = 私有_地址(安全宿主);
+        快照.自我场景安全评估宿主标题 = 安全宿主
+            ? 私有_安全节点摘要(安全宿主, "安全评估宿主")
+            : std::string("空");
         if (!宿主) {
             return;
         }
@@ -1562,6 +1646,9 @@ namespace {
         const auto 读 = [&](const char* 特征名, I64& 字段) noexcept {
             const bool 命中 = 私有_读取场景复现I64_保留默认(宿主, 特征名, 字段);
             有快照 = 命中 || 有快照;
+        };
+        const auto 读安全 = [&](const char* 特征名, I64& 字段) noexcept {
+            (void)私有_读取场景复现I64_保留默认(安全宿主, 特征名, 字段);
         };
 
         读("当前观察帧", 快照.自我场景当前观察帧);
@@ -1677,6 +1764,18 @@ namespace {
         读("观察存在确认状态", 快照.自我场景观察存在确认状态);
         读("已验证观察存在数量", 快照.自我场景已验证观察存在数量);
         读("帧解释状态", 快照.自我场景帧解释状态);
+        读安全("基础观察事实可用状态", 快照.自我场景基础观察事实可用状态);
+        读安全("基础风险判断状态", 快照.自我场景基础风险判断状态);
+        读安全("风险状态明确状态", 快照.自我场景风险状态明确状态);
+        读安全("基础风险值计算状态", 快照.自我场景基础风险值计算状态);
+        读安全("当前场景评估安全值候选", 快照.自我场景当前场景评估安全值候选);
+        读安全("当前场景安全度候选", 快照.自我场景当前场景安全度候选);
+        读安全("当前场景安全判定状态", 快照.自我场景当前场景安全判定状态);
+        读安全("安全评估证据不足原因", 快照.自我场景安全评估证据不足原因);
+        读安全("风险安全_场景影响部分候选", 快照.自我场景风险安全_场景影响部分候选);
+        读安全("风险安全层候选", 快照.自我场景风险安全层候选);
+        读安全("风险安全层投影候选", 快照.自我场景风险安全层投影候选);
+        读安全("风险安全层缺失因素数量", 快照.自我场景风险安全层缺失因素数量);
 
         快照.自我场景复现有快照 = 有快照
             && (快照.自我场景当前观察帧 != 0
@@ -5303,6 +5402,9 @@ namespace {
         私有_追加JSON字符串(输出, 快照.自我所在场景标题);
         输出 << ",\"hostTitle\":";
         私有_追加JSON字符串(输出, 快照.自我场景复现宿主标题);
+        输出 << ",\"safetyHostPtr\":" << 快照.自我场景安全评估宿主指针;
+        输出 << ",\"safetyHostTitle\":";
+        私有_追加JSON字符串(输出, 快照.自我场景安全评估宿主标题);
         输出 << ",\"width\":" << 快照.自我场景相机帧宽度;
         输出 << ",\"height\":" << 快照.自我场景相机帧高度;
         输出 << ",\"depthFrame\":" << 快照.自我场景深度帧号;
@@ -5407,6 +5509,18 @@ namespace {
         输出 << ",\"confirmState\":" << 快照.自我场景观察存在确认状态;
         输出 << ",\"verifiedCount\":" << 快照.自我场景已验证观察存在数量;
         输出 << ",\"frameExplainState\":" << 快照.自我场景帧解释状态;
+        输出 << ",\"basicObservationFactUsableState\":" << 快照.自我场景基础观察事实可用状态;
+        输出 << ",\"basicRiskJudgementState\":" << 快照.自我场景基础风险判断状态;
+        输出 << ",\"riskStateExplicitState\":" << 快照.自我场景风险状态明确状态;
+        输出 << ",\"basicRiskValueCalculatedState\":" << 快照.自我场景基础风险值计算状态;
+        输出 << ",\"sceneAssessmentSafetyValue\":" << 快照.自我场景当前场景评估安全值候选;
+        输出 << ",\"sceneSafetyDegree\":" << 快照.自我场景当前场景安全度候选;
+        输出 << ",\"sceneSafetyJudgementState\":" << 快照.自我场景当前场景安全判定状态;
+        输出 << ",\"safetyEvidenceInsufficientReason\":" << 快照.自我场景安全评估证据不足原因;
+        输出 << ",\"riskSafetySceneImpactCandidate\":" << 快照.自我场景风险安全_场景影响部分候选;
+        输出 << ",\"riskSafetyLayerCandidate\":" << 快照.自我场景风险安全层候选;
+        输出 << ",\"riskSafetyLayerProjectionCandidate\":" << 快照.自我场景风险安全层投影候选;
+        输出 << ",\"riskSafetyLayerMissingFactorCount\":" << 快照.自我场景风险安全层缺失因素数量;
         输出 << ",\"candidate\":{";
         输出 << "\"valid\":" << (候选范围有效 ? "true" : "false") << ",";
         输出 << "\"id\":" << 绘制候选编号 << ",";
@@ -6758,6 +6872,19 @@ std::string 渲染控制面板摘要(
             ? std::string("空")
             : 快照.需求树当前主需求主键)
         << '\n'
+        << "  - 场景安全评估: 基础观察="
+        << 快照.自我场景基础观察事实可用状态
+        << " | 基础风险判断=" << 快照.自我场景基础风险判断状态
+        << " | 风险明确=" << 快照.自我场景风险状态明确状态
+        << " | 风险值计算=" << 快照.自我场景基础风险值计算状态
+        << " | 评估安全值=" << 快照.自我场景当前场景评估安全值候选
+        << " | 安全度=" << 快照.自我场景当前场景安全度候选
+        << " | 判定=" << 快照.自我场景当前场景安全判定状态
+        << " | 场景影响=" << 快照.自我场景风险安全_场景影响部分候选
+        << " | 风险安全层候选=" << 快照.自我场景风险安全层候选
+        << " | 风险安全投影候选=" << 快照.自我场景风险安全层投影候选
+        << " | 未明确原因=" << 快照.自我场景安全评估证据不足原因
+        << '\n'
         << "  - 树规模: 基础节点=" << 快照.基础信息节点数
         << " | 场景=" << 快照.场景数
         << " | 存在=" << 快照.存在数
@@ -7142,6 +7269,11 @@ std::string 生成控制面板HTML(
         + " | 质量=" + std::to_string(快照.自我场景帧质量评分)
         + " | 空间候选=" + std::to_string(快照.自我场景空间候选数量)
         + " | 已验证观察存在=" + std::to_string(快照.自我场景已验证观察存在数量)
+        + " | 基础观察=" + std::to_string(快照.自我场景基础观察事实可用状态)
+        + " | 基础风险判断=" + std::to_string(快照.自我场景基础风险判断状态)
+        + " | 风险明确=" + std::to_string(快照.自我场景风险状态明确状态)
+        + " | 评估安全值=" + std::to_string(快照.自我场景当前场景评估安全值候选)
+        + " | 风险安全投影候选=" + std::to_string(快照.自我场景风险安全层投影候选)
         + " | 补观察缺口=" + std::to_string(快照.自我场景补观察缺口状态)
         + " | 待补区域=" + std::to_string(快照.自我场景待补观察区域数量)
         + " | 帧解释=" + std::to_string(快照.自我场景帧解释状态));
@@ -8539,6 +8671,26 @@ std::string 生成控制面板HTML(
                     <div class="scene-diagnostic-label">补偿候选</div>
                     <div id="scene-gap-candidate-stat" class="scene-diagnostic-value">--</div>
                   </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">安全评估宿主</div>
+                    <div id="scene-safety-host-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">基础风险判断</div>
+                    <div id="scene-basic-risk-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">场景安全值</div>
+                    <div id="scene-safety-value-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">风险安全投影</div>
+                    <div id="scene-risk-safety-projection-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">未明确原因</div>
+                    <div id="scene-safety-gap-stat" class="scene-diagnostic-value">--</div>
+                  </div>
                 </div>
               </aside>
             </div>
@@ -9739,6 +9891,11 @@ std::string 生成控制面板HTML(
       设置自我场景文本('scene-contour-risk-stat', `深度支持 ${格式化场景比例(data.contourDepthSupport)} / 颜色 ${格式化场景比例(data.contourColorSupport)} / 空间 ${格式化场景比例(data.contourSpaceSupport)} / 断裂 ${data.depthBreakContourCount || 0} / 无效 ${data.invalidDepthContourCount || 0} / 补全 ${data.filledDepthContourCount || 0} / 低置信 ${data.lowConfidenceContourCount || 0}`);
       设置自我场景文本('scene-gap-stat', `状态 ${data.observationGapState || 0} / 原因 ${data.observationMissingReason || 0} / 待补区域 ${data.refillObservationRegionCount || 0} / 诊断矩形 ${data.diagnosticRegionCount || 0}:${data.diagnosticRegionSetState || 0}:${data.diagnosticRegionMaskState || 0} / 建议 ${data.observationSuggestion || 0}`);
       设置自我场景文本('scene-gap-candidate-stat', `补全 ${data.completionCandidateCount || 0} / 条件不足 ${data.insufficientCandidateCount || 0} / 待验证 ${data.pendingVerifyCandidateCount || 0} / 部分确认 ${data.partialConfirmCandidateCount || 0}`);
+      设置自我场景文本('scene-safety-host-stat', data.safetyHostTitle || '空');
+      设置自我场景文本('scene-basic-risk-stat', `基础观察 ${data.basicObservationFactUsableState || 0} / 判断 ${data.basicRiskJudgementState || 0} / 风险明确 ${data.riskStateExplicitState || 0} / 风险值计算 ${data.basicRiskValueCalculatedState || 0}`);
+      设置自我场景文本('scene-safety-value-stat', `评估安全值 ${data.sceneAssessmentSafetyValue || 0} / 安全度 ${data.sceneSafetyDegree || 0} / 判定 ${data.sceneSafetyJudgementState || 0}`);
+      设置自我场景文本('scene-risk-safety-projection-stat', `场景影响 ${data.riskSafetySceneImpactCandidate || 0} / 层候选 ${data.riskSafetyLayerCandidate || 0} / 投影 ${data.riskSafetyLayerProjectionCandidate || 0} / 缺失因素 ${data.riskSafetyLayerMissingFactorCount || 0}`);
+      设置自我场景文本('scene-safety-gap-stat', `安全评估证据不足原因 ${data.safetyEvidenceInsufficientReason || 0}`);
       更新自我场景图层摘要();
     }
 
