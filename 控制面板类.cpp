@@ -59,6 +59,11 @@ namespace {
     constexpr std::uintptr_t 私有_线程详情_任务界面 = 5;
     constexpr std::size_t 私有_列表分页大小 = 100;
 
+    enum class 枚举_控制面板HTML用途 {
+        主面板,
+        自我场景窗口,
+    };
+
     struct 结构_控制面板缺口承接快照 {
         I64 待处理方法数量 = 0;
         bool 应触发缺口承接 = false;
@@ -1493,9 +1498,22 @@ namespace {
         读到加分("当前场景安全判定状态", 10);
         读到加分("安全评估证据不足原因", 10);
         读到加分("风险安全_场景影响部分候选", 8);
+        读到加分("风险安全_场景影响部分可结算状态", 8);
+        读到加分("风险安全_场景影响部分不可结算原因", 6);
+        读到加分("风险安全_场景影响部分已入账状态", 6);
         读到加分("风险安全层候选", 8);
         读到加分("风险安全层投影候选", 8);
         读到加分("风险安全层缺失因素数量", 4);
+        读到加分("风险安全层明确状态", 6);
+        读到加分("风险安全层可聚合状态", 6);
+        读到加分("风险安全层已入账状态", 4);
+        读到加分("风险因素未搜索掩码", 4);
+        读到加分("风险因素搜索缺口掩码", 4);
+        读到加分("风险因素负向证据掩码", 4);
+        读到加分("风险因素默认满足掩码", 4);
+        读到加分("风险因素已入账掩码", 4);
+        读到加分("风险因素证据搜索未完成数量", 4);
+        读到加分("风险因素默认满足数量", 4);
         读到加分("当前场景已确认存在数量", 4);
         return 评分;
     }
@@ -1773,9 +1791,22 @@ namespace {
         读安全("当前场景安全判定状态", 快照.自我场景当前场景安全判定状态);
         读安全("安全评估证据不足原因", 快照.自我场景安全评估证据不足原因);
         读安全("风险安全_场景影响部分候选", 快照.自我场景风险安全_场景影响部分候选);
+        读安全("风险安全_场景影响部分可结算状态", 快照.自我场景风险安全_场景影响部分可结算状态);
+        读安全("风险安全_场景影响部分不可结算原因", 快照.自我场景风险安全_场景影响部分不可结算原因);
+        读安全("风险安全_场景影响部分已入账状态", 快照.自我场景风险安全_场景影响部分已入账状态);
         读安全("风险安全层候选", 快照.自我场景风险安全层候选);
         读安全("风险安全层投影候选", 快照.自我场景风险安全层投影候选);
         读安全("风险安全层缺失因素数量", 快照.自我场景风险安全层缺失因素数量);
+        读安全("风险安全层明确状态", 快照.自我场景风险安全层明确状态);
+        读安全("风险安全层可聚合状态", 快照.自我场景风险安全层可聚合状态);
+        读安全("风险安全层已入账状态", 快照.自我场景风险安全层已入账状态);
+        读安全("风险因素未搜索掩码", 快照.自我场景风险因素未搜索掩码);
+        读安全("风险因素搜索缺口掩码", 快照.自我场景风险因素搜索缺口掩码);
+        读安全("风险因素负向证据掩码", 快照.自我场景风险因素负向证据掩码);
+        读安全("风险因素默认满足掩码", 快照.自我场景风险因素默认满足掩码);
+        读安全("风险因素已入账掩码", 快照.自我场景风险因素已入账掩码);
+        读安全("风险因素证据搜索未完成数量", 快照.自我场景风险因素证据搜索未完成数量);
+        读安全("风险因素默认满足数量", 快照.自我场景风险因素默认满足数量);
 
         快照.自我场景复现有快照 = 有快照
             && (快照.自我场景当前观察帧 != 0
@@ -2530,6 +2561,155 @@ namespace {
         return 左->获取主键() == 右->获取主键();
     }
 
+    const 语素入口节点类* 私有_查找特征模板入口_控制面板(const char* 名称) noexcept
+    {
+        try {
+            if (!名称 || !*名称) {
+                return nullptr;
+            }
+            const auto* 词节点 = 语素集.查找词节点(名称);
+            return 词节点
+                ? 语素集.查找信息入口节点(词节点, 枚举_信息入口类型::特征模板入口)
+                : nullptr;
+        }
+        catch (...) {
+            return nullptr;
+        }
+    }
+
+    using 枚举_需求目标语义_控制面板 = 需求类::枚举_需求目标语义;
+    using 结构_需求目标语义视图_控制面板 = 需求类::结构_需求目标语义视图;
+
+    结构_需求目标语义视图_控制面板 私有_需求目标语义视图_控制面板(
+        const 语素入口节点类* 目标特征类型) noexcept
+    {
+        return 需求类::需求目标语义视图(目标特征类型);
+    }
+
+    const char* 私有_需求结构形态文本_控制面板(const 需求节点* 节点) noexcept
+    {
+        return 需求类::需求结构形态文本(节点);
+    }
+
+    std::string 私有_普通筹办不可用原因_控制面板(
+        const 需求节点* 节点,
+        const 结构_需求目标语义视图_控制面板& 视图)
+    {
+        (void)节点;
+        return 需求类::普通候选方法筹办禁止原因(视图);
+    }
+
+    I64 私有_OR组令牌记录键_控制面板(const 需求节点* OR组) noexcept
+    {
+        std::uint64_t 哈希 = 1469598103934665603ull;
+        const auto 主键 = OR组 ? 私有_节点主键_控制面板(OR组) : std::string{};
+        for (const unsigned char 字符 : 主键) {
+            哈希 ^= static_cast<std::uint64_t>(字符);
+            哈希 *= 1099511628211ull;
+        }
+        if (主键.empty()) {
+            哈希 ^= static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(OR组));
+            哈希 *= 1099511628211ull;
+        }
+        const auto 正值 = static_cast<I64>(哈希 & 0x7fffffffffffffffULL);
+        return 正值 != 0 ? 正值 : 1;
+    }
+
+    存在节点类* 私有_查找OR组令牌记录_控制面板(const 需求节点* OR组) noexcept
+    {
+        auto* 自我存在 = 自我.获取自我存在();
+        const auto* 记录类型 = 私有_查找特征模板入口_控制面板("OR组结算令牌记录");
+        const auto* 记录键特征 = 私有_查找特征模板入口_控制面板("OR组令牌记录键");
+        if (!OR组 || !自我存在 || !记录类型 || !记录键特征) {
+            return nullptr;
+        }
+
+        const auto 目标键 = 私有_OR组令牌记录键_控制面板(OR组);
+        for (auto* 子存在 : 世界树.存在().获取子存在(
+                 reinterpret_cast<基础信息节点类*>(自我存在))) {
+            const auto* 主信息 = 世界树.存在().取存在主信息(子存在);
+            if (!主信息 || !私有_语素入口相同_控制面板(主信息->类型, 记录类型)) {
+                continue;
+            }
+            I64 当前键 = 0;
+            if (世界树.读取特征_I64(
+                    reinterpret_cast<const 基础信息节点类*>(子存在),
+                    记录键特征,
+                    当前键)
+                && 当前键 == 目标键) {
+                return 子存在;
+            }
+        }
+        return nullptr;
+    }
+
+    struct 结构_OR组令牌只读视图_控制面板 {
+        std::string 状态文本 = "不适用";
+        std::string 当前激活路径 = "不适用";
+    };
+
+    结构_OR组令牌只读视图_控制面板 私有_读取OR组令牌只读视图_控制面板(
+        const 需求节点* 节点,
+        const 结构_需求目标语义视图_控制面板& 目标语义) noexcept
+    {
+        结构_OR组令牌只读视图_控制面板 视图{};
+        if (!节点 || !目标语义.是OR组目标) {
+            return 视图;
+        }
+        if (!自我.获取自我存在()) {
+            视图.状态文本 = "自我存在空";
+            视图.当前激活路径 = "未触发";
+            return 视图;
+        }
+
+        auto* 记录 = 私有_查找OR组令牌记录_控制面板(节点);
+        if (!记录) {
+            视图.状态文本 = "无令牌记录";
+            视图.当前激活路径 = "未触发";
+            return 视图;
+        }
+
+        const auto* 状态特征 = 私有_查找特征模板入口_控制面板("OR组结算令牌状态");
+        I64 状态 = 0;
+        if (状态特征
+            && 世界树.读取特征_I64(
+                reinterpret_cast<const 基础信息节点类*>(记录),
+                状态特征,
+                状态)) {
+            if (状态 == 1) {
+                视图.状态文本 = "已领取";
+            }
+            else if (状态 == 0) {
+                视图.状态文本 = "未领取";
+            }
+            else {
+                视图.状态文本 = "未知值=" + std::to_string(状态);
+            }
+        }
+        else {
+            视图.状态文本 = "有令牌记录但无状态";
+        }
+
+        const auto* 路径特征 = 私有_查找特征模板入口_控制面板("OR组领取路径");
+        void* 路径指针 = nullptr;
+        if (路径特征
+            && 世界树.读取特征_指针(
+                reinterpret_cast<const 基础信息节点类*>(记录),
+                路径特征,
+                路径指针)
+            && 路径指针) {
+            auto* 路径需求 = reinterpret_cast<const 需求节点*>(路径指针);
+            const auto 路径主键 = 私有_节点主键_控制面板(路径需求);
+            视图.当前激活路径 = 路径主键.empty()
+                ? 私有_十六进制指针(私有_地址(路径需求))
+                : 路径主键;
+        }
+        else {
+            视图.当前激活路径 = "未写入";
+        }
+        return 视图;
+    }
+
     const 语素入口节点类* 私有_查找人类词性入口_控制面板(
         const std::string& 词值,
         const std::string& 词性值) noexcept
@@ -2576,11 +2756,7 @@ namespace {
 
     const 语素入口节点类* 私有_需求目标特征类型_控制面板(const 需求节点* 节点) noexcept
     {
-        if (!节点) {
-            return nullptr;
-        }
-        auto* 目标状态 = 私有_解析基础信息引用_控制面板(节点->主信息.需求状态);
-        return 私有_状态特征类型_控制面板(目标状态);
+        return 需求类::读取需求目标特征类型(节点);
     }
 
     std::string 私有_状态主体主键_控制面板(const 状态节点类* 状态节点) noexcept
@@ -3713,6 +3889,20 @@ namespace {
         私有_追加等号字段(字段节点, "满足情况", 满足情况.满足情况);
         私有_追加等号字段(字段节点, "满足情况说明", 私有_需求满足情况说明_控制面板(满足情况));
         私有_追加等号字段(字段节点, "目标特征类型缓存", 私有_词文本(节点->主信息.目标特征类型缓存));
+        const auto 目标语义视图 = 私有_需求目标语义视图_控制面板(需求特征类型);
+        const auto 令牌视图 = 私有_读取OR组令牌只读视图_控制面板(节点, 目标语义视图);
+        私有_追加等号字段(字段节点, "结构形态", 私有_需求结构形态文本_控制面板(节点));
+        私有_追加等号字段(字段节点, "目标语义", 目标语义视图.语义名称);
+        私有_追加等号字段(
+            字段节点,
+            "可进入普通候选方法筹办",
+            目标语义视图.可进入普通候选方法筹办);
+        私有_追加等号字段(
+            字段节点,
+            "不可进入普通筹办原因",
+            私有_普通筹办不可用原因_控制面板(节点, 目标语义视图));
+        私有_追加等号字段(字段节点, "OR组令牌状态", 令牌视图.状态文本);
+        私有_追加等号字段(字段节点, "OR组当前激活路径", 令牌视图.当前激活路径);
 
         私有_追加等号引用字段(字段节点, "需求主体", 节点->主信息.需求主体, 路径);
         私有_追加等号引用字段(字段节点, "需求场景", 节点->主信息.需求场景, 路径);
@@ -4583,6 +4773,17 @@ namespace {
         私有_追加叶字段(字段节点, "兼容派生本能能力缺口类型抽象特征指针", 私有_十六进制指针(派生归因.派生本能能力缺口类型抽象特征指针));
         私有_追加叶字段(字段节点, "兼容派生本能能力缺口类型值", 派生归因.派生本能能力缺口类型值);
         const auto 方法评估 = 私有_评估需求方法可用性_控制面板(节点);
+        const auto 目标语义视图 = 私有_需求目标语义视图_控制面板(方法评估.目标特征类型);
+        const auto 令牌视图 = 私有_读取OR组令牌只读视图_控制面板(节点, 目标语义视图);
+        私有_追加叶字段(字段节点, "结构形态", 私有_需求结构形态文本_控制面板(节点));
+        私有_追加叶字段(字段节点, "目标语义", 目标语义视图.语义名称);
+        私有_追加叶字段(字段节点, "可进入普通候选方法筹办", 目标语义视图.可进入普通候选方法筹办);
+        私有_追加叶字段(
+            字段节点,
+            "不可进入普通筹办原因",
+            私有_普通筹办不可用原因_控制面板(节点, 目标语义视图));
+        私有_追加叶字段(字段节点, "OR组令牌状态", 令牌视图.状态文本);
+        私有_追加叶字段(字段节点, "OR组当前激活路径", 令牌视图.当前激活路径);
         私有_追加叶字段(字段节点, "方法可用性", 私有_需求方法可用性状态文本(方法评估.状态));
         私有_追加叶字段(字段节点, "目标特征类型", 私有_词文本(方法评估.目标特征类型));
         私有_追加叶字段(字段节点, "需求方向", 私有_方向文本_控制面板(方法评估.需求方向));
@@ -5345,6 +5546,27 @@ namespace {
         return 输出.str();
     }
 
+    std::string 私有_页面刷新JSON(
+        std::string_view 页面,
+        const 结构_控制面板树节点* 根节点,
+        std::string_view 错误 = {})
+    {
+        std::ostringstream 输出;
+        输出 << "{\"ok\":" << (根节点 && 错误.empty() ? "true" : "false");
+        输出 << ",\"page\":";
+        私有_追加JSON字符串(输出, 页面);
+        if (根节点) {
+            输出 << ",\"root\":";
+            私有_追加树节点JSON(输出, *根节点);
+        }
+        if (!错误.empty()) {
+            输出 << ",\"error\":";
+            私有_追加JSON字符串(输出, 错误);
+        }
+        输出 << "}";
+        return 输出.str();
+    }
+
     void 私有_追加JSON_I64数组3(std::ostringstream& 输出, I64 x, I64 y, I64 z)
     {
         输出 << "[" << x << "," << y << "," << z << "]";
@@ -5518,9 +5740,22 @@ namespace {
         输出 << ",\"sceneSafetyJudgementState\":" << 快照.自我场景当前场景安全判定状态;
         输出 << ",\"safetyEvidenceInsufficientReason\":" << 快照.自我场景安全评估证据不足原因;
         输出 << ",\"riskSafetySceneImpactCandidate\":" << 快照.自我场景风险安全_场景影响部分候选;
+        输出 << ",\"riskSafetySceneImpactSettleableState\":" << 快照.自我场景风险安全_场景影响部分可结算状态;
+        输出 << ",\"riskSafetySceneImpactUnsettleableReason\":" << 快照.自我场景风险安全_场景影响部分不可结算原因;
+        输出 << ",\"riskSafetySceneImpactBookedState\":" << 快照.自我场景风险安全_场景影响部分已入账状态;
         输出 << ",\"riskSafetyLayerCandidate\":" << 快照.自我场景风险安全层候选;
         输出 << ",\"riskSafetyLayerProjectionCandidate\":" << 快照.自我场景风险安全层投影候选;
         输出 << ",\"riskSafetyLayerMissingFactorCount\":" << 快照.自我场景风险安全层缺失因素数量;
+        输出 << ",\"riskSafetyLayerClearState\":" << 快照.自我场景风险安全层明确状态;
+        输出 << ",\"riskSafetyLayerAggregatableState\":" << 快照.自我场景风险安全层可聚合状态;
+        输出 << ",\"riskSafetyLayerBookedState\":" << 快照.自我场景风险安全层已入账状态;
+        输出 << ",\"riskFactorUnsearchedMask\":" << 快照.自我场景风险因素未搜索掩码;
+        输出 << ",\"riskFactorSearchGapMask\":" << 快照.自我场景风险因素搜索缺口掩码;
+        输出 << ",\"riskFactorNegativeEvidenceMask\":" << 快照.自我场景风险因素负向证据掩码;
+        输出 << ",\"riskFactorDefaultSatisfiedMask\":" << 快照.自我场景风险因素默认满足掩码;
+        输出 << ",\"riskFactorBookedMask\":" << 快照.自我场景风险因素已入账掩码;
+        输出 << ",\"riskFactorSearchIncompleteCount\":" << 快照.自我场景风险因素证据搜索未完成数量;
+        输出 << ",\"riskFactorDefaultSatisfiedCount\":" << 快照.自我场景风险因素默认满足数量;
         输出 << ",\"candidate\":{";
         输出 << "\"valid\":" << (候选范围有效 ? "true" : "false") << ",";
         输出 << "\"id\":" << 绘制候选编号 << ",";
@@ -5694,11 +5929,13 @@ namespace {
     }
 }
 
-结构_控制面板快照 读取控制面板快照(
+结构_控制面板快照 私有_读取控制面板快照(
     const std::size_t 树深度上限,
-    const std::size_t 树广度上限)
+    const std::size_t 树广度上限,
+    const bool 读取自我场景快照)
 {
     结构_控制面板快照 快照{};
+    const bool 仅标量摘要 = 树深度上限 == 0 && 树广度上限 == 0;
     const auto 记录快照阶段 = [](std::string_view 阶段) noexcept {
         项目运行日志(std::string("控制面板快照阶段 | ") + std::string(阶段));
     };
@@ -5788,37 +6025,48 @@ namespace {
     快照.自检报告修复门控摘要 = 自检报告修复快照.摘要;
     快照.自我存在指针 = 私有_地址(自我.获取自我存在());
     快照.自我存在标题 = 私有_安全节点摘要(自我.获取自我存在(), "自我存在");
-    私有_读取自我场景复现快照(快照);
-
-    const auto 全部基础节点 = 世界树.基础信息().枚举全部节点();
-    快照.基础信息节点数 = 全部基础节点.size();
-    快照.场景数 = 世界树.基础信息().枚举节点_按类型<场景节点主信息类>().size();
-    快照.存在数 = 世界树.基础信息().枚举节点_按类型<存在节点主信息类>().size();
-    快照.特征数 = 世界树.基础信息().枚举节点_按类型<特征节点主信息类>().size();
-    快照.状态数 = 世界树.基础信息().枚举节点_按类型<状态节点主信息类>().size();
-    快照.动态数 = 世界树.基础信息().枚举节点_按类型<动态节点主信息类>().size();
-    记录快照阶段("基础节点计数完成");
-
-    const auto 因果节点集 = 世界树.基础信息().枚举节点_按类型<因果主信息类>();
-    std::size_t 因果模板数 = 0;
-    std::size_t 因果实例数 = 0;
-    std::size_t 因果证据动态样本数 = 0;
-    for (auto* 因果节点 : 因果节点集) {
-        const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
-        if (!主信息) {
-            continue;
-        }
-        if (主信息->是抽象因果()) {
-            ++因果模板数;
-        }
-        else if (主信息->是实例因果()) {
-            ++因果实例数;
-        }
-        因果证据动态样本数 += 主信息->证据动态样本.size();
+    if (仅标量摘要) {
+        记录快照阶段("轻量摘要跳过场景复现");
+        记录快照阶段("轻量摘要跳过基础节点全量计数");
     }
-    快照.因果模板数 = 因果模板数;
-    快照.因果实例数 = 因果实例数;
-    快照.因果证据动态样本数 = 因果证据动态样本数;
+    else {
+        if (读取自我场景快照) {
+            私有_读取自我场景复现快照(快照);
+        }
+        else {
+            记录快照阶段("主控制面板跳过场景复现");
+        }
+
+        const auto 全部基础节点 = 世界树.基础信息().枚举全部节点();
+        快照.基础信息节点数 = 全部基础节点.size();
+        快照.场景数 = 世界树.基础信息().枚举节点_按类型<场景节点主信息类>().size();
+        快照.存在数 = 世界树.基础信息().枚举节点_按类型<存在节点主信息类>().size();
+        快照.特征数 = 世界树.基础信息().枚举节点_按类型<特征节点主信息类>().size();
+        快照.状态数 = 世界树.基础信息().枚举节点_按类型<状态节点主信息类>().size();
+        快照.动态数 = 世界树.基础信息().枚举节点_按类型<动态节点主信息类>().size();
+        记录快照阶段("基础节点计数完成");
+
+        const auto 因果节点集 = 世界树.基础信息().枚举节点_按类型<因果主信息类>();
+        std::size_t 因果模板数 = 0;
+        std::size_t 因果实例数 = 0;
+        std::size_t 因果证据动态样本数 = 0;
+        for (auto* 因果节点 : 因果节点集) {
+            const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
+            if (!主信息) {
+                continue;
+            }
+            if (主信息->是抽象因果()) {
+                ++因果模板数;
+            }
+            else if (主信息->是实例因果()) {
+                ++因果实例数;
+            }
+            因果证据动态样本数 += 主信息->证据动态样本.size();
+        }
+        快照.因果模板数 = 因果模板数;
+        快照.因果实例数 = 因果实例数;
+        快照.因果证据动态样本数 = 因果证据动态样本数;
+    }
 
     auto* 自我存在 = 自我.获取自我存在();
     auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
@@ -5926,6 +6174,29 @@ namespace {
                 : 私有_需求目标特征类型_控制面板(节点);
             const auto 目标特征类型主键 =
                 私有_节点主键_控制面板(目标特征类型);
+            const auto 目标语义视图 = 私有_需求目标语义视图_控制面板(目标特征类型);
+            if (目标语义视图.是逻辑组织目标) {
+                ++快照.需求树逻辑组织需求数;
+                switch (目标语义视图.语义) {
+                case 枚举_需求目标语义_控制面板::AND组满足:
+                    ++快照.需求树AND组需求数;
+                    break;
+                case 枚举_需求目标语义_控制面板::OR组满足:
+                    ++快照.需求树OR组需求数;
+                    break;
+                case 枚举_需求目标语义_控制面板::方法路径完成:
+                    ++快照.需求树方法路径组需求数;
+                    break;
+                case 枚举_需求目标语义_控制面板::因果子链支撑:
+                    ++快照.需求树因果子链支撑需求数;
+                    break;
+                default:
+                    break;
+                }
+            }
+            if (目标语义视图.是结算令牌目标) {
+                ++快照.需求树OR组结算令牌需求数;
+            }
 
             auto* 目标特征节点 = 目标状态主信息
                 ? 目标状态主信息->状态特征.指针
@@ -6073,6 +6344,21 @@ namespace {
             私有_节点主键_控制面板(目标特征类型);
         快照.需求树当前主需求有任务 =
             当前主需求节点->主信息.对应任务.有效();
+        const auto 目标语义视图 = 私有_需求目标语义视图_控制面板(目标特征类型);
+        const auto 令牌视图 = 私有_读取OR组令牌只读视图_控制面板(
+            当前主需求节点,
+            目标语义视图);
+        快照.需求树当前主需求结构形态 =
+            私有_需求结构形态文本_控制面板(当前主需求节点);
+        快照.需求树当前主需求目标语义 = 目标语义视图.语义名称;
+        快照.需求树当前主需求可普通任务化 =
+            目标语义视图.可进入普通候选方法筹办;
+        快照.需求树当前主需求不可普通任务化原因 =
+            私有_普通筹办不可用原因_控制面板(
+                当前主需求节点,
+                目标语义视图);
+        快照.需求树当前主需求OR令牌状态 = 令牌视图.状态文本;
+        快照.需求树当前主需求当前激活路径 = 令牌视图.当前激活路径;
     }
     if (任务根节点) {
         auto 统计任务节点 = [&](const 任务节点* 节点) {
@@ -6254,6 +6540,10 @@ namespace {
     std::optional<结构_治理恢复快照> 最近恢复快照{};
 
     快照.线程数 = 私有_枚举当前进程线程().size();
+    if (仅标量摘要) {
+        记录快照阶段("轻量摘要跳过树骨架构建");
+        return 快照;
+    }
 
     结构_构建上下文 上下文{};
     上下文.树深度上限 = (std::min)((std::max<std::size_t>)(1, 树深度上限), std::size_t{6});
@@ -6365,6 +6655,207 @@ namespace {
     记录快照阶段("方法树骨架构建完成");
 
     return 快照;
+}
+
+结构_控制面板快照 读取控制面板快照(
+    const std::size_t 树深度上限,
+    const std::size_t 树广度上限)
+{
+    return 私有_读取控制面板快照(
+        树深度上限,
+        树广度上限,
+        true);
+}
+
+结构_控制面板快照 读取控制面板主窗口快照(
+    const std::size_t 树深度上限,
+    const std::size_t 树广度上限)
+{
+    return 私有_读取控制面板快照(
+        树深度上限,
+        树广度上限,
+        false);
+}
+
+结构_控制面板快照 读取控制面板轻量摘要快照()
+{
+    return 私有_读取控制面板快照(0, 0, false);
+}
+
+std::string 读取控制面板页面刷新JSON(std::string_view 页面)
+{
+    const auto 快照 = 读取控制面板快照(0, 0);
+    auto* 自我存在 = 自我.获取自我存在();
+    auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
+    auto* 任务根节点 = 自我存在 ? 世界树.存在().获取任务根节点(自我存在) : nullptr;
+    auto* 方法根节点 = 自我存在 ? 世界树.存在().获取方法根节点(自我存在) : nullptr;
+    const auto 上下文 = 私有_创建构建上下文(16);
+
+    if (页面 == "thread-status") {
+        任务管理工作线程::结构_工作线程实例快照 工作线程快照{};
+        (void)任务管理工作线程::读取任务管理工作线程快照(&工作线程快照);
+        任务管理线程协议::结构_任务界面线程快照 界面线程快照{};
+        (void)任务管理界面线程::读取任务管理界面线程快照(&界面线程快照);
+        auto 根 = 私有_构建线程状态树(快照, 界面线程快照, 工作线程快照);
+        return 私有_页面刷新JSON(页面, &根);
+    }
+
+    if (页面 == "world-tree") {
+        auto 局部快照 = 快照;
+        const auto 全部基础节点 = 世界树.基础信息().枚举全部节点();
+        局部快照.基础信息节点数 = 全部基础节点.size();
+        局部快照.场景数 = 世界树.基础信息().枚举节点_按类型<场景节点主信息类>().size();
+        局部快照.存在数 = 世界树.基础信息().枚举节点_按类型<存在节点主信息类>().size();
+        auto 根 = 私有_新节点(
+            std::string("世界树 | 节点仓库=基础信息类")
+                + " | 基础节点=" + std::to_string(局部快照.基础信息节点数)
+                + " | 场景=" + std::to_string(局部快照.场景数)
+                + " | 存在=" + std::to_string(局部快照.存在数),
+            0,
+            true);
+        if (auto* 世界根节点 = 世界树.基础信息().世界根()) {
+            根.子项.push_back(私有_构建基础信息根链骨架(世界根节点, 上下文));
+        }
+        else {
+            根.子项.push_back(私有_新节点("基础信息仓库根为空"));
+        }
+        return 私有_页面刷新JSON(页面, &根);
+    }
+
+    if (页面 == "causal-info") {
+        std::size_t 因果模板数 = 0;
+        std::size_t 因果实例数 = 0;
+        std::size_t 因果证据动态样本数 = 0;
+        for (auto* 因果节点 : 世界树.基础信息().枚举节点_按类型<因果主信息类>()) {
+            const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
+            if (!主信息) {
+                continue;
+            }
+            if (主信息->是抽象因果()) {
+                ++因果模板数;
+            }
+            else if (主信息->是实例因果()) {
+                ++因果实例数;
+            }
+            因果证据动态样本数 += 主信息->证据动态样本.size();
+        }
+        auto 根 = 私有_构建因果信息树(
+            上下文,
+            因果模板数,
+            因果实例数,
+            因果证据动态样本数);
+        return 私有_页面刷新JSON(页面, &根);
+    }
+
+    if (页面 == "need-tree") {
+        auto 根 = 私有_新节点(
+            "需求树 | 需求数=" + std::to_string(快照.需求数)
+                + " | " + 私有_需求满足数量摘要(快照),
+            0,
+            true);
+        if (需求根节点) {
+            根.子项.push_back(私有_构建需求根链骨架(需求根节点, 上下文));
+        }
+        else {
+            根.子项.push_back(私有_新节点("需求根为空"));
+        }
+        return 私有_页面刷新JSON(页面, &根);
+    }
+
+    if (页面 == "need-list") {
+        auto 根 = 私有_新节点(
+            "需求列表 | 需求数=" + std::to_string(快照.需求数),
+            0,
+            true);
+        if (需求根节点) {
+            const auto 分页结果 = 私有_读取需求列表分页(需求根节点, 0, 私有_列表分页大小);
+            for (auto* 节点 : 分页结果.节点集) {
+                根.子项.push_back(私有_需求列表轻量骨架节点(节点));
+            }
+            if (分页结果.还有更多) {
+                根.子项.push_back(私有_创建需求列表加载更多节点(分页结果.已遍历数量));
+            }
+        }
+        if (根.子项.empty()) {
+            根.子项.push_back(私有_新节点("暂无需求列表项"));
+        }
+        return 私有_页面刷新JSON(页面, &根);
+    }
+
+    if (页面 == "task-tree") {
+        auto 根 = 私有_新节点(
+            "任务树 | 任务节点=" + std::to_string(快照.任务数)
+                + " | 头=" + std::to_string(快照.任务头节点数)
+                + " | 步骤=" + std::to_string(快照.任务步骤节点数)
+                + " | 状态={" + 私有_任务状态数量摘要(快照) + "}",
+            0,
+            true);
+        if (任务根节点) {
+            根.子项.push_back(私有_构建任务根链骨架(任务根节点, 上下文));
+        }
+        else {
+            根.子项.push_back(私有_新节点("任务根为空"));
+        }
+        return 私有_页面刷新JSON(页面, &根);
+    }
+
+    if (页面 == "method-tree") {
+        auto 根 = 私有_新节点(
+            "方法树 | 方法数=" + std::to_string(快照.方法数)
+                + " | " + 私有_方法结构诊断摘要(快照),
+            0,
+            true);
+        if (方法根节点) {
+            根.子项.push_back(私有_构建方法根链骨架(方法根节点, 上下文));
+        }
+        else {
+            根.子项.push_back(私有_新节点("方法根为空"));
+        }
+        return 私有_页面刷新JSON(页面, &根);
+    }
+
+    if (页面 == "settings") {
+        auto 根 = 私有_新节点(
+            "参数设定 | 任务管理工作线程池大小="
+            + std::to_string(快照.任务管理工作线程池当前有效大小)
+            + " | 默认="
+            + std::to_string(快照.任务管理工作线程池默认大小),
+            0,
+            true);
+        根.子项.push_back(私有_新节点(
+            "任务管理工作线程池大小 | 当前有效="
+            + std::to_string(快照.任务管理工作线程池当前有效大小)
+            + " | 待保存="
+            + std::to_string(快照.任务管理工作线程池待保存大小)
+            + " | 范围="
+            + std::to_string(快照.任务管理工作线程池最小大小)
+            + "-"
+            + std::to_string(快照.任务管理工作线程池最大大小),
+            0,
+            false));
+        根.子项.push_back(私有_新节点(
+            "参数保存 | 最近保存="
+            + 私有_页面摘要(快照.任务管理工作线程池最近参数保存结果)
+            + " | 最近错误="
+            + 私有_页面摘要(快照.任务管理工作线程池最近参数错误),
+            0,
+            false));
+        根.子项.push_back(私有_新节点(
+            "参数应用 | 最近应用="
+            + 私有_页面摘要(快照.任务管理工作线程池最近参数应用结果)
+            + " | 参数版本="
+            + std::to_string(快照.任务管理工作线程池参数版本),
+            0,
+            false));
+        return 私有_页面刷新JSON(页面, &根);
+    }
+
+    if (页面 == "camera-view" || 页面 == "self-scene") {
+        auto 根 = 私有_新节点("该页面只保留独立窗口启动控制", 0, false);
+        return 私有_页面刷新JSON(页面, &根);
+    }
+
+    return 私有_页面刷新JSON(页面, nullptr, "未知控制面板页面");
 }
 
 std::string 读取控制面板节点子项JSON(
@@ -6868,6 +7359,8 @@ std::string 渲染控制面板摘要(
         << " | 活动阻塞=" << 快照.需求树活动阻塞需求数
         << " | 派生归因=" << 快照.需求树派生归因需求数
         << " | 派生来源因果=" << 快照.需求树派生来源因果需求数
+        << " | 逻辑组织=" << 快照.需求树逻辑组织需求数
+        << " | OR令牌目标=" << 快照.需求树OR组结算令牌需求数
         << " | 当前主需求=" << 私有_页面摘要(快照.需求树当前主需求主键.empty()
             ? std::string("空")
             : 快照.需求树当前主需求主键)
@@ -6881,8 +7374,17 @@ std::string 渲染控制面板摘要(
         << " | 安全度=" << 快照.自我场景当前场景安全度候选
         << " | 判定=" << 快照.自我场景当前场景安全判定状态
         << " | 场景影响=" << 快照.自我场景风险安全_场景影响部分候选
+        << " | 可结算=" << 快照.自我场景风险安全_场景影响部分可结算状态
+        << " | 入账=" << 快照.自我场景风险安全_场景影响部分已入账状态
+        << " | 不可结算原因=" << 快照.自我场景风险安全_场景影响部分不可结算原因
         << " | 风险安全层候选=" << 快照.自我场景风险安全层候选
         << " | 风险安全投影候选=" << 快照.自我场景风险安全层投影候选
+        << " | 风险安全层明确=" << 快照.自我场景风险安全层明确状态
+        << " | 风险安全层可聚合=" << 快照.自我场景风险安全层可聚合状态
+        << " | 风险安全层入账=" << 快照.自我场景风险安全层已入账状态
+        << " | 未搜索掩码=" << 快照.自我场景风险因素未搜索掩码
+        << " | 默认满足掩码=" << 快照.自我场景风险因素默认满足掩码
+        << " | 已入账掩码=" << 快照.自我场景风险因素已入账掩码
         << " | 未明确原因=" << 快照.自我场景安全评估证据不足原因
         << '\n'
         << "  - 树规模: 基础节点=" << 快照.基础信息节点数
@@ -7063,6 +7565,13 @@ std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
         << " | 权重异常=" << 快照.需求树父子权重异常需求数
         << " | 完成任务仍活动需求=" << 快照.需求树完成任务仍活动需求数
         << '\n'
+        << "  - 逻辑组织: 总数=" << 快照.需求树逻辑组织需求数
+        << " | AND=" << 快照.需求树AND组需求数
+        << " | OR=" << 快照.需求树OR组需求数
+        << " | 方法路径=" << 快照.需求树方法路径组需求数
+        << " | 因果子链=" << 快照.需求树因果子链支撑需求数
+        << " | OR令牌目标=" << 快照.需求树OR组结算令牌需求数
+        << '\n'
         << "  - 目标绑定: 完整=" << 快照.需求树目标绑定完整需求数
         << " | 异常=" << 快照.需求树目标绑定异常需求数
         << " | 缺目标状态=" << 快照.需求树缺目标状态需求数
@@ -7139,6 +7648,27 @@ std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
                 ? std::string("空")
                 : 快照.需求树当前主需求目标特征主键)
         << " | 有任务=" << 私有_布尔文本(快照.需求树当前主需求有任务)
+        << " | 结构形态=" << 私有_页面摘要(
+            快照.需求树当前主需求结构形态.empty()
+                ? std::string("空")
+                : 快照.需求树当前主需求结构形态)
+        << " | 目标语义=" << 私有_页面摘要(
+            快照.需求树当前主需求目标语义.empty()
+                ? std::string("空")
+                : 快照.需求树当前主需求目标语义)
+        << " | 普通筹办=" << 私有_布尔文本(快照.需求树当前主需求可普通任务化)
+        << " | 原因=" << 私有_页面摘要(
+            快照.需求树当前主需求不可普通任务化原因.empty()
+                ? std::string("空")
+                : 快照.需求树当前主需求不可普通任务化原因)
+        << " | OR令牌=" << 私有_页面摘要(
+            快照.需求树当前主需求OR令牌状态.empty()
+                ? std::string("不适用")
+                : 快照.需求树当前主需求OR令牌状态)
+        << " | 激活路径=" << 私有_页面摘要(
+            快照.需求树当前主需求当前激活路径.empty()
+                ? std::string("不适用")
+                : 快照.需求树当前主需求当前激活路径)
         << '\n'
         << "  - 任务承接: 任务数=" << 快照.任务数
         << " | 任务头=" << 快照.任务头节点数
@@ -7167,10 +7697,12 @@ std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
     return 输出.str();
 }
 
-std::string 生成控制面板HTML(
+std::string 私有_生成控制面板HTML(
     const 结构_控制面板快照& 快照,
-    std::size_t)
+    std::size_t,
+    枚举_控制面板HTML用途 用途)
 {
+    const bool 自我场景窗口模式 = 用途 == 枚举_控制面板HTML用途::自我场景窗口;
     const auto 线程树JSON = 私有_树节点JSON(快照.线程状态树根);
     const auto 世界树JSON = 私有_树节点JSON(快照.世界树根);
     const auto 因果信息JSON = 私有_树节点JSON(快照.因果信息根);
@@ -7274,6 +7806,7 @@ std::string 生成控制面板HTML(
         + " | 风险明确=" + std::to_string(快照.自我场景风险状态明确状态)
         + " | 评估安全值=" + std::to_string(快照.自我场景当前场景评估安全值候选)
         + " | 风险安全投影候选=" + std::to_string(快照.自我场景风险安全层投影候选)
+        + " | 风险安全层明确=" + std::to_string(快照.自我场景风险安全层明确状态)
         + " | 补观察缺口=" + std::to_string(快照.自我场景补观察缺口状态)
         + " | 待补区域=" + std::to_string(快照.自我场景待补观察区域数量)
         + " | 帧解释=" + std::to_string(快照.自我场景帧解释状态));
@@ -7658,76 +8191,6 @@ std::string 生成控制面板HTML(
     }
     .camera-status.ok{color:var(--accent);font-weight:700}
     .camera-status.error{color:var(--danger);font-weight:700}
-    .camera-layout{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:18px;
-      align-items:start;
-    }
-    .camera-viewer{min-width:0}
-    .camera-viewer-head{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .camera-viewer-title{
-      margin-top:4px;
-      font-size:20px;
-      font-weight:800;
-      line-height:1.3;
-    }
-    .camera-viewer-meta{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.6;
-      text-align:right;
-      white-space:nowrap;
-    }
-    .camera-canvas-shell{
-      margin-top:14px;
-      aspect-ratio:4/3;
-      min-height:280px;
-      border-radius:8px;
-      border:1px solid rgba(15,23,42,.12);
-      background:#0b1116;
-      overflow:hidden;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .camera-canvas{
-      width:100%;
-      height:100%;
-      display:block;
-      object-fit:contain;
-      background:#0b1116;
-    }
-    .camera-stat-grid{
-      margin-top:18px;
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:10px;
-    }
-    .camera-stat{
-      min-width:0;
-      padding:12px 14px;
-      border-radius:8px;
-      border:1px solid rgba(15,23,42,.08);
-      background:var(--surface-2);
-    }
-    .camera-stat-label{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.5;
-    }
-    .camera-stat-value{
-      margin-top:6px;
-      font-size:15px;
-      font-weight:800;
-      line-height:1.4;
-      word-break:break-word;
-    }
     .scene-control{
       display:flex;
       align-items:center;
@@ -8279,7 +8742,6 @@ std::string 生成控制面板HTML(
     @media (max-width:1350px){
       .overview{grid-template-columns:repeat(2,minmax(0,1fr))}
       .workspace{grid-template-columns:1fr}
-      .camera-layout{grid-template-columns:1fr}
       .scene-layout{grid-template-columns:1fr}
       .settings-layout{grid-template-columns:1fr}
       .detail-panel{position:static}
@@ -8303,7 +8765,6 @@ std::string 生成控制面板HTML(
       .camera-control{align-items:flex-start}
       .camera-actions{width:100%}
       .camera-btn{flex:1 1 140px}
-      .camera-stat-grid{grid-template-columns:1fr}
       .scene-control{align-items:flex-start}
       .scene-actions{width:100%}
       .scene-btn{flex:1 1 140px}
@@ -8315,6 +8776,35 @@ std::string 生成控制面板HTML(
   </style>
 </head>)HTML";
     输出 << R"HTML(<body>
+)HTML";
+    if (自我场景窗口模式) {
+        输出 << R"HTML(
+  <style>
+    .shell{max-width:none;padding:16px}
+    .layout{display:block}
+    .rail,.toolbar,.overview,.footer{display:none!important}
+    .content{min-width:0}
+    .page{display:none;margin-top:0}
+    .page[data-page="self-scene"]{display:block}
+    .scene-window-control{display:none}
+    .scene-layout{grid-template-columns:minmax(0,1fr) minmax(340px,460px)}
+    .scene-canvas-shell{height:calc(100vh - 230px);min-height:460px;aspect-ratio:auto}
+    @media (max-width:1180px){
+      .scene-layout{grid-template-columns:1fr}
+      .scene-canvas-shell{height:58vh;min-height:360px}
+    }
+  </style>
+)HTML";
+    }
+    else {
+        输出 << R"HTML(
+  <style>
+    .page[data-page="self-scene"] .scene-control,
+    .page[data-page="self-scene"] .scene-layout{display:none}
+  </style>
+)HTML";
+    }
+    输出 << R"HTML(
   <div class="shell">
     <div class="layout">
       <aside class="rail">
@@ -8531,7 +9021,17 @@ std::string 生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="self-scene" data-title="自我所在场景" data-subtitle="读取自我所在场景中的观察帧、空间候选和观察存在快照，以 OpenGL 复现空间解释层。">
+        <section class="page" data-page="self-scene" data-title="自我所在场景" data-subtitle="启动独立自我场景窗口；控制面板不承载场景渲染。">
+          <section class="panel scene-window-control">
+            <div>
+              <div class="panel-topline">OpenGL</div>
+              <h3>独立自我场景窗口</h3>
+              <div id="self-scene-window-status" class="scene-status" role="status">点击按钮启动独立场景窗口。</div>
+            </div>
+            <div class="scene-actions">
+              <button id="self-scene-open-window" class="scene-btn" type="button">打开独立窗口</button>
+            </div>
+          </section>
           <section class="panel scene-control">
             <div>
               <div class="panel-topline">OpenGL</div>
@@ -8543,6 +9043,7 @@ std::string 生成控制面板HTML(
             </div>
             <div class="scene-actions">
               <button id="scene-reset-view" class="scene-btn secondary" type="button">重置视角</button>
+              <button id="scene-refresh-window" class="scene-btn secondary" type="button">刷新快照</button>
               <button id="scene-toggle-rotation" class="scene-btn" type="button">暂停旋转</button>
             </div>
           </section>
@@ -8697,63 +9198,17 @@ std::string 生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="camera-view" data-title="相机画面" data-subtitle="D455 彩色帧和轮廓帧实时画面。">
+        <section class="page" data-page="camera-view" data-title="相机画面" data-subtitle="启动独立相机播放窗口；控制面板不承载视频播放。">
           <section class="panel camera-control">
             <div>
               <div class="panel-topline">D455</div>
-              <h3>相机画面</h3>
-              <div id="camera-status" class="camera-status" role="status">未连接</div>
+              <h3>独立相机播放窗口</h3>
+              <div id="camera-status" class="camera-status" role="status">点击按钮启动独立相机播放窗口。</div>
             </div>
             <div class="camera-actions">
-              <button id="camera-start" class="camera-btn" type="button">启动</button>
-              <button id="camera-capture" class="camera-btn secondary" type="button">刷新一帧</button>
-              <button id="camera-stop" class="camera-btn danger" type="button">停止</button>
+              <button id="camera-open-window" class="camera-btn" type="button">打开独立窗口</button>
             </div>
           </section>
-          <div class="camera-layout">
-            <section class="panel camera-viewer">
-              <div class="camera-viewer-head">
-                <div>
-                  <div class="panel-topline">RGB</div>
-                  <div class="camera-viewer-title">相机画面</div>
-                </div>
-                <div id="camera-rgb-meta" class="camera-viewer-meta">--</div>
-              </div>
-              <div class="camera-canvas-shell">
-                <canvas id="camera-rgb-canvas" class="camera-canvas" width="640" height="480"></canvas>
-              </div>
-            </section>
-            <section class="panel camera-viewer">
-              <div class="camera-viewer-head">
-                <div>
-                  <div class="panel-topline">Contour</div>
-                  <div class="camera-viewer-title">轮廓图画面</div>
-                </div>
-                <div id="camera-contour-meta" class="camera-viewer-meta">--</div>
-              </div>
-              <div class="camera-canvas-shell">
-                <canvas id="camera-contour-canvas" class="camera-canvas" width="640" height="480"></canvas>
-              </div>
-            </section>
-          </div>
-          <div class="camera-stat-grid" aria-label="相机帧状态">
-            <div class="camera-stat">
-              <div class="camera-stat-label">帧尺寸</div>
-              <div id="camera-size-stat" class="camera-stat-value">--</div>
-            </div>
-            <div class="camera-stat">
-              <div class="camera-stat-label">源尺寸</div>
-              <div id="camera-source-stat" class="camera-stat-value">--</div>
-            </div>
-            <div class="camera-stat">
-              <div class="camera-stat-label">帧号</div>
-              <div id="camera-frame-stat" class="camera-stat-value">--</div>
-            </div>
-            <div class="camera-stat">
-              <div class="camera-stat-label">轮廓数</div>
-              <div id="camera-contour-stat" class="camera-stat-value">--</div>
-            </div>
-          </div>
         </section>
 
         <section class="page" data-page="settings" data-title="参数设定" data-subtitle="运行配置只影响调度资源，不写入需求、任务或动作动态。">
@@ -8957,6 +9412,9 @@ std::string 生成控制面板HTML(
     };
     const 自我场景复现数据 = )HTML"
         << 自我场景复现JSON
+        << R"HTML(;
+    const 自我场景窗口模式 = )HTML"
+        << (自我场景窗口模式 ? "true" : "false")
         << R"HTML(;
 )HTML";
     输出 << R"HTML(
@@ -9380,6 +9838,36 @@ std::string 生成控制面板HTML(
       渲染页面树(记录.page);
     };
 
+    window.__panelApplyPageRefresh = function(data) {
+      if (!data || typeof data !== 'object') return;
+      const page = data.page || '';
+      const config = 页面配置[page];
+      if (!config) return;
+      if (!data.ok || !data.root) {
+        更新详情面板(page);
+        return;
+      }
+      const root = data.root;
+      页面树数据[page] = root;
+      挂起展开.clear();
+      挂起详情.clear();
+      规范化节点(page, root);
+      页面选中节点.set(page, root.__id);
+      更新页面摘要(page, root);
+      渲染页面树(page);
+      请求节点详情(page, root);
+      更新详情面板(page);
+    };
+
+    function 更新页面摘要(page, root) {
+      if (!root || typeof root.text !== 'string') return;
+      const 页面 = 页面列表.find((item) => item.dataset.page === page);
+      const 摘要节点 = 页面 ? 页面.querySelector('.summary') : null;
+      if (!摘要节点) return;
+      const 分隔位置 = root.text.indexOf(' | ');
+      摘要节点.textContent = 分隔位置 >= 0 ? root.text.slice(分隔位置 + 3) : root.text;
+    }
+
     function 选择节点(page, node, row) {
       if (!page || !node) return;
       页面选中节点.set(page, node.__id);
@@ -9503,7 +9991,9 @@ std::string 生成控制面板HTML(
       页面副标题节点.textContent = 目标页面.dataset.subtitle || '';
       渲染页面树(目标页面.dataset.page);
       if (目标页面.dataset.page === 'self-scene') {
-        请求绘制自我场景();
+        if (自我场景窗口模式) {
+          请求绘制自我场景();
+        }
       }
       if (location.hash !== '#' + 目标页面.dataset.page) {
         history.replaceState(null, '', '#' + 目标页面.dataset.page);
@@ -9718,6 +10208,31 @@ std::string 生成控制面板HTML(
       status.classList.toggle('error', kind === 'error');
     }
 
+    function 设置自我场景窗口状态(text, kind = '') {
+      const status = document.getElementById('self-scene-window-status');
+      if (!status) return;
+      status.textContent = text || '';
+      status.classList.toggle('ok', kind === 'ok');
+      status.classList.toggle('error', kind === 'error');
+    }
+
+    function 打开自我场景独立窗口() {
+      if (!(window.chrome && window.chrome.webview)) {
+        设置自我场景窗口状态('静态 HTML 预览未连接窗口接口。', 'error');
+        return;
+      }
+      设置自我场景窗口状态('正在打开独立场景窗口...');
+      window.chrome.webview.postMessage('scene:open-window');
+    }
+
+    window.__panelApplySceneWindowState = function(data) {
+      if (!data || typeof data !== 'object') {
+        设置自我场景窗口状态('独立场景窗口状态返回无效。', 'error');
+        return;
+      }
+      设置自我场景窗口状态(data.message || (data.ok ? '独立场景窗口已打开。' : '独立场景窗口打开失败。'), data.ok ? 'ok' : 'error');
+    };
+
     function 设置自我场景文本(id, text) {
       const node = document.getElementById(id);
       if (node) node.textContent = text;
@@ -9894,7 +10409,7 @@ std::string 生成控制面板HTML(
       设置自我场景文本('scene-safety-host-stat', data.safetyHostTitle || '空');
       设置自我场景文本('scene-basic-risk-stat', `基础观察 ${data.basicObservationFactUsableState || 0} / 判断 ${data.basicRiskJudgementState || 0} / 风险明确 ${data.riskStateExplicitState || 0} / 风险值计算 ${data.basicRiskValueCalculatedState || 0}`);
       设置自我场景文本('scene-safety-value-stat', `评估安全值 ${data.sceneAssessmentSafetyValue || 0} / 安全度 ${data.sceneSafetyDegree || 0} / 判定 ${data.sceneSafetyJudgementState || 0}`);
-      设置自我场景文本('scene-risk-safety-projection-stat', `场景影响 ${data.riskSafetySceneImpactCandidate || 0} / 层候选 ${data.riskSafetyLayerCandidate || 0} / 投影 ${data.riskSafetyLayerProjectionCandidate || 0} / 缺失因素 ${data.riskSafetyLayerMissingFactorCount || 0}`);
+      设置自我场景文本('scene-risk-safety-projection-stat', `场景影响 ${data.riskSafetySceneImpactCandidate || 0} / 可结算 ${data.riskSafetySceneImpactSettleableState || 0} / 入账 ${data.riskSafetySceneImpactBookedState || 0} / 原因 ${data.riskSafetySceneImpactUnsettleableReason || 0} / 层候选 ${data.riskSafetyLayerCandidate || 0} / 投影 ${data.riskSafetyLayerProjectionCandidate || 0} / 缺失因素 ${data.riskSafetyLayerMissingFactorCount || 0}`);
       设置自我场景文本('scene-safety-gap-stat', `安全评估证据不足原因 ${data.safetyEvidenceInsufficientReason || 0}`);
       更新自我场景图层摘要();
     }
@@ -10359,7 +10874,7 @@ std::string 生成控制面板HTML(
       }
       绘制自我场景诊断覆盖层();
 
-      if (state.rotating && document.querySelector('.page.active')?.dataset.page === 'self-scene') {
+      if (state.rotating && (自我场景窗口模式 || document.querySelector('.page.active')?.dataset.page === 'self-scene')) {
         state.angle += 0.006;
       }
       state.frame = window.requestAnimationFrame(绘制自我场景);
@@ -10393,9 +10908,6 @@ std::string 生成控制面板HTML(
 
 )HTML";
     输出 << R"HTML(
-    let 相机自动采集句柄 = 0;
-    let 相机请求中 = false;
-
     function 设置相机状态(text, kind = '') {
       const status = document.getElementById('camera-status');
       if (!status) return;
@@ -10404,153 +10916,22 @@ std::string 生成控制面板HTML(
       status.classList.toggle('error', kind === 'error');
     }
 
-    function 解码Base64字节(text) {
-      const bin = atob(text || '');
-      const bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; ++i) {
-        bytes[i] = bin.charCodeAt(i);
-      }
-      return bytes;
-    }
-
-    function 清空相机画布(canvasId) {
-      const canvas = document.getElementById(canvasId);
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#0b1116';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function 绘制RGB画面(data) {
-      const canvas = document.getElementById('camera-rgb-canvas');
-      if (!canvas || !data || !data.colorRGB) return;
-      const w = Number(data.width || 0);
-      const h = Number(data.height || 0);
-      if (w <= 0 || h <= 0) return;
-      canvas.width = w;
-      canvas.height = h;
-      const bytes = 解码Base64字节(data.colorRGB);
-      const ctx = canvas.getContext('2d');
-      const image = ctx.createImageData(w, h);
-      for (let i = 0, j = 0; i < bytes.length && j < image.data.length; i += 3, j += 4) {
-        image.data[j] = bytes[i] || 0;
-        image.data[j + 1] = bytes[i + 1] || 0;
-        image.data[j + 2] = bytes[i + 2] || 0;
-        image.data[j + 3] = 255;
-      }
-      ctx.putImageData(image, 0, 0);
-    }
-
-    function 绘制轮廓画面(data) {
-      const canvas = document.getElementById('camera-contour-canvas');
-      if (!canvas || !data || !data.contourMask) return;
-      const w = Number(data.width || 0);
-      const h = Number(data.height || 0);
-      if (w <= 0 || h <= 0) return;
-      canvas.width = w;
-      canvas.height = h;
-      const mask = 解码Base64字节(data.contourMask);
-      const ctx = canvas.getContext('2d');
-      const image = ctx.createImageData(w, h);
-      for (let i = 0, j = 0; i < mask.length && j < image.data.length; ++i, j += 4) {
-        const v = mask[i] || 0;
-        if (v >= 220) {
-          image.data[j] = 22;
-          image.data[j + 1] = 214;
-          image.data[j + 2] = 143;
-          image.data[j + 3] = 255;
-        } else if (v > 0) {
-          image.data[j] = 54;
-          image.data[j + 1] = 93;
-          image.data[j + 2] = 105;
-          image.data[j + 3] = 255;
-        } else {
-          image.data[j] = 8;
-          image.data[j + 1] = 13;
-          image.data[j + 2] = 18;
-          image.data[j + 3] = 255;
-        }
-      }
-      ctx.putImageData(image, 0, 0);
-      ctx.lineWidth = Math.max(1, Math.round(Math.min(w, h) / 240));
-      ctx.strokeStyle = '#f43f5e';
-      (Array.isArray(data.boxes) ? data.boxes : []).forEach((box) => {
-        const x = Number(box.x || 0);
-        const y = Number(box.y || 0);
-        const bw = Number(box.w || 0);
-        const bh = Number(box.h || 0);
-        if (bw > 0 && bh > 0) {
-          ctx.strokeRect(x + 0.5, y + 0.5, Math.max(1, bw - 1), Math.max(1, bh - 1));
-        }
-      });
-    }
-
-    function 更新相机统计(data) {
-      const setText = (id, text) => {
-        const node = document.getElementById(id);
-        if (node) node.textContent = text;
-      };
-      setText('camera-size-stat', `${data.width || 0} x ${data.height || 0}`);
-      setText('camera-source-stat', `${data.sourceWidth || 0} x ${data.sourceHeight || 0}`);
-      setText('camera-frame-stat', `D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
-      setText('camera-contour-stat', String(data.contourCount || 0));
-      setText('camera-rgb-meta', `${data.width || 0} x ${data.height || 0}`);
-      setText('camera-contour-meta', `${data.contourCount || 0} 个轮廓`);
-    }
-
-    function 请求相机帧(message = 'camera:capture') {
-      if (相机请求中) return;
+    function 打开相机独立窗口() {
       if (!(window.chrome && window.chrome.webview)) {
-        设置相机状态('静态 HTML 预览未连接相机接口。', 'error');
+        设置相机状态('静态 HTML 预览未连接窗口接口。', 'error');
         return;
       }
-      相机请求中 = true;
-      设置相机状态('正在读取相机帧...');
-      window.chrome.webview.postMessage(message);
+      设置相机状态('正在打开独立播放窗口...');
+      window.chrome.webview.postMessage('camera:open-window');
     }
 
-    function 启动相机采集() {
-      if (相机自动采集句柄) {
-        clearInterval(相机自动采集句柄);
-      }
-      请求相机帧('camera:start');
-      相机自动采集句柄 = window.setInterval(() => 请求相机帧('camera:capture'), 1000);
-    }
-
-    function 停止相机采集() {
-      if (相机自动采集句柄) {
-        clearInterval(相机自动采集句柄);
-        相机自动采集句柄 = 0;
-      }
-      if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage('camera:stop');
-      } else {
-        设置相机状态('静态 HTML 预览未连接相机接口。', 'error');
-      }
-    }
-
-    window.__panelApplyCameraFrame = function(data) {
-      相机请求中 = false;
+    window.__panelApplyCameraWindowState = function(data) {
       if (!data || typeof data !== 'object') {
-        设置相机状态('相机返回数据无效。', 'error');
+        设置相机状态('独立播放窗口状态返回无效。', 'error');
         return;
       }
-      if (data.stopped) {
-        设置相机状态(data.message || '已停止。');
-        return;
-      }
-      if (!data.ok) {
-        设置相机状态(data.error || '相机采集失败。', 'error');
-        return;
-      }
-      绘制RGB画面(data);
-      绘制轮廓画面(data);
-      更新相机统计(data);
-      设置相机状态(data.message || '已更新。', 'ok');
+      设置相机状态(data.message || (data.ok ? '独立播放窗口已打开。' : '独立播放窗口打开失败。'), data.ok ? 'ok' : 'error');
     };
-
-    清空相机画布('camera-rgb-canvas');
-    清空相机画布('camera-contour-canvas');
 
 )HTML";
     输出 << R"HTML(
@@ -10614,23 +10995,30 @@ std::string 生成控制面板HTML(
       });
     }
 
-    const 相机启动按钮 = document.getElementById('camera-start');
-    const 相机刷新按钮 = document.getElementById('camera-capture');
-    const 相机停止按钮 = document.getElementById('camera-stop');
-    if (相机启动按钮) {
-      相机启动按钮.addEventListener('click', 启动相机采集);
+    const 相机独立窗口按钮 = document.getElementById('camera-open-window');
+    if (相机独立窗口按钮) {
+      相机独立窗口按钮.addEventListener('click', 打开相机独立窗口);
     }
-    if (相机刷新按钮) {
-      相机刷新按钮.addEventListener('click', () => 请求相机帧('camera:capture'));
-    }
-    if (相机停止按钮) {
-      相机停止按钮.addEventListener('click', 停止相机采集);
+
+    const 自我场景独立窗口按钮 = document.getElementById('self-scene-open-window');
+    if (自我场景独立窗口按钮) {
+      自我场景独立窗口按钮.addEventListener('click', 打开自我场景独立窗口);
     }
 
     const 自我场景重置按钮 = document.getElementById('scene-reset-view');
+    const 自我场景刷新按钮 = document.getElementById('scene-refresh-window');
     const 自我场景旋转按钮 = document.getElementById('scene-toggle-rotation');
     if (自我场景重置按钮) {
       自我场景重置按钮.addEventListener('click', 重置自我场景视角);
+    }
+    if (自我场景刷新按钮) {
+      自我场景刷新按钮.addEventListener('click', () => {
+        if (window.chrome && window.chrome.webview) {
+          window.chrome.webview.postMessage('refresh');
+        } else {
+          location.reload();
+        }
+      });
     }
     if (自我场景旋转按钮) {
       自我场景旋转按钮.addEventListener('click', 切换自我场景旋转);
@@ -10644,11 +11032,16 @@ std::string 生成控制面板HTML(
         });
       }
     });
-    window.addEventListener('resize', 请求绘制自我场景);
+    window.addEventListener('resize', () => {
+      if (自我场景窗口模式) {
+        请求绘制自我场景();
+      }
+    });
 
     document.getElementById('refresh-page').addEventListener('click', () => {
       if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage('refresh');
+        const 当前页面 = 页面列表.find((item) => item.classList.contains('active')) || 页面列表[0];
+        window.chrome.webview.postMessage(`refresh-page:${当前页面?.dataset.page || 'thread-status'}`);
       } else {
         location.reload();
       }
@@ -10685,12 +11078,31 @@ std::string 生成控制面板HTML(
     });
 
     Object.keys(页面配置).forEach((page) => 渲染页面树(page));
-    切换页面(location.hash.slice(1) || 'thread-status');
+    切换页面(location.hash.slice(1) || (自我场景窗口模式 ? 'self-scene' : 'thread-status'));
   </script>
 </body>
 </html>)HTML";
 
     return 输出.str();
+}
+
+std::string 生成控制面板HTML(
+    const 结构_控制面板快照& 快照,
+    std::size_t 列表预览上限)
+{
+    return 私有_生成控制面板HTML(
+        快照,
+        列表预览上限,
+        枚举_控制面板HTML用途::主面板);
+}
+
+std::string 生成自我场景独立窗口HTML(
+    const 结构_控制面板快照& 快照)
+{
+    return 私有_生成控制面板HTML(
+        快照,
+        24,
+        枚举_控制面板HTML用途::自我场景窗口);
 }
 
 bool 保存控制面板HTML(

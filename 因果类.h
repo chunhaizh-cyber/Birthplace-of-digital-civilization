@@ -164,6 +164,7 @@ struct 结构_目标投影路径 {
     枚举_目标权重类型 权重类型 = 枚举_目标权重类型::未定义;
     基础信息节点类* 目标宿主 = nullptr;
     特征节点类* 目标特征类型 = nullptr;
+    const 语素入口节点类* 目标特征类型词 = nullptr;
     std::vector<结构_状态转换因果边> 证据路径{};
     std::vector<std::string> 缺失证据{};
     std::uint32_t 结算贡献层级 = 0;
@@ -205,6 +206,35 @@ struct 结构_叶子任务因果投影预判 {
     std::vector<std::string> 缺失证据{};
     bool 是否允许形成D0 = false;
     bool 是否允许进入结算候选 = false;
+};
+
+struct 结构_自检原子目标因果投影输入 {
+    任务节点类* 固定来源任务 = nullptr;
+    需求节点类* 固定来源需求 = nullptr;
+    基础信息节点类* 目标宿主 = nullptr;
+    特征节点类* 目标特征类型 = nullptr;
+    const 语素入口节点类* 目标特征类型词 = nullptr;
+    std::uint32_t 最大深度 = 8;
+    bool 允许未验证路径 = true;
+};
+
+struct 结构_自检原子目标因果投影结果 {
+    任务节点类* 固定来源任务 = nullptr;
+    需求节点类* 固定来源需求 = nullptr;
+    基础信息节点类* 目标宿主 = nullptr;
+    特征节点类* 目标特征类型 = nullptr;
+    const 语素入口节点类* 目标特征类型词 = nullptr;
+    std::vector<结构_目标投影路径> 候选投影路径{};
+    std::vector<枚举_目标投影维度> 目标维度集{};
+    std::vector<枚举_目标权重类型> 候选权重类型集{};
+    std::vector<std::string> 来源因果主键集{};
+    std::vector<枚举_因果来源类型> 来源因果类型集{};
+    std::vector<std::string> 缺失证据{};
+    std::size_t 遗传因果命中数量 = 0;
+    bool 是否有安全投影 = false;
+    bool 是否有服务投影 = false;
+    bool 是否仅维护投影 = false;
+    bool 是否只有候选规则投影 = false;
 };
 
 class 因果类 {
@@ -307,6 +337,12 @@ public:
     // 对应哪个权重类型和结算贡献层级。本函数只给出候选和缺失证据，不执行结算。
     结构_叶子任务因果投影预判 查询叶子任务权重类型与层级(
         const 结构_叶子任务因果投影输入& 输入) const;
+
+    // 只读自检投影接口：
+    // 自检固定来源任务是安全根任务；本函数不要求叶子任务存在，
+    // 只按固定来源和原子目标查询状态转换因果投影、遗传因果命中和缺失证据。
+    结构_自检原子目标因果投影结果 查询自检原子目标投影(
+        const 结构_自检原子目标因果投影输入& 输入) const;
 
     bool 二次特征匹配模板(const 二次特征节点类* 二次特征, const 二次特征节点类* 模板) const noexcept;
 

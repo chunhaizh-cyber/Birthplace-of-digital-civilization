@@ -184,6 +184,173 @@ public:
         }
     };
 
+    enum class 枚举_逻辑组织需求类型 : std::uint8_t {
+        未定义 = 0,
+        AND组 = 1,
+        OR组 = 2,
+        方法路径组 = 3,
+        因果子链支撑 = 4,
+    };
+
+    enum class 枚举_需求目标语义 : std::uint8_t {
+        目标特征未解析 = 0,
+        普通可任务化目标 = 1,
+        AND组满足 = 2,
+        OR组满足 = 3,
+        方法路径完成 = 4,
+        因果子链支撑 = 5,
+        OR组结算令牌 = 6,
+    };
+
+    enum class 枚举_需求获取途径 : std::uint8_t {
+        未定义 = 0,
+        普通目标直接生成 = 1,
+        任务筹办原子缺口 = 2,
+        任务执行回执原子缺口 = 3,
+        自检原子缺口 = 4,
+        观察反馈原子缺口 = 5,
+        结算后处理原子目标 = 6,
+        复合目标AND组生成 = 20,
+        多候选替代路径组生成 = 21,
+        方法能力路径组生成 = 22,
+        因果链支撑组生成 = 23,
+        自检因果影响链生成 = 24,
+        OR组路径完成令牌提交 = 40,
+    };
+
+    struct 结构_需求目标语义视图 {
+        枚举_需求目标语义 语义 =
+            枚举_需求目标语义::目标特征未解析;
+        枚举_逻辑组织需求类型 逻辑组织类型 =
+            枚举_逻辑组织需求类型::未定义;
+        const 语素入口节点类* 目标特征类型 = nullptr;
+        const char* 语义名称 = "目标特征未解析";
+        bool 可进入普通候选方法筹办 = false;
+        bool 是逻辑组织目标 = false;
+        bool 是OR组目标 = false;
+        bool 是结算令牌目标 = false;
+    };
+
+    struct 结构_需求获取途径语义视图 {
+        枚举_需求获取途径 获取途径 =
+            枚举_需求获取途径::未定义;
+        const char* 获取途径名称 = "未定义";
+        枚举_需求目标语义 默认目标语义 =
+            枚举_需求目标语义::目标特征未解析;
+        枚举_逻辑组织需求类型 默认逻辑组织类型 =
+            枚举_逻辑组织需求类型::未定义;
+        const 语素入口节点类* 默认目标特征类型 = nullptr;
+        bool 语义由获取途径确定 = false;
+        bool 需要目标特征上下文 = false;
+        bool 可直接构造逻辑组织需求 = false;
+        bool 是OR令牌提交途径 = false;
+    };
+
+    struct 结构_逻辑组织需求更新输入 {
+        节点类* 父需求 = nullptr;
+        std::string 父需求主键{};
+        存在节点类* 需求主体 = nullptr;
+        std::string 需求主体主键{};
+        场景节点类* 需求场景 = nullptr;
+        std::string 需求场景主键{};
+        存在节点类* 目标宿主 = nullptr;
+        std::string 目标宿主主键{};
+        状态节点类* 当前状态 = nullptr;
+        std::string 当前状态主键{};
+        状态节点类* 目标状态 = nullptr;
+        std::string 目标状态主键{};
+        三向关系掩码 满足关系 = 关系_等于;
+        std::string 派生来源方法主键{};
+        std::string 派生来源因果主键{};
+        bool 使用新安全权重 = false;
+        std::int64_t 新安全权重 = 0;
+        bool 使用新服务权重 = false;
+        std::int64_t 新服务权重 = 0;
+        bool 使用阻塞父任务执行 = true;
+        bool 阻塞父任务执行 = true;
+        bool 记录观测统计 = false;
+        时间戳 统计观测时间 = 0;
+    };
+
+    static const char* 逻辑组织需求类型文本(
+        枚举_逻辑组织需求类型 类型) noexcept;
+
+    static const 语素入口节点类* 逻辑组织目标特征类型(
+        枚举_逻辑组织需求类型 类型) noexcept;
+
+    static const 语素入口节点类* OR组结算令牌目标特征类型() noexcept;
+
+    static 枚举_逻辑组织需求类型 逻辑组织需求类型_按目标特征类型(
+        const 语素入口节点类* 目标特征类型) noexcept;
+
+    static bool 目标特征类型是逻辑组织目标(
+        const 语素入口节点类* 目标特征类型) noexcept;
+
+    static const char* 逻辑组织目标语义文本(
+        const 语素入口节点类* 目标特征类型) noexcept;
+
+    static 枚举_需求目标语义 需求目标语义_按目标特征类型(
+        const 语素入口节点类* 目标特征类型) noexcept;
+
+    static const char* 需求目标语义文本(
+        枚举_需求目标语义 语义) noexcept;
+
+    static const char* 需求获取途径文本(
+        枚举_需求获取途径 途径) noexcept;
+
+    static 结构_需求目标语义视图 需求目标语义视图(
+        const 语素入口节点类* 目标特征类型) noexcept;
+
+    static 枚举_需求目标语义 需求目标语义_按获取途径(
+        枚举_需求获取途径 途径) noexcept;
+
+    static 枚举_逻辑组织需求类型 逻辑组织需求类型_按获取途径(
+        枚举_需求获取途径 途径) noexcept;
+
+    static const 语素入口节点类* 需求获取途径默认目标特征类型(
+        枚举_需求获取途径 途径) noexcept;
+
+    static 结构_需求获取途径语义视图 需求获取途径语义视图(
+        枚举_需求获取途径 途径) noexcept;
+
+    static const 语素入口节点类* 读取需求目标特征类型(
+        const 节点类* 需求) noexcept;
+
+    static 结构_需求目标语义视图 需求目标语义视图(
+        const 节点类* 需求) noexcept;
+
+    static bool 目标特征类型可进入普通候选方法筹办(
+        const 语素入口节点类* 目标特征类型) noexcept;
+
+    static const char* 普通候选方法筹办禁止原因(
+        const 结构_需求目标语义视图& 视图) noexcept;
+
+    static const char* 普通候选方法筹办禁止原因(
+        const 语素入口节点类* 目标特征类型) noexcept;
+
+    static const char* 需求结构形态文本(
+        const 节点类* 需求) noexcept;
+
+    static 结构_需求树更新指令 构造逻辑组织需求更新指令(
+        const 结构_逻辑组织需求更新输入& 输入,
+        枚举_逻辑组织需求类型 类型) noexcept;
+
+    static 结构_需求树更新指令 构造获取途径逻辑组织需求更新指令(
+        const 结构_逻辑组织需求更新输入& 输入,
+        枚举_需求获取途径 途径) noexcept;
+
+    static 结构_需求树更新指令 构造AND组需求更新指令(
+        const 结构_逻辑组织需求更新输入& 输入) noexcept;
+
+    static 结构_需求树更新指令 构造OR组需求更新指令(
+        const 结构_逻辑组织需求更新输入& 输入) noexcept;
+
+    static 结构_需求树更新指令 构造方法路径组需求更新指令(
+        const 结构_逻辑组织需求更新输入& 输入) noexcept;
+
+    static 结构_需求树更新指令 构造因果子链支撑需求更新指令(
+        const 结构_逻辑组织需求更新输入& 输入) noexcept;
+
     static 结构_子需求平分权重 计算子需求平分权重(
         const std::int64_t 父需求安全权重,
         const std::int64_t 父需求服务权重,

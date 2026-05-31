@@ -115,6 +115,12 @@ struct 结构_控制面板快照 {
     std::size_t 需求树已截止需求数 = 0;
     std::size_t 需求树派生归因需求数 = 0;
     std::size_t 需求树派生来源因果需求数 = 0;
+    std::size_t 需求树逻辑组织需求数 = 0;
+    std::size_t 需求树AND组需求数 = 0;
+    std::size_t 需求树OR组需求数 = 0;
+    std::size_t 需求树方法路径组需求数 = 0;
+    std::size_t 需求树因果子链支撑需求数 = 0;
+    std::size_t 需求树OR组结算令牌需求数 = 0;
     bool 需求树存在重复目标风险 = false;
     std::size_t 需求树重复目标组数 = 0;
     std::size_t 需求树重复目标需求数 = 0;
@@ -131,6 +137,12 @@ struct 结构_控制面板快照 {
     std::string 需求树当前主需求父主键{};
     std::string 需求树当前主需求目标主体主键{};
     std::string 需求树当前主需求目标特征主键{};
+    std::string 需求树当前主需求结构形态{};
+    std::string 需求树当前主需求目标语义{};
+    bool 需求树当前主需求可普通任务化 = false;
+    std::string 需求树当前主需求不可普通任务化原因{};
+    std::string 需求树当前主需求OR令牌状态{};
+    std::string 需求树当前主需求当前激活路径{};
 
     std::int64_t 自我安全值 = 0;
     std::int64_t 自我服务值 = 0;
@@ -280,9 +292,22 @@ struct 结构_控制面板快照 {
     std::int64_t 自我场景当前场景安全判定状态 = 0;
     std::int64_t 自我场景安全评估证据不足原因 = 0;
     std::int64_t 自我场景风险安全_场景影响部分候选 = 0;
+    std::int64_t 自我场景风险安全_场景影响部分可结算状态 = 0;
+    std::int64_t 自我场景风险安全_场景影响部分不可结算原因 = 0;
+    std::int64_t 自我场景风险安全_场景影响部分已入账状态 = 0;
     std::int64_t 自我场景风险安全层候选 = 0;
     std::int64_t 自我场景风险安全层投影候选 = 0;
     std::int64_t 自我场景风险安全层缺失因素数量 = 0;
+    std::int64_t 自我场景风险安全层明确状态 = 0;
+    std::int64_t 自我场景风险安全层可聚合状态 = 0;
+    std::int64_t 自我场景风险安全层已入账状态 = 0;
+    std::int64_t 自我场景风险因素未搜索掩码 = 0;
+    std::int64_t 自我场景风险因素搜索缺口掩码 = 0;
+    std::int64_t 自我场景风险因素负向证据掩码 = 0;
+    std::int64_t 自我场景风险因素默认满足掩码 = 0;
+    std::int64_t 自我场景风险因素已入账掩码 = 0;
+    std::int64_t 自我场景风险因素证据搜索未完成数量 = 0;
+    std::int64_t 自我场景风险因素默认满足数量 = 0;
 
     std::string 自我线程当前阶段{};
     std::string 自我线程当前最终去向{};
@@ -444,6 +469,12 @@ enum class 枚举_控制面板命令 {
     std::size_t 树深度上限 = 10,
     std::size_t 树广度上限 = 24);
 
+结构_控制面板快照 读取控制面板主窗口快照(
+    std::size_t 树深度上限 = 10,
+    std::size_t 树广度上限 = 24);
+
+结构_控制面板快照 读取控制面板轻量摘要快照();
+
 std::string 渲染控制面板摘要(
     const 结构_控制面板快照& 快照,
     std::size_t 树层数上限 = 4,
@@ -464,6 +495,9 @@ std::string 生成控制面板HTML(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限 = 12);
 
+std::string 生成自我场景独立窗口HTML(
+    const 结构_控制面板快照& 快照);
+
 std::string 读取控制面板节点子项JSON(
     std::string_view 展开类型,
     std::uintptr_t 节点指针,
@@ -474,6 +508,9 @@ std::string 读取控制面板节点详情JSON(
     std::string_view 展开类型,
     std::uintptr_t 节点指针,
     std::size_t 树广度上限 = 16);
+
+std::string 读取控制面板页面刷新JSON(
+    std::string_view 页面);
 
 bool 保存控制面板HTML(
     const std::filesystem::path& 输出路径,

@@ -28,6 +28,7 @@ export enum class 枚举_自检线程生命周期状态 : std::uint8_t {
 export enum class 枚举_自检线程模式 : std::uint8_t {
     运行中 = 0,
     休眠期 = 1,
+    只读观察 = 2,
 };
 
 export struct 结构_自检线程配置 {
@@ -93,7 +94,7 @@ public:
     自检线程类(const 自检线程类&) = delete;
     自检线程类& operator=(const 自检线程类&) = delete;
 
-    bool 启动();
+    bool 启动(bool 只读观察模式 = false);
     void 请求停止();
     void 等待停止();
     void 请求休眠期自检();
@@ -115,6 +116,7 @@ private:
     std::thread 工作线程_{};
     std::atomic_bool 停止请求_{false};
     std::atomic_bool 休眠期自检请求_{false};
+    bool 只读观察模式_ = false;
 
     结构_自检线程配置 配置_{};
     枚举_自检线程生命周期状态 生命周期_ = 枚举_自检线程生命周期状态::未启动;
@@ -128,6 +130,8 @@ private:
     时间戳 最近检查时间_ = 0;
     时间戳 最近提交时间_ = 0;
     std::string 最近需求摘要_{};
+    std::string 最近基础信息预检摘要_{};
+    时间戳 最近基础信息预检记录时间_ = 0;
     std::deque<std::string> 最近事件_{};
     std::unordered_map<std::string, 时间戳> 去重账_{};
     std::unordered_map<std::string, std::chrono::steady_clock::time_point> 最近检查时刻_{};
@@ -138,6 +142,7 @@ private:
 
 export 自检线程类& 获取全局自检线程() noexcept;
 export bool 启动自检线程();
+export bool 启动自检线程只读观察模式();
 export void 停止自检线程();
 export void 请求休眠期自检();
 export 结构_自检线程摘要 读取自检线程摘要();

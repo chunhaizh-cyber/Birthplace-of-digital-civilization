@@ -40,6 +40,12 @@ namespace {
     constexpr UINT 私有_WM_刷新控制面板窗口 = WM_APP + 220;
     constexpr wchar_t 私有_控制面板窗口类名[] = L"鱼巢控制面板WebView2重构窗口";
 
+    enum class 枚举_WebView2窗口用途 : std::uintptr_t {
+        控制面板 = 1,
+        相机播放 = 2,
+        自我场景 = 3,
+    };
+
     using CreateCoreWebView2EnvironmentWithOptionsFn = HRESULT(STDAPICALLTYPE*)(
         PCWSTR,
         PCWSTR,
@@ -47,13 +53,20 @@ namespace {
         ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler*);
 
     struct 结构_WebView2窗口上下文 {
+        枚举_WebView2窗口用途 用途 = 枚举_WebView2窗口用途::控制面板;
         HMODULE 加载器模块 = nullptr;
         ComPtr<ICoreWebView2Controller> 控制器{};
         ComPtr<ICoreWebView2> WebView{};
     };
 
     std::mutex 私有_窗口互斥{};
+    std::mutex 私有_相机播放窗口互斥{};
+    std::mutex 私有_自我场景窗口互斥{};
     std::atomic<HWND> 私有_窗口句柄{ nullptr };
+    std::atomic<HWND> 私有_相机播放窗口句柄{ nullptr };
+    std::atomic<HWND> 私有_自我场景窗口句柄{ nullptr };
+    std::atomic_bool 私有_相机播放窗口启动中{ false };
+    std::atomic_bool 私有_自我场景窗口启动中{ false };
     std::atomic<int> 私有_启动诊断码{ 0 };
     std::mutex 私有_相机互斥{};
     std::unique_ptr<D455_相机实现> 私有_相机{};
@@ -420,6 +433,10 @@ namespace {
         return reinterpret_cast<结构_WebView2窗口上下文*>(GetWindowLongPtrW(窗口, GWLP_USERDATA));
     }
 
+    bool 私有_确保窗口类已注册() noexcept;
+    bool 私有_打开相机播放窗口(HWND 来源窗口) noexcept;
+    bool 私有_打开自我场景窗口(HWND 来源窗口) noexcept;
+
     std::string 私有_Base64编码(const std::vector<std::uint8_t>& 数据)
     {
         static constexpr char 字典[] =
@@ -764,6 +781,63 @@ namespace {
         (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
     }
 
+    void 私有_发送相机窗口状态到页面(HWND 窗口, bool 成功, std::string_view 消息) noexcept
+    {
+        auto* 上下文 = 私有_取窗口上下文(窗口);
+        if (!上下文 || !上下文->WebView) {
+            return;
+        }
+
+        std::ostringstream JSON;
+        JSON << "{\"ok\":" << (成功 ? "true" : "false") << ",\"message\":";
+        私有_追加JSON字符串(JSON, 消息);
+        JSON << "}";
+        const auto 宽JSON = 私有_UTF8转宽字串(JSON.str());
+        if (宽JSON.empty()) {
+            return;
+        }
+
+        const std::wstring 脚本 = L"window.__panelApplyCameraWindowState(" + 宽JSON + L");";
+        (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
+    }
+
+    void 私有_发送自我场景窗口状态到页面(HWND 窗口, bool 成功, std::string_view 消息) noexcept
+    {
+        auto* 上下文 = 私有_取窗口上下文(窗口);
+        if (!上下文 || !上下文->WebView) {
+            return;
+        }
+
+        std::ostringstream JSON;
+        JSON << "{\"ok\":" << (成功 ? "true" : "false") << ",\"message\":";
+        私有_追加JSON字符串(JSON, 消息);
+        JSON << "}";
+        const auto 宽JSON = 私有_UTF8转宽字串(JSON.str());
+        if (宽JSON.empty()) {
+            return;
+        }
+
+        const std::wstring 脚本 = L"window.__panelApplySceneWindowState(" + 宽JSON + L");";
+        (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
+    }
+
+    void 私有_发送页面刷新到页面(HWND 窗口, std::string_view 页面) noexcept
+    {
+        auto* 上下文 = 私有_取窗口上下文(窗口);
+        if (!上下文 || !上下文->WebView) {
+            return;
+        }
+
+        const auto JSON = 读取控制面板页面刷新JSON(页面);
+        const auto 宽JSON = 私有_UTF8转宽字串(JSON);
+        if (宽JSON.empty()) {
+            return;
+        }
+
+        const std::wstring 脚本 = L"window.__panelApplyPageRefresh(" + 宽JSON + L");";
+        (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
+    }
+
     void 私有_调整WebView尺寸(HWND 窗口) noexcept
     {
         auto* 上下文 = 私有_取窗口上下文(窗口);
@@ -776,13 +850,432 @@ namespace {
         上下文->控制器->put_Bounds(区域);
     }
 
-    std::string 私有_生成页面HTML()
+    std::string 私有_生成相机播放HTML()
     {
+        return R"CAMERA(<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>鱼巢相机画面</title>
+  <style>
+    :root{
+      --bg:#0b1116;
+      --surface:#111923;
+      --surface-2:#162230;
+      --line:#2c3a49;
+      --ink:#edf2f7;
+      --muted:#9aa8b8;
+      --accent:#10b981;
+      --danger:#fb7185;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--ink);
+      font-family:"Microsoft YaHei UI","PingFang SC","Source Han Sans SC",sans-serif;
+      background:var(--bg);
+    }
+    .shell{
+      min-height:100vh;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr) auto;
+      gap:14px;
+      padding:16px;
+    }
+    .toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:14px 16px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:var(--surface);
+    }
+    .title{
+      min-width:0;
+      display:grid;
+      gap:6px;
+    }
+    .title strong{
+      font-size:22px;
+      line-height:1.25;
+    }
+    .status{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+      word-break:break-word;
+    }
+    .status.ok{color:var(--accent);font-weight:700}
+    .status.error{color:var(--danger);font-weight:700}
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    button{
+      min-height:40px;
+      padding:0 14px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      color:#fff;
+      background:var(--accent);
+      font-weight:700;
+      white-space:nowrap;
+    }
+    button.secondary{
+      color:var(--ink);
+      border:1px solid var(--line);
+      background:var(--surface-2);
+    }
+    button.danger{background:#be123c}
+    .viewer-grid{
+      min-height:0;
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+    .viewer{
+      min-width:0;
+      min-height:0;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
+      gap:10px;
+      padding:14px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:var(--surface);
+    }
+    .viewer-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .viewer-title{
+      font-size:16px;
+      font-weight:800;
+      line-height:1.4;
+    }
+    .viewer-meta{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+      text-align:right;
+      white-space:nowrap;
+    }
+    .canvas-shell{
+      min-height:0;
+      border:1px solid #223040;
+      border-radius:8px;
+      overflow:hidden;
+      background:#05080c;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    canvas{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:contain;
+      background:#05080c;
+    }
+    .stat-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+    .stat{
+      min-width:0;
+      padding:11px 13px;
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:var(--surface);
+    }
+    .stat-label{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .stat-value{
+      margin-top:5px;
+      font-size:15px;
+      font-weight:800;
+      line-height:1.4;
+      word-break:break-word;
+    }
+    @media (max-width:980px){
+      .toolbar{align-items:flex-start;flex-direction:column}
+      .actions{width:100%;justify-content:flex-start}
+      button{flex:1 1 120px}
+      .viewer-grid{grid-template-columns:1fr}
+      .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width:560px){
+      .stat-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="toolbar">
+      <div class="title">
+        <strong>D455 相机画面</strong>
+        <div id="camera-status" class="status" role="status">正在启动相机...</div>
+      </div>
+      <div class="actions">
+        <button id="camera-start" type="button">启动</button>
+        <button id="camera-capture" class="secondary" type="button">刷新一帧</button>
+        <button id="camera-stop" class="danger" type="button">停止</button>
+      </div>
+    </header>
+    <section class="viewer-grid">
+      <section class="viewer">
+        <div class="viewer-head">
+          <div class="viewer-title">RGB</div>
+          <div id="camera-rgb-meta" class="viewer-meta">--</div>
+        </div>
+        <div class="canvas-shell">
+          <canvas id="camera-rgb-canvas" width="640" height="480"></canvas>
+        </div>
+      </section>
+      <section class="viewer">
+        <div class="viewer-head">
+          <div class="viewer-title">轮廓图</div>
+          <div id="camera-contour-meta" class="viewer-meta">--</div>
+        </div>
+        <div class="canvas-shell">
+          <canvas id="camera-contour-canvas" width="640" height="480"></canvas>
+        </div>
+      </section>
+    </section>
+    <section class="stat-grid" aria-label="相机帧状态">
+      <div class="stat">
+        <div class="stat-label">帧尺寸</div>
+        <div id="camera-size-stat" class="stat-value">--</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">源尺寸</div>
+        <div id="camera-source-stat" class="stat-value">--</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">帧号</div>
+        <div id="camera-frame-stat" class="stat-value">--</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">轮廓数</div>
+        <div id="camera-contour-stat" class="stat-value">--</div>
+      </div>
+    </section>
+  </main>
+  <script>
+    let 相机自动采集句柄 = 0;
+    let 相机请求中 = false;
+
+    function 设置相机状态(text, kind = '') {
+      const status = document.getElementById('camera-status');
+      if (!status) return;
+      status.textContent = text || '';
+      status.classList.toggle('ok', kind === 'ok');
+      status.classList.toggle('error', kind === 'error');
+    }
+
+    function 解码Base64字节(text) {
+      const bin = atob(text || '');
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; ++i) {
+        bytes[i] = bin.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    function 清空相机画布(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#05080c';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function 绘制RGB画面(data) {
+      const canvas = document.getElementById('camera-rgb-canvas');
+      if (!canvas || !data || !data.colorRGB) return;
+      const w = Number(data.width || 0);
+      const h = Number(data.height || 0);
+      if (w <= 0 || h <= 0) return;
+      canvas.width = w;
+      canvas.height = h;
+      const bytes = 解码Base64字节(data.colorRGB);
+      const ctx = canvas.getContext('2d');
+      const image = ctx.createImageData(w, h);
+      for (let i = 0, j = 0; i < bytes.length && j < image.data.length; i += 3, j += 4) {
+        image.data[j] = bytes[i] || 0;
+        image.data[j + 1] = bytes[i + 1] || 0;
+        image.data[j + 2] = bytes[i + 2] || 0;
+        image.data[j + 3] = 255;
+      }
+      ctx.putImageData(image, 0, 0);
+    }
+
+    function 绘制轮廓画面(data) {
+      const canvas = document.getElementById('camera-contour-canvas');
+      if (!canvas || !data || !data.contourMask) return;
+      const w = Number(data.width || 0);
+      const h = Number(data.height || 0);
+      if (w <= 0 || h <= 0) return;
+      canvas.width = w;
+      canvas.height = h;
+      const mask = 解码Base64字节(data.contourMask);
+      const ctx = canvas.getContext('2d');
+      const image = ctx.createImageData(w, h);
+      for (let i = 0, j = 0; i < mask.length && j < image.data.length; ++i, j += 4) {
+        const v = mask[i] || 0;
+        if (v >= 220) {
+          image.data[j] = 22;
+          image.data[j + 1] = 214;
+          image.data[j + 2] = 143;
+          image.data[j + 3] = 255;
+        } else if (v > 0) {
+          image.data[j] = 54;
+          image.data[j + 1] = 93;
+          image.data[j + 2] = 105;
+          image.data[j + 3] = 255;
+        } else {
+          image.data[j] = 5;
+          image.data[j + 1] = 8;
+          image.data[j + 2] = 12;
+          image.data[j + 3] = 255;
+        }
+      }
+      ctx.putImageData(image, 0, 0);
+      ctx.lineWidth = Math.max(1, Math.round(Math.min(w, h) / 240));
+      ctx.strokeStyle = '#fb7185';
+      (Array.isArray(data.boxes) ? data.boxes : []).forEach((box) => {
+        const x = Number(box.x || 0);
+        const y = Number(box.y || 0);
+        const bw = Number(box.w || 0);
+        const bh = Number(box.h || 0);
+        if (bw > 0 && bh > 0) {
+          ctx.strokeRect(x + 0.5, y + 0.5, Math.max(1, bw - 1), Math.max(1, bh - 1));
+        }
+      });
+    }
+
+    function 更新相机统计(data) {
+      const setText = (id, text) => {
+        const node = document.getElementById(id);
+        if (node) node.textContent = text;
+      };
+      setText('camera-size-stat', `${data.width || 0} x ${data.height || 0}`);
+      setText('camera-source-stat', `${data.sourceWidth || 0} x ${data.sourceHeight || 0}`);
+      setText('camera-frame-stat', `D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
+      setText('camera-contour-stat', String(data.contourCount || 0));
+      setText('camera-rgb-meta', `${data.width || 0} x ${data.height || 0}`);
+      setText('camera-contour-meta', `${data.contourCount || 0} 个轮廓`);
+    }
+
+    function 发送相机消息(message) {
+      if (!(window.chrome && window.chrome.webview)) {
+        设置相机状态('WebView2 相机接口未连接。', 'error');
+        return false;
+      }
+      window.chrome.webview.postMessage(message);
+      return true;
+    }
+
+    function 请求相机帧(message = 'camera:capture') {
+      if (相机请求中) return;
+      相机请求中 = true;
+      设置相机状态('正在读取相机帧...');
+      if (!发送相机消息(message)) {
+        相机请求中 = false;
+      }
+    }
+
+    function 启动相机采集() {
+      if (相机自动采集句柄) {
+        clearInterval(相机自动采集句柄);
+      }
+      请求相机帧('camera:start');
+      相机自动采集句柄 = window.setInterval(() => 请求相机帧('camera:capture'), 1000);
+    }
+
+    function 停止相机采集() {
+      if (相机自动采集句柄) {
+        clearInterval(相机自动采集句柄);
+        相机自动采集句柄 = 0;
+      }
+      相机请求中 = false;
+      发送相机消息('camera:stop');
+    }
+
+    window.__panelApplyCameraFrame = function(data) {
+      相机请求中 = false;
+      if (!data || typeof data !== 'object') {
+        设置相机状态('相机返回数据无效。', 'error');
+        return;
+      }
+      if (data.stopped) {
+        设置相机状态(data.message || '已停止。');
+        return;
+      }
+      if (!data.ok) {
+        设置相机状态(data.error || '相机采集失败。', 'error');
+        return;
+      }
+      绘制RGB画面(data);
+      绘制轮廓画面(data);
+      更新相机统计(data);
+      设置相机状态(data.message || '已更新。', 'ok');
+    };
+
+    const 相机启动按钮 = document.getElementById('camera-start');
+    const 相机刷新按钮 = document.getElementById('camera-capture');
+    const 相机停止按钮 = document.getElementById('camera-stop');
+    if (相机启动按钮) {
+      相机启动按钮.addEventListener('click', 启动相机采集);
+    }
+    if (相机刷新按钮) {
+      相机刷新按钮.addEventListener('click', () => 请求相机帧('camera:capture'));
+    }
+    if (相机停止按钮) {
+      相机停止按钮.addEventListener('click', 停止相机采集);
+    }
+    window.addEventListener('beforeunload', () => {
+      if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage('camera:stop');
+      }
+    });
+
+    清空相机画布('camera-rgb-canvas');
+    清空相机画布('camera-contour-canvas');
+    window.setTimeout(启动相机采集, 150);
+  </script>
+</body>
+</html>)CAMERA";
+    }
+
+    std::string 私有_生成页面HTML(枚举_WebView2窗口用途 用途)
+    {
+        if (用途 == 枚举_WebView2窗口用途::相机播放) {
+            return 私有_生成相机播放HTML();
+        }
+
         if (!自我.已初始化()) {
             (void)初始化自我环境();
         }
 
-        const auto 快照 = 读取控制面板快照(10, 24);
+        if (用途 == 枚举_WebView2窗口用途::自我场景) {
+            const auto 快照 = 读取控制面板快照(10, 24);
+            return 生成自我场景独立窗口HTML(快照);
+        }
+        const auto 快照 = 读取控制面板主窗口快照(10, 24);
         return 生成控制面板HTML(快照, 24);
     }
 
@@ -793,7 +1286,7 @@ namespace {
             return;
         }
 
-        const auto HTML = 私有_生成页面HTML();
+        const auto HTML = 私有_生成页面HTML(上下文->用途);
         const auto 宽HTML = 私有_UTF8转宽字串(HTML);
         if (!宽HTML.empty()) {
             (void)上下文->WebView->NavigateToString(宽HTML.c_str());
@@ -881,6 +1374,29 @@ namespace {
                                                 PostMessageW(窗口, 私有_WM_刷新控制面板窗口, 0, 0);
                                                 return S_OK;
                                             }
+                                            constexpr std::wstring_view 页面刷新前缀 = L"refresh-page:";
+                                            if (消息.starts_with(页面刷新前缀)) {
+                                                const auto 页面 = 私有_宽字串转UTF8(
+                                                    消息.substr(页面刷新前缀.size()));
+                                                私有_发送页面刷新到页面(窗口, 页面);
+                                                return S_OK;
+                                            }
+                                            if (消息 == L"camera:open-window") {
+                                                const bool 成功 = 私有_打开相机播放窗口(窗口);
+                                                私有_发送相机窗口状态到页面(
+                                                    窗口,
+                                                    成功,
+                                                    成功 ? "独立播放窗口启动请求已发送。" : "独立播放窗口启动请求失败。");
+                                                return S_OK;
+                                            }
+                                            if (消息 == L"scene:open-window") {
+                                                const bool 成功 = 私有_打开自我场景窗口(窗口);
+                                                私有_发送自我场景窗口状态到页面(
+                                                    窗口,
+                                                    成功,
+                                                    成功 ? "独立场景窗口启动请求已发送。" : "独立场景窗口启动请求失败。");
+                                                return S_OK;
+                                            }
                                             if (消息 == L"camera:start" || 消息 == L"camera:capture") {
                                                 私有_发送相机帧到页面(窗口, 私有_读取相机帧());
                                                 return S_OK;
@@ -900,13 +1416,13 @@ namespace {
                                                         S_OK,
                                                         ERROR_SUCCESS,
                                                         "worker数=" + std::to_string(worker数量));
-                                                    PostMessageW(窗口, 私有_WM_刷新控制面板窗口, 0, 0);
+                                                    私有_发送页面刷新到页面(窗口, "settings");
                                                     return S_OK;
                                                 }
                                                 (void)任务管理界面线程::保存任务管理工作线程池大小(
                                                     自我,
                                                     static_cast<std::size_t>(worker数量));
-                                                PostMessageW(窗口, 私有_WM_刷新控制面板窗口, 0, 0);
+                                                私有_发送页面刷新到页面(窗口, "settings");
                                                 return S_OK;
                                             }
 
@@ -973,10 +1489,21 @@ namespace {
     {
         switch (消息) {
         case WM_CREATE: {
+            枚举_WebView2窗口用途 用途 = 枚举_WebView2窗口用途::控制面板;
+            if (auto* 创建参数 = reinterpret_cast<CREATESTRUCTW*>(lParam); 创建参数 && 创建参数->lpCreateParams) {
+                const auto 原始用途 = reinterpret_cast<std::uintptr_t>(创建参数->lpCreateParams);
+                if (原始用途 == static_cast<std::uintptr_t>(枚举_WebView2窗口用途::相机播放)) {
+                    用途 = 枚举_WebView2窗口用途::相机播放;
+                }
+                else if (原始用途 == static_cast<std::uintptr_t>(枚举_WebView2窗口用途::自我场景)) {
+                    用途 = 枚举_WebView2窗口用途::自我场景;
+                }
+            }
             auto* 上下文 = new(std::nothrow) 结构_WebView2窗口上下文{};
             if (!上下文) {
                 return -1;
             }
+            上下文->用途 = 用途;
             SetWindowLongPtrW(窗口, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(上下文));
             if (!私有_初始化WebView2(窗口)) {
                 const auto 诊断码 = 私有_启动诊断码.load();
@@ -1004,8 +1531,11 @@ namespace {
             DestroyWindow(窗口);
             return 0;
         case WM_DESTROY: {
-            (void)私有_停止相机();
             auto* 上下文 = 私有_取窗口上下文(窗口);
+            const auto 用途 = 上下文 ? 上下文->用途 : 枚举_WebView2窗口用途::控制面板;
+            if (用途 == 枚举_WebView2窗口用途::相机播放) {
+                (void)私有_停止相机();
+            }
             if (上下文) {
                 上下文->WebView.Reset();
                 上下文->控制器.Reset();
@@ -1015,7 +1545,17 @@ namespace {
                 delete 上下文;
                 SetWindowLongPtrW(窗口, GWLP_USERDATA, 0);
             }
-            私有_窗口句柄.store(nullptr);
+            if (用途 == 枚举_WebView2窗口用途::相机播放) {
+                私有_相机播放窗口句柄.store(nullptr);
+                私有_相机播放窗口启动中.store(false);
+            }
+            else if (用途 == 枚举_WebView2窗口用途::自我场景) {
+                私有_自我场景窗口句柄.store(nullptr);
+                私有_自我场景窗口启动中.store(false);
+            }
+            else {
+                私有_窗口句柄.store(nullptr);
+            }
             PostQuitMessage(0);
             return 0;
         }
@@ -1051,6 +1591,221 @@ namespace {
         });
 
         return 已注册;
+    }
+
+    std::atomic<HWND>& 私有_窗口句柄槽(枚举_WebView2窗口用途 用途) noexcept
+    {
+        if (用途 == 枚举_WebView2窗口用途::相机播放) {
+            return 私有_相机播放窗口句柄;
+        }
+        if (用途 == 枚举_WebView2窗口用途::自我场景) {
+            return 私有_自我场景窗口句柄;
+        }
+        return 私有_窗口句柄;
+    }
+
+    std::atomic_bool& 私有_窗口启动中槽(枚举_WebView2窗口用途 用途) noexcept
+    {
+        if (用途 == 枚举_WebView2窗口用途::相机播放) {
+            return 私有_相机播放窗口启动中;
+        }
+        return 私有_自我场景窗口启动中;
+    }
+
+    const wchar_t* 私有_窗口标题(枚举_WebView2窗口用途 用途) noexcept
+    {
+        if (用途 == 枚举_WebView2窗口用途::相机播放) {
+            return L"鱼巢相机画面";
+        }
+        if (用途 == 枚举_WebView2窗口用途::自我场景) {
+            return L"鱼巢自我所在场景";
+        }
+        return L"鱼巢控制面板";
+    }
+
+    void 私有_窗口尺寸(
+        枚举_WebView2窗口用途 用途,
+        int& 宽,
+        int& 高) noexcept
+    {
+        if (用途 == 枚举_WebView2窗口用途::相机播放) {
+            宽 = 1280;
+            高 = 820;
+            return;
+        }
+        if (用途 == 枚举_WebView2窗口用途::自我场景) {
+            宽 = 1500;
+            高 = 920;
+            return;
+        }
+        宽 = 1400;
+        高 = 900;
+    }
+
+    int 私有_独立窗口诊断码(枚举_WebView2窗口用途 用途) noexcept
+    {
+        if (用途 == 枚举_WebView2窗口用途::相机播放) {
+            return 16;
+        }
+        if (用途 == 枚举_WebView2窗口用途::自我场景) {
+            return 19;
+        }
+        return 2;
+    }
+
+    std::string 私有_窗口用途文本(枚举_WebView2窗口用途 用途)
+    {
+        if (用途 == 枚举_WebView2窗口用途::相机播放) {
+            return "相机播放";
+        }
+        if (用途 == 枚举_WebView2窗口用途::自我场景) {
+            return "自我场景";
+        }
+        return "控制面板";
+    }
+
+    void 私有_独立窗口线程主体(枚举_WebView2窗口用途 用途) noexcept
+    {
+        HRESULT COM结果 = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+        const bool 已初始化COM = SUCCEEDED(COM结果);
+        if (!已初始化COM) {
+            私有_记录WebView2诊断(
+                私有_窗口用途文本(用途) + "窗口线程COM初始化失败",
+                私有_独立窗口诊断码(用途),
+                COM结果);
+        }
+
+        try {
+            if (!私有_确保窗口类已注册()) {
+                私有_记录WebView2诊断(
+                    私有_窗口用途文本(用途) + "窗口线程停止：窗口类未注册",
+                    私有_独立窗口诊断码(用途));
+                私有_窗口启动中槽(用途).store(false);
+                if (已初始化COM) {
+                    CoUninitialize();
+                }
+                return;
+            }
+
+            int 宽 = 0;
+            int 高 = 0;
+            私有_窗口尺寸(用途, 宽, 高);
+            HWND 窗口 = CreateWindowExW(
+                WS_EX_APPWINDOW,
+                私有_控制面板窗口类名,
+                私有_窗口标题(用途),
+                WS_OVERLAPPEDWINDOW,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                宽,
+                高,
+                nullptr,
+                nullptr,
+                GetModuleHandleW(nullptr),
+                reinterpret_cast<LPVOID>(static_cast<std::uintptr_t>(用途)));
+
+            if (!窗口) {
+                私有_记录WebView2诊断(
+                    私有_窗口用途文本(用途) + "窗口创建失败",
+                    私有_独立窗口诊断码(用途) + 1,
+                    S_OK,
+                    GetLastError());
+                私有_窗口启动中槽(用途).store(false);
+                if (已初始化COM) {
+                    CoUninitialize();
+                }
+                return;
+            }
+
+            私有_窗口句柄槽(用途).store(窗口);
+            私有_窗口启动中槽(用途).store(false);
+            ShowWindow(窗口, SW_SHOW);
+            UpdateWindow(窗口);
+
+            MSG 消息{};
+            while (GetMessageW(&消息, nullptr, 0, 0) > 0) {
+                TranslateMessage(&消息);
+                DispatchMessageW(&消息);
+            }
+        }
+        catch (...) {
+            私有_记录WebView2诊断(
+                私有_窗口用途文本(用途) + "窗口线程捕获未知异常",
+                私有_独立窗口诊断码(用途) + 2);
+            私有_窗口启动中槽(用途).store(false);
+        }
+
+        if (已初始化COM) {
+            CoUninitialize();
+        }
+    }
+
+    bool 私有_打开相机播放窗口(HWND 来源窗口) noexcept
+    {
+        try {
+            if (auto* 现有窗口 = 私有_相机播放窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
+                ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
+                SetForegroundWindow(现有窗口);
+                return true;
+            }
+            if (私有_相机播放窗口启动中.load()) {
+                return true;
+            }
+
+            std::lock_guard<std::mutex> 锁(私有_相机播放窗口互斥);
+            if (auto* 现有窗口 = 私有_相机播放窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
+                ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
+                SetForegroundWindow(现有窗口);
+                return true;
+            }
+            if (私有_相机播放窗口启动中.load()) {
+                return true;
+            }
+
+            私有_相机播放窗口启动中.store(true);
+            std::thread(私有_独立窗口线程主体, 枚举_WebView2窗口用途::相机播放).detach();
+            return true;
+        }
+        catch (...) {
+            私有_相机播放窗口启动中.store(false);
+            私有_记录WebView2诊断("打开相机播放窗口捕获未知异常", 18);
+            return false;
+        }
+    }
+
+    bool 私有_打开自我场景窗口(HWND 来源窗口) noexcept
+    {
+        try {
+            if (auto* 现有窗口 = 私有_自我场景窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
+                PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
+                ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
+                SetForegroundWindow(现有窗口);
+                return true;
+            }
+            if (私有_自我场景窗口启动中.load()) {
+                return true;
+            }
+
+            std::lock_guard<std::mutex> 锁(私有_自我场景窗口互斥);
+            if (auto* 现有窗口 = 私有_自我场景窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
+                PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
+                ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
+                SetForegroundWindow(现有窗口);
+                return true;
+            }
+            if (私有_自我场景窗口启动中.load()) {
+                return true;
+            }
+
+            私有_自我场景窗口启动中.store(true);
+            std::thread(私有_独立窗口线程主体, 枚举_WebView2窗口用途::自我场景).detach();
+            return true;
+        }
+        catch (...) {
+            私有_自我场景窗口启动中.store(false);
+            私有_记录WebView2诊断("打开自我场景窗口捕获未知异常", 21);
+            return false;
+        }
     }
 
     void 私有_窗口线程主体(std::promise<bool> 启动结果) noexcept
