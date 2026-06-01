@@ -1023,6 +1023,9 @@ private:
     bool 本次启动来自故障恢复_ = false;
     bool 待故障恢复启动_ = false;
     std::uint64_t Tick计数_ = 0;
+    bool 安全因果风险树已尝试外层维护_ = false;
+    std::uint64_t 最近安全因果风险树外层维护Tick_ = 0;
+    时间戳 最近安全因果风险树外层维护时间_ = 0;
     std::uint64_t 治理事件序号_ = 0;
     std::uint64_t 累计故障次数_ = 0;
     std::uint64_t 累计恢复次数_ = 0;
