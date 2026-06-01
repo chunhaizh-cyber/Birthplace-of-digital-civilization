@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <cmath>
 #include <initializer_list>
 #include <limits>
 #include <utility>
@@ -24,6 +25,41 @@ namespace {
         return 名称 && *名称
             ? 语素集.添加信息入口词(名称, 枚举_信息入口类型::特征模板入口)
             : nullptr;
+    }
+
+    const 语素入口节点类* 私有_特征_存在场景绝对坐标X() noexcept
+    {
+        return 私有_特征模板入口性("存在_场景绝对坐标X");
+    }
+
+    const 语素入口节点类* 私有_特征_存在场景绝对坐标Y() noexcept
+    {
+        return 私有_特征模板入口性("存在_场景绝对坐标Y");
+    }
+
+    const 语素入口节点类* 私有_特征_存在场景绝对坐标Z() noexcept
+    {
+        return 私有_特征模板入口性("存在_场景绝对坐标Z");
+    }
+
+    const 语素入口节点类* 私有_特征_存在场景绝对坐标明确状态() noexcept
+    {
+        return 私有_特征模板入口性("存在_场景绝对坐标明确状态");
+    }
+
+    const 语素入口节点类* 私有_特征_存在坐标来源() noexcept
+    {
+        return 私有_特征模板入口性("存在_坐标来源");
+    }
+
+    const 语素入口节点类* 私有_特征_存在坐标时间戳() noexcept
+    {
+        return 私有_特征模板入口性("存在_坐标时间戳");
+    }
+
+    const 语素入口节点类* 私有_特征_存在坐标置信度() noexcept
+    {
+        return 私有_特征模板入口性("存在_坐标置信度");
     }
 
     bool 私有_节点在子树(const 基础信息节点类* 根, const 基础信息节点类* 节点) noexcept
@@ -109,6 +145,24 @@ namespace {
 
         const std::uint64_t 总位数 = static_cast<std::uint64_t>(块数) * 64ull;
         return static_cast<I64>((差异位数 * 10000ull) / (总位数 ? 总位数 : 1ull));
+    }
+
+    bool 私有_坐标分量转I64(double 值, I64& 输出) noexcept
+    {
+        if (!std::isfinite(值)) return false;
+        const long double 下界 = static_cast<long double>((std::numeric_limits<I64>::min)());
+        const long double 上界 = static_cast<long double>((std::numeric_limits<I64>::max)());
+        const long double 待写 = static_cast<long double>(值);
+        if (待写 < 下界 || 待写 > 上界) return false;
+        输出 = static_cast<I64>(std::llround(值));
+        return true;
+    }
+
+    bool 私有_坐标转I64三元(const Vector3D& 坐标, I64& x, I64& y, I64& z) noexcept
+    {
+        return 私有_坐标分量转I64(坐标.x, x)
+            && 私有_坐标分量转I64(坐标.y, y)
+            && 私有_坐标分量转I64(坐标.z, z);
     }
 
     场景节点类* 私有_取存在所在场景(
@@ -898,6 +952,185 @@ std::vector<二次特征节点类*> 世界树类::刷新存在比较二次特征
     场景服务_.绑定宿主(内部世界, 宿主存在);
     存在服务_.绑定内部世界(宿主存在, 内部世界);
     return 内部世界;
+}
+
+bool 世界树类::读取存在场景绝对坐标(const 存在节点类* 节点, Vector3D& 输出坐标_mm) const
+{
+    输出坐标_mm = {};
+    auto* 宿主 = reinterpret_cast<const 基础信息节点类*>(节点);
+    if (!宿主) return false;
+
+    I64 明确状态 = 0;
+    if (!读取特征_I64(宿主, 私有_特征_存在场景绝对坐标明确状态(), 明确状态)
+        || 明确状态 <= 0) {
+        return false;
+    }
+
+    I64 x = 0;
+    I64 y = 0;
+    I64 z = 0;
+    if (!读取特征_I64(宿主, 私有_特征_存在场景绝对坐标X(), x)
+        || !读取特征_I64(宿主, 私有_特征_存在场景绝对坐标Y(), y)
+        || !读取特征_I64(宿主, 私有_特征_存在场景绝对坐标Z(), z)) {
+        return false;
+    }
+
+    输出坐标_mm = Vector3D{
+        static_cast<double>(x),
+        static_cast<double>(y),
+        static_cast<double>(z),
+    };
+    return true;
+}
+
+bool 世界树类::写入存在场景绝对坐标(
+    存在节点类* 节点,
+    const Vector3D& 坐标_mm,
+    时间戳 now,
+    I64 置信度)
+{
+    auto* 宿主 = reinterpret_cast<基础信息节点类*>(节点);
+    if (!宿主) return false;
+
+    I64 x = 0;
+    I64 y = 0;
+    I64 z = 0;
+    if (!私有_坐标转I64三元(坐标_mm, x, y, z)) {
+        return false;
+    }
+
+    bool 全部成功 = true;
+    全部成功 = 写入特征_I64(宿主, 私有_特征_存在场景绝对坐标X(), x, now) && 全部成功;
+    全部成功 = 写入特征_I64(宿主, 私有_特征_存在场景绝对坐标Y(), y, now) && 全部成功;
+    全部成功 = 写入特征_I64(宿主, 私有_特征_存在场景绝对坐标Z(), z, now) && 全部成功;
+    全部成功 = 写入特征_I64(宿主, 私有_特征_存在场景绝对坐标明确状态(), 1, now) && 全部成功;
+    全部成功 = 写入特征_I64(宿主, 私有_特征_存在坐标时间戳(), static_cast<I64>(now), now) && 全部成功;
+    全部成功 = 写入特征_I64(宿主, 私有_特征_存在坐标置信度(), 置信度, now) && 全部成功;
+
+    if (全部成功) {
+        (void)存在服务_.写入观测位置(节点, Vector3D{
+            static_cast<double>(x),
+            static_cast<double>(y),
+            static_cast<double>(z),
+        });
+        if (auto* 所属场景 = 私有_取存在所在场景(基础信息链_, 节点)) {
+            (void)二次特征生成服务_->刷新场景存在型基础二次特征(所属场景);
+        }
+    }
+    return 全部成功;
+}
+
+bool 世界树类::计算场景绝对坐标_由参考存在相对坐标(
+    const 存在节点类* 参考存在,
+    const Vector3D& 相对坐标_mm,
+    Vector3D& 输出绝对坐标_mm) const
+{
+    输出绝对坐标_mm = {};
+    if (!参考存在 || !私有_取存在所在场景(基础信息链_, 参考存在)) return false;
+
+    Vector3D 参考绝对坐标{};
+    if (!读取存在场景绝对坐标(参考存在, 参考绝对坐标)) {
+        return false;
+    }
+
+    const Vector3D 候选{
+        参考绝对坐标.x + 相对坐标_mm.x,
+        参考绝对坐标.y + 相对坐标_mm.y,
+        参考绝对坐标.z + 相对坐标_mm.z,
+    };
+    I64 x = 0;
+    I64 y = 0;
+    I64 z = 0;
+    if (!私有_坐标转I64三元(候选, x, y, z)) {
+        return false;
+    }
+
+    输出绝对坐标_mm = Vector3D{
+        static_cast<double>(x),
+        static_cast<double>(y),
+        static_cast<double>(z),
+    };
+    return true;
+}
+
+bool 世界树类::写入存在场景绝对坐标_由参考存在相对坐标(
+    存在节点类* 目标存在,
+    const 存在节点类* 参考存在,
+    const Vector3D& 相对坐标_mm,
+    时间戳 now,
+    I64 置信度)
+{
+    auto* 目标场景 = 私有_取存在所在场景(基础信息链_, 目标存在);
+    auto* 参考场景 = 私有_取存在所在场景(基础信息链_, 参考存在);
+    if (!目标存在 || !参考存在 || !目标场景 || !参考场景 || 目标场景 != 参考场景) {
+        return false;
+    }
+
+    Vector3D 绝对坐标{};
+    if (!计算场景绝对坐标_由参考存在相对坐标(参考存在, 相对坐标_mm, 绝对坐标)) {
+        return false;
+    }
+
+    if (!写入存在场景绝对坐标(目标存在, 绝对坐标, now, 置信度)) {
+        return false;
+    }
+
+    return 写入特征_指针(
+        reinterpret_cast<基础信息节点类*>(目标存在),
+        私有_特征_存在坐标来源(),
+        参考存在,
+        now);
+}
+
+场景绝对坐标换算结果 世界树类::计算场景绝对坐标_由相对坐标表(
+    const std::vector<场景相对坐标项>& 相对坐标表) const
+{
+    场景绝对坐标换算结果 结果{};
+    for (const auto& 项 : 相对坐标表) {
+        Vector3D 绝对坐标{};
+        if (!项.参考存在
+            || !计算场景绝对坐标_由参考存在相对坐标(
+                项.参考存在,
+                项.相对坐标_mm,
+                绝对坐标)) {
+            continue;
+        }
+
+        结果.成功 = true;
+        结果.绝对坐标_mm = 绝对坐标;
+        结果.参考存在 = 项.参考存在;
+        结果.使用相对坐标项数量 = 1;
+        结果.置信度 = 项.置信度;
+        return 结果;
+    }
+    return 结果;
+}
+
+bool 世界树类::写入存在场景绝对坐标_由相对坐标表(
+    存在节点类* 目标存在,
+    const std::vector<场景相对坐标项>& 相对坐标表,
+    时间戳 now)
+{
+    auto 换算结果 = 计算场景绝对坐标_由相对坐标表(相对坐标表);
+    if (!换算结果.成功 || !换算结果.参考存在) {
+        return false;
+    }
+
+    auto* 目标场景 = 私有_取存在所在场景(基础信息链_, 目标存在);
+    auto* 参考场景 = 私有_取存在所在场景(基础信息链_, 换算结果.参考存在);
+    if (!目标存在 || !目标场景 || !参考场景 || 目标场景 != 参考场景) {
+        return false;
+    }
+
+    if (!写入存在场景绝对坐标(目标存在, 换算结果.绝对坐标_mm, now, 换算结果.置信度)) {
+        return false;
+    }
+
+    return 写入特征_指针(
+        reinterpret_cast<基础信息节点类*>(目标存在),
+        私有_特征_存在坐标来源(),
+        换算结果.参考存在,
+        now);
 }
 
 bool 世界树类::写入存在观测位置(存在节点类* 节点, const Vector3D& 位置_mm)
