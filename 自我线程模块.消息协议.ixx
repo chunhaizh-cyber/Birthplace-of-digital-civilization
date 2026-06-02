@@ -899,27 +899,7 @@ inline 枚举_结果状态 映射任务管理结果状态(const 枚举_任务管
 inline 枚举_存在类型 推断任务管理动作主体类型(
     const std::string& 类型摘要) noexcept
 {
-    if (类型摘要.find("方法") != std::string::npos) {
-        return 枚举_存在类型::方法;
-    }
-    if (类型摘要.find("资源") != std::string::npos) {
-        return 枚举_存在类型::资源;
-    }
-    if (类型摘要.find("场景") != std::string::npos) {
-        return 枚举_存在类型::场景;
-    }
-    if (类型摘要.find("任务管理") != std::string::npos) {
-        return 枚举_存在类型::任务管理任务;
-    }
-    if (类型摘要.find("任务") != std::string::npos) {
-        return 枚举_存在类型::任务;
-    }
-    if (类型摘要.find("系统") != std::string::npos) {
-        return 枚举_存在类型::外部系统;
-    }
-    if (类型摘要.find("派生需求") != std::string::npos) {
-        return 枚举_存在类型::派生需求;
-    }
+    (void)类型摘要;
     return 枚举_存在类型::外部对象;
 }
 

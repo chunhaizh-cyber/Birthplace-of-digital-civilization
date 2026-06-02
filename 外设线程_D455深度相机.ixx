@@ -719,17 +719,9 @@ namespace {
             || D455_I64绝对差(当前.轮廓置信度, 基准.轮廓置信度) > 1500;
     }
 
-    bool D455_文本包含线索(const std::string& 文本, const char* 线索) noexcept
-    {
-        return 线索 && *线索 && 文本.find(线索) != std::string::npos;
-    }
-
     bool D455_扫描变化等待项前置满足(const 结构_外设观察等待项& 等待项) noexcept
     {
-        return !等待项.目标区域或目标簇.empty()
-            || D455_文本包含线索(等待项.质量要求摘要, "基准")
-            || D455_文本包含线索(等待项.质量要求摘要, "已确认")
-            || D455_文本包含线索(等待项.质量要求摘要, "已识别");
+        return !等待项.目标区域或目标簇.empty();
     }
 
     bool D455_目标跟踪等待项前置满足(const 结构_外设观察等待项& 等待项) noexcept
