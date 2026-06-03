@@ -109,6 +109,36 @@ public:
         }
     };
 
+    enum class 枚举_需求方向比较结果 : std::uint8_t {
+        不可比较 = 0,
+        不同目标 = 1,
+        同向 = 2,
+        反向 = 3,
+    };
+
+    struct 结构_需求方向签名 {
+        std::string 目标主体主键{};
+        std::string 目标特征类型主键{};
+        三向关系掩码 方向掩码 = 0;
+        二次特征主信息类::枚举_方向区间 方向区间 =
+            二次特征主信息类::枚举_方向区间::未定义;
+        bool 有差值 = false;
+        I64 差值 = 0;
+        bool 有标量值 = false;
+        I64 标量值 = 0;
+
+        bool 有方向信息() const noexcept {
+            return 方向掩码 != 0
+                || 方向区间 != 二次特征主信息类::枚举_方向区间::未定义
+                || 有差值
+                || 有标量值;
+        }
+
+        bool 有效() const noexcept {
+            return !目标特征类型主键.empty() && 有方向信息();
+        }
+    };
+
     struct 结构_需求派生归因兼容视图 {
         const std::string* 派生来源方法主键 = nullptr;
         const std::string* 派生来源因果主键 = nullptr;
@@ -318,6 +348,28 @@ public:
 
     static 结构_需求目标语义视图 需求目标语义视图(
         const 节点类* 需求) noexcept;
+
+    static 结构_需求方向签名 生成需求方向签名(
+        const 二次特征主信息类* 比较主信息) noexcept;
+
+    static 结构_需求方向签名 生成需求方向签名(
+        const 二次特征节点类* 比较节点) noexcept;
+
+    static 枚举_需求方向比较结果 比较需求方向签名(
+        const 结构_需求方向签名& 左,
+        const 结构_需求方向签名& 右) noexcept;
+
+    static 枚举_需求方向比较结果 比较需求方向(
+        const 二次特征节点类* 左,
+        const 二次特征节点类* 右) noexcept;
+
+    static bool 需求方向同向(
+        const 二次特征节点类* 左,
+        const 二次特征节点类* 右) noexcept;
+
+    static bool 需求方向反向(
+        const 二次特征节点类* 左,
+        const 二次特征节点类* 右) noexcept;
 
     static bool 目标特征类型可进入普通候选方法筹办(
         const 语素入口节点类* 目标特征类型) noexcept;
