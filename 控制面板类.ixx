@@ -163,6 +163,19 @@ struct 结构_控制面板快照 {
     std::string 当前主任务标题{};
     std::string 当前主方法标题{};
 
+    bool D455材料包有最新报告 = false;
+    std::uint64_t D455材料包报告ID = 0;
+    std::string D455材料包来源外设{};
+    std::string D455材料包报告类型{};
+    std::int64_t D455材料包时间戳毫秒 = 0;
+    std::int64_t D455材料包帧宽度 = 0;
+    std::int64_t D455材料包帧高度 = 0;
+    std::int64_t D455材料包深度帧号 = 0;
+    std::int64_t D455材料包彩色帧号 = 0;
+    std::size_t D455材料包观察簇数量 = 0;
+    std::size_t D455材料包材料句柄数量 = 0;
+    std::string D455材料包证据卡摘要{};
+
     bool 自我场景复现有快照 = false;
     std::uintptr_t 自我所在场景指针 = 0;
     std::uintptr_t 自我场景复现宿主指针 = 0;
