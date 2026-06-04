@@ -784,21 +784,9 @@ namespace {
         return s_词;
     }
 
-    inline const 语素入口节点类* 特征_允许回写当前状态() noexcept
-    {
-        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("允许回写当前状态", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
     inline const 语素入口节点类* 特征_来源动作动态() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("来源动作动态", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
-    inline const 语素入口节点类* 特征_需求满足登记() noexcept
-    {
-        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("需求满足登记", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
@@ -7065,7 +7053,6 @@ namespace {
         case 枚举_本能方法ID::自我_尝试学习:
         case 枚举_本能方法ID::自我_定向学习:
         case 枚举_本能方法ID::自我_提交任务状态变化:
-        case 枚举_本能方法ID::自我_回写需求满足:
         case 枚举_本能方法ID::自我_结算叶子任务价值:
         case 枚举_本能方法ID::自我_提交方法可执行入口:
         case 枚举_本能方法ID::自我_建立条件结果对:
