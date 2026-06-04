@@ -11319,7 +11319,6 @@ export namespace 自我动作实现模块 {
         (void)世界树.按动态创建因果信息(
             场景,
             动态,
-            枚举_因果来源类型::执行生成,
             reinterpret_cast<基础信息节点类*>(自我存在),
             reinterpret_cast<基础信息节点类*>(特征),
             {},
