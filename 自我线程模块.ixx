@@ -12,6 +12,7 @@ module;
 #include <unordered_map>
 #include <vector>
 #include "基础数据类型.h"
+#include "基础信息节点类型.h"
 #include "需求类.h"
 #include "任务类.h"
 export module 自我线程模块;
@@ -537,6 +538,8 @@ public:
         I64 安全净变化 = 0;
         std::string 固定机制摘要{};
         std::string 下一轮唤醒原因{};
+        动态节点类* 任务完成动作动态 = nullptr;
+        动态节点类* D1_需求满足动态 = nullptr;
         结构_双值结算账快照 双值结算账{};
         结构_缺口恢复接口快照 缺口恢复接口{};
         std::string 摘要{};
