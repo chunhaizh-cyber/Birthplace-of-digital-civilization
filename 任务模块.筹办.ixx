@@ -1998,7 +1998,7 @@ namespace {
     inline constexpr I64 安全风险树明确状态_未明确 = 0;
     inline constexpr I64 安全风险树明确状态_已明确 = 1;
     inline constexpr I64 安全风险树同层因素集合版本_风险安全_v1 = 1;
-    // v6: 风险安全层组成因来源收回到遗传因果信息组读取。
+    // v6: 风险安全层组成因来源收回到因果信息组读取。
     inline constexpr I64 安全风险树来源因果结构版本_风险安全_v1 = 6;
     const 语素入口节点类* 类型_安全因果风险树节点_筹办查询() noexcept
     {
