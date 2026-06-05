@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>自我线程总流程图 v0.1</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      background: #f7f8fa;
+      color: #1f2328;
+    }
+
+    header {
+      padding: 18px 24px 12px;
+      border-bottom: 1px solid #d8dee4;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 13px;
+      color: #57606a;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    .canvas {
+      min-width: 1280px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .mermaid {
+      min-width: 1240px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>自我线程总流程图 v0.1</h1>
+    <p class="hint">这是 Mermaid 源稿的 HTML 预览版。若无法显示图形，请确认当前环境可以访问 jsDelivr 的 Mermaid 脚本。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    STATE["已入账自我状态<br/>安全值 / 服务值 / 世界事实 / 需求状态"]
+    TASK_MSG["任务管理上行消息<br/>派生需求 / 执行结果 / 观察事实 / 任务回执"]
+    SELF_CHECK["自检报告旁路<br/>缺失 / 差距 / 维护候选"]
+    PERIPHERAL["外设与外部事件旁路<br/>观察材料 / 外部事件动态"]
+
+    EMOTION_MODULE["情绪模块（待完善）<br/>分析安全值变化 / 因果值变化 / 压力信息"]
+    EMOTION_DATA["情绪基础数据<br/>安全变化量 / 因果变化量 / 压力状态 / 失败退出累积"]
+    MAILBOX["治理消息入口<br/>接收情绪基础数据后再消费治理消息"]
+    MIRROR["根需求状态镜像<br/>读取安全值 / 服务值当前状态"]
+    ROOT_GAP["根缺口与方向重判<br/>安全 / 服务目标差只说明缺口"]
+    TARGET_DIR["目标方向计算<br/>目标方向 = 目标值 - 当前值<br/>只取 &gt;0 / =0 / &lt;0"]
+    SELF_CHECK_DATA["自检与治理负荷汇总<br/>无方法 / 方法不可用 / 缺执行入口<br/>任务堆积 / 阻塞 / 反复失败"]
+    FAIL_EXIT["全循环失败退出事实汇总<br/>需求 / 任务 / 批准 / 执行 / 满足<br/>拒绝 / 阻断 / 不可比 / 无推进"]
+    PRESSURE_LEDGER["全循环压力账本 / 压力值<br/>贯穿需求生成 / 任务生成 / 执行批准 / 任务执行 / 需求满足"]
+    PRESSURE_FEEDBACK["压力读取与情绪化解释<br/>全循环压力值 + 自检异常 + 治理负荷"]
+    DEMAND_ADMIT["需求重判与准入<br/>正式需求 / 派生需求 / 维护报告"]
+    DEMAND_TREE["需求树治理<br/>权重刷新 / 活动集 / 当前主需求"]
+    NEED_TASK{"当前主需求<br/>需要任务承接?"}
+    INTENT["生成任务发起 / 调度意图<br/>自我线程只发意图"]
+    WAIT["等待任务管理反馈<br/>不裸写任务状态"]
+
+    TASK_IF["任务管理界面线程<br/>接收任务发起 / 调度 / 状态推进意图"]
+    TASK_PREP["任务筹办推进<br/>创建任务 / 筹办 / 就绪回执"]
+    EXEC_APPROVAL_REQ["执行批准申请<br/>当前任务 / 当前方法 / 输入场景 / 风险价值依据"]
+    EXEC_APPROVAL["批准执行模块<br/>执行前治理闸门"]
+    APPROVAL_GATE{"是否批准执行?"}
+    TASK_EXEC["任务执行推进<br/>批准后才调用当前方法"]
+    TASK_RETURN["任务管理上行回执<br/>结果状态 / 缺口 / 派生需求 / 完成证据"]
+
+    RESULT_READ["读取回执和输出事实<br/>任务目标结果 / 输出结果场景 / 动作动态证据"]
+    ACTUAL_DIR["实际变化方向计算<br/>实际方向 = 结果值 - 初始值<br/>只取 &gt;0 / =0 / &lt;0"]
+    DIR_GATE{"方向一致性<br/>实际方向是否朝目标方向收束?"}
+    SAT_GATE{"需求满足闸门<br/>目标特征是否达成?"}
+    WRITEBACK["回写需求满足<br/>需求域正式提交入口"]
+    SETTLE["叶子任务价值结算<br/>安全值 / 服务值增量来自合法结算规则"]
+    NEXT["更新自我状态账本<br/>进入下一轮需求重判"]
+
+    GAP["缺口裁决<br/>业务缺口 / 条件缺口 / 学习缺口"]
+    DERIVED["派生需求入树裁决<br/>不得越过自我线程直接入树"]
+    REPLAN["重筹办 / 等待 / 外部支撑<br/>交回任务管理或等待材料"]
+    CONFLICT["方向冲突 / 不可比<br/>拒绝回写 / 记录日志 / 生成冲突材料"]
+
+    RULE_TASK["边界: 任务筹办 / 任务执行<br/>不是自我线程内部动作"]
+    RULE_THREAD["边界: 线程不是动作来源<br/>动作动态必须绑定方法或提交入口"]
+    RULE_SELF_CHECK["边界: 自检不是主循环<br/>只作为旁路材料"]
+    RULE_PRESSURE["边界: 压力值贯穿全循环<br/>缺口本身不是压力，失败退出写入压力账"]
+    RULE_COMPRESS["边界: 特征归类压缩<br/>属于细分流程，随遇即执行"]
+
+    subgraph INPUT["输入与旁路材料"]
+        STATE --> EMOTION_MODULE
+        TASK_MSG -->|进入治理前采样| EMOTION_MODULE
+        SELF_CHECK -->|压力与缺失材料| EMOTION_MODULE
+        PERIPHERAL -->|外部刺激材料| EMOTION_MODULE
+        EMOTION_MODULE --> EMOTION_DATA --> MAILBOX
+    end
+
+    subgraph SELF_THREAD["自我线程治理主链"]
+        MAILBOX --> MIRROR --> ROOT_GAP --> TARGET_DIR --> DEMAND_ADMIT --> DEMAND_TREE --> NEED_TASK
+        MAILBOX --> SELF_CHECK_DATA --> PRESSURE_FEEDBACK --> DEMAND_TREE
+        FAIL_EXIT --> PRESSURE_LEDGER --> PRESSURE_FEEDBACK
+        PRESSURE_LEDGER -.下一轮压力值.-> EMOTION_MODULE
+        NEED_TASK -->|是| INTENT --> WAIT
+        NEED_TASK -->|否, 已满足或待机| NEXT
+    end
+
+    subgraph TASK_BOUNDARY["自我线程与任务管理线程交互"]
+        INTENT --> TASK_IF --> TASK_PREP --> EXEC_APPROVAL_REQ --> EXEC_APPROVAL --> APPROVAL_GATE
+        APPROVAL_GATE -->|批准| TASK_EXEC --> TASK_RETURN --> TASK_MSG
+        APPROVAL_GATE -->|暂缓 / 拒绝 / 补证据| TASK_RETURN
+        APPROVAL_GATE -->|暂缓 / 拒绝 / 补证据| FAIL_EXIT
+        WAIT --> TASK_MSG
+    end
+
+    subgraph RESULT_JUDGE["回执裁决与方向一致性"]
+        TASK_RETURN --> RESULT_READ --> ACTUAL_DIR --> DIR_GATE
+        DIR_GATE -->|同向 / 有推进| SAT_GATE
+        DIR_GATE -->|零推进| GAP
+        DIR_GATE -->|反向 / 不可比| CONFLICT
+        SAT_GATE -->|已达成| WRITEBACK --> SETTLE --> NEXT
+        SAT_GATE -->|未达成| GAP
+    end
+
+    subgraph GAP_FLOW["缺口与重筹办回路"]
+        GAP --> DERIVED --> DEMAND_TREE
+        GAP --> REPLAN --> TASK_IF
+        CONFLICT --> GAP
+        GAP --> FAIL_EXIT
+        CONFLICT --> FAIL_EXIT
+        REPLAN -->|反复重筹办或等待失效| FAIL_EXIT
+    end
+
+    subgraph RULES["硬规则闸门"]
+        RULE_TASK -.约束.-> TASK_PREP
+        RULE_TASK -.约束.-> TASK_EXEC
+        RULE_THREAD -.约束.-> WRITEBACK
+        RULE_THREAD -.约束.-> SETTLE
+        RULE_THREAD -.约束.-> EXEC_APPROVAL
+        RULE_SELF_CHECK -.约束.-> SELF_CHECK
+        RULE_PRESSURE -.约束.-> ROOT_GAP
+        RULE_PRESSURE -.约束.-> PRESSURE_FEEDBACK
+        RULE_PRESSURE -.约束.-> SETTLE
+        RULE_COMPRESS -.约束.-> MAILBOX
+    end
+
+    classDef self fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef task fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef gate fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef side fill:#eaf7f6,stroke:#3c8b86,color:#102827;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    classDef result fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef pressure fill:#fff0f3,stroke:#b4234a,color:#3a0d18;
+
+    class EMOTION_MODULE,EMOTION_DATA,MAILBOX,MIRROR,ROOT_GAP,TARGET_DIR,SELF_CHECK_DATA,FAIL_EXIT,PRESSURE_FEEDBACK,DEMAND_ADMIT,DEMAND_TREE,INTENT,WAIT,EXEC_APPROVAL,WRITEBACK,SETTLE,NEXT self;
+    class TASK_IF,TASK_PREP,TASK_EXEC,TASK_RETURN,TASK_MSG,EXEC_APPROVAL_REQ task;
+    class NEED_TASK,APPROVAL_GATE,DIR_GATE,SAT_GATE gate;
+    class SELF_CHECK,PERIPHERAL,STATE side;
+    class GAP,DERIVED,REPLAN,CONFLICT result;
+    class PRESSURE_LEDGER pressure;
+    class RULE_TASK,RULE_THREAD,RULE_SELF_CHECK,RULE_PRESSURE,RULE_COMPRESS warn;
+      </pre>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        htmlLabels: true,
+        curve: "basis"
+      },
+      theme: "default"
+    });
+  </script>
+</body>
+</html>
