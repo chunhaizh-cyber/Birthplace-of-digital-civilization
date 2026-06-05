@@ -78,7 +78,7 @@ flowchart TD
     LOGIC_ERROR["逻辑错误处理<br/>弹窗提醒 + 记录日志<br/>不生成分支 / 不派生需求"]
     STATE_GATE{"任务是否可筹办?<br/>未终结 / 未取消 / 未失败"}
     CHILD_GATE{"非叶子是否已有 OR 子需求<br/>或路径子需求?"}
-    SUBPATH_GATE{"所有子需求是否<br/>都是完整路径?"}
+    SUBPATH_GATE{"所有路径分支是否已有结论?<br/>已闭合 / 已判定无法闭合"}
     LEAF_GATE{"是否已是可执行叶子节点?<br/>完整路径判定标准"}
 
     PATH_START["找下一步可选步骤<br/>读取目标语义和因果视图"]
@@ -88,8 +88,8 @@ flowchart TD
     PATH_SOURCE_GATE{"缺口草案来源<br/>逻辑错误还是真实需求?"}
     PATH_OR_DRAFT["全部可选步骤生成 OR 类子需求草案<br/>每个候选步骤一条子需求 / 标明获取途径"]
     PATH_OR_WAIT["筹办回执: 等待 OR 子需求继续分解<br/>多轮筹办形成完整候选路径"]
-    PATH_EVAL["完整路径评价<br/>仅在所有子需求都是完整路径后执行"]
-    PATH_SELECT["选择好用路径<br/>成功率 / 成本 / 风险 / 副作用 / 时效 / 压力"]
+    PATH_EVAL["路径选择评价<br/>只评价已闭合路径<br/>标准: 收益 + 可执行性"]
+    PATH_SELECT["选择好用路径<br/>优先收益高且可执行性高<br/>已判定无法闭合路径只作负证据"]
     PATH_SELECT_WAIT["筹办回执: 完整路径已选择<br/>等待选中路径执行或重筹办"]
 
     METHOD_START["找方法<br/>按目标特征查方法结果能力"]
@@ -143,8 +143,8 @@ flowchart TD
         LEAF_GATE -->|否, 检查子路径| CHILD_GATE
         CHILD_GATE -->|没有, 需要生成可选步骤| PATH_START
         CHILD_GATE -->|已有| SUBPATH_GATE
-        SUBPATH_GATE -->|否, 子需求仍需分解| CHILD_WAIT
-        SUBPATH_GATE -->|是, 复合路径完整| PATH_EVAL --> PATH_SELECT --> PATH_SELECT_WAIT
+        SUBPATH_GATE -->|否, 仍有分支未闭合也未判死| CHILD_WAIT
+        SUBPATH_GATE -->|是, 分支已收敛| PATH_EVAL --> PATH_SELECT --> PATH_SELECT_WAIT
         PATH_START --> M_CAUSAL_VIEW --> PATH_VIEW --> PATH_CLASSIFY --> PATH_TRANSLATE --> PATH_SOURCE_GATE
         PATH_SOURCE_GATE -->|逻辑错误 / 不可目标化| LOGIC_ERROR
         PATH_SOURCE_GATE -->|真实可选步骤| PATH_OR_DRAFT --> M_DEMAND_SUBMIT --> PATH_OR_WAIT
@@ -195,7 +195,7 @@ flowchart TD
     subgraph PRESSURE_FLOW["压力材料"]
         TARGET_GAP -.真实缺口反复出现.-> M_PRESSURE
         STATE_WAIT -.等待失效.-> M_PRESSURE
-        CHILD_WAIT -.子需求长期未成完整路径.-> M_PRESSURE
+        CHILD_WAIT -.子路径长期未闭合也未判死.-> M_PRESSURE
         PATH_OR_WAIT -.OR子需求长期无进展.-> M_PRESSURE
         METHOD_STATE_GAP -.方法长期不可用.-> M_PRESSURE
         ENTRY_GAP -.缺入口.-> M_PRESSURE
