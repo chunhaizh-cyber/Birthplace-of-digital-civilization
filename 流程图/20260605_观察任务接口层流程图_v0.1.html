@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>观察任务接口层流程图 v0.1</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      background: #f7f8fa;
+      color: #1f2328;
+    }
+
+    header {
+      padding: 18px 24px 12px;
+      border-bottom: 1px solid #d8dee4;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 13px;
+      color: #57606a;
+      line-height: 1.6;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    section {
+      margin-bottom: 28px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    .canvas {
+      min-width: 1760px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .canvas.branch {
+      min-width: 1260px;
+    }
+
+    .mermaid {
+      min-width: 1720px;
+    }
+
+    .branch .mermaid {
+      min-width: 1220px;
+    }
+
+    .notes {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      max-width: 1180px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .notes h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .notes ul {
+      margin: 6px 0 0 20px;
+      padding: 0;
+    }
+
+    .anchors {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>观察任务接口层流程图 v0.1</h1>
+    <p class="hint">梳理外设输出、任务接收、自我组织与提交入口裁决之间的接口层关系。D455 报告只作为材料和承接请求来源，不直接写需求满足、安全结论、服务结论或全场景明确。</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>观察任务总流程</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    %% 上游任务来源
+    NEED["正式需求或子需求已入树<br/>观察材料 / 对应事实 / 扫描事实 / 跟踪事实"]
+    TASK_INIT["任务创建与任务筹办<br/>读取来源需求 / 目标特征 / 当前方法"]
+    METHOD_SUPPLY_GATE{"当前方法是否需要外设供料?"}
+    NORMAL_TASK["普通任务路径<br/>继续方法筹办或执行"]
+
+    %% 等待项生成
+    BUILD_WAIT["按当前方法供料要求<br/>生成外设观察等待项"]
+    SUPPLY_KIND{"供料类型"}
+    WAIT_IDENTIFY["识别等待项<br/>陌生环境逐簇识别"]
+    WAIT_SCAN["扫描等待项<br/>已识别区域扫描变化"]
+    WAIT_TRACK["跟踪等待项<br/>目标跟踪观察"]
+
+    %% 外设输出
+    D455_THREAD["D455 外设线程<br/>采集 / 聚簇 / 材料页 / 句柄"]
+    REPORT_IDENTIFY["逐簇识别报告<br/>材料归属 / 候选存在 / 冲突 / 证据不足"]
+    REPORT_SCAN["扫描变化报告<br/>已识别区域 / 已确认存在 / 当前状态 / 变化摘要"]
+    REPORT_TRACK["跟踪报告<br/>指定目标 / ROI / 连续观测 / 遮挡丢失"]
+    REPORT_QUEUE["外设观察报告队列<br/>报告 / 材料页 / d455:// 可回查句柄"]
+
+    %% 任务管理承接
+    TASK_RECEIVE["任务管理外设消息承接<br/>按等待项匹配外设报告"]
+    MATCH_GATE{"是否命中等待项对应报告?"}
+    CACHE_ONLY["未命中<br/>保留队列缓存，不上报自我线程"]
+    RECEIPT["命中<br/>生成任务回执"]
+    REQUEST["生成观察事实承接请求<br/>等待提交入口裁决"]
+
+    %% 自我组织
+    SELF_ORG["自我外设组织方法"]
+    REPORT_KIND{"报告类型"}
+    ORG_IDENTIFY["自我_识别外设观察材料<br/>组织识别提交包"]
+    ORG_SCAN["自我_扫描已识别区域<br/>组织扫描提交包"]
+    ORG_TRACK["自我_跟踪指定存在<br/>组织跟踪提交包"]
+
+    %% 提交入口
+    DRAFT_MAPPING["当前观察范围可观测单位存在对应事实草案"]
+    DRAFT_SCAN["观察存在发现事实 / 特征值变化事实草案"]
+    DRAFT_TRACK["指定存在跟踪事实草案"]
+    SUBMIT_GATE["提交入口裁决<br/>校验来源 / 材料 / 权限 / 可比性 / 幂等"]
+    DECISION{"裁决结果"}
+    POST_FACT["通过<br/>写入对应事实 / 状态 / 动态"]
+    GAP["不通过<br/>生成缺口说明 / 补观察 / 重识别需求"]
+    REPLAN["父需求重筹办<br/>后续扫描或跟踪激活"]
+    EVIDENCE["日志与控制面板样本卡回查"]
+
+    %% 边界说明
+    RULE_METHOD["边界: 等待项来源是当前方法供料要求<br/>不是需求目标特征文本猜测"]
+    RULE_PERIPHERAL["边界: D455 只生产报告、材料页、句柄和提交包<br/>不是世界存在识别器"]
+    RULE_TASK["边界: 任务管理只生成回执和承接请求<br/>不直接写需求树或世界树事实"]
+    RULE_SELF["边界: 自我组织后必须走提交入口<br/>提交包不是自我内部账本入口"]
+    RULE_VALUE["边界: 不写需求满足 / 安全值 / 服务值 / 风险状态明确"]
+
+    subgraph TASK_SIDE["任务侧触发"]
+        NEED --> TASK_INIT --> METHOD_SUPPLY_GATE
+        METHOD_SUPPLY_GATE -->|否| NORMAL_TASK
+        METHOD_SUPPLY_GATE -->|是| BUILD_WAIT --> SUPPLY_KIND
+        SUPPLY_KIND -->|识别| WAIT_IDENTIFY
+        SUPPLY_KIND -->|扫描| WAIT_SCAN
+        SUPPLY_KIND -->|跟踪| WAIT_TRACK
+    end
+
+    subgraph PERIPHERAL_SIDE["外设输出"]
+        WAIT_IDENTIFY --> D455_THREAD --> REPORT_IDENTIFY --> REPORT_QUEUE
+        WAIT_SCAN --> D455_THREAD
+        D455_THREAD --> REPORT_SCAN --> REPORT_QUEUE
+        WAIT_TRACK --> D455_THREAD
+        D455_THREAD --> REPORT_TRACK --> REPORT_QUEUE
+    end
+
+    subgraph RECEIVE_SIDE["任务管理承接"]
+        REPORT_QUEUE --> TASK_RECEIVE --> MATCH_GATE
+        MATCH_GATE -->|否| CACHE_ONLY
+        MATCH_GATE -->|是| RECEIPT --> REQUEST
+    end
+
+    subgraph SELF_SIDE["自我组织"]
+        REQUEST --> SELF_ORG --> REPORT_KIND
+        REPORT_KIND -->|逐簇识别报告| ORG_IDENTIFY --> DRAFT_MAPPING
+        REPORT_KIND -->|扫描变化报告| ORG_SCAN --> DRAFT_SCAN
+        REPORT_KIND -->|跟踪报告| ORG_TRACK --> DRAFT_TRACK
+    end
+
+    subgraph POSTING["提交裁决"]
+        DRAFT_MAPPING --> SUBMIT_GATE
+        DRAFT_SCAN --> SUBMIT_GATE
+        DRAFT_TRACK --> SUBMIT_GATE
+        SUBMIT_GATE --> DECISION
+        DECISION -->|通过| POST_FACT --> REPLAN --> EVIDENCE
+        DECISION -->|不通过| GAP --> REPLAN
+    end
+
+    subgraph RULES["硬边界"]
+        RULE_METHOD -.约束.-> BUILD_WAIT
+        RULE_PERIPHERAL -.约束.-> D455_THREAD
+        RULE_TASK -.约束.-> REQUEST
+        RULE_SELF -.约束.-> SUBMIT_GATE
+        RULE_VALUE -.约束.-> POST_FACT
+    end
+
+    classDef demand fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef task fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef peripheral fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef submit fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    classDef result fill:#eef8f7,stroke:#397b77,color:#102827;
+
+    class NEED demand;
+    class TASK_INIT,NORMAL_TASK,BUILD_WAIT,WAIT_IDENTIFY,WAIT_SCAN,WAIT_TRACK,TASK_RECEIVE,RECEIPT,REQUEST task;
+    class D455_THREAD,REPORT_IDENTIFY,REPORT_SCAN,REPORT_TRACK,REPORT_QUEUE peripheral;
+    class METHOD_SUPPLY_GATE,SUPPLY_KIND,MATCH_GATE,REPORT_KIND,DECISION gate;
+    class SELF_ORG,ORG_IDENTIFY,ORG_SCAN,ORG_TRACK,DRAFT_MAPPING,DRAFT_SCAN,DRAFT_TRACK,SUBMIT_GATE submit;
+    class CACHE_ONLY,GAP,RULE_METHOD,RULE_PERIPHERAL,RULE_TASK,RULE_SELF,RULE_VALUE warn;
+    class POST_FACT,REPLAN,EVIDENCE result;
+        </pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>三类观察任务分支</h2>
+      <div class="canvas branch">
+        <pre class="mermaid">
+flowchart LR
+    %% 识别
+    IDENTIFY_TASK["识别任务<br/>补未归属观察材料"]
+    IDENTIFY_REPORT["逐簇识别报告"]
+    IDENTIFY_ORG["自我_识别外设观察材料"]
+    MAPPING_FACT["当前观察范围可观测单位存在对应事实"]
+    IDENTIFY_LIMIT["边界<br/>不生成被观察存在状态或动态"]
+
+    %% 扫描
+    SCAN_TASK["扫描任务<br/>看已识别区域 / 已确认存在变化"]
+    SCAN_BASE["已有稳定对应存在<br/>或已识别区域基准"]
+    HISTORY_GATE{"是否有可比历史材料?"}
+    DISCOVERY["首次扫描<br/>发现存在事实 / 当前特征快照"]
+    CHANGE["后续扫描<br/>特征值变化事实 / 变化动态"]
+    SCAN_LIMIT["边界<br/>不替代全场景明确或安全结论"]
+
+    %% 跟踪
+    TRACK_TASK["跟踪任务<br/>盯指定目标"]
+    TRACK_SEED["指定稳定存在<br/>或目标种子 / ROI"]
+    TRACK_REPORT["跟踪报告"]
+    TRACK_FACT["指定存在跟踪事实"]
+    TRACK_LIMIT["边界<br/>不替代扫描或全场景识别"]
+
+    IDENTIFY_TASK --> IDENTIFY_REPORT --> IDENTIFY_ORG --> MAPPING_FACT --> IDENTIFY_LIMIT
+    SCAN_TASK --> SCAN_BASE --> HISTORY_GATE
+    HISTORY_GATE -->|无| DISCOVERY --> SCAN_LIMIT
+    HISTORY_GATE -->|有| CHANGE --> SCAN_LIMIT
+    TRACK_TASK --> TRACK_SEED --> TRACK_REPORT --> TRACK_FACT --> TRACK_LIMIT
+
+    classDef identify fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef scan fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef track fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+
+    class IDENTIFY_TASK,IDENTIFY_REPORT,IDENTIFY_ORG,MAPPING_FACT identify;
+    class SCAN_TASK,SCAN_BASE,DISCOVERY,CHANGE scan;
+    class TRACK_TASK,TRACK_SEED,TRACK_REPORT,TRACK_FACT track;
+    class HISTORY_GATE gate;
+    class IDENTIFY_LIMIT,SCAN_LIMIT,TRACK_LIMIT warn;
+        </pre>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h2>判断口径</h2>
+      <ul>
+        <li>观察任务的接口层目标是让外设输出被任务系统接收，并被自我组织成可裁决的事实草案。</li>
+        <li>外设观察等待项的来源是当前方法供料要求，不是需求目标特征文本。</li>
+        <li>识别只产出可观测单位到存在的对应事实；扫描和跟踪才产出状态与动态。</li>
+        <li>扫描可由局部已识别区域启动，不要求全场景已明确；但扫描结果不得反推全场景明确。</li>
+        <li>跟踪只盯指定目标，不替代扫描，也不证明全场景安全。</li>
+        <li>本流程不得写需求满足、安全值、服务值或风险状态明确。</li>
+      </ul>
+
+      <h2>验证锚点</h2>
+      <ul class="anchors">
+        <li>任务侧：外设观察等待项创建延后；按当前方法供料要求创建外设观察等待项。</li>
+        <li>外设侧：D455材料包证据卡；D455逐簇识别样本卡；扫描变化报告；跟踪报告。</li>
+        <li>任务管理承接：任务管理外设消息承接/处理一次；任务管理外设消息承接/生成观察事实承接请求。</li>
+        <li>提交入口：提交_当前观察范围可观测单位存在对应事实；提交_观察存在发现事实；提交_观察存在特征值变化事实；提交_指定存在跟踪事实。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: "basis"
+      },
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif",
+        primaryBorderColor: "#2f6f9f",
+        lineColor: "#6a737d"
+      }
+    });
+  </script>
+</body>
+</html>
