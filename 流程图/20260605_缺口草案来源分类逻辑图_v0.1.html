@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>缺口草案来源分类逻辑图 v0.1</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      background: #f7f8fa;
+      color: #1f2328;
+    }
+
+    header {
+      padding: 18px 24px 12px;
+      border-bottom: 1px solid #d8dee4;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 13px;
+      color: #57606a;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    .canvas {
+      min-width: 1980px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .mermaid {
+      min-width: 1940px;
+    }
+
+    .notes {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      max-width: 1260px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .notes h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .notes ul {
+      margin: 6px 0 0 20px;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>缺口草案来源分类逻辑图 v0.1</h1>
+    <p class="hint">细分任务筹办状态机中的“缺口草案来源分类”：判断草案是逻辑错误、真实可选步骤、证据不足、学习缺口、目标补齐、版本冲突还是诊断等待。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    INPUT["输入: 缺口草案<br/>缺口报告 / 派生需求消息 / 更新指令输入草案"]
+    SNAPSHOT["固定分类快照<br/>任务 / 父需求 / 候选项 / 过滤结果 / 目标语义 / 来源因果 / 证据引用"]
+
+    VERSION_GATE{"快照版本是否一致?"}
+    VERSION_CONFLICT["筹办回执: 版本冲突<br/>重读候选视图 / 需求 / 世界事实"]
+
+    TRACE_GATE{"草案来源链是否可追溯?<br/>source_candidate_id / generation_type / parent_demand_id / source_stage"}
+    TRACE_KIND{"来源缺失类型?"}
+    TRACE_LOGIC_ERROR["逻辑错误: 草案生成器漏写来源<br/>弹窗 + 错误日志"]
+    TRACE_DIAGNOSTIC["诊断等待: 旧数据或迁移数据缺来源<br/>不生成业务分支"]
+
+    PARENT_GATE{"父需求是否合法?<br/>存在 / 非结构根 / 归属当前任务 / 未失效"}
+    PARENT_ERROR["逻辑错误: 父需求非法<br/>缺父需求 / 父需求是结构根 / 归属冲突"]
+
+    DRAFT_KIND_GATE{"草案类型是否合法?"}
+    GAP_REPORT["缺口报告<br/>只描述缺口，不等于正式需求"]
+    DEMAND_MSG["派生需求消息<br/>待提交入口裁决"]
+    UPDATE_DRAFT["需求树更新指令输入草案<br/>待统一更新入口裁决"]
+    UNSUPPORTED_DRAFT["逻辑错误: 非法草案类型<br/>动作命令 / 任务状态 / 方法执行请求"]
+
+    TARGET_FIELD_GATE{"目标字段是否完整?<br/>目标宿主 / 目标特征 / 当前状态 / 比较符 / 目标值"}
+    FIELD_MISSING_KIND{"字段缺失来源?"}
+    FIELD_LOGIC_ERROR["逻辑错误: 翻译器漏填必要目标槽位"]
+    TARGET_GAP["真实目标补齐缺口<br/>外部输入或交互草案缺目标槽位"]
+    EVIDENCE_FOR_FIELD["证据不足待观察<br/>缺当前事实 / 缺观察材料 / 缺反馈归因"]
+
+    COMPARE_GATE{"目标比较是否合法?<br/>大于 / 小于 / 等于 / 值域 / 枚举 / 非 I64_MAX"}
+    OLD_DIRECTION_GATE{"是否为旧方向词<br/>建立 / 刷新 / 取得 / 确认 / 明确 / 新鲜等?"}
+    NORMALIZE_DIRECTION["尝试规范化为三比较格式<br/>大于 / 小于 / 等于"]
+    COMPARE_ERROR["逻辑错误: 目标比较不合法<br/>非法比较符 / 枚举非等于 / I64_MAX / 值域冲突"]
+
+    GEN_TYPE_GATE{"生成类型是否合法?<br/>促成 / 避免 / 条件补齐 / 方法就绪 / 证据补齐 / 副作用约束 / 学习缺口"}
+    GEN_TYPE_ERROR["逻辑错误: 生成类型非法<br/>领域硬编码前置 / 未登记类型 / 任务筹办自身任务化"]
+
+    SOURCE_CAUSAL_GATE{"来源因果或证据<br/>是否满足本类型要求?"}
+    SOURCE_KIND{"来源不足类型?"}
+    SOURCE_OK["来源满足<br/>来源因果 / 证据引用 / 过滤原因可解析"]
+    SOURCE_EVIDENCE_GAP["证据不足<br/>可通过观察 / 反馈 / 归因补证据"]
+    SOURCE_LEARNING_GAP["学习缺口<br/>缺促成因果 / 缺生产者 / 缺判定规则 / 缺可执行方法来源"]
+    SOURCE_ERROR["逻辑错误: 来源冲突或引用损坏<br/>来源因果不可解析 / 与目标反向冲突"]
+
+    SEMANTIC_GATE{"草案目标语义类型?"}
+    ORDINARY_TARGET["普通业务目标草案"]
+    LOGIC_ORG_TARGET["逻辑组织草案<br/>AND组 / OR组 / 方法路径组 / 因果子链"]
+    STRUCT_GAP_TARGET["结构性治理缺口<br/>规范缺口 / 初始化补丁 / 领域定义缺口"]
+    TOKEN_TARGET["聚合或结算令牌草案<br/>不走普通业务分支"]
+
+    ACQUIRE_GATE{"逻辑组织获取途径<br/>是否明确合法?"}
+    ACQUIRE_ERROR["逻辑错误: 逻辑组织缺获取途径<br/>不得猜测组织语义"]
+    ACQUIRE_OK["获取途径合法<br/>复合目标AND组 / 多候选OR组 / 方法路径组 / 因果子链"]
+
+    RELATION_HINT_GATE{"是否有关系类型建议<br/>或可由获取途径推导?"}
+    RELATION_MISSING_KIND{"关系缺失来源?"}
+    RELATION_OK["关系类型可判定<br/>OR / AND / 顺序链 / 证据补齐 / 学习支撑 / 副作用约束"]
+    RELATION_LOGIC_ERROR["逻辑错误: 本轮草案漏写关系类型"]
+    RELATION_DIAGNOSTIC["诊断等待: 旧数据缺关系<br/>等待规范化或重筹办"]
+
+    BRANCH_GATE{"最终来源分类?"}
+    REAL_STEP["真实可选步骤草案<br/>进入候选关系类型判断"]
+    EVIDENCE_GAP["筹办回执: 证据不足待观察<br/>补观察事实 / 反馈 / 归因材料"]
+    LEARNING_DRAFT["学习缺口草案<br/>进入学习支撑关系或学习任务草案"]
+    STRUCT_GAP["结构性治理缺口回执<br/>不当作普通业务子路径"]
+    TOKEN_RECEIPT["聚合 / 结算令牌回执<br/>等待组织节点处理"]
+    ERROR_RECEIPT["筹办回执: 逻辑错误中止<br/>不生成业务分支 / 不派生需求"]
+    DIAGNOSTIC_WAIT["筹办回执: 来源未判明<br/>诊断等待 / 人工复核 / 重筹办"]
+
+    RELATION_DRAFT_GATE["下一步: 候选关系类型判断<br/>OR / AND / 顺序链 / 证据补齐 / 学习支撑 / 副作用约束"]
+    RECEIPT_OUT["输出统一筹办回执<br/>分类 / 原因 / 下一步 / 禁止动作 / 压力材料"]
+    NO_WRITE_NOTE["边界: 分类不入树<br/>不提交任务状态 / 不执行方法 / 不等同正式需求"]
+    PRESSURE["压力材料<br/>反复逻辑错误 / 草案长期不可目标化 / 证据长期不足 / 学习缺口长期无结果"]
+
+    INPUT --> SNAPSHOT --> VERSION_GATE
+    VERSION_GATE -->|否| VERSION_CONFLICT --> RECEIPT_OUT
+    VERSION_GATE -->|是| TRACE_GATE
+
+    TRACE_GATE -->|否| TRACE_KIND
+    TRACE_GATE -->|是| PARENT_GATE
+    TRACE_KIND -->|本轮生成器漏写| TRACE_LOGIC_ERROR --> ERROR_RECEIPT
+    TRACE_KIND -->|旧数据 / 迁移数据| TRACE_DIAGNOSTIC --> DIAGNOSTIC_WAIT
+
+    PARENT_GATE -->|否| PARENT_ERROR --> ERROR_RECEIPT
+    PARENT_GATE -->|是| DRAFT_KIND_GATE
+
+    DRAFT_KIND_GATE -->|缺口报告| GAP_REPORT --> TARGET_FIELD_GATE
+    DRAFT_KIND_GATE -->|派生需求消息| DEMAND_MSG --> TARGET_FIELD_GATE
+    DRAFT_KIND_GATE -->|更新指令输入草案| UPDATE_DRAFT --> TARGET_FIELD_GATE
+    DRAFT_KIND_GATE -->|非法| UNSUPPORTED_DRAFT --> ERROR_RECEIPT
+
+    TARGET_FIELD_GATE -->|缺失| FIELD_MISSING_KIND
+    TARGET_FIELD_GATE -->|完整| COMPARE_GATE
+    FIELD_MISSING_KIND -->|翻译器漏填| FIELD_LOGIC_ERROR --> ERROR_RECEIPT
+    FIELD_MISSING_KIND -->|真实输入未补齐| TARGET_GAP --> RECEIPT_OUT
+    FIELD_MISSING_KIND -->|缺当前事实或材料| EVIDENCE_FOR_FIELD --> EVIDENCE_GAP
+
+    COMPARE_GATE -->|合法| GEN_TYPE_GATE
+    COMPARE_GATE -->|旧方向词| OLD_DIRECTION_GATE
+    COMPARE_GATE -->|非法| COMPARE_ERROR --> ERROR_RECEIPT
+    OLD_DIRECTION_GATE -->|可规范化| NORMALIZE_DIRECTION --> GEN_TYPE_GATE
+    OLD_DIRECTION_GATE -->|不可规范化| COMPARE_ERROR
+
+    GEN_TYPE_GATE -->|合法| SOURCE_CAUSAL_GATE
+    GEN_TYPE_GATE -->|非法| GEN_TYPE_ERROR --> ERROR_RECEIPT
+
+    SOURCE_CAUSAL_GATE -->|满足| SOURCE_OK --> SEMANTIC_GATE
+    SOURCE_CAUSAL_GATE -->|不足| SOURCE_KIND
+    SOURCE_KIND -->|可补证据| SOURCE_EVIDENCE_GAP --> EVIDENCE_GAP
+    SOURCE_KIND -->|缺知识或生产者| SOURCE_LEARNING_GAP --> LEARNING_DRAFT
+    SOURCE_KIND -->|来源损坏或冲突| SOURCE_ERROR --> ERROR_RECEIPT
+
+    SEMANTIC_GATE -->|普通业务目标| ORDINARY_TARGET --> RELATION_HINT_GATE
+    SEMANTIC_GATE -->|逻辑组织| LOGIC_ORG_TARGET --> ACQUIRE_GATE
+    SEMANTIC_GATE -->|结构性治理缺口| STRUCT_GAP_TARGET --> STRUCT_GAP --> RECEIPT_OUT
+    SEMANTIC_GATE -->|聚合 / 结算令牌| TOKEN_TARGET --> TOKEN_RECEIPT --> RECEIPT_OUT
+
+    ACQUIRE_GATE -->|否| ACQUIRE_ERROR --> ERROR_RECEIPT
+    ACQUIRE_GATE -->|是| ACQUIRE_OK --> RELATION_HINT_GATE
+
+    RELATION_HINT_GATE -->|有| RELATION_OK --> BRANCH_GATE
+    RELATION_HINT_GATE -->|无| RELATION_MISSING_KIND
+    RELATION_MISSING_KIND -->|本轮草案漏写| RELATION_LOGIC_ERROR --> ERROR_RECEIPT
+    RELATION_MISSING_KIND -->|旧数据缺关系| RELATION_DIAGNOSTIC --> DIAGNOSTIC_WAIT
+    RELATION_MISSING_KIND -->|可由提交入口裁决| RELATION_OK
+
+    BRANCH_GATE -->|生成类型为学习缺口| LEARNING_DRAFT
+    BRANCH_GATE -->|生成类型为证据补齐且证据不足| EVIDENCE_GAP
+    BRANCH_GATE -->|普通真实缺口 / 可选步骤| REAL_STEP --> RELATION_DRAFT_GATE --> RECEIPT_OUT
+
+    VERSION_CONFLICT --> PRESSURE
+    ERROR_RECEIPT --> RECEIPT_OUT
+    DIAGNOSTIC_WAIT --> RECEIPT_OUT
+    EVIDENCE_GAP --> RECEIPT_OUT
+    LEARNING_DRAFT --> RELATION_DRAFT_GATE
+
+    NO_WRITE_NOTE -.约束.-> REAL_STEP
+    NO_WRITE_NOTE -.约束.-> LEARNING_DRAFT
+    NO_WRITE_NOTE -.约束.-> RELATION_DRAFT_GATE
+
+    ERROR_RECEIPT -.反复逻辑错误.-> PRESSURE
+    EVIDENCE_GAP -.证据长期不足.-> PRESSURE
+    DIAGNOSTIC_WAIT -.长期未判明.-> PRESSURE
+    LEARNING_DRAFT -.学习长期无结果.-> PRESSURE
+    TARGET_GAP -.目标槽长期未补.-> PRESSURE
+
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef prep fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef receipt fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    classDef pressure fill:#fff0f3,stroke:#b4234a,color:#3a0d18;
+
+    class VERSION_GATE,TRACE_GATE,TRACE_KIND,PARENT_GATE,DRAFT_KIND_GATE,TARGET_FIELD_GATE,FIELD_MISSING_KIND,COMPARE_GATE,OLD_DIRECTION_GATE,GEN_TYPE_GATE,SOURCE_CAUSAL_GATE,SOURCE_KIND,SEMANTIC_GATE,ACQUIRE_GATE,RELATION_HINT_GATE,RELATION_MISSING_KIND,BRANCH_GATE gate;
+    class INPUT,SNAPSHOT,GAP_REPORT,DEMAND_MSG,UPDATE_DRAFT,TARGET_GAP,NORMALIZE_DIRECTION,SOURCE_OK,ORDINARY_TARGET,LOGIC_ORG_TARGET,ACQUIRE_OK,RELATION_OK,REAL_STEP,RELATION_DRAFT_GATE,RECEIPT_OUT prep;
+    class VERSION_CONFLICT,TRACE_DIAGNOSTIC,EVIDENCE_FOR_FIELD,SOURCE_EVIDENCE_GAP,SOURCE_LEARNING_GAP,STRUCT_GAP,TOKEN_RECEIPT,EVIDENCE_GAP,LEARNING_DRAFT,DIAGNOSTIC_WAIT receipt;
+    class TRACE_LOGIC_ERROR,PARENT_ERROR,UNSUPPORTED_DRAFT,FIELD_LOGIC_ERROR,COMPARE_ERROR,GEN_TYPE_ERROR,SOURCE_ERROR,ACQUIRE_ERROR,RELATION_LOGIC_ERROR,ERROR_RECEIPT,NO_WRITE_NOTE warn;
+    class PRESSURE pressure;
+      </pre>
+    </section>
+
+    <section class="notes">
+      <h2>判断口径</h2>
+      <ul>
+        <li>逻辑错误、版本冲突和结构损坏不得生成业务分支。</li>
+        <li>真实可选步骤必须具备合法目标比较、父需求、生成类型和可判定关系类型。</li>
+        <li>逻辑组织草案必须有明确获取途径，不得猜测 AND、OR、方法路径组或因果子链语义。</li>
+        <li>分类为真实可选步骤后，仍要进入候选关系类型判断和提交入口裁决。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: "basis"
+      },
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif",
+        primaryBorderColor: "#2f6f9f",
+        lineColor: "#6a737d"
+      }
+    });
+  </script>
+</body>
+</html>
