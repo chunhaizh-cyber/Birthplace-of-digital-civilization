@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>当前代码状态：自我内部治理因果树（任务 / 方法虚拟存在） v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; letter-spacing: 0; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; letter-spacing: 0; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; }
+    main { padding: 20px; }
+    .canvas { min-width: 3000px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 2960px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1320px; line-height: 1.65; font-size: 14px; }
+    .notes table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .notes th, .notes td { padding: 7px 8px; border: 1px solid #d8dee4; text-align: left; vertical-align: top; }
+    .notes th { background: #f6f8fa; font-weight: 650; }
+    pre { white-space: pre-wrap; margin: 0; }
+    code { font-family: Consolas, "Courier New", monospace; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>当前代码状态：自我内部治理因果树（任务 / 方法虚拟存在） v0.1</h1>
+    <p class="hint">展示需求、任务虚拟存在、方法虚拟存在、过程回执、动作动态、需求收束和结算之间的内部治理因果关系。</p>
+  </header>
+  <main>
+    <section>
+      <h2>总图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TB
+    DEMAND["活动需求<br/>目标宿主 + 目标特征类型 + 满足关系 + 目标值<br/>治理起因: 该目标需要被达成"]
+    ACCEPT["承接需求创建任务<br/>任务信息节点 + 任务虚拟存在<br/>任务状态: 未启动"]
+    TV_INIT["任务虚拟存在初始化<br/>任务发起存在 / 作用对象 / 上下文<br/>任务当前状态 / 目标状态<br/>满足关系 / 安全权重 / 服务权重"]
+
+    WORK["任务管理工作包<br/>读取任务虚拟存在<br/>工作线程只推进一轮<br/>不裸写任务状态 / 需求树 / 世界事实"]
+
+    PREP["任务筹办普通函数<br/>因: 任务状态允许筹办 + 需求目标明确<br/>果: 筹办回执"]
+    PREP_PARENT["父/中间任务回执<br/>子需求 / 子任务 / 等待 / 归并 / 重筹办"]
+    PREP_LEAF["叶子任务回执<br/>候选方法集<br/>当前方法<br/>可执行输入参数场景<br/>筹办缺口类型"]
+
+    METHOD_REF["任务虚拟存在引用方法<br/>候选方法虚拟存在集<br/>当前方法虚拟存在<br/>选中自我能力值"]
+    MV["方法虚拟存在<br/>方法来源 / 动作句柄类型 / 成熟度<br/>父方法 / 前置方法 / 后续方法<br/>条件场景 / 结果场景 / 统计槽位"]
+
+    MSTATE["方法状态治理<br/>待方法动作 -> 待可执行入口 -> 待条件节点<br/>-> 待结果节点 -> 待条件结果对 -> 可用"]
+    MSTATE_DYN["方法状态动作动态<br/>主体: 方法虚拟存在<br/>特征: 方法状态<br/>来源动作名: 方法状态提交"]
+
+    READY_Q["方法是否可执行<br/>条件结果对存在<br/>动作句柄有效<br/>输入参数场景闭合"]
+    METHOD_GAP["方法结构缺口<br/>方法状态 = 可用 仍未达成<br/>缺动作 / 缺入口 / 缺条件 / 缺结果 / 缺条件结果对"]
+    LEARN_DEMAND["方法域补齐需求<br/>围绕已找到方法虚拟存在<br/>目标: 具体结构缺口补齐"]
+
+    SYNC_PREP["同步筹办回执到任务壳<br/>被动整理<br/>写任务虚拟存在: 候选集 / 当前方法 / 输入场景 / 筹办缺口<br/>不生成主链动作动态"]
+    SUBMIT_READY["提交任务状态变化<br/>写任务状态: 就绪 / 等待中 / 待重筹办 / 无法执行<br/>生成任务状态动作动态"]
+
+    EXEC["任务执行普通函数<br/>读取当前方法 + 可执行输入参数场景<br/>调用当前方法<br/>读取方法运行存在 + 输出结果场景<br/>比较输出结果与来源需求目标"]
+    WORLD_DYN["D0 世界事实动作动态<br/>方法: 当前业务方法 / 提交类方法<br/>主体: 世界存在或结果场景<br/>特征: 目标特征旧值 -> 新值"]
+    EXEC_RECEIPT["执行回执<br/>目标是否达成<br/>本轮是否有推进 / 推进量 / 剩余差距<br/>执行结果类型<br/>当前方法运行存在 / 输出结果场景"]
+    SYNC_EXEC["同步执行回执到任务壳<br/>写任务虚拟存在: 目标达成 / 推进量 / 剩余差距<br/>当前方法运行存在 / 输出结果场景 / 执行缺口<br/>不直接写任务状态"]
+    SUBMIT_DONE["提交任务状态变化<br/>写任务状态: 完成 / 等待中 / 待重筹办 / 失败<br/>生成任务状态动作动态"]
+
+    D1["D1 任务状态动作动态<br/>方法: 提交任务状态变化<br/>主体: 任务虚拟存在 / 任务壳<br/>特征: 任务状态旧值 -> 新值<br/>来源动作动态: D0 或治理过程动态"]
+
+    SELF_REVIEW["自我线程复核任务完成事实<br/>读取任务完成回执 / 当前方法运行存在 / 输出结果场景 / D1 / 来源需求"]
+    DEMAND_CLOSE["来源需求收束后处理<br/>写需求有效截止 / 最近结算任务 / 最近结算时间<br/>刷新父子需求权重和结构角色<br/>不伪装成任务状态动作动态"]
+    VALUE["D2 叶子任务价值结算<br/>方法: 结算叶子任务价值<br/>主体: 自我核心值或结算账宿主<br/>来源: 任务已结算状态动态 + 满足证据动态"]
+
+    PARENT_WAKE["父任务重筹办因果<br/>子任务状态 / 子需求满足 / D1<br/>-> 父任务: 等待中 -> 待重筹办<br/>需要回传权威任务状态动作动态"]
+
+    CAUSAL["统一因果账本<br/>动作动态 -> 按动态创建因果信息<br/>命中模板追加证据动态样本<br/>后续筹办按正式状态和因果信息找下一步"]
+
+    DEMAND --> ACCEPT --> TV_INIT --> WORK --> PREP
+    PREP --> PREP_PARENT
+    PREP --> PREP_LEAF
+    PREP_LEAF --> METHOD_REF --> MV --> MSTATE --> MSTATE_DYN
+    MSTATE --> READY_Q
+    READY_Q -->|"可用"| SYNC_PREP
+    READY_Q -->|"不可用"| METHOD_GAP --> LEARN_DEMAND
+    METHOD_GAP --> SYNC_PREP
+    PREP_PARENT --> SYNC_PREP
+    PREP_LEAF --> SYNC_PREP
+    SYNC_PREP --> SUBMIT_READY --> D1
+
+    D1 -->|"任务状态=就绪"| EXEC
+    EXEC --> WORLD_DYN --> EXEC_RECEIPT
+    EXEC --> EXEC_RECEIPT
+    EXEC_RECEIPT --> SYNC_EXEC --> SUBMIT_DONE --> D1
+
+    D1 --> SELF_REVIEW --> DEMAND_CLOSE --> VALUE --> CAUSAL
+    D1 --> PARENT_WAKE --> SUBMIT_READY
+    WORLD_DYN --> CAUSAL
+    MSTATE_DYN --> CAUSAL
+    D1 --> CAUSAL
+    LEARN_DEMAND -.->|"补齐后方法状态变化"| MV
+
+    classDef cause fill:#eef6ff,stroke:#0969da,color:#1f2328;
+    classDef virtual fill:#f0e7ff,stroke:#8250df,stroke-width:2px,color:#1f2328;
+    classDef fn fill:#e6ffed,stroke:#1a7f37,color:#1f2328;
+    classDef dyn fill:#fff4d6,stroke:#9a6700,stroke-width:2px,color:#1f2328;
+    classDef boundary fill:#fff1f1,stroke:#cf222e,color:#1f2328;
+    classDef ledger fill:#f6f8fa,stroke:#57606a,color:#1f2328;
+
+    class DEMAND,PREP_PARENT,PREP_LEAF,READY_Q,METHOD_GAP,LEARN_DEMAND,SELF_REVIEW,DEMAND_CLOSE,PARENT_WAKE cause;
+    class TV_INIT,METHOD_REF,MV virtual;
+    class ACCEPT,WORK,PREP,SYNC_PREP,SUBMIT_READY,EXEC,SYNC_EXEC,SUBMIT_DONE fn;
+    class MSTATE_DYN,WORLD_DYN,D1,VALUE dyn;
+    class MSTATE boundary;
+    class CAUSAL ledger;
+        </pre>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h2>口径</h2>
+      <p>任务筹办和任务执行只形成过程回执；任务账由同步回执和提交任务状态变化写入。方法状态、运行账、结构成熟度写在方法虚拟存在。动作动态之间通过来源动态形成统一因果账本。</p>
+    </section>
+
+    <section class="notes">
+      <h2>任务虚拟存在树</h2>
+      <pre><code>活动需求
+└── 任务虚拟存在
+    ├── 来源需求镜像：发起存在 / 作用对象 / 当前状态 / 目标状态 / 满足关系 / 权重
+    ├── 筹办回执镜像：候选方法虚拟存在集 / 当前方法虚拟存在 / 输入场景 / 筹办缺口
+    ├── 执行回执镜像：目标是否达成 / 推进量 / 剩余差距 / 方法运行存在 / 输出结果场景
+    └── 任务状态动作动态：就绪 / 等待中 / 待重筹办 / 完成 / 已结算</code></pre>
+    </section>
+
+    <section class="notes">
+      <h2>方法虚拟存在树</h2>
+      <pre><code>方法头 / 当前方法
+└── 方法虚拟存在
+    ├── 方法身份：方法来源 / 动作句柄类型 / 动作名 / 成熟度阶段
+    ├── 方法结构：父方法 / 前置方法 / 后续方法 / 条件场景 / 结果场景
+    ├── 方法状态：待方法动作 -> 待可执行入口 -> 待条件节点 -> 待结果节点 -> 待条件结果对 -> 可用
+    ├── 方法运行统计：运行次数 / 成功次数 / 失败次数 / 最近执行时间
+    └── 方法状态动作动态：方法状态旧值 -> 新值</code></pre>
+    </section>
+
+    <section class="notes">
+      <h2>因果节点说明</h2>
+      <table>
+        <thead>
+          <tr><th>节点</th><th>因</th><th>果</th><th>动作动态归属</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>任务筹办</td><td>任务状态允许筹办，需求目标明确</td><td>候选方法、当前方法、输入场景、缺口或就绪建议</td><td>自身不生成方法动作动态</td></tr>
+          <tr><td>方法状态治理</td><td>方法头、动作句柄、条件节点、结果节点、条件结果对状态</td><td>方法状态写入方法虚拟存在</td><td>方法状态变化可生成方法状态动作动态</td></tr>
+          <tr><td>任务执行</td><td>任务就绪，当前方法和输入场景具备</td><td>世界事实、输出结果场景、执行回执</td><td>D0 归当前业务方法或提交类方法</td></tr>
+          <tr><td>提交任务状态变化</td><td>筹办或执行回执给出建议任务状态</td><td>任务状态写入并生成任务状态动作动态</td><td>D1 归提交任务状态变化</td></tr>
+          <tr><td>叶子任务价值结算</td><td>任务完成且满足证据合法</td><td>安全值 / 服务值 / 结算增量入账</td><td>D2 归结算叶子任务价值</td></tr>
+          <tr><td>父任务重筹办</td><td>子任务完成、子需求满足或方法可用性变化</td><td>父任务从等待中回到待重筹办</td><td>需要串上权威任务状态动作动态</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="notes">
+      <h2>边界</h2>
+      <pre><code>1. 不把任务筹办 / 任务执行画成本能方法。
+2. 不把任务管理线程画成动作动态来源。
+3. 不把方法运行账写入任务虚拟存在。
+4. 不把任务完成直接等同于需求满足。
+5. 不用说明文本、原因摘要或日志文案作为机器因果依据。
+6. 下一步动作仍由正式需求状态、任务状态、方法状态和因果信息驱动。</code></pre>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { htmlLabels: true, curve: "basis" } });
+  </script>
+</body>
+</html>
