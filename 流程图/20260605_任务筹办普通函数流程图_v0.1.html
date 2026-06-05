@@ -45,6 +45,36 @@
     .mermaid {
       min-width: 1440px;
     }
+
+    .notes {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      max-width: 1120px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .notes h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .notes h3 {
+      margin: 14px 0 6px;
+      font-size: 15px;
+    }
+
+    .notes ul {
+      margin: 6px 0 0 20px;
+      padding: 0;
+    }
+
+    .notes code {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -232,6 +262,29 @@ flowchart TD
     class NO_DIRECT_WRITE,LOGIC_ERROR warn;
     class M_PRESSURE pressure;
       </pre>
+    </section>
+    <section class="notes">
+      <h2>当前代码对账状态</h2>
+      <p>本图表达的是规范目标流程，当前代码已经实现了部分底座，但尚未完整实现“OR 候选路径 -> 递归闭合 -> 无法闭合学习拦截 -> 闭合后路径选择”的整层生命周期。</p>
+      <h3>已具备</h3>
+      <ul>
+        <li>任务筹办入口能读取来源需求、目标宿主、目标特征、当前状态、目标状态和满足关系。</li>
+        <li>普通可任务化目标前已有目标语义闸门，逻辑组织目标不会直接进入普通候选方法填充。</li>
+        <li>临时因果视图已有促成、避免、条件补齐、方法就绪、证据补齐、副作用约束、学习缺口等路径项集合。</li>
+        <li>任务筹办能把临时因果路径项翻译为任务管理派生需求消息，并由任务管理工作线程上报给自我线程。</li>
+        <li>需求类已有获取途径到逻辑组织目标的映射：<code>多候选替代路径组生成 -> OR组满足状态</code>。</li>
+      </ul>
+      <h3>主要缺口</h3>
+      <ul>
+        <li>派生需求消息当前只携带 <code>因果路径生成类型</code>，没有携带 <code>需求获取途径</code>，无法明确表达“本批候选应先生成 OR 组”。</li>
+        <li>自我线程当前把筹办派生需求直接作为父需求的普通直接子需求裁决入树，没有先创建 / 复用 <code>多候选替代路径组生成</code> 的 OR 组承接节点。</li>
+        <li>任务筹办侧已有逻辑组织节点聚合视图，但 OR 组目前仍按“所有直接子需求满足”一类聚合处理，缺少“任一路径闭合 + OR 结算令牌”的选择闸门。</li>
+        <li>当前代码没有显式记录单条候选路径的状态：未展开、展开中、已闭合、无法闭合、已被学习拦截。</li>
+        <li>学习缺口目前主要由“临时因果视图没有任何路径且对象明确”触发，尚未覆盖“某条已展开候选路径被判定无法闭合”的拦截场景。</li>
+        <li>路径选择评价尚未落到代码层；收益和可执行性只在流程图中作为选择标准，未形成可验证的排序和提交入口。</li>
+        <li>目标不可解析场景已有日志和阻断，但尚未统一拆成“逻辑错误弹窗 + 记录日志”与“真实需求目标补齐分支”两类处理。</li>
+      </ul>
+      <p>对应计划：<code>计划/待完成项/20260605_任务筹办OR路径闭合与学习拦截实现计划_v0.1.md</code></p>
     </section>
   </main>
   <script type="module">
