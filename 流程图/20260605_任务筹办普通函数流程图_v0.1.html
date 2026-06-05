@@ -50,7 +50,7 @@
 <body>
   <header>
     <h1>任务筹办普通函数流程图 v0.1</h1>
-    <p class="hint">只展开任务筹办普通函数内部的找路径、找方法、找条件；外部逻辑以模块表示，不展开内部细节。</p>
+    <p class="hint">只展开任务筹办普通函数内部的找下一步可选步骤、找方法、找条件；外部逻辑以模块表示，不展开内部细节。</p>
   </header>
   <main>
     <section class="canvas">
@@ -80,15 +80,15 @@ flowchart TD
     CHILD_GATE{"是否存在活动子需求<br/>或阻塞父任务的子任务?"}
     LEAF_GATE{"是否已是普通可任务化叶子任务?"}
 
-    PATH_START["找路径<br/>读取目标语义和因果视图"]
-    PATH_VIEW["生成路径候选视图<br/>促成 / 避免 / 条件补齐 / 方法就绪 / 证据补齐 / 副作用约束 / 学习缺口"]
-    PATH_CLASSIFY["归类路径候选项<br/>已有可达路径 / 待补前置 / 禁用副作用 / 学习缺口 / 空视图"]
-    PATH_TRANSLATE["翻译候选项为明确目标<br/>缺口报告 / 派生需求消息 / 更新指令输入草案"]
+    PATH_START["找下一步可选步骤<br/>读取目标语义和因果视图"]
+    PATH_VIEW["生成下一步候选步骤视图<br/>促成 / 避免 / 条件补齐 / 方法就绪 / 证据补齐 / 副作用约束 / 学习缺口"]
+    PATH_CLASSIFY["归类下一步候选项<br/>可直接尝试方法 / 待补前置 / 禁用副作用 / 学习缺口 / 空视图"]
+    PATH_TRANSLATE["翻译候选项为本轮可提交目标<br/>缺口报告 / 派生需求消息 / 更新指令输入草案"]
     PATH_DRAFT_GATE{"翻译后是否存在<br/>阻塞缺口草案?"}
     PATH_SOURCE_GATE{"缺口草案来源<br/>逻辑错误还是真实需求?"}
-    PATH_GATE{"路径是否已闭合到<br/>普通可任务化目标?"}
-    PATH_DRAFT["形成缺口报告或派生需求草案<br/>不得在筹办函数内直接生成需求节点"]
-    PATH_WAIT["筹办回执: 等待路径闭合<br/>派生需求消息 / 更新指令输入草案"]
+    PATH_GATE{"本轮是否已得到<br/>下一步普通可任务化目标?"}
+    PATH_DRAFT["形成下一步缺口报告或派生需求草案<br/>不得在筹办函数内直接生成需求节点"]
+    PATH_WAIT["筹办回执: 等待下一步条件闭合<br/>派生需求消息 / 更新指令输入草案"]
 
     METHOD_START["找方法<br/>按目标特征查方法结果能力"]
     CANDIDATE_FILL["填充候选方法集<br/>先填充，再选择"]
@@ -139,15 +139,15 @@ flowchart TD
         CHILD_GATE -->|否| LEAF_GATE
     end
 
-    subgraph FIND_PATH["第一段: 找路径"]
-        LEAF_GATE -->|否, 仍需路径筹办| PATH_START
+    subgraph FIND_PATH["第一段: 找下一步可选步骤"]
+        LEAF_GATE -->|否, 仍需下一步筹办| PATH_START
         PATH_START --> M_CAUSAL_VIEW --> PATH_VIEW --> PATH_CLASSIFY --> PATH_TRANSLATE --> PATH_DRAFT_GATE
         PATH_DRAFT_GATE -->|有阻塞草案| PATH_SOURCE_GATE
         PATH_SOURCE_GATE -->|逻辑错误 / 不可目标化| LOGIC_ERROR
         PATH_SOURCE_GATE -->|真实需求缺口| PATH_DRAFT --> M_DEMAND_SUBMIT --> PATH_WAIT
         PATH_DRAFT_GATE -->|无阻塞草案| PATH_GATE
-        PATH_GATE -->|仍未闭合| PATH_WAIT
-        PATH_GATE -->|已闭合| METHOD_START
+        PATH_GATE -->|未得到下一步| PATH_WAIT
+        PATH_GATE -->|已得到下一步| METHOD_START
         LEAF_GATE -->|是| METHOD_START
     end
 
@@ -194,7 +194,7 @@ flowchart TD
     subgraph PRESSURE_FLOW["压力材料"]
         TARGET_GAP -.真实缺口反复出现.-> M_PRESSURE
         STATE_WAIT -.等待失效.-> M_PRESSURE
-        PATH_WAIT -.路径长期不闭合.-> M_PRESSURE
+        PATH_WAIT -.下一步长期无进展.-> M_PRESSURE
         METHOD_STATE_GAP -.方法长期不可用.-> M_PRESSURE
         ENTRY_GAP -.缺入口.-> M_PRESSURE
         CR_GAP -.缺经验配对.-> M_PRESSURE
