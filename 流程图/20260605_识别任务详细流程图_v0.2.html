@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>识别任务详细流程图 v0.2</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      background: #f7f8fa;
+      color: #1f2328;
+    }
+
+    header {
+      padding: 18px 24px 12px;
+      border-bottom: 1px solid #d8dee4;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 13px;
+      color: #57606a;
+      line-height: 1.6;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    section {
+      margin-bottom: 28px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    .canvas {
+      min-width: 2060px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .mermaid {
+      min-width: 2020px;
+    }
+
+    .notes {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      max-width: 1180px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .notes h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .notes ul {
+      margin: 6px 0 0 20px;
+      padding: 0;
+    }
+
+    .formula {
+      padding: 12px;
+      background: #f6f8fa;
+      border: 1px solid #d8dee4;
+      white-space: pre-wrap;
+      font-family: Consolas, "Microsoft YaHei", monospace;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>识别任务详细流程图 v0.2</h1>
+    <p class="hint">从识别任务目标展开：目标是什么，需要哪些条件，条件由外设提供哪些材料，自我如何组织处理，以及如何逐步达成当前观察范围可观测单位存在对应事实。</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>目标到达成流程</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    %% 目标层
+    GOAL["识别任务目标<br/>当前观察范围内的有效可观测单位<br/>稳定对应到存在"]
+    G1["子目标1: 明确观察范围<br/>本轮要处理哪个材料集 / 哪些区域"]
+    G2["子目标2: 列出有效可观测单位<br/>观察簇 / ROI / 掩码 / 点集 / 深度切片"]
+    G3["子目标3: 建立候选归属<br/>新存在候选 / 已有存在候选 / 背景 / 无效 / 冲突"]
+    G4["子目标4: 判断稳定对应<br/>哪些单位可稳定对应到存在<br/>哪些仍未稳定或冲突"]
+    G5["子目标5: 登记对应事实<br/>提交当前观察范围可观测单位存在对应事实"]
+    G6["子目标6: 暴露未达成原因<br/>未识别 / 冲突 / 证据不足 / 需补观察"]
+
+    %% 条件层
+    C0["任务条件<br/>来源需求指向对应事实<br/>当前方法需要识别供料"]
+    C1["供料条件<br/>存在识别包或可等待识别包"]
+    C2["材料条件<br/>来源外设 / 报告ID / 材料页 / 时间戳 / 有效期可查"]
+    C3["单位条件<br/>有效区域、无效区域、未识别区域和冲突区域可区分"]
+    C4["候选条件<br/>候选存在、像素归属账本、候选特征值可读取"]
+    C5["提交条件<br/>事实草案字段齐备<br/>提交入口可以校验和裁决"]
+
+    %% 外设供给
+    E0{"已有识别包?"}
+    WAIT["没有识别包<br/>按当前方法供料要求创建识别等待项"]
+    DEVICE["外设提供识别材料<br/>真实采集 / 聚簇 / 材料页 / 句柄"]
+    PACKAGE["识别包<br/>逐簇识别报告 + 识别提交包"]
+    P_HEAD["包头材料<br/>外设ID / 报告ID / 帧ID / 材料页ID / 时间戳 / 有效截止 / 质量问题"]
+    P_RANGE["观察范围材料<br/>有效区域 / 未识别区域 / 冲突区域 / 背景区域 / 无效区域"]
+    P_HANDLE["可回查材料<br/>ROI句柄 / 掩码句柄 / 点集句柄 / 深度切片句柄"]
+    P_CAND["候选归属材料<br/>新存在候选 / 已有存在匹配候选 / 像素归属账本"]
+    P_GAP["缺口材料<br/>证据不足原因 / 低置信 / 材料缺失 / 质量问题"]
+
+    %% 处理层
+    T0["读取识别包<br/>只接受识别包"]
+    T_BAD["输入不是识别包<br/>拒绝并退回总图其他分支"]
+    T1["核对材料可回查<br/>缺关键句柄则形成材料缺口"]
+    T2["整理观察范围<br/>排除无效区域<br/>保留有效可观测单位"]
+    T3["整理候选归属<br/>新存在候选 / 已有存在候选 / 背景候选 / 冲突候选"]
+    T4["逐单位判断<br/>稳定对应 / 未稳定 / 多重冲突 / 证据不足"]
+    T5["生成事实草案<br/>数量、映射表、稳定性、缺口原因"]
+
+    %% 达成判断
+    A0{"草案是否可提交?"}
+    A_REJECT["不可提交<br/>缺材料 / 过期 / 无有效单位 / 来源不合格"]
+    SUBMIT["提交对应事实<br/>提交入口裁决"]
+    A1{"对应事实是否闭合?"}
+    DONE["识别目标达成<br/>全部有效单位稳定对应存在"]
+    PARTIAL["识别目标部分达成<br/>已稳定部分入账<br/>未稳定部分形成缺口"]
+    EMPTY["无有效可观测单位<br/>记录无有效单位事实<br/>不能写全场景明确"]
+
+    %% 后续
+    NEXT_SCAN["后续分流<br/>稳定对应存在数量 >= 1<br/>可并行激活扫描任务"]
+    NEXT_RECOGNIZE["继续识别<br/>补观察 / 重识别 / 冲突消解"]
+    EVIDENCE["证据回查<br/>样本卡 / 承接请求 / 提交日志"]
+
+    %% 禁止边界
+    R1["边界: 识别任务只要识别包"]
+    R2["边界: 原始特征先组织到单位、候选、事实<br/>再进入提交入口"]
+    R3["边界: 不生成状态、动态、安全或服务结论"]
+    R4["边界: 识别包不直接等同需求满足"]
+
+    subgraph TARGET["目标展开"]
+        GOAL --> G1 --> G2 --> G3 --> G4 --> G5
+        G4 --> G6
+    end
+
+    subgraph CONDITIONS["需要哪些条件"]
+        C0 --> C1 --> C2 --> C3 --> C4 --> C5
+    end
+
+    subgraph SUPPLY["条件如何具备: 外设提供识别包"]
+        C1 --> E0
+        E0 -->|无| WAIT --> DEVICE --> PACKAGE
+        E0 -->|有| PACKAGE
+        PACKAGE --> P_HEAD
+        PACKAGE --> P_RANGE
+        PACKAGE --> P_HANDLE
+        PACKAGE --> P_CAND
+        PACKAGE --> P_GAP
+    end
+
+    subgraph PROCESS["如何处理"]
+        P_HEAD --> T0
+        P_RANGE --> T0
+        P_HANDLE --> T0
+        P_CAND --> T0
+        P_GAP --> T0
+        T0 -->|不是识别包| T_BAD
+        T0 -->|是识别包| T1 --> T2 --> T3 --> T4 --> T5
+    end
+
+    subgraph ACHIEVE["如何逐步达成目标"]
+        T5 --> A0
+        A0 -->|否| A_REJECT --> NEXT_RECOGNIZE
+        A0 -->|是| SUBMIT --> A1
+        A1 -->|全部稳定对应| DONE --> NEXT_SCAN --> EVIDENCE
+        A1 -->|部分稳定对应| PARTIAL --> NEXT_RECOGNIZE --> EVIDENCE
+        A1 -->|无有效单位| EMPTY --> NEXT_RECOGNIZE
+    end
+
+    subgraph RULES["硬边界"]
+        R1 -.约束.-> T0
+        R2 -.约束.-> T3
+        R3 -.约束.-> DONE
+        R4 -.约束.-> SUBMIT
+    end
+
+    classDef target fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef condition fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef supply fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef process fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    classDef result fill:#eef8f7,stroke:#397b77,color:#102827;
+
+    class GOAL,G1,G2,G3,G4,G5,G6 target;
+    class C0,C1,C2,C3,C4,C5 condition;
+    class WAIT,DEVICE,PACKAGE,P_HEAD,P_RANGE,P_HANDLE,P_CAND,P_GAP supply;
+    class T0,T1,T2,T3,T4,T5,SUBMIT process;
+    class E0,A0,A1 gate;
+    class T_BAD,A_REJECT,PARTIAL,EMPTY,R1,R2,R3,R4 warn;
+    class DONE,NEXT_SCAN,NEXT_RECOGNIZE,EVIDENCE result;
+        </pre>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h2>达成口径</h2>
+      <div class="formula">识别目标达成 =
+    当前观察范围有效可观测单位数量 &gt; 0
+    AND 已稳定对应存在可观测单位数量 == 当前观察范围有效可观测单位数量
+    AND 未稳定对应存在可观测单位数量 == 0
+    AND 多重对应冲突可观测单位数量 == 0
+    AND 稳定对应存在数量 &gt; 0</div>
+
+      <h2>判断口径</h2>
+      <ul>
+        <li>识别任务从目标展开，不从 D455 设备动作展开。</li>
+        <li>外设只负责让供料条件、材料条件、单位条件和候选材料具备。</li>
+        <li>自我处理的关键是把原始特征组织成观察范围、可观测单位、候选归属、稳定对应和缺口说明。</li>
+        <li>提交入口裁决后，识别任务才形成正式对应事实。</li>
+        <li>稳定对应存在数量大于等于 1 时，可以并行激活扫描任务，但这不是识别任务继续消费扫描包。</li>
+        <li>识别任务不生成被观察存在状态、变化动态、扫描事实、跟踪事实、安全值、服务值或风险状态明确。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: "basis"
+      },
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif",
+        primaryBorderColor: "#2f6f9f",
+        lineColor: "#6a737d"
+      }
+    });
+  </script>
+</body>
+</html>
