@@ -78,6 +78,58 @@ namespace {
         单帧采集,
     };
 
+    bool 私有_解析非负毫秒参数(std::string_view 文本, int& 输出) noexcept
+    {
+        if (文本.empty()) {
+            return false;
+        }
+        int 值 = 0;
+        for (const char 字符 : 文本) {
+            if (字符 < '0' || 字符 > '9') {
+                return false;
+            }
+            const int 数字 = 字符 - '0';
+            if (值 > 300000) {
+                return false;
+            }
+            值 = 值 * 10 + 数字;
+        }
+        输出 = 值;
+        return true;
+    }
+
+    int 私有_解析自检日志等待毫秒(int argc, char** argv) noexcept
+    {
+        constexpr int 默认等待毫秒 = 800;
+        constexpr int 最小等待毫秒 = 800;
+        constexpr int 最大等待毫秒 = 30000;
+        int 等待毫秒 = 默认等待毫秒;
+
+        auto 应用参数 = [&](std::string_view 文本) noexcept {
+            int 候选 = 默认等待毫秒;
+            if (!私有_解析非负毫秒参数(文本, 候选)) {
+                项目运行警告日志("命令行/自检日志等待参数无效 | 参数=" + std::string(文本));
+                return;
+            }
+            等待毫秒 = std::clamp(候选, 最小等待毫秒, 最大等待毫秒);
+        };
+
+        constexpr std::string_view 前缀 = "--self-check-log-wait-ms=";
+        for (int i = 1; i < argc; ++i) {
+            const std::string_view 参数 = argv[i] ? std::string_view(argv[i]) : std::string_view{};
+            if (参数.rfind(前缀, 0) == 0) {
+                应用参数(参数.substr(前缀.size()));
+            } else if (参数 == "--self-check-log-wait-ms") {
+                if (i + 1 < argc && argv[i + 1]) {
+                    应用参数(std::string_view(argv[i + 1]));
+                } else {
+                    项目运行警告日志("命令行/自检日志等待参数缺值");
+                }
+            }
+        }
+        return 等待毫秒;
+    }
+
     枚举_命令行相机命令 私有_解析命令行相机命令(int argc, char** argv) noexcept
     {
         枚举_命令行相机命令 输出 = 枚举_命令行相机命令::无;
@@ -1518,7 +1570,10 @@ int main(int argc, char** argv)
                 } else {
                     自我线程守卫.自检已启动 = true;
                     请求休眠期自检();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+                    const int 等待毫秒 = 私有_解析自检日志等待毫秒(argc, argv);
+                    项目运行日志("命令行/自检日志等待开始 | 等待毫秒=" + std::to_string(等待毫秒));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(等待毫秒));
+                    项目运行日志("命令行/自检日志等待完成 | 等待毫秒=" + std::to_string(等待毫秒));
                 }
                 私有_记录自我实现检查日志();
                 std::cout << 私有_渲染自检线程摘要();
