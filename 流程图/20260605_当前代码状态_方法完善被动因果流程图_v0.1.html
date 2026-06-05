@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>当前代码状态：方法完善被动因果流程图 v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; letter-spacing: 0; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; letter-spacing: 0; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; }
+    main { padding: 20px; }
+    .canvas { min-width: 2700px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 2650px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1280px; line-height: 1.65; font-size: 14px; }
+    .notes table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .notes th, .notes td { padding: 7px 8px; border: 1px solid #d8dee4; text-align: left; vertical-align: top; }
+    .notes th { background: #f6f8fa; font-weight: 650; }
+    pre { white-space: pre-wrap; margin: 0; }
+    code { font-family: Consolas, "Courier New", monospace; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>当前代码状态：方法完善被动因果流程图 v0.1</h1>
+    <p class="hint">从方法缺口到方法状态可用；方法完善完成后唤醒相关任务重筹办，再回到任务完成流程。</p>
+  </header>
+  <main>
+    <section>
+      <h2>总图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TB
+    START["被动因<br/>任务筹办命中方法缺口<br/>无确定候选 / 不可用 / 缺入口 / 缺条件结果对"]
+    HEAD["被动果<br/>方法头确认或创建<br/>目标方法被定位"]
+    MV_CREATE["被动果<br/>确保方法虚拟存在<br/>方法来源 / 动作名 / 动作句柄 / 成熟度"]
+    SYNC_STRUCT["被动果<br/>同步方法节点到方法虚拟存在<br/>条件场景 / 结果场景 / 统计槽位"]
+    STATE_READ["被动因<br/>读取方法状态材料<br/>动作名 / 动作句柄 / 条件 / 结果 / 条件结果对"]
+    STATE_DECIDE["被动果<br/>计算方法状态<br/>按最前置缺口给出状态"]
+    S_ACTION["待方法动作"]
+    S_ENTRY["待可执行入口"]
+    S_COND["待条件节点"]
+    S_RESULT["待结果节点"]
+    S_PAIR["待条件结果对"]
+    S_USABLE["可用<br/>至少一组条件结果对"]
+    DYN["被动果<br/>方法状态动作动态<br/>方法状态旧值 -> 新值"]
+    G_ACTION["补齐需求<br/>方法动作"]
+    G_ENTRY["补齐需求<br/>可执行入口"]
+    G_COND["补齐需求<br/>条件节点"]
+    G_RESULT["补齐需求<br/>结果能力"]
+    G_PAIR["补齐需求<br/>条件结果对"]
+    FACT["被动因<br/>对应补齐事实入账"]
+    RECHECK["被动果<br/>重新同步方法虚拟存在<br/>重算方法状态"]
+    WAKE_TASK["被动果<br/>相关任务待重筹办<br/>回到任务完成流程"]
+    RUN_FACT["被动因<br/>方法真实使用事实"]
+    RUN_STAT["被动果<br/>运行账 / 统计 / 好用稳定维护材料"]
+
+    START --> HEAD --> MV_CREATE --> SYNC_STRUCT --> STATE_READ --> STATE_DECIDE
+    STATE_DECIDE --> S_ACTION --> DYN --> G_ACTION --> FACT --> RECHECK
+    STATE_DECIDE --> S_ENTRY --> DYN --> G_ENTRY --> FACT
+    STATE_DECIDE --> S_COND --> DYN --> G_COND --> FACT
+    STATE_DECIDE --> S_RESULT --> DYN --> G_RESULT --> FACT
+    STATE_DECIDE --> S_PAIR --> DYN --> G_PAIR --> FACT
+    STATE_DECIDE --> S_USABLE --> DYN --> WAKE_TASK
+    RECHECK --> STATE_READ
+    S_USABLE --> RUN_FACT --> RUN_STAT
+
+    classDef in fill:#eef6ff,stroke:#0969da,color:#1f2328;
+    classDef out fill:#e6ffed,stroke:#1a7f37,color:#1f2328;
+    classDef state fill:#fff4d6,stroke:#9a6700,color:#1f2328;
+    classDef dyn fill:#f0e7ff,stroke:#8250df,stroke-width:2px,color:#1f2328;
+    class START,STATE_READ,FACT,RUN_FACT in;
+    class HEAD,MV_CREATE,SYNC_STRUCT,STATE_DECIDE,G_ACTION,G_ENTRY,G_COND,G_RESULT,G_PAIR,RECHECK,WAKE_TASK,RUN_STAT out;
+    class S_ACTION,S_ENTRY,S_COND,S_RESULT,S_PAIR,S_USABLE state;
+    class DYN dyn;
+        </pre>
+      </div>
+    </section>
+    <section class="notes">
+      <h2>方法状态判定</h2>
+      <table>
+        <thead><tr><th>顺序</th><th>被动因</th><th>状态</th><th>被动果</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>无动作名且无方法动作</td><td><code>待方法动作</code></td><td>方法动作补齐需求</td></tr>
+          <tr><td>2</td><td>动作句柄无效</td><td><code>待可执行入口</code></td><td>可执行入口补齐需求</td></tr>
+          <tr><td>3</td><td>条件节点缺失</td><td><code>待条件节点</code></td><td>条件节点补齐需求</td></tr>
+          <tr><td>4</td><td>结果节点缺失且无条件结果对</td><td><code>待结果节点</code></td><td>结果能力补齐需求</td></tr>
+          <tr><td>5</td><td>条件结果对数量为 0</td><td><code>待条件结果对</code></td><td>条件结果对补齐需求</td></tr>
+          <tr><td>6</td><td>至少一组条件结果对</td><td><code>可用</code></td><td>唤醒相关任务重筹办</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="notes">
+      <h2>接口</h2>
+      <pre><code>任务完成流程 -> 方法完善流程：
+    任务筹办发现当前方法不可用、缺执行入口、缺条件结果对或无确定候选。
+
+方法完善流程 -> 任务完成流程：
+    方法状态达到可用，方法状态动作动态入账，等待任务或父任务被唤醒为待重筹办。</code></pre>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { htmlLabels: true, curve: "basis" } });
+  </script>
+</body>
+</html>

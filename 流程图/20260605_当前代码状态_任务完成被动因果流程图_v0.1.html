@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>当前代码状态：任务完成被动因果流程图 v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; letter-spacing: 0; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; letter-spacing: 0; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; }
+    main { padding: 20px; }
+    .canvas { min-width: 2850px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 2800px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1280px; line-height: 1.65; font-size: 14px; }
+    .notes table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .notes th, .notes td { padding: 7px 8px; border: 1px solid #d8dee4; text-align: left; vertical-align: top; }
+    .notes th { background: #f6f8fa; font-weight: 650; }
+    pre { white-space: pre-wrap; margin: 0; }
+    code { font-family: Consolas, "Courier New", monospace; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>当前代码状态：任务完成被动因果流程图 v0.1</h1>
+    <p class="hint">从活动需求入树到任务完成、需求收束和叶子任务价值结算；任务筹办/执行只形成回执，D1 来自提交任务状态变化。</p>
+  </header>
+  <main>
+    <section>
+      <h2>总图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TB
+    START["被动因<br/>活动需求正式入树<br/>目标宿主 / 目标特征类型 / 满足关系 / 目标值完整"]
+    CREATE["被动果<br/>承接需求创建任务<br/>任务信息节点创建<br/>任务虚拟存在创建<br/>任务状态 = 未启动"]
+    MIRROR["被动果<br/>任务语义镜像入任务虚拟存在<br/>任务发起存在 / 作用对象 / 上下文<br/>当前状态 / 目标状态 / 满足关系 / 权重"]
+    PREP_READY["被动因<br/>任务状态允许筹办<br/>任务目标可解析<br/>任务虚拟存在已绑定"]
+    PREP_FN["普通函数事实<br/>任务筹办<br/>判断父任务 / 中间任务 / 叶子任务"]
+    PREP_LEAF["筹办回执<br/>候选方法集 / 当前方法<br/>输入参数场景 / 筹办缺口 / 建议任务状态"]
+    METHOD_GAP["被动因<br/>当前方法缺口<br/>无确定候选 / 不可用 / 缺入口 / 缺条件结果对"]
+    METHOD_FLOW["转入方法完善被动因果流程图<br/>目标: 方法虚拟存在达到可用"]
+    SYNC_PREP["被动果<br/>同步筹办回执到任务壳<br/>写任务虚拟存在<br/>被动整理, 不生成主链动作动态"]
+    SUBMIT_READY["被动果<br/>提交任务状态变化<br/>任务状态动作动态 D1<br/>-> 就绪/等待中/待重筹办/无法执行"]
+    EXEC_GATE["被动因<br/>任务状态 = 就绪<br/>当前方法 + 输入参数场景具备"]
+    EXEC_FN["普通函数事实<br/>任务执行<br/>调用当前方法<br/>比较输出结果与来源需求目标"]
+    D0["上游证据<br/>D0 世界事实动作动态<br/>业务方法或提交类方法造成事实变化"]
+    EXEC_RECEIPT["执行回执<br/>目标是否达成 / 推进量 / 剩余差距 / 执行缺口"]
+    SYNC_EXEC["被动果<br/>同步执行回执到任务壳<br/>写执行镜像到任务虚拟存在"]
+    SUBMIT_DONE["被动果<br/>提交任务状态变化<br/>任务状态动作动态 D1<br/>-> 完成/等待中/待重筹办/失败"]
+    DONE_CAUSE["被动因<br/>任务状态 = 完成<br/>输出结果场景 / D0 / 满足证据可回查"]
+    DEMAND_CLOSE["被动果<br/>来源需求收束后处理<br/>有效截止 / 最近结算任务 / 父子权重刷新"]
+    VALUE["被动果<br/>D2 叶子任务价值结算<br/>安全值 / 服务值 / 结算增量"]
+    PARENT_WAKE["被动果<br/>父任务重筹办<br/>等待中 -> 待重筹办"]
+    CAUSAL["被动果<br/>统一因果吸收<br/>D0 / D1 / D2 进入因果账本"]
+
+    START --> CREATE --> MIRROR --> PREP_READY --> PREP_FN --> PREP_LEAF
+    PREP_LEAF --> METHOD_GAP --> METHOD_FLOW --> PARENT_WAKE
+    PREP_LEAF --> SYNC_PREP --> SUBMIT_READY --> EXEC_GATE --> EXEC_FN
+    D0 --> EXEC_FN
+    EXEC_FN --> EXEC_RECEIPT --> SYNC_EXEC --> SUBMIT_DONE
+    SUBMIT_DONE --> DONE_CAUSE --> DEMAND_CLOSE --> VALUE
+    DEMAND_CLOSE --> PARENT_WAKE
+    D0 --> CAUSAL
+    SUBMIT_READY --> CAUSAL
+    SUBMIT_DONE --> CAUSAL
+    VALUE --> CAUSAL
+
+    classDef in fill:#eef6ff,stroke:#0969da,color:#1f2328;
+    classDef out fill:#e6ffed,stroke:#1a7f37,color:#1f2328;
+    classDef fn fill:#fff4d6,stroke:#9a6700,color:#1f2328;
+    classDef ext fill:#fff1f1,stroke:#cf222e,color:#1f2328;
+    classDef ledger fill:#f6f8fa,stroke:#57606a,color:#1f2328;
+    class START,PREP_READY,METHOD_GAP,EXEC_GATE,DONE_CAUSE in;
+    class CREATE,MIRROR,SYNC_PREP,SUBMIT_READY,SYNC_EXEC,SUBMIT_DONE,DEMAND_CLOSE,VALUE,PARENT_WAKE out;
+    class PREP_FN,PREP_LEAF,EXEC_FN,EXEC_RECEIPT,METHOD_FLOW fn;
+    class D0 ext;
+    class CAUSAL ledger;
+        </pre>
+      </div>
+    </section>
+    <section class="notes">
+      <h2>阶段说明</h2>
+      <table>
+        <thead><tr><th>阶段</th><th>被动因</th><th>被动果</th><th>边界</th></tr></thead>
+        <tbody>
+          <tr><td>任务承接</td><td>活动需求正式入树</td><td>任务和任务虚拟存在创建</td><td>任务是过程承接壳。</td></tr>
+          <tr><td>任务筹办</td><td>任务状态允许筹办</td><td>筹办回执形成</td><td>筹办不生成动作动态。</td></tr>
+          <tr><td>方法缺口分流</td><td>当前方法不可用</td><td>转入方法完善流程</td><td>方法缺口不算任务完成。</td></tr>
+          <tr><td>任务执行</td><td>任务就绪</td><td>执行回执形成</td><td>执行普通函数负责目标比较。</td></tr>
+          <tr><td>任务完成</td><td>执行回执建议完成</td><td>D1 任务状态动作动态</td><td>D1 来自提交任务状态变化。</td></tr>
+          <tr><td>需求收束</td><td>D1 完成且证据满足需求</td><td>需求有效截止和父子权重刷新</td><td>任务完成不直接等于需求满足。</td></tr>
+          <tr><td>价值结算</td><td>叶子任务可结算</td><td>D2 价值结算动态</td><td>安全/服务增量必须有合法证据。</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { htmlLabels: true, curve: "basis" } });
+  </script>
+</body>
+</html>
