@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>本能方法：扫描内部实现逻辑流程图 v0.2</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+    .canvas { min-width: 2520px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 2480px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>本能方法：扫描内部实现逻辑流程图 v0.2</h1>
+    <p class="hint">扫描记变化：只处理已归属、已有比较对象且落入值域的存在特征变化；未归属外设观察存在和超值域特征回识别/复验。</p>
+  </header>
+  <main>
+    <section>
+      <h2>流程图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    START["扫描本能方法启动<br/>目标: 发现已归属存在的特征变化"]
+    IN0["输入条件特征<br/>扫描范围明确状态=1<br/>已归属可扫描存在数量>0<br/>未归属外设观察存在数量=0<br/>上一轮扫描基准特征可读"]
+    IN1["输入存在与特征<br/>已归属存在集合<br/>当前特征值集合<br/>基准/上一轮特征值集合<br/>存在特征值域集合"]
+    G0{"扫描条件是否具备?"}
+    GAP0["输出缺口特征<br/>扫描范围不明确<br/>或无已归属可扫描存在<br/>或基准特征不可读"]
+    U0{"是否存在未归属外设观察存在?"}
+    U1["未归属闸门<br/>未归属外设观察存在数量>0<br/>未归属外设观察存在动态不可生成状态=1<br/>识别线索状态=已生成"]
+    A0["逐已归属存在读取当前特征<br/>目标宿主=自我存在 / 已归属观察存在<br/>同一存在 + 同一特征类型"]
+    A1{"是否首次扫描<br/>或无可比基准?"}
+    FIRST["首次扫描<br/>写入当前特征值<br/>写入下一轮扫描基准特征<br/>不得生成变化动态"]
+    CMP["计算变化二次特征<br/>当前特征_基准特征.差异值<br/>变化幅度 / 变化方向 / 变化持续帧数"]
+    V0{"当前值是否落入<br/>该存在特征值域?"}
+    CONFLICT["值域冲突<br/>已归属存在.特征值域冲突状态=存在<br/>特征值域冲突动态=已生成<br/>复验/识别线索状态=已生成"]
+    C0{"变化是否超过记录阈值?"}
+    DYN["值域内变化<br/>已归属存在.当前特征值=当前值<br/>已归属存在.特征变化动态=已生成<br/>变化二次特征入账"]
+    STATIC["无变化或低于记录阈值<br/>不生成完整变化动态<br/>更新最近扫描时间 / 稳定计数 / 下一轮基准特征"]
+    BASE["更新下一轮扫描基准特征<br/>下一轮扫描基准特征状态=已更新"]
+    OUT0["输出特征<br/>已归属存在当前特征值<br/>最近扫描时间<br/>稳定计数<br/>下一轮扫描基准特征"]
+    OUT1["输出二次特征<br/>特征差异值<br/>变化幅度 / 变化方向<br/>值域冲突状态<br/>未归属外设观察存在数量"]
+    OUT2["输出状态动态<br/>值域内特征变化动态<br/>特征值域冲突动态<br/>首次扫描基准建立动态"]
+    OUT3["回流线索特征<br/>未归属 -> 识别<br/>超值域 -> 识别/复验<br/>低质量 -> 补观察"]
+    R0["硬边界<br/>扫描不能确认新存在"]
+    R1["硬边界<br/>未归属外设观察存在不能生成状态/动态"]
+    R2["硬边界<br/>首次扫描不是变化动态"]
+    R3["硬边界<br/>无变化不大量写动态"]
+    R4["硬边界<br/>扫描结果不反推全场景明确"]
+    START --> IN0 --> IN1 --> G0
+    G0 -->|否| GAP0 --> OUT0
+    G0 -->|是| U0
+    U0 -->|是| U1 --> OUT1
+    U0 -->|否| A0 --> A1
+    A1 -->|是| FIRST --> BASE
+    A1 -->|否| CMP --> V0
+    V0 -->|否| CONFLICT --> OUT1
+    V0 -->|是| C0
+    C0 -->|超过阈值| DYN --> BASE
+    C0 -->|未超过阈值| STATIC --> BASE
+    BASE --> OUT0 --> OUT1 --> OUT2 --> OUT3
+    R0 -.约束.-> U1
+    R1 -.约束.-> U1
+    R2 -.约束.-> FIRST
+    R3 -.约束.-> STATIC
+    R4 -.约束.-> OUT0
+    classDef input fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef process fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef compare fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef output fill:#eef8f7,stroke:#397b77,color:#102827;
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    class START,IN0,IN1 input;
+    class A0,FIRST,DYN,STATIC,BASE process;
+    class CMP compare;
+    class G0,U0,A1,V0,C0 gate;
+    class OUT0,OUT1,OUT2,OUT3 output;
+    class GAP0,U1,CONFLICT,R0,R1,R2,R3,R4 warn;
+        </pre>
+      </div>
+    </section>
+    <section class="notes">
+      <h2>正式输出</h2>
+      <p>扫描输出已归属存在当前特征、变化二次特征、值域内特征变化动态和特征值域冲突动态。首次扫描不生成变化动态；无变化只更新基准、时间和稳定计数。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>

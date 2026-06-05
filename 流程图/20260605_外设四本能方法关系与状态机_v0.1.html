@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>外设四本能方法关系与状态机 v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+    .canvas { min-width: 1900px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; margin-bottom: 18px; }
+    .mermaid { min-width: 1860px; }
+    .notes { padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    code { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>外设四本能方法关系与状态机 v0.1</h1>
+    <p class="hint">观察立存在，识别定归属，扫描记变化，跟踪守动态。正式认知链只承接存在、特征、二次特征和状态动态。</p>
+  </header>
+  <main>
+    <section>
+      <h2>四方法关系图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart LR
+    OBS["观察<br/>生成/完善外设观察存在<br/>多帧稳定复现"]
+    REC["识别<br/>外设观察存在 vs 自我存在<br/>建立归属映射"]
+    SCAN["扫描<br/>已归属存在 + 可比快照<br/>记录值域内变化"]
+    TRACK["跟踪<br/>指定已归属存在<br/>连续动态取值"]
+    OBS -->|"外设观察存在 / 稳定特征 / 误差二次特征"| REC
+    REC -->|"同一性二次特征 / 归属映射特征"| SCAN
+    REC -->|"指定存在归属状态=已归属"| TRACK
+    OBS -->|"当前观察材料拆解后的特征"| SCAN
+    OBS -->|"目标窗口特征 / 质量缺口特征"| TRACK
+    SCAN -->|"未归属外设观察存在 / 值域冲突状态"| REC
+    TRACK -->|"身份冲突 / 丢失 / 重捕获候选"| REC
+    TRACK -->|"质量不足 / 目标窗口缺口"| OBS
+    SCAN -->|"低质量 / 不可观测区域"| OBS
+        </pre>
+      </div>
+    </section>
+    <section>
+      <h2>状态机</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+stateDiagram-v2
+    [*] --> 未知视野
+    未知视野 --> 观察中: 外设材料可用 + 观察范围明确
+    观察中 --> 外设观察存在已生成: 第一帧基准建立
+    外设观察存在已生成 --> 可复验外设观察存在: 多帧误差稳定
+    外设观察存在已生成 --> 补观察: 证据不足/质量不足
+    可复验外设观察存在 --> 识别中: 需要判断同一
+    识别中 --> 已归属存在: 同一性稳定 + 映射建立
+    识别中 --> 新存在候选: 无匹配候选/非同一
+    识别中 --> 冲突消解: 多候选冲突/关键特征互斥
+    已归属存在 --> 扫描中: 范围动态发现
+    已归属存在 --> 跟踪中: 指定存在持续取值
+    扫描中 --> 动态入账: 值域内变化超过阈值
+    扫描中 --> 已归属存在: 无变化/更新基准
+    扫描中 --> 识别中: 未归属外设观察存在/值域冲突
+    跟踪中 --> 动态入账: 合法区间迁移
+    跟踪中 --> 已归属存在: 稳定/低速/更新基准
+    跟踪中 --> 识别中: 身份冲突/非法跳变
+    跟踪中 --> 扫描中: 丢失/重捕获候选
+    补观察 --> 观察中
+    冲突消解 --> 识别中
+        </pre>
+      </div>
+    </section>
+    <section class="notes">
+      <h2>定案</h2>
+      <p>线程通信容器可以存在，但自我正式认知链不能把容器当世界。拆开之后，能入账的只有 <code>存在</code>、<code>特征</code>、<code>二次特征</code> 和 <code>状态动态</code>。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>

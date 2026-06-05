@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>本能方法：识别内部实现逻辑流程图 v0.2</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+    .canvas { min-width: 2600px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 2560px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    code { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>本能方法：识别内部实现逻辑流程图 v0.2</h1>
+    <p class="hint">识别定归属：判断外设观察存在是否与自我场景中的某个存在同一，输出同一性二次特征、归属映射特征和归属状态动态。</p>
+  </header>
+  <main>
+    <section>
+      <h2>流程图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    START["识别本能方法启动<br/>目标: 建立外设观察存在到自我存在的归属映射"]
+    IN0["输入存在与特征<br/>外设观察存在<br/>外设观察存在特征集合<br/>自我所在场景存在集合<br/>自我存在特征集合"]
+    IN1["输入二次特征规则<br/>同一性比较值域可读<br/>最低同一特征一致比例<br/>最大允许特征冲突数量<br/>最小同一性稳定帧数"]
+    G0{"识别条件是否具备?"}
+    GAP0["输出缺口特征<br/>外设观察存在特征集合可读状态=0<br/>或自我场景存在集合可读状态=0<br/>或同一性比较值域可读状态=0"]
+    R0["候选召回<br/>按颜色/深度/空间/轮廓/掩码/点集等可比较特征<br/>召回自我场景存在候选"]
+    R1{"是否有候选自我存在?"}
+    NEW0["无匹配候选<br/>同一存在判断状态=无匹配候选<br/>新存在候选生成状态=1"]
+    C0["逐候选计算二次特征<br/>外设观察存在_自我存在.同一性评分<br/>特征一致比例<br/>特征冲突数量<br/>候选切换次数<br/>同一性证据帧数"]
+    C1{"单帧证据是否足够?"}
+    MF0["进入多帧识别窗口<br/>同一存在判断状态=候选同一/证据不足<br/>识别完成状态=未完成"]
+    MF1["后续帧继续比较<br/>同一外设观察存在<br/>vs 同一候选集合"]
+    MF2["累计多帧同一性二次特征<br/>连续同一候选命中帧数<br/>连续冲突帧数<br/>候选切换次数<br/>新增稳定特征值数量"]
+    J0{"同一性完成条件是否满足?"}
+    SAME["识别同一<br/>外设观察存在_自我存在.同一性状态=同一<br/>外设观察存在.自我归属状态=已归属<br/>外设观察存在.归属目标=自我存在X"]
+    SAME_D["生成状态动态<br/>外设观察存在归属建立动态<br/>存在特征更新候选动态"]
+    DIFF["识别非同一<br/>同一性状态=非同一<br/>外设观察存在保持独立<br/>或新存在候选状态=已生成"]
+    PART["识别部分完成<br/>同一性状态=候选同一/证据不足<br/>稳定特征可用于候选排序<br/>不稳定特征继续补观察"]
+    CONFLICT["识别冲突<br/>同一性状态=冲突<br/>归属冲突动态=已生成<br/>进入冲突消解"]
+    OUT0["输出二次特征<br/>同一性状态 / 同一性评分<br/>特征一致比例 / 特征冲突数量<br/>候选切换次数 / 同一性证据帧数"]
+    OUT1["输出特征<br/>外设观察存在.自我归属状态<br/>外设观察存在.归属目标<br/>识别完成状态<br/>新存在候选生成状态"]
+    OUT2["输出状态动态<br/>归属建立动态<br/>归属冲突动态<br/>证据不足状态动态<br/>存在特征更新候选动态"]
+    OUT3["后续线索特征<br/>已归属存在可扫描状态<br/>指定存在可跟踪状态<br/>补观察线索状态<br/>冲突消解线索状态"]
+    RUL0["硬边界<br/>识别不生成动态变化事实"]
+    RUL1["硬边界<br/>识别完成不等于语义类别已知"]
+    RUL2["硬边界<br/>识别完成不等于世界存在永久成立"]
+    RUL3["硬边界<br/>识别结果不能承接线程传输容器"]
+    START --> IN0 --> IN1 --> G0
+    G0 -->|否| GAP0 --> OUT1
+    G0 -->|是| R0 --> R1
+    R1 -->|否| NEW0 --> OUT1
+    R1 -->|是| C0 --> C1
+    C1 -->|足够| J0
+    C1 -->|不足| MF0 --> MF1 --> MF2 --> J0
+    J0 -->|同一| SAME --> SAME_D --> OUT0
+    J0 -->|非同一| DIFF --> OUT0
+    J0 -->|证据不足| PART --> OUT0
+    J0 -->|冲突| CONFLICT --> OUT0
+    OUT0 --> OUT1 --> OUT2 --> OUT3
+    RUL0 -.约束.-> OUT2
+    RUL1 -.约束.-> SAME
+    RUL2 -.约束.-> SAME
+    RUL3 -.约束.-> OUT0
+    classDef input fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef process fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef compare fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef output fill:#eef8f7,stroke:#397b77,color:#102827;
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    class START,IN0,IN1 input;
+    class R0,MF0,MF1,MF2,SAME,SAME_D,DIFF,PART process;
+    class C0 compare;
+    class G0,R1,C1,J0 gate;
+    class OUT0,OUT1,OUT2,OUT3,NEW0 output;
+    class GAP0,CONFLICT,RUL0,RUL1,RUL2,RUL3 warn;
+        </pre>
+      </div>
+    </section>
+    <section class="notes">
+      <h2>正式输出</h2>
+      <p>识别输出同一性二次特征、外设观察存在的自我归属特征，以及归属建立/冲突/证据不足状态动态。识别不生成变化动态。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
