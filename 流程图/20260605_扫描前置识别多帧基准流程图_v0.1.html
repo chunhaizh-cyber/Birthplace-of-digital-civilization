@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>扫描前置识别多帧基准流程图 v0.1</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      background: #f7f8fa;
+      color: #1f2328;
+    }
+
+    header {
+      padding: 18px 24px 12px;
+      border-bottom: 1px solid #d8dee4;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 13px;
+      color: #57606a;
+      line-height: 1.6;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    section {
+      margin-bottom: 28px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    .canvas {
+      min-width: 2380px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .mermaid {
+      min-width: 2340px;
+    }
+
+    .notes {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      max-width: 1260px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .notes h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .notes h3 {
+      margin: 16px 0 8px;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .notes table {
+      width: 100%;
+      margin: 10px 0 14px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .notes th,
+    .notes td {
+      padding: 7px 8px;
+      border: 1px solid #d8dee4;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .notes th {
+      background: #f6f8fa;
+      font-weight: 650;
+    }
+
+    .formula {
+      padding: 12px;
+      background: #f6f8fa;
+      border: 1px solid #d8dee4;
+      white-space: pre-wrap;
+      font-family: Consolas, "Microsoft YaHei", monospace;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>扫描前置识别多帧基准流程图 v0.1</h1>
+    <p class="hint">扫描任务为了发现动态；发现动态前需要先建立可扫描的观察目标存在基准。识别作为扫描目标链内的前置子任务，用多帧构成特征收敛作为完成依据。</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>流程图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    %% 扫描目标层
+    S0["扫描任务目标<br/>发现观察目标存在的状态变化 / 动态"]
+    S1["动态发现前提<br/>必须先有可扫描的观察目标存在"]
+    S2{"观察目标存在基准建立状态 == 1?"}
+
+    %% 前置识别子任务
+    R0["前置识别子任务目标<br/>建立观察目标存在基准"]
+    R1["限定观察范围<br/>目标区域 / ROI / 当前观察材料集范围"]
+    R2["取得多帧观察材料<br/>连续有效观察帧数 >= N"]
+    R3["整理可观测单位<br/>簇 / 掩码 / 点集 / 深度切片 / 局部轮廓"]
+    R4["跨帧复现候选<br/>同一候选在多帧中可复现"]
+    R5["整理构成特征集合<br/>轮廓 / 深度范围 / 空间占据 / 颜色纹理摘要 / 可回查掩码"]
+    R6["计算新增稳定构成特征值<br/>观察目标构成特征新增稳定值数量"]
+    R7["检查归属缺口<br/>新增未解释单位 / 多重冲突 / 证据不足 / 质量不足"]
+    R8{"识别完成条件满足?"}
+
+    %% 识别输出
+    O0["输出: 观察目标存在基准建立状态 = 1"]
+    O1["输出: 观察目标构成特征集合稳定状态 = 1"]
+    O2["输出: 观察目标构成特征新增稳定值数量 = 0"]
+    O3["输出: 观察目标跨帧复现状态 = 1"]
+    O4["输出: 观察目标归属冲突数量 = 0<br/>观察目标证据不足数量 = 0"]
+    O5["输出: 观察目标存在发现事实提交状态 = 1"]
+    O6["输出: 扫描基准特征快照 = 基准节点"]
+
+    %% 未完成回路
+    G0["未完成<br/>继续补观察 / 重识别 / 缩小范围 / 冲突消解"]
+    G1["不能进入动态扫描<br/>只能形成识别缺口特征值"]
+
+    %% 扫描执行层
+    SC0["进入扫描<br/>读取观察目标存在基准"]
+    SC1["读取当前观察目标特征值<br/>只读扫描关注的动态特征类型"]
+    SC2["比较当前值与基准 / 上一轮可比值"]
+    SC3{"是否存在动态特征变化?"}
+    SC4["生成变化动态<br/>观察目标特征值变化事实 / 存在动态"]
+    SC5["本轮无变化事实<br/>扫描完成但未发现动态"]
+    SC6["发现未解释新单位或匹配失败<br/>退回局部识别子任务"]
+
+    %% 边界
+    B0["边界<br/>识别完成不要求动态特征不变化"]
+    B1["边界<br/>扫描发现新区域不能直接确认新存在"]
+    B2["边界<br/>首次扫描只能生成发现存在 / 发现特征事实"]
+    B3["边界<br/>报告ID和句柄只做证据引用"]
+
+    subgraph TARGET["扫描目标链"]
+        S0 --> S1 --> S2
+    end
+
+    subgraph RECOGNIZE["识别作为扫描前置子任务"]
+        S2 -->|否| R0 --> R1 --> R2 --> R3 --> R4 --> R5 --> R6 --> R7 --> R8
+        R8 -->|否| G0 --> G1 --> R1
+    end
+
+    subgraph RECOGNIZE_OUT["前置识别现实特征输出"]
+        R8 -->|是| O0
+        O0 --> O1
+        O0 --> O2
+        O0 --> O3
+        O0 --> O4
+        O0 --> O5
+        O0 --> O6
+    end
+
+    subgraph SCAN["扫描发现动态"]
+        S2 -->|是| SC0
+        O0 --> SC0
+        SC0 --> SC1 --> SC2 --> SC3
+        SC3 -->|有变化| SC4
+        SC3 -->|无变化且质量合格| SC5
+        SC3 -->|新增未知 / 匹配失败| SC6 --> R1
+    end
+
+    subgraph RULES["硬边界"]
+        B0 -.约束.-> R8
+        B1 -.约束.-> SC6
+        B2 -.约束.-> SC4
+        B3 -.约束.-> O6
+    end
+
+    classDef target fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef recog fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef output fill:#eef8f7,stroke:#397b77,color:#102827;
+    classDef scan fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+
+    class S0,S1 target;
+    class R0,R1,R2,R3,R4,R5,R6,R7 recog;
+    class O0,O1,O2,O3,O4,O5,O6 output;
+    class SC0,SC1,SC2,SC4,SC5 scan;
+    class S2,R8,SC3 gate;
+    class G0,G1,SC6,B0,B1,B2,B3 warn;
+        </pre>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h2>现实层特征口径</h2>
+      <h3>目标链</h3>
+      <table>
+        <thead>
+          <tr><th>层级</th><th>目标宿主</th><th>目标特征类型</th><th>目标特征值</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>扫描任务主目标</td><td>当前观察目标存在 / 已识别区域</td><td>观察目标动态发现状态</td><td>已明确 或 已完成</td><td>目标是让动态是否存在变得明确；有动态则生成变化动态，无动态则生成本轮无变化事实。</td></tr>
+          <tr><td>前置识别子目标</td><td>当前观察目标候选</td><td>观察目标存在基准建立状态</td><td>1</td><td>扫描前必须先建立可扫描的观察目标存在基准。</td></tr>
+          <tr><td>扫描启动条件</td><td>当前观察目标候选</td><td>观察目标扫描可启动状态</td><td>1</td><td>由存在基准建立、构成特征稳定、跨帧复现和缺口归零共同派生。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>前置识别输入特征类型和值</h3>
+      <table>
+        <thead>
+          <tr><th>输入阶段</th><th>目标宿主</th><th>输入特征类型</th><th>需要的特征值</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>多帧材料</td><td>当前观察材料集</td><td>连续有效观察帧数</td><td>&gt;= N，N 是方法参数或配置阈值。</td></tr>
+          <tr><td>材料质量</td><td>当前观察材料集</td><td>当前观察材料质量合格状态</td><td>1</td></tr>
+          <tr><td>材料回查</td><td>当前观察材料集</td><td>外设观察材料可回查状态</td><td>1</td></tr>
+          <tr><td>观察范围</td><td>当前观察材料集 / ROI</td><td>观察范围明确状态</td><td>1</td></tr>
+          <tr><td>候选单位</td><td>当前观察材料集</td><td>有效可观测单位数量</td><td>&gt; 0</td></tr>
+          <tr><td>候选复现</td><td>当前观察目标候选</td><td>观察目标跨帧复现状态</td><td>初始可为 0，识别过程中目标值为 1</td></tr>
+        </tbody>
+      </table>
+
+      <h3>前置识别输出特征类型和值</h3>
+      <table>
+        <thead>
+          <tr><th>输出特征类型</th><th>特征值类型 / 值域</th><th>完成值</th><th>未完成值</th><th>用途</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>观察目标存在基准建立状态</td><td>I64，0/1</td><td>1</td><td>0</td><td>前置识别子任务主目标。</td></tr>
+          <tr><td>观察目标构成特征集合稳定状态</td><td>I64，0/1</td><td>1</td><td>0</td><td>表示构成目标存在的特征集合已收敛。</td></tr>
+          <tr><td>观察目标构成特征新增稳定值数量</td><td>I64，&gt;= 0</td><td>0</td><td>&gt; 0</td><td>0 表示多帧后不再出现新的稳定构成特征值。</td></tr>
+          <tr><td>观察目标跨帧复现状态</td><td>I64，0/1</td><td>1</td><td>0</td><td>表示同一目标候选能跨帧稳定复现。</td></tr>
+          <tr><td>观察目标归属冲突数量</td><td>I64，&gt;= 0</td><td>0</td><td>&gt; 0</td><td>大于 0 时不能闭合识别。</td></tr>
+          <tr><td>观察目标证据不足数量</td><td>I64，&gt;= 0</td><td>0</td><td>&gt; 0</td><td>大于 0 时需要补观察或缩小范围。</td></tr>
+          <tr><td>新增未解释可观测单位数量</td><td>I64，&gt;= 0</td><td>0</td><td>&gt; 0</td><td>大于 0 时说明还有未纳入基准的构成材料。</td></tr>
+          <tr><td>观察目标存在发现事实提交状态</td><td>I64 枚举</td><td>1</td><td>0/2/3</td><td>前置识别完成后提交发现事实；值域按提交状态枚举收束。</td></tr>
+          <tr><td>扫描基准特征快照</td><td>指针 / 引用型特征值</td><td>非空</td><td>空</td><td>扫描比较的基准，不是日志或说明字段。</td></tr>
+          <tr><td>观察目标扫描可启动状态</td><td>I64，0/1</td><td>1</td><td>0</td><td>扫描任务读取这个状态进入动态比较。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>构成特征与动态特征的分离</h3>
+      <table>
+        <thead>
+          <tr><th>特征组</th><th>例子</th><th>是否用于“识别完成”</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>构成特征</td><td>轮廓稳定特征、深度范围、空间占据范围、颜色 / 纹理摘要、可回查掩码、可观测单位归属</td><td>是，用于判断基准是否建立。</td></tr>
+          <tr><td>动态特征</td><td>位置变化、距离变化、姿态变化、速度趋势、遮挡、丢失、接近 / 远离</td><td>否，这些属于扫描或跟踪要发现的变化。</td></tr>
+          <tr><td>证据引用</td><td>报告ID、帧ID、材料页ID、d455:// 句柄、样本卡、日志</td><td>否，只作为来源链和审计材料。</td></tr>
+        </tbody>
+      </table>
+
+      <h3>完成公式</h3>
+      <div class="formula">识别前置子任务完成 =
+    连续有效观察帧数 &gt;= N
+    AND 当前观察材料质量合格状态 == 1
+    AND 外设观察材料可回查状态 == 1
+    AND 观察范围明确状态 == 1
+    AND 有效可观测单位数量 &gt; 0
+    AND 观察目标构成特征集合稳定状态 == 1
+    AND 观察目标构成特征新增稳定值数量 == 0
+    AND 观察目标跨帧复现状态 == 1
+    AND 观察目标归属冲突数量 == 0
+    AND 观察目标证据不足数量 == 0
+    AND 新增未解释可观测单位数量 == 0
+    AND 观察目标存在发现事实提交状态 == 1
+    AND 扫描基准特征快照 非空
+    AND 观察目标存在基准建立状态 == 1</div>
+
+      <div class="formula">扫描可启动 =
+    观察目标存在基准建立状态 == 1
+    AND 观察目标扫描可启动状态 == 1
+    AND 扫描基准特征快照 非空</div>
+
+      <p>动态发现发生在扫描阶段：扫描读取的当前动态特征值，与扫描基准特征快照或上一轮可比特征值，在同一目标宿主、同一动态特征类型下形成可提交变化事实或存在动态。</p>
+    </section>
+  </main>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: "basis"
+      },
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif",
+        primaryBorderColor: "#2f6f9f",
+        lineColor: "#6a737d"
+      }
+    });
+  </script>
+</body>
+</html>
