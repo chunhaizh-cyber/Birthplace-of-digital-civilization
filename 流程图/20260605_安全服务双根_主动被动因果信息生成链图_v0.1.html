@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>安全 / 服务双根：主动与被动因果信息生成链图 v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; }
+    main { padding: 20px; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+    .canvas { min-width: 2500px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 2460px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1220px; line-height: 1.65; font-size: 14px; }
+    .notes table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .notes th, .notes td { padding: 7px 8px; border: 1px solid #d8dee4; text-align: left; vertical-align: top; }
+    .notes th { background: #f6f8fa; font-weight: 650; }
+    code { font-family: Consolas, "Courier New", monospace; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>安全 / 服务双根：主动与被动因果信息生成链图 v0.1</h1>
+    <p class="hint">目标投影层画两个根：安全根和服务根；底层因果信息仍统一沉淀在世界树根链。</p>
+  </header>
+  <main>
+    <section>
+      <h2>流程图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TB
+    WROOT["世界树根链<br/>统一保存状态 / 动态 / 因果模板 / 因果实例 / 状态变化线索"]
+    STORE["世界状态转换因果信息库<br/>抽象因果模板<br/>证据实例<br/>证据动态样本<br/>基础计数与稳定度"]
+
+    SROOT["安全根因果树<br/>根目标: 自我_安全值 = 最大值"]
+    VROOT["服务根因果树<br/>根目标: 自我_服务值 = 最大值"]
+
+    SP0["安全目标投影<br/>自我安全值<br/><- 风险安全层<br/><- 场景影响部分<br/><- 当前场景可观测单位 / 存在风险材料"]
+    VP0["服务目标投影<br/>自我服务值<br/><- 叶子任务价值结算<br/><- 服务对象外在特征变化 / 改善证据<br/><- 反馈验证 / 归因证据"]
+
+    INIT0["出生期 / 冷启动初始因果模板<br/>data/initial_causal_templates.tsv"]
+    INIT1["自我线程读取种子文件<br/>应用初始因果模板<br/>C++固定清单=0"]
+    INIT2["创建抽象因果模板<br/>初始因果模板=1<br/>后天验证=0<br/>直接生成需求=0<br/>直接创建任务=0<br/>直接结算价值=0"]
+
+    PASS0["被动因正式出现<br/>观察事实 / 外部事件 / 任务状态变化 / 提交链事实 / 结算链事实"]
+    PASS1["被动果自动出现<br/>生命周期提交链 / 后处理链 / 结算链 / 领域提交入口"]
+    PASS2["标准动作动态结构<br/>动作语义=被动动作<br/>可回解主体 / 特征 / 初始状态 / 结果状态 / 来源动态"]
+    PASS3["统一动态到因果信息流程<br/>先建或更新状态变化关系<br/>再按被动动作补完整因果模板"]
+    PASS4["被动因果用途<br/>解释为什么<br/>知道需要哪些上游事实<br/>生成条件 / 证据 / 提交链缺口<br/>提供安全 / 服务投影材料"]
+    PASSG["主动反推闸门<br/>被动动作 / 治理镜像 / 候选整理<br/>不得进入可调用动作候选"]
+
+    ACT0["安全根 / 服务根产生未满足目标<br/>需求树决定要改变什么"]
+    ACT1["任务管理承接需求<br/>任务筹办填充候选方法集<br/>从候选中选择方法"]
+    ACT2["明确方法执行<br/>动作来源=方法<br/>读取输入参数场景<br/>产生输出结果场景"]
+    ACT3["方法动作动态<br/>来源方法 / 动作语义 / 初始状态 / 结果状态 / 来源任务"]
+    ACT4["统一动态到因果信息流程<br/>状态变化签名 -> 状态变化关系<br/>动作致变签名 -> 动作致变关系<br/>创建证据实例并追加证据动态样本"]
+    ACT5["主动因果用途<br/>执行前预测<br/>目标反推可用动作<br/>执行后验收<br/>更新方法稳定度<br/>进入下一轮候选方法选择"]
+
+    UNKNOWN0["只有状态变化<br/>缺明确动作"]
+    UNKNOWN1["仅生成状态变化线索<br/>待补动作 / 待补因果<br/>不能作为完整可调用因果模板"]
+
+    SET0["任务完成 / 输出结果场景 / 满足证据动态"]
+    SET1["结算叶子任务价值<br/>读取安全增量 / 服务增量<br/>读取服务对象改善证据<br/>读取归因与反馈验证"]
+    SET2["安全 / 服务核心值入账<br/>只由结算方法裁决<br/>因果信息只作证据与归因"]
+
+    WROOT --> STORE
+    STORE -->|"按安全目标特征投影"| SROOT
+    STORE -->|"按服务目标特征投影"| VROOT
+    SROOT --> SP0
+    VROOT --> VP0
+
+    INIT0 --> INIT1 --> INIT2 --> STORE
+    INIT2 -->|"安全冷启动路径示例"| SP0
+
+    PASS0 --> PASS1 --> PASS2 --> PASS3 --> STORE
+    PASS3 --> PASS4 --> SP0
+    PASS3 --> PASS4 --> VP0
+    PASS3 --> PASSG
+
+    ACT0 --> ACT1 --> ACT2 --> ACT3 --> ACT4 --> STORE
+    ACT4 --> ACT5 --> ACT1
+
+    ACT3 -.->|"如果缺动作信息"| UNKNOWN0 --> UNKNOWN1 --> STORE
+
+    SET0 --> SET1 --> SET2
+    SET1 --> PASS2
+    SET2 --> SROOT
+    SET2 --> VROOT
+
+    SP0 --> ACT0
+    VP0 --> ACT0
+
+    classDef root fill:#fff4d6,stroke:#9a6700,stroke-width:2px,color:#1f2328;
+    classDef store fill:#eef6ff,stroke:#0969da,stroke-width:1.5px,color:#1f2328;
+    classDef active fill:#e6ffed,stroke:#1a7f37,color:#1f2328;
+    classDef passive fill:#fff1f1,stroke:#cf222e,color:#1f2328;
+    classDef gate fill:#f6f8fa,stroke:#57606a,color:#1f2328;
+
+    class SROOT,VROOT root;
+    class WROOT,STORE store;
+    class ACT0,ACT1,ACT2,ACT3,ACT4,ACT5 active;
+    class PASS0,PASS1,PASS2,PASS3,PASS4 passive;
+    class PASSG,UNKNOWN0,UNKNOWN1,INIT0,INIT1,INIT2,SET0,SET1,SET2 gate;
+        </pre>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h2>双根展开</h2>
+      <table>
+        <thead>
+          <tr><th>根</th><th>根目标</th><th>当前已能挂接的主要因果材料</th><th>边界</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>安全根</td>
+            <td><code>自我_安全值 = 最大值</code></td>
+            <td>风险安全层、风险安全_场景影响部分、当前场景可观测单位取得、D455观察确认路径、任务结算后的安全增量证据。</td>
+            <td>D455 / 外设材料不能直接证明安全值增加；候选安全值、投影安全值、正式入账安全值必须区分。</td>
+          </tr>
+          <tr>
+            <td>服务根</td>
+            <td><code>自我_服务值 = 最大值</code></td>
+            <td>叶子任务价值结算、服务对象外在特征状态变化数、服务对象外在特征状态改善证据、反馈验证、归因证据、任务完成事实。</td>
+            <td>服务链不能借用“无负向证据默认良好”；服务值入账必须有目标特征真实改善和结算方法裁决。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="notes">
+      <h2>链路摘要</h2>
+      <p>主动因果来自明确方法执行后的方法动作动态；动态进入统一因果流程后，先形成状态变化关系，再在具备动作信息时形成动作致变关系。只有通过主动反推闸门的模板，才可进入候选动作或候选方法。</p>
+      <p>被动因果来自观察事实、状态提交、后处理链或结算链的自动承接；它同样进入统一因果流程，但动作语义为 <code>被动动作</code> 时，只能作为解释、投影、证据和缺口材料，不能反推成“调用被动动作”。</p>
+      <p>初始因果模板来自种子文件或出生期被动规则，只是冷启动假设。它可以被后天动态样本强化、削弱、分化或覆盖，不直接生成需求、任务或价值结算。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { htmlLabels: true, curve: "basis" } });
+  </script>
+</body>
+</html>
