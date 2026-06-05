@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>下一步候选步骤视图生成逻辑图 v0.1</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      background: #f7f8fa;
+      color: #1f2328;
+    }
+
+    header {
+      padding: 18px 24px 12px;
+      border-bottom: 1px solid #d8dee4;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 13px;
+      color: #57606a;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    .canvas {
+      min-width: 1900px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .mermaid {
+      min-width: 1860px;
+    }
+
+    .notes {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      max-width: 1240px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .notes h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .notes ul {
+      margin: 6px 0 0 20px;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>下一步候选步骤视图生成逻辑图 v0.1</h1>
+    <p class="hint">细分任务筹办状态机中的“生成下一步候选步骤视图”：生成促成、避免、条件补齐、方法就绪、证据补齐、副作用约束、学习缺口七类候选集合。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    INPUT["输入: 临时因果材料<br/>根需求 / 根分区 / 目标比较 / 因果路径项 / 已入树子需求摘要"]
+    INIT_VIEW["初始化下一步候选步骤视图<br/>七类集合为空 / 记录快照和生成轮次"]
+    SOURCE_LOOP["遍历因果路径项<br/>世界树因果 / 遗传因果 / 需求侧条件 / 方法条件 / 动作动态证据"]
+
+    ITEM_GATE{"路径项是否结构完整?<br/>来源因果 / 角色 / 层级 / 证据引用"}
+    ITEM_ERROR["筹办回执: 路径项结构异常<br/>引用悬空 / 角色非法 / 层级非法"]
+    ROLE_GATE{"路径项角色或主果关系?"}
+
+    PROMOTE_GATE{"主果是否命中<br/>当前目标比较?"}
+    PROMOTE_BUILD["构造促成候选<br/>以因模板或中间状态作为下一步目标"]
+    PROMOTE_TARGET_GATE{"促成候选是否能<br/>收束成明确目标比较?"}
+    PROMOTE_ADD["加入促成集合<br/>expected_gain / source_causal / evidence_refs / depth"]
+
+    AVOID_GATE{"主果是否反向破坏<br/>当前目标比较?"}
+    AVOID_BUILD["构造避免候选<br/>把失败路径改写为需避免的明确目标状态"]
+    AVOID_TARGET_GATE{"避免候选是否有<br/>明确目标特征比较?"}
+    AVOID_ADD["加入避免集合<br/>blocked_effect / avoid_target / source_causal"]
+
+    CONDITION_GATE{"命中路径条件模板<br/>是否未知或未满足?"}
+    CONDITION_BUILD["构造条件补齐候选<br/>条件状态达到可用 / 明确 / 满足"]
+    CONDITION_TARGET_GATE{"条件候选是否能<br/>表达为明确目标比较?"}
+    CONDITION_ADD["加入条件补齐集合<br/>condition_ref / required_state / source_path"]
+
+    METHOD_GATE{"路径项是否含方法模板<br/>或方法支撑需求?"}
+    METHOD_CONTRACT_GATE{"方法最小契约是否完整?<br/>输入 / 前置 / 动作入口 / 输出模式 / 动作动态落账"}
+    METHOD_READY_BUILD["构造方法就绪候选<br/>补动作入口 / 输入参数模式 / 输出结果模式 / 条件结果对"]
+    METHOD_TARGET_GATE{"方法就绪候选是否能<br/>表达为方法状态目标比较?"}
+    METHOD_READY_ADD["加入方法就绪集合<br/>method_ref / missing_contract / readiness_target"]
+    METHOD_HINT["记录方法候选依据<br/>不进入七类缺口集合 / 留给方法筹办候选召回"]
+
+    EVIDENCE_GATE{"因果证据是否不足?<br/>样本少 / 最近失败 / 未验证 / 归因不明"}
+    EVIDENCE_BUILD["构造证据补齐候选<br/>证据状态足够 / 反馈可信 / 归因确认"]
+    EVIDENCE_TARGET_GATE{"证据候选是否能<br/>表达为证据状态目标比较?"}
+    EVIDENCE_ADD["加入证据补齐集合<br/>evidence_ref / sample_need / verify_target"]
+
+    SIDE_GATE{"路径是否存在副作用<br/>破坏其他根分区或目标特征?"}
+    SIDE_BUILD["构造副作用约束候选<br/>副作用可接受 / 风险受控 / 约束已满足"]
+    SIDE_TARGET_GATE{"副作用候选是否绑定<br/>被破坏目标和明确比较?"}
+    SIDE_ADD["加入副作用约束集合<br/>affected_partition / affected_target / constraint_target"]
+
+    NO_MATCH_ACC["累计本轮命中状态<br/>促成 / 避免 / 条件 / 方法 / 证据 / 副作用"]
+    LOOP_MORE{"是否还有路径项?"}
+
+    EMPTY_GATE{"七类集合是否全空?"}
+    LEARNING_BUILD["构造学习缺口候选<br/>目标特征促成因果待补齐 / 满足路径待学习 / 可执行方法待建立"]
+    LEARNING_TARGET_GATE{"学习候选是否能<br/>表达为明确学习目标比较?"}
+    LEARNING_ADD["加入学习缺口集合<br/>learning_target / missing_knowledge / trigger_reason"]
+
+    CANONICALIZE["候选字段规范化<br/>目标比较 / 生成类型 / 关系类型 / 获取途径建议 / 幂等键"]
+    CANDIDATE_GATE{"候选字段是否齐全?<br/>父需求 / 根分区 / 目标宿主 / 特征 / 比较符 / 目标值"}
+    BAD_CANDIDATE["候选不可目标化<br/>进入缺口草案来源分类"]
+
+    VIEW_READY["输出: 下一步候选步骤视图<br/>促成 / 避免 / 条件补齐 / 方法就绪 / 证据补齐 / 副作用约束 / 学习缺口"]
+    NEXT_STAGE["交给后续模块<br/>归类候选项 / 去重过滤 / 翻译草案 / 提交裁决"]
+
+    RECEIPT_OUT["输出统一筹办回执<br/>候选视图 / 异常分类 / 压力材料"]
+    NO_WRITE_NOTE["边界: 本图不入树<br/>不写任务状态 / 不执行方法 / 不直接选择路径"]
+    PRESSURE["压力材料<br/>七类集合反复为空 / 候选反复不可目标化 / 方法就绪长期缺口 / 证据长期不足 / 副作用长期不可接受"]
+
+    INPUT --> INIT_VIEW --> SOURCE_LOOP --> ITEM_GATE
+    ITEM_GATE -->|否| ITEM_ERROR --> RECEIPT_OUT
+    ITEM_GATE -->|是| ROLE_GATE
+
+    ROLE_GATE --> PROMOTE_GATE
+    PROMOTE_GATE -->|是| PROMOTE_BUILD --> PROMOTE_TARGET_GATE
+    PROMOTE_TARGET_GATE -->|是| PROMOTE_ADD --> CONDITION_GATE
+    PROMOTE_TARGET_GATE -->|否| BAD_CANDIDATE
+    PROMOTE_GATE -->|否| AVOID_GATE
+
+    AVOID_GATE -->|是| AVOID_BUILD --> AVOID_TARGET_GATE
+    AVOID_TARGET_GATE -->|是| AVOID_ADD --> CONDITION_GATE
+    AVOID_TARGET_GATE -->|否| BAD_CANDIDATE
+    AVOID_GATE -->|否| CONDITION_GATE
+
+    CONDITION_GATE -->|是| CONDITION_BUILD --> CONDITION_TARGET_GATE
+    CONDITION_TARGET_GATE -->|是| CONDITION_ADD --> METHOD_GATE
+    CONDITION_TARGET_GATE -->|否| BAD_CANDIDATE
+    CONDITION_GATE -->|否| METHOD_GATE
+
+    METHOD_GATE -->|是| METHOD_CONTRACT_GATE
+    METHOD_GATE -->|否| EVIDENCE_GATE
+    METHOD_CONTRACT_GATE -->|完整| METHOD_HINT --> EVIDENCE_GATE
+    METHOD_CONTRACT_GATE -->|不完整| METHOD_READY_BUILD --> METHOD_TARGET_GATE
+    METHOD_TARGET_GATE -->|是| METHOD_READY_ADD --> EVIDENCE_GATE
+    METHOD_TARGET_GATE -->|否| BAD_CANDIDATE
+
+    EVIDENCE_GATE -->|不足| EVIDENCE_BUILD --> EVIDENCE_TARGET_GATE
+    EVIDENCE_TARGET_GATE -->|是| EVIDENCE_ADD --> SIDE_GATE
+    EVIDENCE_TARGET_GATE -->|否| BAD_CANDIDATE
+    EVIDENCE_GATE -->|足够| SIDE_GATE
+
+    SIDE_GATE -->|有| SIDE_BUILD --> SIDE_TARGET_GATE
+    SIDE_TARGET_GATE -->|是| SIDE_ADD --> NO_MATCH_ACC
+    SIDE_TARGET_GATE -->|否| BAD_CANDIDATE
+    SIDE_GATE -->|无| NO_MATCH_ACC
+
+    NO_MATCH_ACC --> LOOP_MORE
+    LOOP_MORE -->|有| SOURCE_LOOP
+    LOOP_MORE -->|无| EMPTY_GATE
+
+    EMPTY_GATE -->|全空| LEARNING_BUILD --> LEARNING_TARGET_GATE
+    LEARNING_TARGET_GATE -->|是| LEARNING_ADD --> CANONICALIZE
+    LEARNING_TARGET_GATE -->|否| BAD_CANDIDATE
+    EMPTY_GATE -->|非空| CANONICALIZE
+
+    CANONICALIZE --> CANDIDATE_GATE
+    CANDIDATE_GATE -->|否| BAD_CANDIDATE --> RECEIPT_OUT
+    CANDIDATE_GATE -->|是| VIEW_READY --> NEXT_STAGE --> RECEIPT_OUT
+
+    NO_WRITE_NOTE -.约束.-> VIEW_READY
+    NO_WRITE_NOTE -.约束.-> METHOD_HINT
+    NO_WRITE_NOTE -.约束.-> NEXT_STAGE
+
+    EMPTY_GATE -.反复全空.-> PRESSURE
+    BAD_CANDIDATE -.反复不可目标化.-> PRESSURE
+    METHOD_READY_ADD -.长期缺方法契约.-> PRESSURE
+    EVIDENCE_ADD -.长期证据不足.-> PRESSURE
+    SIDE_ADD -.长期副作用不可接受.-> PRESSURE
+
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef prep fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef receipt fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    classDef pressure fill:#fff0f3,stroke:#b4234a,color:#3a0d18;
+
+    class ITEM_GATE,ROLE_GATE,PROMOTE_GATE,PROMOTE_TARGET_GATE,AVOID_GATE,AVOID_TARGET_GATE,CONDITION_GATE,CONDITION_TARGET_GATE,METHOD_GATE,METHOD_CONTRACT_GATE,METHOD_TARGET_GATE,EVIDENCE_GATE,EVIDENCE_TARGET_GATE,SIDE_GATE,SIDE_TARGET_GATE,LOOP_MORE,EMPTY_GATE,LEARNING_TARGET_GATE,CANDIDATE_GATE gate;
+    class INPUT,INIT_VIEW,SOURCE_LOOP,PROMOTE_BUILD,PROMOTE_ADD,AVOID_BUILD,AVOID_ADD,CONDITION_BUILD,CONDITION_ADD,METHOD_READY_BUILD,METHOD_READY_ADD,METHOD_HINT,EVIDENCE_BUILD,EVIDENCE_ADD,SIDE_BUILD,SIDE_ADD,NO_MATCH_ACC,LEARNING_BUILD,LEARNING_ADD,CANONICALIZE,VIEW_READY,NEXT_STAGE,RECEIPT_OUT prep;
+    class ITEM_ERROR,BAD_CANDIDATE receipt;
+    class NO_WRITE_NOTE warn;
+    class PRESSURE pressure;
+      </pre>
+    </section>
+
+    <section class="notes">
+      <h2>判断口径</h2>
+      <ul>
+        <li>七类候选可以并存，一条促成路径可能同时带出条件、方法、证据和副作用候选。</li>
+        <li>方法契约完整时只记录候选依据；方法契约不完整时才生成方法就绪缺口候选。</li>
+        <li>避免类、副作用类和学习类候选都必须收束成明确目标比较。</li>
+        <li>本图只生成候选步骤视图，后续仍需归类、过滤、翻译草案和提交裁决。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: "basis"
+      },
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif",
+        primaryBorderColor: "#2f6f9f",
+        lineColor: "#6a737d"
+      }
+    });
+  </script>
+</body>
+</html>
