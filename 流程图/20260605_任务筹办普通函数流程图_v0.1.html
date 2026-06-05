@@ -74,6 +74,8 @@ flowchart TD
     ENTER["进入任务筹办普通函数<br/>单步循环，不递归执行子链"]
     READ["读取任务 / 来源需求 / 任务层级<br/>只读上下文，不裸写状态"]
     TARGET_GATE{"来源需求目标<br/>是否完整可解析?"}
+    TARGET_SOURCE_GATE{"不可解析来源<br/>逻辑错误还是真实需求?"}
+    LOGIC_ERROR["逻辑错误处理<br/>弹窗提醒 + 记录日志<br/>不生成分支 / 不派生需求"]
     STATE_GATE{"任务是否可筹办?<br/>未终结 / 未取消 / 未失败"}
     CHILD_GATE{"是否存在活动子需求<br/>或阻塞父任务的子任务?"}
     LEAF_GATE{"是否已是普通可任务化叶子任务?"}
@@ -102,7 +104,7 @@ flowchart TD
     INPUT_SCENE_GATE{"可执行输入参数场景<br/>是否可构造?"}
     READY_RECEIPT["筹办回执: 可就绪<br/>当前方法 + 可执行输入参数场景 + 无筹办缺口"]
 
-    TARGET_GAP["筹办回执: 目标补齐缺口<br/>缺目标宿主 / 特征 / 当前值 / 目标值"]
+    TARGET_GAP["真实需求分支: 目标补齐缺口<br/>缺目标宿主 / 特征 / 当前值 / 目标值"]
     STATE_WAIT["筹办回执: 任务不可筹办<br/>已终结 / 取消 / 失败 / 等待外部恢复"]
     CHILD_WAIT["筹办回执: 等待活动子需求或子任务<br/>父任务待重筹办"]
     METHOD_STATE_GAP["筹办回执: 候选方法不可用<br/>方法状态缺口"]
@@ -123,7 +125,9 @@ flowchart TD
 
     subgraph ENTRY_CHECK["入口检查"]
         ENTER --> READ --> M_TARGET_VIEW --> TARGET_GATE
-        TARGET_GATE -->|否| TARGET_GAP
+        TARGET_GATE -->|否| TARGET_SOURCE_GATE
+        TARGET_SOURCE_GATE -->|逻辑错误 / 结构损坏| LOGIC_ERROR
+        TARGET_SOURCE_GATE -->|真实需求缺口| TARGET_GAP
         TARGET_GATE -->|是| STATE_GATE
         STATE_GATE -->|否| STATE_WAIT
         STATE_GATE -->|是| CHILD_GATE
@@ -180,7 +184,7 @@ flowchart TD
     end
 
     subgraph PRESSURE_FLOW["压力材料"]
-        TARGET_GAP -.反复出现.-> M_PRESSURE
+        TARGET_GAP -.真实缺口反复出现.-> M_PRESSURE
         STATE_WAIT -.等待失效.-> M_PRESSURE
         PATH_WAIT -.路径长期不闭合.-> M_PRESSURE
         METHOD_STATE_GAP -.方法长期不可用.-> M_PRESSURE
@@ -194,6 +198,7 @@ flowchart TD
         NO_DIRECT_WRITE -.约束.-> PATH_DRAFT
         NO_DIRECT_WRITE -.约束.-> RECEIPT_OUT
         NO_DIRECT_WRITE -.约束.-> M_STATE_SUBMIT
+        NO_DIRECT_WRITE -.逻辑错误不生成业务分支.-> LOGIC_ERROR
     end
 
     classDef prep fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
@@ -204,10 +209,10 @@ flowchart TD
     classDef pressure fill:#fff0f3,stroke:#b4234a,color:#3a0d18;
 
     class ENTER,READ,PATH_START,PATH_VIEW,PATH_DRAFT,METHOD_START,CANDIDATE_FILL,BIND_ONE,SELECT_RULE,CURRENT_METHOD,CONDITION_START,READY_RECEIPT,RECEIPT_OUT prep;
-    class TARGET_GATE,STATE_GATE,CHILD_GATE,LEAF_GATE,PATH_GATE,CANDIDATE_GATE,SELECT_GATE,METHOD_READY_GATE,ENTRY_GATE,CR_GATE,PARAM_GATE,COND_GATE,INPUT_SCENE_GATE gate;
+    class TARGET_GATE,TARGET_SOURCE_GATE,STATE_GATE,CHILD_GATE,LEAF_GATE,PATH_GATE,CANDIDATE_GATE,SELECT_GATE,METHOD_READY_GATE,ENTRY_GATE,CR_GATE,PARAM_GATE,COND_GATE,INPUT_SCENE_GATE gate;
     class M_TARGET_VIEW,M_CAUSAL_VIEW,M_DEMAND_SUBMIT,M_METHOD_TREE,M_METHOD_HEAD,M_COND_RESULT,M_PARAM_BIND,M_INPUT_SCENE,M_STATE_SUBMIT external;
     class TARGET_GAP,STATE_WAIT,CHILD_WAIT,PATH_WAIT,METHOD_HEAD_RECEIPT,METHOD_STATE_GAP,ENTRY_GAP,CR_GAP,PARAM_GAP,CONDITION_GAP,INPUT_SCENE_GAP receipt;
-    class NO_DIRECT_WRITE warn;
+    class NO_DIRECT_WRITE,LOGIC_ERROR warn;
     class M_PRESSURE pressure;
       </pre>
     </section>
