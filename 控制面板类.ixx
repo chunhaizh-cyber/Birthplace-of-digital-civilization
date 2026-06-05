@@ -176,6 +176,17 @@ struct 结构_控制面板快照 {
     std::size_t D455材料包材料句柄数量 = 0;
     std::string D455材料包证据卡摘要{};
 
+    bool D455逐簇识别有最新报告 = false;
+    std::uint64_t D455逐簇识别报告ID = 0;
+    std::size_t D455逐簇识别观察簇数量 = 0;
+    std::size_t D455逐簇识别有效区域数量 = 0;
+    std::size_t D455逐簇识别未识别区域数量 = 0;
+    std::size_t D455逐簇识别无效区域数量 = 0;
+    std::size_t D455逐簇识别冲突区域数量 = 0;
+    std::size_t D455逐簇识别候选存在数量 = 0;
+    std::size_t D455逐簇识别证据不足数量 = 0;
+    std::string D455逐簇识别样本卡摘要{};
+
     bool 自我场景复现有快照 = false;
     std::uintptr_t 自我所在场景指针 = 0;
     std::uintptr_t 自我场景复现宿主指针 = 0;

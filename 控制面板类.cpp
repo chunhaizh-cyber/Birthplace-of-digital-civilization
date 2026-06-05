@@ -6308,6 +6308,34 @@ namespace {
     else {
         快照.D455材料包证据卡摘要 = "待真实D455数据";
     }
+    if (const auto 最新D455识别报告 = 读取最新外设观察报告(
+            "双目相机/D455深度相机",
+            枚举_外设观察报告类型::逐簇识别报告)) {
+        快照.D455逐簇识别有最新报告 = true;
+        快照.D455逐簇识别报告ID = 最新D455识别报告->报告ID;
+        快照.D455逐簇识别观察簇数量 = 最新D455识别报告->观察像素簇集合.size();
+        快照.D455逐簇识别未识别区域数量 = 最新D455识别报告->未归簇区域数量 > 0
+            ? static_cast<std::size_t>(最新D455识别报告->未归簇区域数量)
+            : std::size_t{0};
+        if (const auto 识别提交包 = 构造外设识别提交包_由观察报告(*最新D455识别报告)) {
+            快照.D455逐簇识别有效区域数量 = 识别提交包->有效观察区域.size();
+            快照.D455逐簇识别无效区域数量 = 识别提交包->无效区域.size();
+            快照.D455逐簇识别冲突区域数量 = 识别提交包->冲突区域.size();
+            快照.D455逐簇识别候选存在数量 =
+                识别提交包->新存在候选.size() + 识别提交包->已有存在匹配候选.size();
+            快照.D455逐簇识别证据不足数量 = 识别提交包->证据不足原因.size();
+            for (const auto& 候选 : 识别提交包->新存在候选) {
+                快照.D455逐簇识别证据不足数量 += 候选.证据不足原因.size();
+            }
+            for (const auto& 候选 : 识别提交包->已有存在匹配候选) {
+                快照.D455逐簇识别证据不足数量 += 候选.证据不足原因.size();
+            }
+        }
+        快照.D455逐簇识别样本卡摘要 = 构造D455逐簇识别样本卡摘要(*最新D455识别报告);
+    }
+    else {
+        快照.D455逐簇识别样本卡摘要 = "待真实D455逐簇识别报告";
+    }
     if (仅标量摘要) {
         记录快照阶段("轻量摘要跳过场景复现");
         记录快照阶段("轻量摘要跳过基础节点全量计数");
@@ -7143,6 +7171,16 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
             0,
             false);
         根.子项.push_back(私有_新节点(私有_页面摘要(快照.D455材料包证据卡摘要)));
+        根.子项.push_back(私有_新节点(
+            快照.D455逐簇识别有最新报告
+                ? ("D455逐簇识别样本卡 | 报告ID=" + std::to_string(快照.D455逐簇识别报告ID)
+                    + " | 有效区域=" + std::to_string(快照.D455逐簇识别有效区域数量)
+                    + " | 候选存在=" + std::to_string(快照.D455逐簇识别候选存在数量)
+                    + " | 证据不足=" + std::to_string(快照.D455逐簇识别证据不足数量))
+                : std::string("D455逐簇识别样本卡 | 待真实D455逐簇识别报告"),
+            0,
+            false));
+        根.子项.push_back(私有_新节点(私有_页面摘要(快照.D455逐簇识别样本卡摘要)));
         return 私有_页面刷新JSON(页面, &根);
     }
 
@@ -8117,6 +8155,7 @@ std::string 私有_生成控制面板HTML(
         + " | 最近参数错误=" + 私有_页面摘要(快照.任务管理工作线程池最近参数错误)
         + " | 最近应用=" + 私有_页面摘要(快照.任务管理工作线程池最近参数应用结果));
     const auto D455材料包摘要 = 私有_转义HTML(私有_页面摘要(快照.D455材料包证据卡摘要));
+    const auto D455逐簇识别摘要 = 私有_转义HTML(私有_页面摘要(快照.D455逐簇识别样本卡摘要));
     const auto 自我卡片值 = 私有_转义HTML(快照.自我存在已建立 ? "已建立" : "未建立");
     const auto 自我卡片说明 = 私有_转义HTML(
         "安全=" + std::to_string(快照.自我安全值)
@@ -9543,6 +9582,47 @@ std::string 私有_生成控制面板HTML(
         << 快照.D455材料包观察簇数量
         << R"HTML( | 句柄 )HTML"
         << 快照.D455材料包材料句柄数量
+        << R"HTML(</div>
+              </div>
+            </div>
+          </section>
+          <section class="panel camera-evidence">
+            <div class="panel-topline">D455 逐簇识别</div>
+            <h3>最新逐簇识别样本卡</h3>
+            <div class="summary">)HTML"
+        << D455逐簇识别摘要
+        << R"HTML(</div>
+            <div class="settings-result-grid" aria-label="D455逐簇识别只读字段">
+              <div class="settings-result">
+                <div class="settings-result-label">报告</div>
+                <div class="settings-result-value">)HTML"
+        << (快照.D455逐簇识别有最新报告 ? std::to_string(快照.D455逐簇识别报告ID) : std::string("待真实D455数据"))
+        << R"HTML(</div>
+              </div>
+              <div class="settings-result">
+                <div class="settings-result-label">簇</div>
+                <div class="settings-result-value">)HTML"
+        << 快照.D455逐簇识别观察簇数量
+        << R"HTML(</div>
+              </div>
+              <div class="settings-result">
+                <div class="settings-result-label">区域</div>
+                <div class="settings-result-value">有效 )HTML"
+        << 快照.D455逐簇识别有效区域数量
+        << R"HTML( | 未识别 )HTML"
+        << 快照.D455逐簇识别未识别区域数量
+        << R"HTML( | 无效 )HTML"
+        << 快照.D455逐簇识别无效区域数量
+        << R"HTML( | 冲突 )HTML"
+        << 快照.D455逐簇识别冲突区域数量
+        << R"HTML(</div>
+              </div>
+              <div class="settings-result">
+                <div class="settings-result-label">候选</div>
+                <div class="settings-result-value">存在候选 )HTML"
+        << 快照.D455逐簇识别候选存在数量
+        << R"HTML( | 证据不足 )HTML"
+        << 快照.D455逐簇识别证据不足数量
         << R"HTML(</div>
               </div>
             </div>
