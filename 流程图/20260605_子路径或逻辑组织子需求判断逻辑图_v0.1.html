@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>子路径或逻辑组织子需求判断逻辑图 v0.1</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      background: #f7f8fa;
+      color: #1f2328;
+    }
+
+    header {
+      padding: 18px 24px 12px;
+      border-bottom: 1px solid #d8dee4;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 13px;
+      color: #57606a;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    .canvas {
+      min-width: 1760px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .mermaid {
+      min-width: 1720px;
+    }
+
+    .notes {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      max-width: 1180px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .notes h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .notes ul {
+      margin: 6px 0 0 20px;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>子路径或逻辑组织子需求判断逻辑图 v0.1</h1>
+    <p class="hint">细分任务筹办状态机中的“是否已有子路径或逻辑组织子需求”：只确认可读取的子路径结构，不判断闭合状态。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    INPUT["输入: 当前任务与来源需求<br/>父需求 / 目标语义 / 子需求索引 / 子任务索引 / 派生提交回执"]
+    SNAPSHOT["固定本轮快照<br/>父需求版本 / 子需求集合版本 / 任务集合版本 / 提交回执版本"]
+
+    PENDING_GATE{"是否存在待裁决草案?<br/>派生需求 / 更新指令 / 学习草案"}
+    SUBMIT_WAIT["筹办回执: 等待提交结果<br/>待已入树 / 已复用 / 被拒绝 / 证据不足"]
+
+    COLLECT["汇总候选子项<br/>直接子需求 / 逻辑组织子需求 / 路径组 / 子任务绑定 / 提交回执"]
+    VERSION_GATE{"候选集合版本<br/>是否仍一致?"}
+    VERSION_CONFLICT["筹办回执: 版本冲突<br/>重读子路径集合 / 待重筹办"]
+
+    RAW_GATE{"是否发现任何候选子项?"}
+    NO_RAW_CHILD["无候选子项<br/>当前父目标下没有可读取子结构"]
+
+    EXCLUDE["排除非路径材料<br/>历史日志 / 已拒绝草案 / 重复草案 / 已失效候选 / 非阻塞证据"]
+    REMAIN_GATE{"排除后是否仍有候选?"}
+    NONBLOCKING_ONLY["仅剩非阻塞材料<br/>不算已有阻塞子路径"]
+
+    PARENT_GATE{"父子归属是否合法?<br/>parent_demand_id / source_task_id / stable_key"}
+    ORPHAN_ERROR["结构异常: 子项归属不合法<br/>孤儿子需求 / 父需求不匹配 / 稳定键冲突"]
+
+    TARGET_GATE{"子项目标是否完整可解析?<br/>目标宿主 / 目标特征 / 当前状态 / 目标状态"}
+    TARGET_CLASSIFY["外部细分图: 不可解析来源分类<br/>逻辑错误 / 真实目标补齐 / 证据不足 / 版本冲突"]
+
+    SEMANTIC_GATE{"子项语义类型?"}
+    LOGIC_ORG["逻辑组织子需求<br/>AND组 / OR组 / 方法路径组 / 因果子链 / 结算令牌"]
+    ORDINARY_CHILD["普通业务子需求<br/>可作为路径步骤或叶子目标"]
+    SUPPORT_CHILD["支撑类子需求<br/>证据补齐 / 学习支撑 / 副作用约束 / 条件补齐"]
+    STRUCT_GAP_CHILD["结构性缺口或治理节点<br/>不作为业务子路径"]
+
+    ACQUIRE_GATE{"逻辑组织获取途径<br/>是否明确且合法?"}
+    LOGIC_ORG_VALID["有效逻辑组织子需求<br/>可进入组织节点处理"]
+    LOGIC_ORG_ERROR["结构异常: 逻辑组织缺获取途径<br/>或获取途径与语义不一致"]
+
+    RELATION_GATE{"是否有明确关系类型?<br/>AND / OR / 顺序链 / 证据 / 学习 / 副作用"}
+    RELATION_VALID["有效子路径<br/>关系类型可进入下一闸门"]
+    RELATION_MISSING_KIND{"关系缺失来源?"}
+    LEGACY_RELATION_WAIT["筹办回执: 待关系规范化<br/>旧数据 / 兼容迁移 / 需重读归属"]
+    RELATION_LOGIC_ERROR["逻辑错误: 草案入树缺关系<br/>记录日志 / 不生成业务分支"]
+
+    SUPPORT_BLOCK_GATE{"支撑类子需求<br/>是否阻塞当前父目标判断?"}
+    SUPPORT_PATH["有效支撑子路径<br/>进入支撑关系闭合判断"]
+    SUPPORT_NONBLOCK["非阻塞支撑材料<br/>只作为证据材料读取"]
+
+    GROUP_CHILD_GATE{"逻辑组织节点内部<br/>是否已有合法成员?"}
+    GROUP_HAS_CHILD["有逻辑组织子需求及成员<br/>进入关系类型判断"]
+    GROUP_EMPTY_KIND{"组织节点为空的原因?"}
+    GROUP_EXPAND["筹办回执: 组织节点需展开<br/>生成或等待子路径草案"]
+    GROUP_WAIT["筹办回执: 等待组织节点提交或聚合材料"]
+    GROUP_AGGREGATE["筹办回执: 组织节点可聚合/结算<br/>不进入普通方法候选"]
+
+    HAS_CHILD_PATH["输出: 已有合法子路径<br/>进入子路径关系类型判断"]
+    NO_CHILD_PATH["输出: 无合法子路径<br/>进入找下一步可选步骤"]
+    DIAGNOSTIC_RECEIPT["筹办回执: 结构诊断等待<br/>不静默兜底 / 不派生业务分支"]
+    ERROR_RECEIPT["筹办回执: 逻辑错误中止<br/>弹窗 + 错误日志"]
+    RECEIPT_OUT["输出统一筹办回执<br/>分类 / 原因 / 下一步 / 唤醒条件 / 压力材料"]
+
+    PRESSURE["压力材料<br/>子路径长期为空 / 关系长期缺失 / 提交长期无结果 / 组织节点展开失败"]
+    NOTE["边界: 已有子路径 ≠ 路径已闭合<br/>闭合判断交给关系类型与路径评价模块"]
+
+    INPUT --> SNAPSHOT --> PENDING_GATE
+    PENDING_GATE -->|有待裁决| SUBMIT_WAIT --> RECEIPT_OUT
+    PENDING_GATE -->|无| COLLECT --> VERSION_GATE
+
+    VERSION_GATE -->|否| VERSION_CONFLICT --> RECEIPT_OUT
+    VERSION_GATE -->|是| RAW_GATE
+    RAW_GATE -->|没有| NO_RAW_CHILD --> NO_CHILD_PATH
+    RAW_GATE -->|有| EXCLUDE --> REMAIN_GATE
+
+    REMAIN_GATE -->|没有| NONBLOCKING_ONLY --> NO_CHILD_PATH
+    REMAIN_GATE -->|有| PARENT_GATE
+
+    PARENT_GATE -->|不合法| ORPHAN_ERROR --> ERROR_RECEIPT
+    PARENT_GATE -->|合法| TARGET_GATE
+
+    TARGET_GATE -->|不可解析| TARGET_CLASSIFY --> RECEIPT_OUT
+    TARGET_GATE -->|可解析| SEMANTIC_GATE
+
+    SEMANTIC_GATE -->|逻辑组织| LOGIC_ORG --> ACQUIRE_GATE
+    SEMANTIC_GATE -->|普通业务子需求| ORDINARY_CHILD --> RELATION_GATE
+    SEMANTIC_GATE -->|支撑类| SUPPORT_CHILD --> SUPPORT_BLOCK_GATE
+    SEMANTIC_GATE -->|结构性缺口 / 治理节点| STRUCT_GAP_CHILD --> DIAGNOSTIC_RECEIPT
+
+    ACQUIRE_GATE -->|明确合法| LOGIC_ORG_VALID --> GROUP_CHILD_GATE
+    ACQUIRE_GATE -->|缺失或冲突| LOGIC_ORG_ERROR --> ERROR_RECEIPT
+
+    RELATION_GATE -->|有| RELATION_VALID --> HAS_CHILD_PATH
+    RELATION_GATE -->|没有| RELATION_MISSING_KIND
+    RELATION_MISSING_KIND -->|旧数据可兼容| LEGACY_RELATION_WAIT --> RECEIPT_OUT
+    RELATION_MISSING_KIND -->|本轮草案漏填| RELATION_LOGIC_ERROR --> ERROR_RECEIPT
+    RELATION_MISSING_KIND -->|来源未判明| DIAGNOSTIC_RECEIPT
+
+    SUPPORT_BLOCK_GATE -->|阻塞| SUPPORT_PATH --> HAS_CHILD_PATH
+    SUPPORT_BLOCK_GATE -->|不阻塞| SUPPORT_NONBLOCK --> NO_CHILD_PATH
+
+    GROUP_CHILD_GATE -->|有| GROUP_HAS_CHILD --> HAS_CHILD_PATH
+    GROUP_CHILD_GATE -->|没有| GROUP_EMPTY_KIND
+    GROUP_EMPTY_KIND -->|应继续展开| GROUP_EXPAND --> RECEIPT_OUT
+    GROUP_EMPTY_KIND -->|等待提交或材料| GROUP_WAIT --> RECEIPT_OUT
+    GROUP_EMPTY_KIND -->|已满足聚合条件| GROUP_AGGREGATE --> RECEIPT_OUT
+
+    HAS_CHILD_PATH --> RECEIPT_OUT
+    NO_CHILD_PATH --> RECEIPT_OUT
+    DIAGNOSTIC_RECEIPT --> RECEIPT_OUT
+    ERROR_RECEIPT --> RECEIPT_OUT
+
+    NOTE -.约束.-> HAS_CHILD_PATH
+    NOTE -.约束.-> GROUP_HAS_CHILD
+
+    SUBMIT_WAIT -.长期无结果.-> PRESSURE
+    NO_CHILD_PATH -.长期无子路径.-> PRESSURE
+    LEGACY_RELATION_WAIT -.长期未规范化.-> PRESSURE
+    GROUP_EXPAND -.展开失败或分支爆炸.-> PRESSURE
+    DIAGNOSTIC_RECEIPT -.长期未判明.-> PRESSURE
+
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef prep fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef receipt fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    classDef pressure fill:#fff0f3,stroke:#b4234a,color:#3a0d18;
+
+    class PENDING_GATE,VERSION_GATE,RAW_GATE,REMAIN_GATE,PARENT_GATE,TARGET_GATE,SEMANTIC_GATE,ACQUIRE_GATE,RELATION_GATE,RELATION_MISSING_KIND,SUPPORT_BLOCK_GATE,GROUP_CHILD_GATE,GROUP_EMPTY_KIND gate;
+    class INPUT,SNAPSHOT,COLLECT,NO_RAW_CHILD,EXCLUDE,NONBLOCKING_ONLY,LOGIC_ORG,ORDINARY_CHILD,SUPPORT_CHILD,STRUCT_GAP_CHILD,LOGIC_ORG_VALID,RELATION_VALID,SUPPORT_PATH,SUPPORT_NONBLOCK,GROUP_HAS_CHILD,HAS_CHILD_PATH,NO_CHILD_PATH,RECEIPT_OUT prep;
+    class SUBMIT_WAIT,VERSION_CONFLICT,TARGET_CLASSIFY,LEGACY_RELATION_WAIT,GROUP_EXPAND,GROUP_WAIT,GROUP_AGGREGATE,DIAGNOSTIC_RECEIPT,ERROR_RECEIPT receipt;
+    class ORPHAN_ERROR,LOGIC_ORG_ERROR,RELATION_LOGIC_ERROR,NOTE warn;
+    class PRESSURE pressure;
+      </pre>
+    </section>
+
+    <section class="notes">
+      <h2>判断口径</h2>
+      <ul>
+        <li>待提交草案不算已有子路径，必须等提交入口返回已入树或已复用。</li>
+        <li>子路径必须具备合法父子归属、目标语义视图和关系类型。</li>
+        <li>逻辑组织子需求必须有明确获取途径，且与 AND/OR/方法路径组/因果子链等语义一致。</li>
+        <li>输出“已有合法子路径”后，下一步仍需判断关系类型和闭合状态。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: "basis"
+      },
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif",
+        primaryBorderColor: "#2f6f9f",
+        lineColor: "#6a737d"
+      }
+    });
+  </script>
+</body>
+</html>
