@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>外设优质数据判断标准与依据 v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1480px; }
+    main { padding: 20px; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+    section { margin-bottom: 18px; }
+    .notes { padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1500px; line-height: 1.65; font-size: 14px; }
+    table { border-collapse: collapse; width: 100%; max-width: 1500px; background: #fff; margin-bottom: 18px; }
+    th, td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; }
+    code { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+    pre { margin: 0; white-space: pre-wrap; font-family: Consolas, "Courier New", monospace; font-size: 13px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>外设优质数据判断标准与依据 v0.1</h1>
+    <p class="hint">优质数据 = 新鲜、完整、可回查、稳定、目标相关、可比较、可被自我消费的观察材料。它不是世界真值，也不是需求满足结论。</p>
+  </header>
+  <main>
+    <section class="notes">
+      <h2>总原则</h2>
+      <pre>1. 优质数据不是世界真值；它只允许进入自我侧组织、验证、确认和提交入口。
+2. 外设侧不得使用过期、generation 失配、材料不可回查或目标已失效的数据继续生成新鲜报告。
+3. 自我侧从队列读取数据后，应删除已消费项；未消费项必须受 TTL、容量和 generation 清理。
+4. 扫描和跟踪的优质数据必须有来自自我缓冲区的目标上下文；全帧材料只能作为识别或候选材料。</pre>
+    </section>
+    <section>
+      <h2>三级判定</h2>
+      <table>
+        <thead><tr><th>等级</th><th>判定</th><th>用途</th><th>处置</th></tr></thead>
+        <tbody>
+          <tr><td>不合格数据</td><td>采集失败、材料过期、句柄不可回查、目标种子缺失、基础结构不完整、关键质量指标低于硬底线</td><td>不得作为新鲜观察证据</td><td>删除、拒绝等待项、生成缺口、触发补观察</td></tr>
+          <tr><td>可用数据</td><td>新鲜、可回查、基础结构完整，达到代码硬底线，但存在低置信、局部缺口或稳定性不足</td><td>可作为候选、草案、待验证材料</td><td>进入对应队列，但自我侧不得直接确认；必要时派生补观察</td></tr>
+          <tr><td>优质数据</td><td>满足硬底线，并且目标相关、稳定复现、低缺口、低未解释、可比较、可追溯</td><td>可优先供自我侧验证、扫描、跟踪和提交入口组织结果场景</td><td>入识别 / 扫描 / 跟踪队列；自我消费后删除</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
+      <h2>通用硬底线</h2>
+      <table>
+        <thead><tr><th>维度</th><th>标准</th><th>不合格条件</th><th>依据</th></tr></thead>
+        <tbody>
+          <tr><td>新鲜度</td><td>报告时间不得超过等待项 <code>最大允许报告年龄毫秒</code>；材料页不得超过保留时间</td><td>当前时间 - 报告时间 > 最大允许年龄；材料页过期</td><td><code>外设观察_报告满足等待项</code>；<code>D455材料页保留毫秒=60000</code></td></tr>
+          <tr><td>容量有效</td><td>队列不得无限保留旧数据</td><td>报告队列超过容量时旧项被裁剪；材料页超过容量时旧页被清理</td><td><code>队列容量=64</code>；<code>D455材料页容量=6</code></td></tr>
+          <tr><td>可回查</td><td><code>d455://</code> 句柄必须可解析并命中材料页</td><td>空句柄、格式错误、未找到、已过期、材料未就绪、类型不匹配</td><td><code>解析D455观察材料句柄</code></td></tr>
+          <tr><td>基础质量</td><td>深度有效率和空间坐标有效率不能低于硬底线</td><td><code>深度有效率 < 5000</code> 或 <code>空间坐标有效率 < 5000</code></td><td>补观察缺失原因</td></tr>
+          <tr><td>目标上下文</td><td>扫描 / 跟踪必须有目标种子或目标区域</td><td><code>目标区域或目标簇</code> 为空</td><td>扫描 / 跟踪等待项前置满足</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
+      <h2>优质推荐门槛</h2>
+      <table>
+        <thead><tr><th>维度</th><th>可用门槛</th><th>优质门槛</th><th>依据</th></tr></thead>
+        <tbody>
+          <tr><td>帧质量评分</td><td><code>帧质量评分 > 0</code>，且未触发硬失败</td><td><code>帧质量评分 >= 7000</code></td><td>深度 35%、空间 35%、候选验证 20%、低未解释 10%</td></tr>
+          <tr><td>深度有效率</td><td><code>>= 5000</code></td><td><code>>= 7000</code>，且深度空洞不支配目标区域</td><td>低于 5000 触发有效点不足 / 缩小 ROI 补观察</td></tr>
+          <tr><td>空间坐标有效率</td><td><code>>= 5000</code></td><td><code>>= 7000</code>，且目标点集可回查</td><td>低于 5000 触发有效点不足 / 缩小 ROI 补观察</td></tr>
+          <tr><td>轮廓闭合度</td><td><code>>= 7000</code> 才不视为明显断裂</td><td><code>>= 8000</code>，且无深度断裂 / 无无效深度穿越</td><td>轮廓闭合度 <code>< 7000</code> 触发轮廓断裂</td></tr>
+          <tr><td>轮廓置信度</td><td><code>>= 7000</code> 才不视为低置信</td><td><code>>= 8000</code>，且不依赖补全深度</td><td>低置信轮廓状态以 <code>< 7000</code> 或依赖补全深度触发</td></tr>
+          <tr><td>空间连续性 / 范围稳定性</td><td><code>>= 5000</code></td><td><code>>= 7000</code></td><td>低于 5000 触发边界不稳定</td></tr>
+          <tr><td>补观察缺口</td><td>可存在，但只能作为待验证材料</td><td><code>补观察缺口状态=0</code></td><td>补观察缺失原因、待补观察区域、低置信轮廓等聚合</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
+      <h2>模式专属标准</h2>
+      <table>
+        <thead><tr><th>模式</th><th>优质标准</th><th>降级条件</th></tr></thead>
+        <tbody>
+          <tr><td>识别</td><td>逐簇识别报告新鲜、采集成功；候选具备可回查 ROI / 掩码 / 点集 / 空间候选 / 像素归属材料；轮廓闭合且置信高</td><td>句柄不可回查、像素归属不足、低置信或未知/冲突未标注</td></tr>
+          <tr><td>扫描</td><td>有自我缓冲区扫描种子、目标 ROI / mask / 点集、可比较基准；只比较目标区域和边界带</td><td>目标空、基准不可回查、缺上一报告时只能建首帧基准，不能生成变化动态</td></tr>
+          <tr><td>跟踪</td><td>目标种子可解析；当前簇命中；连续成功次数 >= 2；复现离散度 <= 150；命中簇深度/空间有效率 >= 5000</td><td>种子不可解析、目标未命中、连续样本不足、复现离散或目标质量低</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="notes">
+      <h2>最小判断函数口径</h2>
+      <pre>判断优质数据(数据项, 需求类型, 目标上下文):
+    1. 检查采集成功、报告类型、外设ID、时间戳；
+    2. 检查报告年龄 <= 等待项最大允许报告年龄；
+    3. 检查 d455:// 材料句柄可回查，且未过期；
+    4. 若需求类型是扫描 / 跟踪，检查自我存在信息缓冲区中目标上下文新鲜；
+    5. 检查硬底线：深度有效率 >= 5000，空间坐标有效率 >= 5000，有效点达标；
+    6. 检查优质门槛：帧质量评分 >= 7000，轮廓闭合度 >= 8000，轮廓置信度 >= 8000，补观察缺口状态 = 0；
+    7. 按识别 / 扫描 / 跟踪分别检查模式专属条件；
+    8. 返回不合格 / 可用 / 优质、质量依据字段、需补观察原因、建议外设动作。</pre>
+    </section>
+  </main>
+</body>
+</html>
