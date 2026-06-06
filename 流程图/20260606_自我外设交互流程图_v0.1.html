@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>自我外设交互流程图 v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1480px; }
+    main { padding: 20px; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+    .canvas { min-width: 2240px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; margin-bottom: 18px; }
+    .mermaid { min-width: 2200px; }
+    .notes { padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1420px; line-height: 1.65; font-size: 14px; margin-bottom: 18px; }
+    table { border-collapse: collapse; width: 100%; max-width: 1500px; background: #fff; margin-bottom: 18px; }
+    th, td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; }
+    code { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+    pre.text { margin: 0; white-space: pre-wrap; font-family: Consolas, "Courier New", monospace; font-size: 13px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>自我外设交互流程图 v0.1</h1>
+    <p class="hint">补齐自我侧与外设侧之间的双向交互：外设侧需要自我存在信息缓冲区、识别/扫描/跟踪三条输出队列，以及按 TTL、generation、容量和已消费状态执行的清理机制。</p>
+  </header>
+  <main>
+    <section class="notes">
+      <h2>当前结论</h2>
+      <pre class="text">已实现：
+    外设报告侧已经有 ROI / 掩码 / 点集 / 空间候选等可回查材料句柄；
+    任务管理可以把来源需求的被需求存在写入 外设观察等待项.目标区域或目标簇；
+    D455 扫描 / 跟踪等待项至少要求目标种子非空；
+    自我侧已有 按已确认轮廓分区当前帧 的方法，能把已确认存在与下一帧轮廓做区域归属；
+    当前共享状态里有 报告队列、D455材料页队列、等待项集合；
+    报告队列按容量裁剪，D455材料页按容量和过期时间清理，等待项完成后删除。
+
+未完全实现：
+    还没有完整的结构化入参把 已确认存在轮廓 / ROI / 掩码 / 点集 / 基准报告 / 阈值
+    作为一个目标观察约束包交给外设线程；
+    还没有把外设侧明确拆成 自我存在信息缓冲区、识别报告队列、扫描报告队列、跟踪报告队列、统一清理器。</pre>
+    </section>
+    <section>
+      <h2>双向交互总图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TB
+    subgraph SELF["自我侧 / 世界侧"]
+        A["自我识别外设观察材料<br/>逐簇候选进入自我侧承接"]
+        B["自我确认外设观察存在候选<br/>生成已确认观察存在"]
+        C["已确认存在保留来源材料<br/>来源报告ID / 来源帧ID / ROI / 掩码 / 点集"]
+        D["自我按已确认轮廓分区当前帧<br/>已知存在扫描区 / 未知区 / 冲突区"]
+        E["需求或任务需要继续观察<br/>扫描已识别区域 / 跟踪指定存在"]
+    end
+    subgraph TASK["任务管理交互层"]
+        F["按当前方法供料要求构造外设观察等待项"]
+        G["当前已实现通道<br/>目标区域或目标簇=被需求存在主键或目标种子"]
+        H["应补结构化通道<br/>目标观察约束包=目标存在ID + ROI + 掩码 + 点集 + AABB + 基准报告"]
+        I{"约束是否足够?"}
+        J["拒绝创建扫描/跟踪等待项<br/>记录缺目标或缺基准"]
+    end
+    subgraph D455["D455 外设侧"]
+        K0["自我存在信息缓冲区<br/>存自我给出的目标存在 / 轮廓 / ROI / 掩码 / 点集 / 基准"]
+        K1["外设新鲜度清理器<br/>TTL / generation / 容量 / 已消费状态"]
+        K["读取外设观察等待项集合"]
+        L["当前实现<br/>目标种子非空闸门"]
+        M["逐簇识别输出"]
+        N["扫描变化输出<br/>当前逐簇报告 vs 上一逐簇报告"]
+        O["目标跟踪输出<br/>解析目标种子簇ID并匹配当前簇"]
+        P["应补外设约束扫描<br/>按自我传入 ROI / 掩码限定扫描范围"]
+        Q0["识别报告队列<br/>外设生成，供自我验证候选"]
+        Q1["扫描报告队列<br/>外设生成，供自我判断已知区域变化"]
+        Q2["跟踪报告队列<br/>外设生成，供自我判断指定目标连续观察"]
+    end
+    subgraph BACK["回传与入账"]
+        R0["外设观察报告队列 / d455:// 材料页<br/>当前物理实现可按报告类型过滤"]
+        R["任务管理按等待项领走报告"]
+        S["自我组织输出结果场景"]
+        T["提交入口裁决<br/>写事实 / 特征变化 / 动作动态"]
+        U["需求回写或缺口派生<br/>不由外设直接判定满足"]
+    end
+    A --> B --> C --> D --> E --> F
+    F --> G --> I
+    F -.待补.-> H --> I
+    I -->|不足| J
+    I -->|足够| K0 --> K
+    K1 -.清理.-> K0
+    K1 -.清理.-> Q0
+    K1 -.清理.-> Q1
+    K1 -.清理.-> Q2
+    K --> L
+    L --> M --> Q0
+    L --> N --> Q1
+    L --> O --> Q2
+    H -.结构化约束.-> K0
+    H -.结构化约束.-> P
+    P --> Q1
+    Q0 --> R0
+    Q1 --> R0
+    Q2 --> R0
+    R0 --> R --> S --> T --> U
+    classDef self fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef task fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef d455 fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef back fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef gap fill:#ffecec,stroke:#b84a4a,color:#401111;
+    class A,B,C,D,E self;
+    class F,G,H,I task;
+    class K0,K1,K,L,M,N,O,P,Q0,Q1,Q2 d455;
+    class R0,R,S,T,U back;
+    class J gap;
+        </pre>
+      </div>
+    </section>
+    <section>
+      <h2>外设侧缓冲区与三队列结构</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TB
+    A["自我输入<br/>已确认存在 / 当前帧轮廓分区 / 目标观察需求"]
+    B["自我存在信息缓冲区<br/>目标存在ID / 世界存在主键 / 来源报告ID / 来源帧ID<br/>ROI / 掩码 / 点集 / AABB / 中心 / generation / TTL"]
+    C{"输入材料可用且新鲜?"}
+    D["拒绝或降级等待项<br/>记录缺目标 / 缺基准 / 材料过期"]
+    E["D455 采集与外设加工<br/>深度 / 彩色 / 空间候选 / 轮廓材料"]
+    F["识别报告队列<br/>逐簇识别 / 未知区域候选 / ROI / mask / point set"]
+    G["扫描报告队列<br/>已知区域变化 / 未解释残差 / 需重识别区域"]
+    H["跟踪报告队列<br/>目标状态 / 丢失 / 遮挡 / 重捕获候选"]
+    I["短期材料页队列<br/>d455:// 原始帧 / 深度 / 彩色 / 局部图 / 掩码"]
+    J["自我读取 / 任务管理承接<br/>按等待项、报告类型、目标和时间窗口匹配"]
+    K["清理器<br/>TTL 到期 / generation 过旧 / 队列超容量 / 等待项已完成 / 材料不可回查"]
+    A --> B --> C
+    C -->|否| D
+    C -->|是| E
+    E --> F --> J
+    E --> G --> J
+    E --> H --> J
+    E --> I --> J
+    K -.清理输入缓冲.-> B
+    K -.清理识别队列.-> F
+    K -.清理扫描队列.-> G
+    K -.清理跟踪队列.-> H
+    K -.清理短期材料.-> I
+    classDef self fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef buffer fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef d455 fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef queue fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef cleaner fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef gap fill:#ffecec,stroke:#b84a4a,color:#401111;
+    class A,J self;
+    class B,C buffer;
+    class E d455;
+    class F,G,H,I queue;
+    class K cleaner;
+    class D gap;
+        </pre>
+      </div>
+    </section>
+    <section>
+      <h2>用户例子的流程</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart LR
+    A["自我已确认存在 E<br/>来源于外设观察材料"]
+    B["写入自我存在信息缓冲区<br/>E 的轮廓 / ROI / 掩码 / 点集 / AABB / 来源帧"]
+    C["生成扫描约束意图<br/>只扫描 E 的已知覆盖区域和边界带"]
+    D["任务管理构造等待项"]
+    E["当前可落字段<br/>目标区域或目标簇=E 的主键或簇种子"]
+    F["应补字段<br/>目标轮廓约束包 / 目标掩码包"]
+    G["D455 按约束采集下一帧<br/>用 ROI / mask 缩小扫描范围"]
+    H["比较基准与当前材料<br/>像素归属 / 深度 / 轮廓 / 空间位置变化"]
+    I["扫描报告队列入队<br/>变化 / 未解释残差 / 遮挡 / 需重识别"]
+    J["自我扫描已识别区域<br/>组织结果场景"]
+    K["提交入口写入事实与动作动态<br/>不直接写需求满足结论"]
+    A --> B --> C --> D --> E
+    D -.当前缺口.-> F
+    E --> G
+    F -.完整契约.-> G
+    G --> H --> I --> J --> K
+    classDef self fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef task fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef d455 fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef queue fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef gap fill:#ffecec,stroke:#b84a4a,color:#401111;
+    class A,B,C,J,K self;
+    class D,E,F task;
+    class G,H d455;
+    class I queue;
+    class F gap;
+        </pre>
+      </div>
+    </section>
+    <section>
+      <h2>缓冲区和队列口径</h2>
+      <table>
+        <thead>
+          <tr><th>结构</th><th>数据来源</th><th>消费方</th><th>新鲜度规则</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>自我存在信息缓冲区</td><td>自我 / 任务管理写入的已确认存在、轮廓、ROI、掩码、点集、基准报告</td><td>外设扫描 / 跟踪线程</td><td>TTL 到期、来源报告过期、generation 不匹配、目标存在已被替代时清理</td></tr>
+          <tr><td>识别报告队列</td><td>D455 逐簇识别生成</td><td>自我验证外设观察像素簇候选、确认观察存在候选</td><td>按容量裁剪；超过可用时间窗口后不得匹配等待项</td></tr>
+          <tr><td>扫描报告队列</td><td>D455 基于已知区域 / 目标约束生成</td><td>自我扫描已识别区域、提交存在特征变化事实</td><td>需要目标约束和基准；目标约束过期则报告失效</td></tr>
+          <tr><td>跟踪报告队列</td><td>D455 基于指定目标种子生成</td><td>自我跟踪指定存在、提交目标连续观察事实</td><td>一次主动目标跟踪只消费匹配目标；目标丢失或种子过期则清理或重建</td></tr>
+          <tr><td>短期材料页队列</td><td>D455 报告入队时同步提交</td><td>自我按 d455:// 句柄回查 ROI / 掩码 / 点集 / 局部图</td><td>当前代码已有容量和过期时间清理；过期后句柄只能返回过期状态</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
+      <h2>交互字段口径</h2>
+      <table>
+        <thead>
+          <tr><th>材料 / 字段</th><th>当前位置</th><th>当前含义</th><th>交互判断</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>目标区域或目标簇</code></td><td><code>结构_外设观察等待项</code></td><td>任务管理从来源需求的被需求存在填入目标主键或目标种子</td><td>已有粗粒度目标通道；不是结构化轮廓 / 掩码包</td></tr>
+          <tr><td><code>ROI引用</code> / <code>点集引用</code> / <code>空间候选引用</code></td><td><code>结构_外设观察像素簇摘要</code></td><td>D455 报告侧输出的可回查材料句柄</td><td>已有外设到自我的材料通道</td></tr>
+          <tr><td><code>像素集合掩码句柄</code> / <code>彩色轮廓局部图句柄</code> / <code>深度轮廓局部图句柄</code></td><td><code>结构_外设观察像素簇摘要</code></td><td>D455 报告侧输出的局部观察材料句柄</td><td>已有外设输出掩码材料；还不是自我给外设的扫描入参</td></tr>
+          <tr><td><code>自我_按已确认轮廓分区当前帧</code></td><td><code>自我动作实现.外设模块.ixx</code></td><td>用已确认存在和最新 D455 逐簇识别报告做当前帧区域归属</td><td>已有自我侧轮廓分区；可作为生成扫描区的上游</td></tr>
+          <tr><td>目标观察约束包</td><td>当前未形成独立结构</td><td>应包含目标存在ID、来源报告、来源帧、ROI、掩码、点集、AABB、基准generation、TTL、质量阈值</td><td>这是完整交互链的关键契约</td></tr>
+          <tr><td>扫描变化报告</td><td><code>D455_从逐簇识别报告生成扫描变化报告</code></td><td>基于当前 / 基准逐簇报告输出新增、消失、变化、高风险未知</td><td>已有扫描材料报告；尚未严格绑定自我传入 mask 进行局部扫描</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="notes">
+      <h2>边界</h2>
+      <pre class="text">1. 自我传给外设的轮廓 / ROI / 掩码是观察约束，不是需求满足结论。
+2. 外设按约束扫描后输出的是材料、候选和变化摘要，不是世界真值。
+3. 自我必须通过本能方法组织结果场景，再经提交入口裁决写事实和动作动态。
+4. 如果目标轮廓、扫描基准或材料句柄不可回查，应生成缺口或拒绝等待项，不伪造扫描成功。
+5. 轮廓分区可以生成已知存在扫描区；目标跟踪必须另有明确目标种子。
+6. 外设侧缓存和队列都必须有清理机制；过期材料不能继续作为新鲜观察证据。</pre>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", theme: "default" });
+  </script>
+</body>
+</html>
