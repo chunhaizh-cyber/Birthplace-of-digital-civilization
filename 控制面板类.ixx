@@ -19,6 +19,7 @@ struct 结构_控制面板树节点 {
     bool 可延迟展开 = false;
     std::string 展开类型{};
     std::vector<结构_控制面板树节点> 子项{};
+    std::vector<结构_控制面板树节点> 详情{};
 };
 
 struct 结构_控制面板诊断区域 {
