@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>自我侧外设工作流程图 v0.2</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1500px; }
+    main { padding: 20px; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+    .canvas { min-width: 2260px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; margin-bottom: 18px; }
+    .mermaid { min-width: 2220px; }
+    .notes { padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1500px; line-height: 1.65; font-size: 14px; margin-bottom: 18px; }
+    table { border-collapse: collapse; width: 100%; max-width: 1500px; background: #fff; margin-bottom: 18px; }
+    th, td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #eef2f6; }
+    code { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+    pre.text { margin: 0; white-space: pre-wrap; font-family: Consolas, "Courier New", monospace; font-size: 13px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>自我侧外设工作流程图 v0.2</h1>
+    <p class="hint">自我侧按需求从识别 / 扫描 / 跟踪队列取数，先做优质数据分级；不合格数据删除并派生补观察，可用数据进入待验证，优质数据进入方法重入和提交入口。消费后删除队列项，并把已确认存在材料回写外设缓冲区。</p>
+  </header>
+  <main>
+    <section>
+      <h2>自我侧总流程 v0.2</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TB
+    A["需求 / 任务进入筹办或执行"] --> B["任务管理按方法结果能力<br/>确定外设供料口径"]
+    B --> C{"需求需要哪类外设数据?"}
+    C -->|观察验证 / 识别| D1["读取识别报告队列<br/>逐簇识别报告 / ROI / mask / 点集 / 候选"]
+    C -->|扫描| D2["读取扫描报告队列<br/>已识别区域变化 / 发现事实 / 未解释残差"]
+    C -->|跟踪| D3["读取跟踪报告队列<br/>目标连续观察 / 丢失 / 重捕获 / 区间迁移"]
+    D1 --> E["优质数据判断<br/>新鲜 / 完整 / 可回查 / 稳定 / 目标相关 / 可消费"]
+    D2 --> E
+    D3 --> E
+    E --> F{"数据等级"}
+    F -->|不合格| G["删除或标记失效队列项<br/>清理过期材料 / 不可回查句柄"]
+    G --> H["派生补观察 / 重建等待项<br/>缺目标 / 缺基准 / 缺可回查材料 / 质量不足"]
+    F -->|可用但不优质| I["进入待验证材料路径<br/>只写候选 / 缺口 / 待复验<br/>不得确认世界真值"]
+    I --> H
+    F -->|优质| J{"按需求类型进入自我方法"}
+    J -->|6127| K["自我_验证外设观察像素簇候选<br/>确认材料可回查 / 候选可验证"]
+    J -->|6145| L["自我_识别外设观察材料<br/>生成同一性 / 归属 / 扫描可启动"]
+    J -->|6146| M["自我_扫描已识别区域<br/>发现事实 / 无变化 / 变化 / 待复验"]
+    J -->|6147| N["自我_跟踪指定存在<br/>目标窗口 / 基准 / 预测 / 丢失 / 重捕获"]
+    K --> O["生成自我侧结果场景<br/>材料状态 / 候选状态 / 来源动作动态"]
+    L --> O
+    M --> O
+    N --> O
+    O --> P{"是否达到提交入口条件?"}
+    P -->|否| H
+    P -->|是| Q{"提交入口"}
+    Q -->|识别归属| R1["提交_当前观察范围可观测单位存在对应事实"]
+    Q -->|扫描发现| R2["提交_观察存在发现事实"]
+    Q -->|扫描变化| R3["提交_观察存在特征值变化事实"]
+    Q -->|目标跟踪| R4["提交_指定存在跟踪事实"]
+    R1 --> S["正式事实 / 状态 / 动态入账<br/>串接来源动作动态"]
+    R2 --> S
+    R3 --> S
+    R4 --> S
+    S --> T["删除已消费队列项<br/>记录消费结果和来源报告ID"]
+    T --> U["更新自我存在信息缓冲区<br/>目标存在 / ROI / mask / 点集 / 基准 / 目标特征集"]
+    U --> V["供外设侧后续扫描 / 跟踪<br/>提升下一轮数据质量"]
+    H --> W["等待下一轮外设报告或任务重筹办"]
+    classDef demand fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef queue fill:#eef8f7,stroke:#397b77,color:#102827;
+    classDef quality fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef self fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef submit fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef gap fill:#ffecec,stroke:#b84a4a,color:#401111;
+    class A,B,C demand;
+    class D1,D2,D3,T queue;
+    class E,F quality;
+    class J,K,L,M,N,O,U,V self;
+    class P,Q,R1,R2,R3,R4,S submit;
+    class G,H,I,W gap;
+        </pre>
+      </div>
+    </section>
+    <section>
+      <h2>优质数据判断接入点</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart LR
+    A["自我从对应队列取数"]
+    B["通用硬底线<br/>时间 / TTL / 材料页 / d455://句柄 / 基础质量"]
+    C["模式专属判断<br/>识别 / 扫描 / 跟踪"]
+    D{"等级"}
+    E["不合格<br/>删除 / 清理 / 触发补观察"]
+    F["可用<br/>待验证 / 复验 / 缺口派生"]
+    G["优质<br/>进入方法重入和提交入口组织"]
+    H["消费后删除队列项<br/>保留来源报告ID和动作动态引用"]
+    A --> B --> C --> D
+    D --> E
+    D --> F
+    D --> G --> H
+    classDef queue fill:#eef8f7,stroke:#397b77,color:#102827;
+    classDef quality fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef good fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    class A,H queue;
+    class B,C,D quality;
+    class G good;
+    class E,F warn;
+        </pre>
+      </div>
+    </section>
+    <section>
+      <h2>三类队列的自我侧消费口径</h2>
+      <table>
+        <thead>
+          <tr><th>队列</th><th>自我读取条件</th><th>优质数据判定重点</th><th>自我侧动作</th><th>用完处理</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>识别报告队列</td><td>观察验证、候选验证、观察存在确认、未知区域识别</td><td>报告新鲜、材料可回查、候选有 ROI / mask / 点集 / 空间候选、轮廓质量达标</td><td>6127 验证材料；6145 识别同一性和归属</td><td>生成结果场景后删除已消费项；不合格项清理</td></tr>
+          <tr><td>扫描报告队列</td><td>已识别区域扫描、发现事实、目标特征变化</td><td>目标上下文新鲜、基准可回查、目标 ROI / mask 可比较、首次扫描不生成变化动态</td><td>6146 写发现 / 无变化 / 变化 / 待复验；满足条件后进入发现或变化提交入口</td><td>提交或派生复验缺口后删除已消费项</td></tr>
+          <tr><td>跟踪报告队列</td><td>指定存在跟踪、丢失、遮挡、重捕获、区间迁移</td><td>目标种子有效、命中目标、连续成功、复现离散度达标、目标质量达标</td><td>6147 写目标窗口、预测误差、丢失 / 重捕获 / 区间迁移</td><td>提交跟踪事实或派生前置缺口后删除已消费项</td></tr>
+          <tr><td>短期材料页</td><td>自我按 d455:// 句柄回查 ROI、mask、点集、局部图</td><td>句柄可解析、材料未过期、类型匹配、材料未就绪时不得伪造</td><td>为四类方法提供材料依据</td><td>按 TTL 和容量清理，不因报告消费立即当真值</td></tr>
+          <tr><td>自我存在信息缓冲区</td><td>已确认存在、扫描基准或跟踪目标需要外设继续观察</td><td>目标存在有效、来源报告可回查、generation 未失配、目标特征集明确</td><td>写入外设侧扫描 / 跟踪种子，供外设提升下一轮数据质量</td><td>目标完成、替代、过期或撤销时清理</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
+      <h2>方法与提交入口边界</h2>
+      <table>
+        <thead><tr><th>提交入口</th><th>允许消费</th><th>不允许消费</th></tr></thead>
+        <tbody>
+          <tr><td><code>提交_当前观察范围可观测单位存在对应事实</code></td><td>6145 生成的同一性 / 归属结果、来源动作动态、优质识别材料依据</td><td>直接消费外设逐簇报告并当作已确认存在</td></tr>
+          <tr><td><code>提交_观察存在发现事实</code></td><td>6146 首次扫描发现事实或发现特征事实</td><td>无基准时生成变化动态</td></tr>
+          <tr><td><code>提交_观察存在特征值变化事实</code></td><td>6146 在有可比历史后生成的变化结果</td><td>未变化、目标不确定、基准不可回查时提交变化</td></tr>
+          <tr><td><code>提交_指定存在跟踪事实</code></td><td>6147 指定目标跟踪结果、丢失 / 重捕获 / 区间迁移材料</td><td>用跟踪报告替代全场景扫描或安全结论</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="notes">
+      <h2>定案</h2>
+      <pre class="text">外设报告不再被自我直接推进到方法重入；
+自我必须先按需求从识别 / 扫描 / 跟踪队列取数，再按优质数据标准分级。
+
+不合格数据：删除、清理、派生补观察。
+可用但不优质数据：只作为候选、待验证或待复验材料。
+优质数据：进入自我外设方法，生成结果场景，再由提交入口入账。
+
+自我侧消费完成后删除队列项；
+同时把已确认存在的 ROI / mask / 点集 / 基准 / 目标特征集写入外设缓冲区，供外设侧下一轮扫描或跟踪取得更优质数据。</pre>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", theme: "default" });
+  </script>
+</body>
+</html>
