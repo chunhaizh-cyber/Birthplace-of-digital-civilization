@@ -1562,6 +1562,162 @@ namespace {
         return 最佳宿主;
     }
 
+    struct 结构_自我场景内容统计 {
+        static constexpr std::size_t 扫描上限 = 4096;
+        I64 节点数 = 0;
+        I64 存在数 = 0;
+        I64 场景数 = 0;
+        I64 特征数 = 0;
+        I64 状态数 = 0;
+        I64 动态数 = 0;
+        I64 二次特征数 = 0;
+        bool 扫描达到上限 = false;
+        std::vector<std::string> 存在样例{};
+    };
+
+    void 私有_累计自我场景内容节点(
+        结构_自我场景内容统计& 统计,
+        const 基础信息节点类* 节点,
+        const bool 采集样例) noexcept
+    {
+        if (!节点) {
+            return;
+        }
+        ++统计.节点数;
+        const auto* 主信息 = 节点->主信息;
+        if (dynamic_cast<const 存在节点主信息类*>(主信息)) {
+            ++统计.存在数;
+            if (采集样例 && 统计.存在样例.size() < 6) {
+                统计.存在样例.push_back(私有_对象摘要(节点));
+            }
+        }
+        else if (dynamic_cast<const 场景节点主信息类*>(主信息)) {
+            ++统计.场景数;
+        }
+        else if (dynamic_cast<const 特征节点主信息类*>(主信息)) {
+            ++统计.特征数;
+        }
+        else if (dynamic_cast<const 状态节点主信息类*>(主信息)) {
+            ++统计.状态数;
+        }
+        else if (dynamic_cast<const 动态节点主信息类*>(主信息)) {
+            ++统计.动态数;
+        }
+        else if (dynamic_cast<const 二次特征主信息类*>(主信息)) {
+            ++统计.二次特征数;
+        }
+    }
+
+    结构_自我场景内容统计 私有_统计自我场景子树内容(
+        const 基础信息节点类* 根,
+        const bool 采集样例) noexcept
+    {
+        结构_自我场景内容统计 统计{};
+        if (!根) {
+            return 统计;
+        }
+
+        std::vector<const 基础信息节点类*> 栈{};
+        for (auto* 子节点 : 世界树.基础信息().枚举子节点(根)) {
+            if (子节点) {
+                栈.push_back(子节点);
+            }
+        }
+
+        路径集合 已访问{};
+        std::size_t 已扫描 = 0;
+        while (!栈.empty() && 已扫描 < 结构_自我场景内容统计::扫描上限) {
+            const auto* 当前 = 栈.back();
+            栈.pop_back();
+            if (!当前) {
+                continue;
+            }
+            const auto 地址 = 私有_地址(当前);
+            if (!已访问.insert(地址).second) {
+                continue;
+            }
+            ++已扫描;
+            私有_累计自我场景内容节点(统计, 当前, 采集样例);
+            for (auto* 子节点 : 世界树.基础信息().枚举子节点(当前)) {
+                if (子节点) {
+                    栈.push_back(子节点);
+                }
+            }
+        }
+        统计.扫描达到上限 = !栈.empty();
+        return 统计;
+    }
+
+    std::string 私有_自我场景内容类型摘要(const 结构_自我场景内容统计& 统计)
+    {
+        std::ostringstream 输出;
+        std::size_t 已写入 = 0;
+        const auto 追加 = [&](const char* 名称, const I64 数量) {
+            if (数量 <= 0) {
+                return;
+            }
+            if (已写入 > 0) {
+                输出 << " / ";
+            }
+            输出 << 名称 << 数量;
+            ++已写入;
+        };
+        追加("存在", 统计.存在数);
+        追加("场景", 统计.场景数);
+        追加("特征", 统计.特征数);
+        追加("状态", 统计.状态数);
+        追加("动态", 统计.动态数);
+        追加("二次特征", 统计.二次特征数);
+        return 已写入 > 0 ? 输出.str() : "空";
+    }
+
+    void 私有_读取自我场景内容统计(
+        结构_控制面板快照& 快照,
+        场景节点类* 自我所在场景,
+        基础信息节点类* 复现宿主) noexcept
+    {
+        auto* 场景宿主 = reinterpret_cast<基础信息节点类*>(自我所在场景);
+        if (!场景宿主) {
+            快照.自我场景直接子层摘要 = "空";
+            快照.自我场景子树类型摘要 = "空";
+            快照.自我场景存在样例摘要 = "空";
+            快照.自我场景复现宿主存在样例摘要 = "空";
+            return;
+        }
+
+        const auto 直接子节点 = 世界树.基础信息().枚举子节点(场景宿主);
+        结构_自我场景内容统计 直接统计{};
+        for (auto* 子节点 : 直接子节点) {
+            私有_累计自我场景内容节点(直接统计, 子节点, false);
+        }
+
+        const auto 场景子树统计 = 私有_统计自我场景子树内容(场景宿主, true);
+        const auto 宿主子树统计 = 私有_统计自我场景子树内容(复现宿主, true);
+
+        快照.自我场景直接子节点数量 = static_cast<I64>(直接子节点.size());
+        快照.自我场景子树节点数量 = 场景子树统计.节点数;
+        快照.自我场景直接存在数量 = 直接统计.存在数;
+        快照.自我场景子树存在数量 = 场景子树统计.存在数;
+        快照.自我场景子树场景数量 = 场景子树统计.场景数;
+        快照.自我场景子树特征数量 = 场景子树统计.特征数;
+        快照.自我场景子树状态数量 = 场景子树统计.状态数;
+        快照.自我场景子树动态数量 = 场景子树统计.动态数;
+        快照.自我场景子树二次特征数量 = 场景子树统计.二次特征数;
+        快照.自我场景复现宿主子树节点数量 = 宿主子树统计.节点数;
+        快照.自我场景复现宿主子树存在数量 = 宿主子树统计.存在数;
+        快照.自我场景子树扫描上限 = static_cast<I64>(结构_自我场景内容统计::扫描上限);
+        快照.自我场景子树扫描达到上限 = 场景子树统计.扫描达到上限 ? 1 : 0;
+        快照.自我场景复现宿主子树扫描达到上限 = 宿主子树统计.扫描达到上限 ? 1 : 0;
+        快照.自我场景直接子层摘要 = 私有_自我场景内容类型摘要(直接统计);
+        快照.自我场景子树类型摘要 = 私有_自我场景内容类型摘要(场景子树统计);
+        快照.自我场景存在样例摘要 = 场景子树统计.存在样例.empty()
+            ? std::string("空")
+            : 私有_文本列表摘要(场景子树统计.存在样例, 6);
+        快照.自我场景复现宿主存在样例摘要 = 宿主子树统计.存在样例.empty()
+            ? std::string("空")
+            : 私有_文本列表摘要(宿主子树统计.存在样例, 6);
+    }
+
     void 私有_读取自我场景诊断区域列表(
         基础信息节点类* 宿主,
         结构_控制面板快照& 快照) noexcept
@@ -1651,6 +1807,7 @@ namespace {
         快照.自我场景安全评估宿主标题 = 安全宿主
             ? 私有_安全节点摘要(安全宿主, "安全评估宿主")
             : std::string("空");
+        私有_读取自我场景内容统计(快照, 自我所在场景, 宿主);
         if (!宿主) {
             return;
         }
@@ -6007,6 +6164,28 @@ namespace {
         输出 << ",\"safetyHostPtr\":" << 快照.自我场景安全评估宿主指针;
         输出 << ",\"safetyHostTitle\":";
         私有_追加JSON字符串(输出, 快照.自我场景安全评估宿主标题);
+        输出 << ",\"sceneDirectChildren\":" << 快照.自我场景直接子节点数量;
+        输出 << ",\"sceneSubtreeNodes\":" << 快照.自我场景子树节点数量;
+        输出 << ",\"sceneDirectExistences\":" << 快照.自我场景直接存在数量;
+        输出 << ",\"sceneSubtreeExistences\":" << 快照.自我场景子树存在数量;
+        输出 << ",\"sceneSubtreeScenes\":" << 快照.自我场景子树场景数量;
+        输出 << ",\"sceneSubtreeFeatures\":" << 快照.自我场景子树特征数量;
+        输出 << ",\"sceneSubtreeStates\":" << 快照.自我场景子树状态数量;
+        输出 << ",\"sceneSubtreeDynamics\":" << 快照.自我场景子树动态数量;
+        输出 << ",\"sceneSubtreeRelations\":" << 快照.自我场景子树二次特征数量;
+        输出 << ",\"hostSubtreeNodes\":" << 快照.自我场景复现宿主子树节点数量;
+        输出 << ",\"hostSubtreeExistences\":" << 快照.自我场景复现宿主子树存在数量;
+        输出 << ",\"sceneSubtreeScanLimit\":" << 快照.自我场景子树扫描上限;
+        输出 << ",\"sceneSubtreeScanLimitHit\":" << 快照.自我场景子树扫描达到上限;
+        输出 << ",\"hostSubtreeScanLimitHit\":" << 快照.自我场景复现宿主子树扫描达到上限;
+        输出 << ",\"sceneDirectSummary\":";
+        私有_追加JSON字符串(输出, 快照.自我场景直接子层摘要);
+        输出 << ",\"sceneSubtreeSummary\":";
+        私有_追加JSON字符串(输出, 快照.自我场景子树类型摘要);
+        输出 << ",\"sceneExistenceSamples\":";
+        私有_追加JSON字符串(输出, 快照.自我场景存在样例摘要);
+        输出 << ",\"hostExistenceSamples\":";
+        私有_追加JSON字符串(输出, 快照.自我场景复现宿主存在样例摘要);
         输出 << ",\"width\":" << 快照.自我场景相机帧宽度;
         输出 << ",\"height\":" << 快照.自我场景相机帧高度;
         输出 << ",\"depthFrame\":" << 快照.自我场景深度帧号;
@@ -8199,6 +8378,8 @@ std::string 私有_生成控制面板HTML(
         + " | 空间候选=" + std::to_string(快照.自我场景空间候选数量)
         + " | 已验证观察存在=" + std::to_string(快照.自我场景已验证观察存在数量)
         + " | 已知存在=" + std::to_string(快照.自我场景已验证观察存在数量)
+        + " | 场景子树存在=" + std::to_string(快照.自我场景子树存在数量)
+        + " | 直接存在=" + std::to_string(快照.自我场景直接存在数量)
         + " | 未知区域=" + std::to_string(std::max<I64>(0, 快照.自我场景未解释像素数))
         + "/" + std::to_string(std::max<I64>(0, 自我场景窗口像素数量)) + "像素"
         + " | 基础观察=" + std::to_string(快照.自我场景基础观察事实可用状态)
@@ -9508,6 +9689,44 @@ std::string 私有_生成控制面板HTML(
                   <div class="scene-stat">
                     <div class="scene-stat-label">验证状态</div>
                     <div id="scene-verify-stat" class="scene-stat-value">--</div>
+                  </div>
+                </div>
+              </aside>
+              <aside class="panel">
+                <div class="panel-topline">场景内容</div>
+                <h3>自我场景信息</h3>
+                <div class="scene-diagnostic-grid" aria-label="自我所在场景内容摘要">
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">场景节点</div>
+                    <div id="scene-info-root-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">复现宿主</div>
+                    <div id="scene-info-host-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">直接子层</div>
+                    <div id="scene-info-direct-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">子树总量</div>
+                    <div id="scene-info-subtree-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">直接类型</div>
+                    <div id="scene-info-direct-summary-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">子树类型</div>
+                    <div id="scene-info-subtree-summary-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">存在样例</div>
+                    <div id="scene-info-existence-samples-stat" class="scene-diagnostic-value">--</div>
+                  </div>
+                  <div class="scene-diagnostic-row">
+                    <div class="scene-diagnostic-label">宿主存在样例</div>
+                    <div id="scene-info-host-existence-samples-stat" class="scene-diagnostic-value">--</div>
                   </div>
                 </div>
               </aside>
@@ -10824,11 +11043,15 @@ std::string 私有_生成控制面板HTML(
       }
     }
 
+)HTML";
+    输出 << R"HTML(
     function 更新自我场景统计() {
       const data = 自我场景复现数据 || {};
       const candidate = data.candidate || {};
       const summary = 读取自我场景图层摘要(data);
       const knownExistenceCount = Number(data.knownExistenceCount || data.verifiedCount || 0);
+      const sceneLimitText = data.sceneSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
+      const hostLimitText = data.hostSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
       设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
@@ -10839,6 +11062,14 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-aabb-stat', candidate.valid ? `${格式化场景三元组(candidate.min)} -> ${格式化场景三元组(candidate.max)}` : '--');
       设置自我场景文本('scene-score-stat', `${data.frameQualityScore || 0} / ${candidate.continuity || 0} / ${candidate.stability || 0}`);
       设置自我场景文本('scene-verify-stat', `假设 ${data.hypothesisVerifyState || 0} / 像素 ${data.pixelOwnershipState || 0}:${data.fullFrameOwnershipState || 0} / 已归属 ${data.assignedPixels || 0}(${data.ownershipRatio || 0}) / 未解释 ${data.unexplainedPixels || 0} / 冲突 ${data.ownershipConflictPixels || 0} / 确认 ${data.confirmState || 0} / 已验证 ${data.verifiedCount || 0} / 补观察 ${data.observationGapState || 0}:${data.refillObservationRegionCount || 0}:${data.observationMissingReason || 0}`);
+      设置自我场景文本('scene-info-root-stat', data.sceneTitle || '空');
+      设置自我场景文本('scene-info-host-stat', `${data.hostTitle || '空'} / 宿主子树 ${data.hostSubtreeNodes || 0} / 存在 ${data.hostSubtreeExistences || 0}${hostLimitText}`);
+      设置自我场景文本('scene-info-direct-stat', `直接子节点 ${data.sceneDirectChildren || 0} / 直接存在 ${data.sceneDirectExistences || 0}`);
+      设置自我场景文本('scene-info-subtree-stat', `子树节点 ${data.sceneSubtreeNodes || 0}${sceneLimitText} / 存在 ${data.sceneSubtreeExistences || 0} / 场景 ${data.sceneSubtreeScenes || 0} / 特征 ${data.sceneSubtreeFeatures || 0} / 状态 ${data.sceneSubtreeStates || 0} / 动态 ${data.sceneSubtreeDynamics || 0} / 二次特征 ${data.sceneSubtreeRelations || 0}`);
+      设置自我场景文本('scene-info-direct-summary-stat', data.sceneDirectSummary || '空');
+      设置自我场景文本('scene-info-subtree-summary-stat', data.sceneSubtreeSummary || '空');
+      设置自我场景文本('scene-info-existence-samples-stat', data.sceneExistenceSamples || '空');
+      设置自我场景文本('scene-info-host-existence-samples-stat', data.hostExistenceSamples || '空');
       设置自我场景文本('scene-quality-structure-stat', `RGB ${data.rgbStructure || 0} / 原始 ${data.rawDepthStructure || 0} / 滤波 ${data.filteredDepthStructure || 0} / 补全 ${data.filledDepthStructure || 0} / Mask ${data.depthMaskStructure || 0} / XYZ ${data.xyzStructure || 0} / 对齐 ${data.colorDepthAligned || 0}`);
       设置自我场景文本('scene-quality-ratio-stat', `质量 ${data.frameQualityScore || 0} / 深度 ${格式化场景比例(data.depthValidRatio)} / 空间 ${格式化场景比例(data.spaceValidRatio)} / 候选 ${格式化场景比例(data.candidateVerifyRatio)} / 未解释 ${格式化场景比例(data.unexplainedRatio)}`);
       设置自我场景文本('scene-depth-source-stat', `原始 ${data.rawDepthSourcePixels || 0} / 滤波 ${data.filteredDepthSourcePixels || 0} / 补全 ${data.filledDepthSourcePixels || 0} / 无效 ${data.noDepthSourcePixels || 0} / 低置信 ${data.filledDepthLowConfidencePixels || 0}`);
