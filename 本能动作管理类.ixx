@@ -1,11 +1,13 @@
 module;
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <exception>
 #include <functional>
 #include <mutex>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -22,6 +24,7 @@ module;
 export module 本能动作管理模块;
 
 import 本能动作模块;
+import 日志模块;
 
 namespace 本能动作管理模块_detail {
 
@@ -424,47 +427,131 @@ public:
         场景节点类* 输入参数场景,
         场景节点类* 输出结果场景) const noexcept
     {
+        const auto 总开始 = std::chrono::steady_clock::now();
+        std::uint64_t 检查耗时微秒 = 0;
+        std::uint64_t 查询耗时微秒 = 0;
+        std::uint64_t 动作函数耗时微秒 = 0;
+        std::uint64_t 运行码写回耗时微秒 = 0;
+        方法类::节点类* 方法 = 方法首节点;
+        auto 耗时微秒 = [](const auto 开始) noexcept -> std::uint64_t {
+            return static_cast<std::uint64_t>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::steady_clock::now() - 开始).count());
+        };
+        auto 输出慢执行日志 = [&](
+            const char* 结果,
+            std::int64_t 运行码) noexcept {
+            if (动作ID != 枚举_本能动作ID::自我_提交任务状态变化) {
+                return;
+            }
+            const auto 总耗时微秒 = 耗时微秒(总开始);
+            if (总耗时微秒 < 10000
+                && 检查耗时微秒 < 10000
+                && 查询耗时微秒 < 10000
+                && 动作函数耗时微秒 < 10000
+                && 运行码写回耗时微秒 < 10000) {
+                return;
+            }
+
+            std::string 最慢阶段 = "检查是否可调用";
+            std::uint64_t 最慢阶段耗时微秒 = 检查耗时微秒;
+            auto 记录最慢 = [&最慢阶段, &最慢阶段耗时微秒](
+                const char* 阶段,
+                std::uint64_t 耗时) {
+                if (耗时 > 最慢阶段耗时微秒) {
+                    最慢阶段 = 阶段;
+                    最慢阶段耗时微秒 = 耗时;
+                }
+            };
+            记录最慢("查询已注册动作", 查询耗时微秒);
+            记录最慢("动作函数调用", 动作函数耗时微秒);
+            记录最慢("运行码写回", 运行码写回耗时微秒);
+
+            std::ostringstream 日志;
+            日志 << "本能动作管理/执行功能函数/阶段耗时"
+                << " | 本能ID=" << static_cast<std::uint32_t>(动作ID)
+                << " | 方法=" << (方法 ? 方法->获取主键() : std::string("空"))
+                << " | 结果=" << (结果 ? 结果 : "未知")
+                << " | 运行码=" << 运行码
+                << " | 总耗时微秒=" << 总耗时微秒
+                << " | 最慢阶段=" << 最慢阶段
+                << " | 最慢阶段耗时微秒=" << 最慢阶段耗时微秒
+                << " | 检查是否可调用=" << 检查耗时微秒
+                << " | 查询已注册动作=" << 查询耗时微秒
+                << " | 动作函数调用=" << 动作函数耗时微秒
+                << " | 运行码写回=" << 运行码写回耗时微秒;
+            项目运行日志(日志.str());
+        };
+
+        const auto 检查开始 = std::chrono::steady_clock::now();
         auto* 检查结果 = 检查是否可调用(动作ID, 方法首节点, 输入参数场景, 输出结果场景);
+        检查耗时微秒 = 耗时微秒(检查开始);
         if (!本能动作运行成功(检查结果)) {
+            输出慢执行日志("检查失败", 本能动作运行结果值(检查结果));
             return 检查结果;
         }
 
+        const auto 查询开始 = std::chrono::steady_clock::now();
         const auto 已注册动作 = 查询(动作ID);
-        auto* 方法 = 方法首节点 ? 方法首节点 : (已注册动作 ? 已注册动作->方法信息首节点 : nullptr);
+        查询耗时微秒 = 耗时微秒(查询开始);
+        方法 = 方法首节点 ? 方法首节点 : (已注册动作 ? 已注册动作->方法信息首节点 : nullptr);
         if (!已注册动作.has_value() || !已注册动作->动作函数) {
-            return 创建本能动作运行结果实例_按码(
+            auto* 运行结果 = 创建本能动作运行结果实例_按码(
                 方法,
                 输出结果场景,
                 本能动作错误_未注册);
+            输出慢执行日志("未注册", 本能动作错误_未注册);
+            return 运行结果;
         }
 
+        auto 动作函数开始 = std::chrono::steady_clock::time_point{};
+        bool 已进入动作函数 = false;
         try {
+            动作函数开始 = std::chrono::steady_clock::now();
+            已进入动作函数 = true;
             if (auto* 运行结果 = 已注册动作->动作函数(方法, 输入参数场景, 输出结果场景)) {
+                动作函数耗时微秒 = 耗时微秒(动作函数开始);
                 const auto 运行码 = 本能动作运行结果值(运行结果);
+                const auto 写回开始 = std::chrono::steady_clock::now();
                 (void)世界树.写入特征_I64(
                     reinterpret_cast<基础信息节点类*>(运行结果),
                     本能动作运行结果码特征词(),
                     static_cast<I64>(运行码),
                     结构体_时间戳::当前_微秒());
+                运行码写回耗时微秒 = 耗时微秒(写回开始);
+                输出慢执行日志("动作函数返回", 运行码);
                 return 运行结果;
             }
-            return 创建本能动作运行结果实例(
+            动作函数耗时微秒 = 耗时微秒(动作函数开始);
+            auto* 运行结果 = 创建本能动作运行结果实例(
                 方法,
                 输出结果场景,
                 "运行结果未知",
                 本能动作运行结果_未知);
+            输出慢执行日志("运行结果未知", 本能动作运行结果_未知);
+            return 运行结果;
         }
         catch (const std::exception&) {
-            return 创建本能动作运行结果实例_按码(
+            if (已进入动作函数) {
+                动作函数耗时微秒 = 耗时微秒(动作函数开始);
+            }
+            auto* 运行结果 = 创建本能动作运行结果实例_按码(
                 方法,
                 输出结果场景,
                 本能动作错误_动作异常);
+            输出慢执行日志("动作异常", 本能动作错误_动作异常);
+            return 运行结果;
         }
         catch (...) {
-            return 创建本能动作运行结果实例_按码(
+            if (已进入动作函数) {
+                动作函数耗时微秒 = 耗时微秒(动作函数开始);
+            }
+            auto* 运行结果 = 创建本能动作运行结果实例_按码(
                 方法,
                 输出结果场景,
                 本能动作错误_动作未知异常);
+            输出慢执行日志("动作未知异常", 本能动作错误_动作未知异常);
+            return 运行结果;
         }
     }
 
