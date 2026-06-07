@@ -61,3 +61,33 @@ live 路径：
     不应出现 日志模块低级错误；
     不应出现 状态提交确认失败、后台worker工作项进入死信、拒绝归并完成项。
 ```
+
+## 6. 执行结果
+
+```text
+实现：
+    --demand-tree-growth-summary 默认改为 offline，只读取当前进程已有的控制面板摘要线程最新快照；
+    当前进程没有已采集快照时，输出无可用快照原因并 0 码返回；
+    --demand-tree-growth-summary-live 新增为显式 live 入口，保留旧完整初始化和即时轻量快照读取语义。
+
+构建：
+    msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
+    退出码=0，警告=既有 LNK4075。
+
+真实运行：
+    .\x64\Debug\鱼巢.exe --demand-tree-growth-summary
+    退出码=0，耗时约 82ms，输出标注 offline、来源=控制面板摘要线程最新快照、快照序号=0、无可用快照原因。
+
+    .\x64\Debug\鱼巢.exe --demand-tree-growth-summary-live
+    退出码=0，耗时约 9554ms，输出标注 live，并输出完整需求树生长摘要。
+
+日志核对：
+    offline 窗口只出现 控制面板命令/需求树生长摘要 | 模式=offline 的开始 / 完成日志；
+    live 窗口出现 命令行/确保自我环境初始化，标记=鱼巢::main/控制面板/需求树生长摘要/live，耗时ms=9448；
+    S4a 最新窗口未出现 日志模块低级错误、状态提交确认失败、后台worker工作项进入死信、拒绝归并完成项。
+
+结论：
+    S4a 已闭合；
+    默认短摘要不再支付完整自我环境冷启动成本；
+    缺离线快照时不隐式创建结构，用户可显式调用 live 入口取得完整即时摘要。
+```

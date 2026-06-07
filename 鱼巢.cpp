@@ -31,6 +31,7 @@
 #include "双目相机本能适配器.h"
 
 import 控制面板类;
+import 控制面板摘要线程模块;
 import 自我类;
 import 自我类.初始化;
 import 本能动作管理模块;
@@ -54,6 +55,22 @@ namespace {
     const char* 私有_布尔文本(bool 值) noexcept
     {
         return 值 ? "是" : "否";
+    }
+
+    bool 私有_命令行包含参数(
+        const int argc,
+        char** argv,
+        std::string_view 目标) noexcept
+    {
+        for (int i = 1; i < argc; ++i) {
+            const std::string_view 参数 = argv[i]
+                ? std::string_view(argv[i])
+                : std::string_view{};
+            if (参数 == 目标) {
+                return true;
+            }
+        }
+        return false;
     }
 
     const char* 私有_线程生命周期文本(枚举_线程生命周期状态 状态) noexcept
@@ -1119,6 +1136,42 @@ namespace {
         return 输出.str();
     }
 
+    std::string 私有_需求树生长离线摘要文本(
+        const 结构_控制面板摘要快照& 快照)
+    {
+        std::ostringstream 输出;
+        输出 << "快照状态: offline"
+            << " | 来源=控制面板摘要线程最新快照"
+            << " | 快照序号=" << 快照.快照序号;
+        if (快照.快照序号 == 0) {
+            输出 << " | 可用=否"
+                << " | 原因=当前进程没有已采集的控制面板摘要快照"
+                << '\n'
+                << "需求树生长摘要\n"
+                << "  - 离线快照: 无可用快照\n"
+                << "  - live读取: 使用 --demand-tree-growth-summary-live 读取完整即时快照\n";
+            return 输出.str();
+        }
+
+        输出 << " | 可用=是"
+            << " | 生命周期=" << 控制面板摘要线程生命周期文本(快照.生命周期)
+            << '\n'
+            << "需求树生长摘要\n"
+            << "  - 离线需求树: "
+            << (快照.需求树摘要.empty() ? std::string("空") : 快照.需求树摘要)
+            << '\n'
+            << "  - 离线任务树: "
+            << (快照.任务树摘要.empty() ? std::string("空") : 快照.任务树摘要)
+            << '\n'
+            << "  - 离线方法树: "
+            << (快照.方法树摘要.empty() ? std::string("空") : 快照.方法树摘要)
+            << '\n'
+            << "  - 自我线程: "
+            << (快照.自我线程摘要.empty() ? std::string("空") : 快照.自我线程摘要)
+            << '\n';
+        return 输出.str();
+    }
+
     结构_控制面板快照 私有_等待快照满足条件(
         const std::string& 标记,
         const std::function<bool(const 结构_控制面板快照&)>& 条件,
@@ -1448,6 +1501,23 @@ namespace {
         return 输出.str();
     }
 
+    int 私有_执行需求树生长摘要Live()
+    {
+        项目运行日志("控制面板命令/需求树生长摘要 | 开始 | 模式=live");
+        if (!私有_确保自我环境已初始化("鱼巢::main/控制面板/需求树生长摘要/live")) {
+            std::cerr << "自我环境初始化失败。\n";
+            return 4;
+        }
+        私有_记录任务管理摘要即时状态("需求树生长摘要/live");
+        项目运行日志("控制面板命令/需求树生长摘要 | 即时读取快照 | 模式=live");
+        const auto 快照 = 私有_读取控制面板快照_记录耗时("需求树生长摘要/live", true);
+        std::cout << "摘要模式: live | 来源=控制面板轻量摘要快照\n";
+        std::cout << 私有_摘要快照状态行(快照);
+        std::cout << 渲染需求树生长摘要(快照);
+        项目运行日志("控制面板命令/需求树生长摘要 | 完成输出 | 模式=live");
+        return 0;
+    }
+
     int 私有_执行控制面板命令(枚举_控制面板命令 命令, bool 等待窗口关闭 = false)
     {
         if (命令 == 枚举_控制面板命令::输出摘要) {
@@ -1491,17 +1561,13 @@ namespace {
         }
 
         if (命令 == 枚举_控制面板命令::输出需求树生长摘要) {
-            项目运行日志("控制面板命令/需求树生长摘要 | 开始");
-            if (!私有_确保自我环境已初始化("鱼巢::main/控制面板/需求树生长摘要")) {
-                std::cerr << "自我环境初始化失败。\n";
-                return 4;
-            }
-            私有_记录任务管理摘要即时状态("需求树生长摘要");
-            项目运行日志("控制面板命令/需求树生长摘要 | 即时读取快照");
-            const auto 快照 = 私有_读取控制面板快照_记录耗时("需求树生长摘要", true);
-            std::cout << 私有_摘要快照状态行(快照);
-            std::cout << 渲染需求树生长摘要(快照);
-            项目运行日志("控制面板命令/需求树生长摘要 | 完成输出");
+            项目运行日志("控制面板命令/需求树生长摘要 | 开始 | 模式=offline");
+            const auto 快照 = 读取最新控制面板摘要快照();
+            std::cout << 私有_需求树生长离线摘要文本(快照);
+            项目运行日志(
+                std::string("控制面板命令/需求树生长摘要 | 完成输出 | 模式=offline")
+                + " | 快照序号=" + std::to_string(快照.快照序号)
+                + " | 可用=" + 私有_布尔文本(快照.快照序号 != 0));
             return 0;
         }
 
@@ -1588,6 +1654,12 @@ int main(int argc, char** argv)
         const auto 相机命令 = 私有_解析命令行相机命令(argc, argv);
         if (相机命令 != 枚举_命令行相机命令::无) {
             return 私有_执行命令行相机命令(相机命令);
+        }
+
+        if (私有_命令行包含参数(argc, argv, "--demand-tree-growth-summary-live")
+            || 私有_命令行包含参数(argc, argv, "--demand-growth-summary-live")
+            || 私有_命令行包含参数(argc, argv, "--need-tree-growth-summary-live")) {
+            return 私有_执行需求树生长摘要Live();
         }
 
         const auto 命令 = 解析控制面板命令行(argc, argv);
