@@ -5983,6 +5983,17 @@ namespace {
                 0,
                 快照.自我场景假设有效点比例 * 快照.自我场景点云有效像素数量 / 10000)
             : 快照.自我场景主空间候选像素数量;
+        I64 窗口像素数量 = 快照.自我场景预期像素数量;
+        if (窗口像素数量 <= 0
+            && 快照.自我场景相机帧宽度 > 0
+            && 快照.自我场景相机帧高度 > 0) {
+            窗口像素数量 =
+                快照.自我场景相机帧宽度 * 快照.自我场景相机帧高度;
+        }
+        const I64 未解释像素数 = std::max<I64>(0, 快照.自我场景未解释像素数);
+        const I64 未知区域窗口占比 = 窗口像素数量 > 0
+            ? std::clamp<I64>(未解释像素数 * 10000 / 窗口像素数量, 0, 10000)
+            : std::clamp<I64>(快照.自我场景未解释区域比例, 0, 10000);
 
         std::ostringstream 输出;
         输出 << "{";
@@ -6002,6 +6013,7 @@ namespace {
         输出 << ",\"colorFrame\":" << 快照.自我场景彩色帧号;
         输出 << ",\"currentFrame\":" << 快照.自我场景当前观察帧;
         输出 << ",\"expectedPixels\":" << 快照.自我场景预期像素数量;
+        输出 << ",\"windowPixels\":" << 窗口像素数量;
         输出 << ",\"pixelFeatures\":" << 快照.自我场景像素特征数量;
         输出 << ",\"depthValidPixels\":" << 快照.自我场景深度有效像素数量;
         输出 << ",\"pointCloudPixels\":" << 快照.自我场景点云有效像素数量;
@@ -6099,6 +6111,10 @@ namespace {
         输出 << ",\"verifiedFlag\":" << 快照.自我场景已验证观察存在;
         输出 << ",\"confirmState\":" << 快照.自我场景观察存在确认状态;
         输出 << ",\"verifiedCount\":" << 快照.自我场景已验证观察存在数量;
+        输出 << ",\"knownExistenceCount\":" << 快照.自我场景已验证观察存在数量;
+        输出 << ",\"unknownWindowPixels\":" << 未解释像素数;
+        输出 << ",\"unknownWindowPixelTotal\":" << 窗口像素数量;
+        输出 << ",\"unknownWindowPixelRatio\":" << 未知区域窗口占比;
         输出 << ",\"frameExplainState\":" << 快照.自我场景帧解释状态;
         输出 << ",\"basicObservationFactUsableState\":" << 快照.自我场景基础观察事实可用状态;
         输出 << ",\"basicRiskJudgementState\":" << 快照.自我场景基础风险判断状态;
@@ -8165,6 +8181,13 @@ std::string 私有_生成控制面板HTML(
         快照.自我场景复现有快照
             ? ("候选 " + std::to_string(快照.自我场景空间候选数量))
             : "OpenGL");
+    I64 自我场景窗口像素数量 = 快照.自我场景预期像素数量;
+    if (自我场景窗口像素数量 <= 0
+        && 快照.自我场景相机帧宽度 > 0
+        && 快照.自我场景相机帧高度 > 0) {
+        自我场景窗口像素数量 =
+            快照.自我场景相机帧宽度 * 快照.自我场景相机帧高度;
+    }
     const auto 自我场景复现摘要 = 私有_转义HTML(
         "场景=" + 私有_页面摘要(快照.自我所在场景标题)
         + " | 宿主=" + 私有_页面摘要(快照.自我场景复现宿主标题)
@@ -8175,6 +8198,9 @@ std::string 私有_生成控制面板HTML(
         + " | 质量=" + std::to_string(快照.自我场景帧质量评分)
         + " | 空间候选=" + std::to_string(快照.自我场景空间候选数量)
         + " | 已验证观察存在=" + std::to_string(快照.自我场景已验证观察存在数量)
+        + " | 已知存在=" + std::to_string(快照.自我场景已验证观察存在数量)
+        + " | 未知区域=" + std::to_string(std::max<I64>(0, 快照.自我场景未解释像素数))
+        + "/" + std::to_string(std::max<I64>(0, 自我场景窗口像素数量)) + "像素"
         + " | 基础观察=" + std::to_string(快照.自我场景基础观察事实可用状态)
         + " | 基础风险判断=" + std::to_string(快照.自我场景基础风险判断状态)
         + " | 风险明确=" + std::to_string(快照.自我场景风险状态明确状态)
@@ -9460,6 +9486,14 @@ std::string 私有_生成控制面板HTML(
                     <div id="scene-candidate-stat" class="scene-stat-value">--</div>
                   </div>
                   <div class="scene-stat">
+                    <div class="scene-stat-label">已知存在</div>
+                    <div id="scene-known-existence-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">未知区域占比</div>
+                    <div id="scene-unknown-region-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
                     <div class="scene-stat-label">中心坐标</div>
                     <div id="scene-center-stat" class="scene-stat-value">--</div>
                   </div>
@@ -10640,6 +10674,35 @@ std::string 私有_生成控制面板HTML(
       return 场景万分比(Math.round(p * 10000 / t));
     }
 
+    function 读取自我场景窗口像素总数(data) {
+      const explicitTotal = Number(data?.unknownWindowPixelTotal || data?.windowPixels || data?.expectedPixels || 0);
+      if (Number.isFinite(explicitTotal) && explicitTotal > 0) return explicitTotal;
+      const width = Number(data?.width || 0);
+      const height = Number(data?.height || 0);
+      if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+        return width * height;
+      }
+      const features = Number(data?.pixelFeatures || 0);
+      return Number.isFinite(features) && features > 0 ? features : 0;
+    }
+
+    function 读取自我场景未知像素数(data) {
+      const value = data?.unknownWindowPixels !== undefined
+        ? data.unknownWindowPixels
+        : data?.unexplainedPixels;
+      const pixels = Number(value || 0);
+      return Number.isFinite(pixels) ? Math.max(0, pixels) : 0;
+    }
+
+    function 读取自我场景未知区域占比(data, total) {
+      const explicitRatio = Number(data?.unknownWindowPixelRatio || 0);
+      if (Number.isFinite(explicitRatio) && explicitRatio > 0) return 场景万分比(explicitRatio);
+      const pixels = 读取自我场景未知像素数(data);
+      return pixels > 0
+        ? 场景像素比例(pixels, total)
+        : 场景万分比(data?.unexplainedRatio || 0);
+    }
+
     function 设置自我场景图层值(kind, text, ratio) {
       设置自我场景文本(`scene-layer-${kind}-value`, text);
       const meter = document.getElementById(`scene-layer-${kind}-meter`);
@@ -10686,7 +10749,8 @@ std::string 私有_生成控制面板HTML(
     }
 
     function 读取自我场景图层摘要(data) {
-      const expected = Number(data.expectedPixels || data.pixelFeatures || 0);
+      const expected = 读取自我场景窗口像素总数(data);
+      const unknownPixels = 读取自我场景未知像素数(data);
       const regions = 读取自我场景诊断区域(data);
       const regionCounts = { 'depth-hole': 0, 'filled-depth': 0, unexplained: 0, 'contour-risk': 0 };
       const regionPixels = { 'depth-hole': 0, 'filled-depth': 0, unexplained: 0, 'contour-risk': 0 };
@@ -10701,9 +10765,7 @@ std::string 私有_生成控制面板HTML(
         : 场景万分比(10000 - Number(data.depthValidRatio || 0));
       const filledPixels = Number(data.filledDepthSourcePixels || data.fusedDepthHoleCompensationPixels || 0);
       const filledRatio = 场景像素比例(filledPixels, expected);
-      const unexplainedRatio = data.unexplainedPixels
-        ? 场景像素比例(data.unexplainedPixels, expected)
-        : 场景万分比(data.unexplainedRatio || 0);
+      const unexplainedRatio = 读取自我场景未知区域占比(data, expected);
       const contourTotal =
         Number(data.colorContourCount || 0)
         + Number(data.depthContourCount || 0)
@@ -10727,6 +10789,8 @@ std::string 私有_生成控制面板HTML(
         contourTotal,
         regionCounts,
         regionPixels,
+        expectedPixels: expected,
+        unknownPixels,
         regionTotal: regions.length
       };
     }
@@ -10763,10 +10827,14 @@ std::string 私有_生成控制面板HTML(
     function 更新自我场景统计() {
       const data = 自我场景复现数据 || {};
       const candidate = data.candidate || {};
+      const summary = 读取自我场景图层摘要(data);
+      const knownExistenceCount = Number(data.knownExistenceCount || data.verifiedCount || 0);
       设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
       设置自我场景文本('scene-candidate-stat', `${data.candidateCount || 0} / 有效点 ${data.candidateValidPixels || 0}`);
+      设置自我场景文本('scene-known-existence-stat', `${knownExistenceCount} 个 / 确认状态 ${data.confirmState || 0}`);
+      设置自我场景文本('scene-unknown-region-stat', `${summary.unknownPixels || 0} / ${summary.expectedPixels || 0} 像素点 (${格式化场景比例(summary.unexplainedRatio)})`);
       设置自我场景文本('scene-center-stat', candidate.valid ? 格式化场景三元组(candidate.center) : '--');
       设置自我场景文本('scene-aabb-stat', candidate.valid ? `${格式化场景三元组(candidate.min)} -> ${格式化场景三元组(candidate.max)}` : '--');
       设置自我场景文本('scene-score-stat', `${data.frameQualityScore || 0} / ${candidate.continuity || 0} / ${candidate.stability || 0}`);
