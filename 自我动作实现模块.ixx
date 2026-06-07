@@ -7004,6 +7004,16 @@ export namespace 自我动作实现模块 {
         时间戳 now) noexcept
     {
         if (!方法首节点 || !方法存在) return false;
+        static std::atomic<std::uintptr_t> s_已确认方法首节点{0};
+        static std::atomic<std::uintptr_t> s_已确认方法存在{0};
+
+        const auto 方法首节点指针 = reinterpret_cast<std::uintptr_t>(方法首节点);
+        const auto 方法存在指针 = reinterpret_cast<std::uintptr_t>(方法存在);
+        if (s_已确认方法首节点.load(std::memory_order_acquire) == 方法首节点指针
+            && s_已确认方法存在.load(std::memory_order_acquire) == 方法存在指针) {
+            return true;
+        }
+
         bool ok = true;
 
         // 提交任务状态变化是唯一改变“任务状态”特征的任务域提交方法。
@@ -7023,6 +7033,10 @@ export namespace 自我动作实现模块 {
             ok = 取或创建子特征(宿主, 特征_任务状态动作动态()) && ok;
             ok = 取或创建子特征(宿主, 特征_动作动态()) && ok;
             ok = 取或创建子特征(宿主, 特征_当前方法运行存在()) && ok;
+        }
+        if (ok) {
+            s_已确认方法存在.store(方法存在指针, std::memory_order_release);
+            s_已确认方法首节点.store(方法首节点指针, std::memory_order_release);
         }
         return ok;
     }
