@@ -461,9 +461,11 @@ struct 结构_任务界面线程快照 {
     std::uint64_t 累计后台worker取项数 = 0;
     std::uint64_t 累计后台worker派发数 = 0;
     std::uint64_t 累计派生需求入树回执数 = 0;
+    std::uint64_t 累计状态提交待确认项数 = 0;
 
     std::uint64_t 当前请求队列长度 = 0;
     std::uint64_t 当前等待工作项数 = 0;
+    std::uint64_t 当前状态提交待确认项数 = 0;
     std::uint64_t 当前待筹办工作项数 = 0;
     std::uint64_t 当前待执行工作项数 = 0;
     std::uint64_t 当前完成工作项数 = 0;
@@ -493,6 +495,7 @@ struct 结构_任务界面线程快照 {
     std::uint64_t 最近任务状态版本 = 0;
     std::uint64_t 最近后台worker序号 = 0;
     std::uint64_t 最近后台worker工作项ID = 0;
+    std::uint64_t 最近状态提交确认ID = 0;
 
     std::string 最近任务主键{};
     std::string 最近任务虚拟存在主键{};
@@ -527,6 +530,8 @@ struct 结构_任务界面线程快照 {
     std::string 最近后台worker工作项类型{};
     std::string 最近后台worker状态{};
     std::string 最近后台worker原因{};
+    std::string 最近状态提交确认任务主键{};
+    std::string 最近状态提交确认状态{};
     std::string 最近参数保存结果 = "尚未保存";
     std::string 最近参数错误{};
     std::string 最近参数应用结果 = "尚未应用";
