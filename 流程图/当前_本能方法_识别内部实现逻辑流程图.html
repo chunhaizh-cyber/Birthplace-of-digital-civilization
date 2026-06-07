@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>当前_本能方法_识别内部实现逻辑流程图</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --paper: #ffffff;
+      --ink: #1f2933;
+      --muted: #5f6b7a;
+      --line: #d8dee6;
+      --accent: #1769aa;
+      --code: #f1f4f8;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      line-height: 1.65;
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.25;
+    }
+    h2 {
+      margin: 34px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-size: 20px;
+    }
+    p.meta {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+    pre {
+      overflow: auto;
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+      white-space: pre-wrap;
+    }
+    code {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 0.94em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: #eef3f8;
+      text-align: left;
+    }
+    .mermaid {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 10px;
+      overflow: auto;
+    }
+    .note {
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>当前_本能方法_识别内部实现逻辑流程图</h1>
+  <p class="meta">生成时间：2026-06-07。依据范围：当前代码；报告、等待项、材料页和承接请求只作为通信或材料容器。</p>
+
+  <section>
+    <h2>1. 当前代码结论</h2>
+    <pre><code>当前代码中的“识别”不是 D455 直接确认世界存在。
+
+实际链路：
+1. 任务管理把 6145 映射为陌生环境逐簇识别等待项。
+2. D455 生成逐簇识别报告和跨帧证据。
+3. 任务管理工作线程按质量门生成观察事实承接请求。
+4. 自我线程按报告ID回查材料，写入内部世界候选。
+5. 6127 验证材料，6128/6145 生成候选确认和识别归属结果。
+6. 6129 / 6150 才进入正式提交和稳定对应事实桥。</code></pre>
+    <p class="note">当前边界：6145 输出同一性、归属、候选确认方案、稳定对应计数和扫描可启动状态；不写变化动态，不结算安全值。</p>
+  </section>
+
+  <section>
+    <h2>2. 代码依据索引</h2>
+    <table>
+      <thead>
+        <tr><th>链路</th><th>当前代码位置</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>方法 ID / 登记</td><td><code>本能方法类.h:60-62,78</code>、<code>本能方法类.cpp:39-41,57</code></td><td>验证、确认、提交确认、识别方法。</td></tr>
+        <tr><td>任务管理供料映射</td><td><code>任务模块.管理界面线程.impl.cpp:846-849</code>、<code>:2860-2910</code></td><td>6145 映射到陌生环境逐簇识别和逐簇识别报告。</td></tr>
+        <tr><td>D455 逐簇识别报告</td><td><code>外设线程_D455深度相机.ixx:525-626</code>、<code>:360-455</code>、<code>:1551-1570</code></td><td>生成报告、跨帧证据并入队。</td></tr>
+        <tr><td>材料质量门</td><td><code>外设观察报告队列.ixx:1537-1700</code></td><td>判断可验证、可识别、可提交入口组织。</td></tr>
+        <tr><td>任务管理承接</td><td><code>任务模块.管理工作线程.ixx:3239-3265</code>、<code>:3318-3358</code></td><td>生成观察事实承接请求并保留报告ID回查。</td></tr>
+        <tr><td>自我线程材料候选</td><td><code>自我线程模块.impl.cpp:12877-13125</code></td><td>材料候选入自我内部世界，不确认世界对象。</td></tr>
+        <tr><td>6127 / 6128 / 6145</td><td><code>自我动作实现.外设模块.ixx:20386-20892</code>、<code>:19421-19805</code></td><td>验证材料、生成确认方案、生成识别归属结果。</td></tr>
+        <tr><td>确认方案算法</td><td><code>自我动作实现.外设模块.ixx:9649-9745</code>、<code>:9202-9232</code>、<code>:8541-8628</code></td><td>按跨帧证据、匹配分、冲突规则生成同一性和归属状态。</td></tr>
+        <tr><td>提交后续</td><td><code>自我动作实现.外设模块.ixx:20894-21215</code>、<code>:21327-21839</code></td><td>创建/合并已确认观察存在，写稳定对应事实和扫描目标上下文。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. 总流程图</h2>
+    <div class="mermaid">
+flowchart TD
+    A["任务 / 需求需要识别材料<br/>目标方法: 6145"]
+    B["任务管理界面线程<br/>按方法供料口径映射"]
+    C["创建外设观察等待项<br/>陌生环境逐簇识别<br/>逐簇识别报告"]
+    D["D455 采集一帧"]
+    E["生成逐簇识别报告<br/>簇集合 + 材料句柄 + 跨帧证据"]
+    F["报告入外设观察队列"]
+    G["任务管理工作线程匹配报告"]
+    H{"材料质量门"}
+    H0["不合格<br/>只回执"]
+    H1["可用 / 优质<br/>观察事实承接请求"]
+    I["自我线程回查报告<br/>材料候选入内部世界<br/>不确认世界存在"]
+    J["6127 验证外设观察像素簇候选"]
+    K{"验证状态"}
+    K0["失败 / 证据不足<br/>派生缺口"]
+    L["6128 生成候选确认方案"]
+    M["6145 识别外设观察材料<br/>同一性 / 归属 / 扫描可启动"]
+    N{"6145 成功?"}
+    N0["失败<br/>补稳定复现 / 可复验 / 候选验证"]
+    O["识别结果摘要和方案项"]
+    P["6129 提交确认观察存在事实"]
+    Q["6150 当前观察范围对应事实<br/>稳定子集桥 / 扫描约束"]
+
+    A --> B --> C --> D --> E --> F --> G --> H
+    H --> H0
+    H --> H1 --> I --> J --> K
+    K -->|"未通过"| K0
+    K -->|"已验证"| L --> M --> N
+    N -->|"否"| N0
+    N -->|"是"| O --> P --> Q
+    </div>
+  </section>
+
+  <section>
+    <h2>4. 6145 内部流程</h2>
+    <div class="mermaid">
+flowchart TD
+    A["进入 6145 自我_识别外设观察材料"]
+    B["确保方法环境"]
+    C["解析输出场景 / 相机 / 目标宿主"]
+    D["读稳定复现 / 观察完成 / 可复验"]
+    E["读最新逐簇识别报告<br/>判定材料质量"]
+    F{"可进入识别?"}
+    F0["否<br/>条件不足"]
+    G["由报告派生前置状态"]
+    H{"观察存在可进入识别?"}
+    H0["否<br/>补观察前置缺口"]
+    I["读取上游验证状态"]
+    J{"验证已通过?"}
+    J0["否<br/>补候选验证缺口"]
+    K["读取当前场景已确认存在集合"]
+    L["构造确认方案"]
+    M{"方案取得状态 > 0?"}
+    M0["否<br/>证据不足"]
+    N["聚合同一性 / 归属 / 最高评分"]
+    O["写识别摘要和方案项"]
+    P["输出运行虚拟存在"]
+
+    A --> B --> C --> D --> E --> F
+    F -->|"否"| F0 --> P
+    F -->|"是"| G --> H
+    H -->|"否"| H0 --> P
+    H -->|"是"| I --> J
+    J -->|"否"| J0 --> P
+    J -->|"是"| K --> L --> M
+    M -->|"否"| M0 --> P
+    M -->|"是"| N --> O --> P
+    </div>
+    <pre><code>6145 成功条件：
+观察存在可进入识别
+&& 有 D455 逐簇识别报告
+&& 观察材料可进入识别方法
+&& 上游验证状态 == 已验证
+&& 方案.方案取得状态 > 0</code></pre>
+  </section>
+
+  <section>
+    <h2>5. 确认方案算法</h2>
+    <div class="mermaid">
+flowchart TD
+    A["输入: 逐簇识别报告 + 验证状态 + 当前场景已确认存在集合"]
+    B["遍历观察像素簇"]
+    C{"验证通过且材料可提交?"}
+    C0["否<br/>证据不足"]
+    D{"跨帧证据足够?"}
+    D0["否<br/>证据不足: 缺跨帧同一性证据"]
+    E["对已确认存在逐个打分"]
+    F["分数=重叠率60% + 中心25% + 深度15%"]
+    G["取最佳分数 / 最佳存在 / 次佳分数"]
+    H{"最佳>=7500 且最佳-次佳<1200?"}
+    H1["冲突<br/>允许提交=0"]
+    I{"最佳>=7500 且有最佳存在?"}
+    I1["合并<br/>同一性=已同一<br/>归属=已归属"]
+    J["新建<br/>同一性=未命中已知存在<br/>归属=待建立"]
+    K["统计方案数量和聚合状态"]
+
+    A --> B --> C
+    C -->|"否"| C0 --> K
+    C -->|"是"| D
+    D -->|"否"| D0 --> K
+    D -->|"是"| E --> F --> G --> H
+    H -->|"是"| H1 --> K
+    H -->|"否"| I
+    I -->|"是"| I1 --> K
+    I -->|"否"| J --> K
+    </div>
+    <pre><code>当前代码量化点：
+跨帧连续命中次数 >= 外设观察存在同一性最小证据帧数
+最佳匹配分数 >= 7500
+最佳分数 - 次佳分数 >= 1200 才避免多候选冲突
+匹配分数值域 = 0..10000</code></pre>
+  </section>
+
+  <section>
+    <h2>6. 提交后续</h2>
+    <div class="mermaid">
+flowchart TD
+    A["6145 识别归属结果"]
+    B{"后续提交目标"}
+    C["6129 提交确认观察存在事实"]
+    D{"来源报告可进入提交入口组织<br/>且有允许提交方案项?"}
+    D0["否<br/>条件不足"]
+    E["新建或合并已确认观察存在<br/>写原始事实和二次关系"]
+    F["6150 当前观察范围可观测单位存在对应事实"]
+    G["读取识别确认状态 / 方案取得 / 可提交 / 冲突 / 证据不足"]
+    H{"对应事实可写?"}
+    H0["否<br/>条件不足 / 缺口可解释"]
+    I["写有效单位 / 稳定对应 / 冲突 / 扫描可启动"]
+    J["稳定子集桥<br/>扫描目标观察约束"]
+
+    A --> B
+    B --> C --> D
+    D -->|"否"| D0
+    D -->|"是"| E
+    B --> F --> G --> H
+    H -->|"否"| H0
+    H -->|"是"| I --> J
+    </div>
+  </section>
+
+  <section>
+    <h2>7. 当前运行口径</h2>
+    <pre><code>计划索引当前记录：
+P9c 已完成：6145 已能承接稳定复现 / 观察完成 / 可复验和候选验证状态。
+P9d 已推进：6150 已消费 6145 识别结果，稳定对应存在数量明确状态已完成。
+6150 已把稳定子集组织成正式已确认观察存在、映射项和扫描目标观察约束。
+
+不能宣称：
+识别结果等于全场景全部明确；
+识别结果直接生成扫描变化动态或跟踪动态；
+识别结果直接写需求满足或安全值。</code></pre>
+  </section>
+
+  <section>
+    <h2>8. 硬边界</h2>
+    <pre><code>1. D455 只生产逐簇识别材料，不裁决世界真值。
+2. 任务管理承接请求只是上行通信，不是正式世界事实。
+3. 自我线程材料承接只写材料候选，不确认稳定世界对象。
+4. 6127 验证材料可回查和候选簇有效，不创建已确认观察存在。
+5. 6128 生成候选确认方案，不创建已确认观察存在。
+6. 6145 生成识别归属结果、同一性状态和归属状态，不写变化动态。
+7. 6129 才是已确认观察存在创建 / 合并的提交入口。
+8. 6150 才把识别结果组织成当前观察范围稳定对应事实和扫描目标上下文。
+9. 当前代码的唯一性判断是局部量化收敛，不是全世界唯一，也不是所有特征全量比较。</code></pre>
+  </section>
+</main>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "default",
+    flowchart: { htmlLabels: true, curve: "basis" }
+  });
+</script>
+</body>
+</html>
