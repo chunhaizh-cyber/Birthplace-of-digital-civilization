@@ -87,6 +87,10 @@ export struct 日志参数 {
     std::string 文件前缀 = "海鱼";
     // 写入后是否每条都 flush（默认 true，便于崩溃前落盘；追求性能可关）
     bool 每条刷新 = true;
+    // 每条刷新关闭时，错误 / 致命日志仍立即 flush。
+    bool 错误立即刷新 = true;
+    // 每条刷新关闭时，普通 / 警告日志按间隔 flush；0 表示只在关闭时落盘。
+    std::uint32_t 普通刷新间隔毫秒 = 250;
     // 是否同时输出到调试器（OutputDebugStringW），默认 false
     bool 输出到调试器 = false;
 };
@@ -202,7 +206,10 @@ namespace 日志::detail {
         std::string 文件前缀;
         std::string 文件标识; // "run" / "exception"
         bool 每条刷新 = true;
+        bool 错误立即刷新 = true;
+        std::uint32_t 普通刷新间隔毫秒 = 250;
         bool 输出到调试器 = false;
+        std::chrono::steady_clock::time_point 上次刷新时间{};
 
         static std::string 取日期_YYYYMMDD() {
             using namespace std::chrono;
@@ -255,7 +262,10 @@ namespace 日志::detail {
             文件前缀 = p.文件前缀;
             文件标识 = std::move(标识);
             每条刷新 = p.每条刷新;
+            错误立即刷新 = p.错误立即刷新;
+            普通刷新间隔毫秒 = p.普通刷新间隔毫秒;
             输出到调试器 = p.输出到调试器;
+            上次刷新时间 = {};
         }
 
         std::filesystem::path 生成文件路径(const std::string& yyyymmdd) const {
@@ -284,6 +294,7 @@ namespace 日志::detail {
                 当前日期 = today;
                 auto path = 生成文件路径(today);
                 ofs.open(path, std::ios::out | std::ios::app);
+                上次刷新时间 = std::chrono::steady_clock::now();
             }
             catch (const std::exception& e) {
                 报告低级错误并终止_("日志模块", "日志::detail::单文件日志器::确保打开_已加锁/open", e.what());
@@ -316,7 +327,19 @@ namespace 日志::detail {
 
             ofs << 行文本 << "\n";
 
-            if (每条刷新) ofs.flush();
+            const auto 当前刷新时间 = std::chrono::steady_clock::now();
+            const bool 级别需要立即刷新 =
+                错误立即刷新 && lv >= 枚举_日志级别::错误;
+            const bool 到达普通刷新间隔 =
+                普通刷新间隔毫秒 > 0
+                && (上次刷新时间.time_since_epoch().count() == 0
+                    || std::chrono::duration_cast<std::chrono::milliseconds>(
+                        当前刷新时间 - 上次刷新时间).count()
+                        >= static_cast<std::int64_t>(普通刷新间隔毫秒));
+            if (每条刷新 || 级别需要立即刷新 || 到达普通刷新间隔) {
+                ofs.flush();
+                上次刷新时间 = 当前刷新时间;
+            }
 
             if (输出到调试器) {
                 const auto 调试文本 = utf8_to_wide_lossy(行文本 + "\n");
@@ -340,7 +363,10 @@ namespace 日志::detail {
             std::string{}.swap(文件前缀);
             std::string{}.swap(文件标识);
             每条刷新 = true;
+            错误立即刷新 = true;
+            普通刷新间隔毫秒 = 250;
             输出到调试器 = false;
+            上次刷新时间 = {};
         }
     };
 
@@ -461,7 +487,9 @@ void 初始化项目日志() noexcept
         日志参数 参数{};
         参数.根目录 = std::filesystem::path(L"./日志");
         参数.文件前缀 = "鱼巢";
-        参数.每条刷新 = true;
+        参数.每条刷新 = false;
+        参数.错误立即刷新 = true;
+        参数.普通刷新间隔毫秒 = 250;
         参数.输出到调试器 = false;
         日志::初始化(参数);
     }
