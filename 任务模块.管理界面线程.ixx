@@ -12,8 +12,17 @@ import 自我类;
 
 export namespace 任务管理界面线程 {
 
+using 任务管理上行消息通知回调 = bool (*)(const 结构_任务管理上行消息& 消息) noexcept;
+using 任务管理调度让步回调 = bool (*)(const char* 来源) noexcept;
+
 bool 启动任务管理界面线程() noexcept;
 void 停止任务管理界面线程() noexcept;
+
+bool 注册任务管理上行消息通知回调(
+    任务管理上行消息通知回调 回调) noexcept;
+
+bool 注册任务管理调度让步回调(
+    任务管理调度让步回调 回调) noexcept;
 
 bool 启动任务管理工作线程池(
     自我类& 自我对象) noexcept;
@@ -46,9 +55,33 @@ bool 巡检并派发就绪任务(
     std::size_t 本轮最大消费数 = 4,
     任务管理线程协议::结构_任务界面线程快照* 输出快照 = nullptr) noexcept;
 
-bool 提交任务状态推进请求(
-    const 任务管理线程协议::结构_任务状态推进请求& 请求,
+bool 巡检外设观察等待项并生成上行消息(
+    std::uint64_t 当前时间 = 0,
+    std::size_t 本轮最大消费数 = 4,
+    任务管理线程协议::结构_任务界面线程快照* 输出快照 = nullptr) noexcept;
+
+bool 提交观察事实更新任务唤醒通知(
+    const 任务管理线程协议::结构_观察事实更新任务唤醒通知& 通知,
     任务管理线程协议::结构_任务状态推进结果* 输出结果 = nullptr) noexcept;
+
+bool 提交父任务等待条件变化通知(
+    const 任务管理线程协议::结构_父任务等待条件变化通知& 通知,
+    任务管理线程协议::结构_任务状态推进结果* 输出结果 = nullptr) noexcept;
+
+bool 提交任务价值结算完成通知(
+    const 任务管理线程协议::结构_任务价值结算完成通知& 通知,
+    任务管理线程协议::结构_任务状态推进结果* 输出结果 = nullptr) noexcept;
+
+bool 提交任务执行前许可结果(
+    const 任务管理线程协议::结构_任务执行前许可结果& 结果) noexcept;
+
+bool 注册任务执行前许可免审批方法(
+    const std::string& 方法主键) noexcept;
+
+bool 移除任务执行前许可免审批方法(
+    const std::string& 方法主键) noexcept;
+
+void 清空任务执行前许可免审批方法白名单() noexcept;
 
 bool 提交任务权重固化请求(
     const 任务管理线程协议::结构_任务权重固化请求& 请求) noexcept;

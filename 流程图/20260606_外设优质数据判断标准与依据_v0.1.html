@@ -1,111 +1,856 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>外设优质观察材料判断标准与依据 v0.1</title>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>20260606_外设优质数据判断标准与依据_v0.1</title>
   <style>
-    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
-    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
-    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
-    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1480px; }
-    main { padding: 20px; }
-    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
-    section { margin-bottom: 18px; }
-    .notes { padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1500px; line-height: 1.65; font-size: 14px; }
-    table { border-collapse: collapse; width: 100%; max-width: 1500px; background: #fff; margin-bottom: 18px; }
-    th, td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; }
-    th { background: #eef2f6; }
-    code { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
-    pre { margin: 0; white-space: pre-wrap; font-family: Consolas, "Courier New", monospace; font-size: 13px; line-height: 1.6; }
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
 </head>
 <body>
-  <header>
-    <h1>外设优质观察材料判断标准与依据 v0.1</h1>
-    <p class="hint">优质观察材料 = 新鲜、完整、可回查、稳定、目标相关、可比较、可被自我消费的观察材料。它不是世界真值，也不是需求满足结论；报告 / 包 / 队列项 / 材料页只是通信容器。</p>
-  </header>
-  <main>
-    <section class="notes">
-      <h2>总原则</h2>
-      <pre>1. 优质观察材料不是世界真值；它只允许进入自我侧组织、验证、确认和提交入口。
-2. 外设侧不得使用过期、generation 失配、材料不可回查或目标已失效的数据继续生成新鲜报告。
-3. 任务管理 / 自我侧从队列视图读取观察材料后，应删除已消费项；未消费项必须受 TTL、容量和 generation 清理。
-4. 扫描和跟踪的优质观察材料必须有来自自我缓冲区的目标上下文；全帧材料只能作为识别或外设观察存在材料。
-5. 报告 / 包 / 队列项 / 材料页只是通信容器；正式承接对象只能是存在、特征、二次特征和状态动态。</pre>
-    </section>
-    <section>
-      <h2>三级判定</h2>
-      <table>
-        <thead><tr><th>等级</th><th>判定</th><th>用途</th><th>处置</th></tr></thead>
-        <tbody>
-          <tr><td>不合格观察材料</td><td>采集失败、材料过期、句柄不可回查、目标种子缺失、基础结构不完整、任务所需质量指标低于硬底线</td><td>不得作为新鲜观察证据</td><td>删除、拒绝等待项、生成缺口、触发补观察</td></tr>
-          <tr><td>可用观察材料</td><td>新鲜、可回查、基础结构完整，达到对应范围硬底线，但存在低置信、局部缺口或稳定性不足</td><td>可作为外设观察存在、草案、待验证材料</td><td>进入对应队列视图，但自我侧不得直接确认；必要时派生补观察</td></tr>
-          <tr><td>优质观察材料</td><td>满足对应范围硬底线，并且目标相关、稳定复现、低缺口、低未解释、可比较、可追溯</td><td>可优先供自我侧验证、扫描、跟踪和提交入口组织结果场景</td><td>入识别 / 扫描 / 跟踪队列视图；自我消费后删除</td></tr>
-        </tbody>
-      </table>
-    </section>
-    <section class="notes">
-      <h2>优质范围</h2>
-      <pre>优质观察材料可以是：全局优质、目标区域优质、指定特征优质。
+<header id="title-block-header">
+<h1 class="title">20260606_外设优质数据判断标准与依据_v0.1</h1>
+</header>
+<h1
+id="外设优质观察材料判断标准与依据-v0.1">外设优质观察材料判断标准与依据
+v0.1</h1>
+<p>更新时间：2026-06-06</p>
+<h2 id="用途">用途</h2>
+<p>本文件定义 D455 /
+双目相机外设侧“优质观察材料”的判断标准和依据，用于：</p>
+<pre class="text"><code>外设侧：
+    从目标观察约束缓冲区读取扫描 / 跟踪种子、目标特征ID和该特征当前值；
+    判断当前采集材料是否足够好；
+    决定是否缩小 ROI、mask 限域、多帧重采样、静态融合或降级输出。
+
+自我侧：
+    按需求从识别 / 扫描 / 跟踪队列视图读取观察材料；
+    判断观察材料是否可消费；
+    用完删除；
+    清理过期或不可回查数据。</code></pre>
+<p>本标准只判断“观察材料质量”，不判断世界真值、需求满足、安全值或服务值。</p>
+<h2 id="依据">依据</h2>
+<ul>
+<li><code>规范/规范目录.md</code></li>
+<li><code>规范/观察像素簇与存在候选分层规范20260527.md</code></li>
+<li><code>规范/当前场景特征值明确标准规范20260602.md</code></li>
+<li><code>规范/双目相机外设独占观察线程规范20260527.md</code></li>
+<li><code>规范/双目相机外设功能能力与实现途径总结20260527.md</code></li>
+<li><code>计划/计划索引.md</code></li>
+<li><code>双目相机本能适配器.h</code></li>
+<li><code>双目相机本能适配器.cpp</code></li>
+<li><code>外设线程_D455深度相机.ixx</code></li>
+<li><code>外设观察报告队列.ixx</code></li>
+<li><code>流程图/20260606_D455外设侧工作流程图_v0.2.md</code></li>
+<li><code>流程图/20260606_自我外设交互流程图_v0.1.md</code></li>
+</ul>
+<h2 id="总原则">总原则</h2>
+<pre class="text"><code>1. 优质观察材料 = 新鲜、完整、可回查、稳定、目标相关、可比较、可被自我消费的观察材料。
+2. 优质观察材料不是世界真值；它只允许进入自我侧组织、验证、确认和提交入口。
+3. 外设侧不得使用过期、generation 失配、材料不可回查或目标已失效的数据继续生成新鲜报告。
+4. generation 至少拆成约束generation、目标特征generation、来源材料generation。
+5. 任务管理 / 自我侧从队列视图读取观察材料后，应删除已消费项；未消费项必须受 TTL、容量和 generation 清理。
+6. 扫描和跟踪的优质观察材料必须有来自目标观察约束缓冲区的目标上下文；全帧材料只能作为识别或外设观察存在材料。
+7. 报告 / 包 / 队列项 / 材料页只是通信容器；正式承接对象只能是存在、特征、二次特征和状态动态。
+8. 扫描变化候选只要求目标特征优质，不要求整帧优质；但仍必须满足目标约束、基准、值域和 generation 闸门。
+9. 跟踪稳定动态候选必须是强约束命中、未丢失、观测值在目标特征值域和预测区间内，且预测误差、非法跳变和硬冲突均达标；可用但非优质材料只能进入跟踪复验或降级状态。</code></pre>
+<h2 id="三级判定">三级判定</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>等级</th>
+<th>判定</th>
+<th>用途</th>
+<th>处置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>不合格观察材料</td>
+<td>采集失败、材料过期、句柄不可回查、目标种子缺失、基础结构不完整、任务所需质量指标低于硬底线</td>
+<td>不得作为新鲜观察证据</td>
+<td>删除、拒绝等待项、生成缺口、触发补观察</td>
+</tr>
+<tr>
+<td>可用观察材料</td>
+<td>新鲜、可回查、基础结构完整，达到对应范围硬底线，但存在低置信、局部缺口或稳定性不足</td>
+<td>可作为外设观察存在、草案、待验证材料</td>
+<td>进入对应队列视图，但自我侧不得直接确认；必要时派生补观察</td>
+</tr>
+<tr>
+<td>优质观察材料</td>
+<td>满足对应范围硬底线，并且目标相关、稳定复现、低缺口、低未解释、可比较、可追溯</td>
+<td>可优先供自我侧验证、扫描、跟踪和提交入口组织结果场景</td>
+<td>入识别 / 扫描 / 跟踪队列视图；自我消费后删除</td>
+</tr>
+<tr>
+<td>目标特征优质材料</td>
+<td>整帧可不优质，但目标区域内目标特征深度有效率、空间坐标有效率、掩码重合率、值域和基准均可比较</td>
+<td>可生成扫描变化候选</td>
+<td>只能进入 6146 值域内变化候选；仍需提交入口裁决</td>
+</tr>
+</tbody>
+</table>
+<h2 id="优质范围">优质范围</h2>
+<pre class="text"><code>优质观察材料可以是：
+    全局优质；
+    目标区域优质；
+    指定特征优质。
 
 全帧深度或空间质量不足，不必然否定目标 ROI / mask 内材料可用；
 对扫描 / 跟踪 / 指定目标复验，应优先检查目标区域质量；
-对颜色、轮廓、二维回查类需求，深度 / 空间不足可以降级，不应直接判整份材料不合格。</pre>
-    </section>
-    <section>
-      <h2>通用硬底线</h2>
-      <table>
-        <thead><tr><th>维度</th><th>标准</th><th>不合格条件</th><th>依据</th></tr></thead>
-        <tbody>
-          <tr><td>新鲜度</td><td>报告时间不得超过等待项 <code>最大允许报告年龄毫秒</code>；材料页不得超过保留时间</td><td>当前时间 - 报告时间 > 最大允许年龄；材料页过期</td><td><code>外设观察_报告满足等待项</code>；<code>D455材料页保留毫秒=60000</code></td></tr>
-          <tr><td>容量有效</td><td>队列不得无限保留旧数据</td><td>报告队列超过容量时旧项被裁剪；材料页超过容量时旧页被清理</td><td><code>队列容量=64</code>；<code>D455材料页容量=6</code></td></tr>
-          <tr><td>可回查</td><td><code>d455://</code> 句柄必须可解析并命中材料页</td><td>空句柄、格式错误、未找到、已过期、材料未就绪、类型不匹配</td><td><code>解析D455观察材料句柄</code></td></tr>
-          <tr><td>基础质量</td><td>需要全帧深度 / 空间材料时，全帧深度有效率和空间坐标有效率不能低于硬底线；扫描 / 跟踪优先检查目标 ROI / mask 内质量</td><td>全帧任务：<code>深度有效率 < 5000</code> 或 <code>空间坐标有效率 < 5000</code>；目标任务：目标区域有效点不足或空间点集不可回查</td><td>补观察缺失原因；050002 局部质量口径</td></tr>
-          <tr><td>目标上下文</td><td>扫描 / 跟踪必须有目标种子或目标区域</td><td><code>目标区域或目标簇</code> 为空</td><td>扫描 / 跟踪等待项前置满足</td></tr>
-        </tbody>
-      </table>
-    </section>
-    <section>
-      <h2>优质推荐门槛</h2>
-      <table>
-        <thead><tr><th>维度</th><th>可用门槛</th><th>优质门槛</th><th>依据</th></tr></thead>
-        <tbody>
-          <tr><td>帧质量评分</td><td><code>帧质量评分 > 0</code>，且未触发硬失败</td><td><code>帧质量评分 >= 7000</code></td><td>深度 35%、空间 35%、候选验证 20%、低未解释 10%</td></tr>
-          <tr><td>全局深度有效率</td><td><code>>= 5000</code></td><td><code>>= 7000</code>，且深度空洞不支配全局任务所需范围</td><td>只用于需要全帧深度 / 空间材料的任务</td></tr>
-          <tr><td>全局空间坐标有效率</td><td><code>>= 5000</code></td><td><code>>= 7000</code>，且全局点集可回查</td><td>只用于需要全帧深度 / 空间材料的任务</td></tr>
-          <tr><td>目标区域深度有效率</td><td>目标 ROI / mask 内有效点数达标</td><td>目标 ROI / mask 主体深度有效，空洞不支配目标特征</td><td>扫描 / 跟踪 / 指定目标复验优先使用该指标</td></tr>
-          <tr><td>目标区域空间坐标有效率</td><td>目标点集可回查，且覆盖目标 ROI / mask 主体</td><td>目标点集连续、稳定、可比较</td><td>扫描 / 跟踪 / 指定目标复验优先使用该指标</td></tr>
-          <tr><td>轮廓闭合度</td><td><code>>= 7000</code> 才不视为明显断裂</td><td><code>>= 8000</code>，且无深度断裂 / 无无效深度穿越</td><td>轮廓闭合度 <code>< 7000</code> 触发轮廓断裂</td></tr>
-          <tr><td>轮廓置信度</td><td><code>>= 7000</code> 才不视为低置信</td><td><code>>= 8000</code>，且不依赖补全深度</td><td>低置信轮廓状态以 <code>< 7000</code> 或依赖补全深度触发</td></tr>
-          <tr><td>空间连续性 / 范围稳定性</td><td><code>>= 5000</code></td><td><code>>= 7000</code></td><td>低于 5000 触发边界不稳定</td></tr>
-          <tr><td>补观察缺口</td><td>可存在，但只能作为待验证材料</td><td><code>补观察缺口状态=0</code></td><td>补观察缺失原因、待补观察区域、低置信轮廓等聚合</td></tr>
-        </tbody>
-      </table>
-    </section>
-    <section>
-      <h2>模式专属标准</h2>
-      <table>
-        <thead><tr><th>模式</th><th>优质标准</th><th>降级条件</th></tr></thead>
-        <tbody>
-          <tr><td>识别</td><td>识别观察材料队列项新鲜、采集成功；外设观察存在材料具备可回查 ROI / 掩码 / 点集 / 空间候选 / 像素归属材料；轮廓闭合且置信高</td><td>句柄不可回查、像素归属不足、低置信或未知/冲突未标注</td></tr>
-          <tr><td>扫描</td><td>有自我缓冲区扫描种子、目标 ROI / mask / 点集、可比较基准；只比较目标区域和边界带</td><td>目标空、基准不可回查、缺上一报告时只能建首帧基准，不能生成变化动态</td></tr>
-          <tr><td>跟踪</td><td>目标种子可解析；当前簇命中；连续成功次数 >= 2；复现离散度 <= 150；目标区域质量达标；当前值域区间ID、预测区间、预测误差值、非法区间跳变次数、合法区间迁移状态可判断</td><td>种子不可解析、目标未命中、连续样本不足、复现离散、动态区间跳变非法或目标区域质量低</td></tr>
-        </tbody>
-      </table>
-    </section>
-    <section class="notes">
-      <h2>最小判断函数口径</h2>
-      <pre>判断优质观察材料(队列项, 需求类型, 目标上下文):
+对颜色、轮廓、二维回查类需求，深度 / 空间不足可以降级，不应直接判整份材料不合格。</code></pre>
+<h2 id="通用硬底线">通用硬底线</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>维度</th>
+<th>标准</th>
+<th>不合格条件</th>
+<th>依据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>新鲜度</td>
+<td>报告时间不得超过等待项
+<code>最大允许报告年龄毫秒</code>；材料页不得超过保留时间</td>
+<td>当前时间 - 报告时间 &gt; 最大允许年龄；材料页过期</td>
+<td><code>外设观察_报告满足等待项</code>；<code>D455材料页保留毫秒=60000</code></td>
+</tr>
+<tr>
+<td>容量有效</td>
+<td>队列不得无限保留旧数据</td>
+<td>报告队列超过容量时旧项被裁剪；材料页超过容量时旧页被清理</td>
+<td><code>队列容量=64</code>；<code>D455材料页容量=6</code></td>
+</tr>
+<tr>
+<td>可回查</td>
+<td><code>d455://</code> 句柄必须可解析并命中材料页</td>
+<td>空句柄、格式错误、未找到、已过期、材料未就绪、类型不匹配</td>
+<td><code>解析D455观察材料句柄</code></td>
+</tr>
+<tr>
+<td>结构完整</td>
+<td>帧尺寸、预期像素数、颜色 / 深度 / 空间材料结构与像素数一致</td>
+<td>宽高无效、预期像素数不匹配、颜色/深度/空间结构缺失</td>
+<td><code>D455_帧像素数量有效</code> 等材料有效性函数</td>
+</tr>
+<tr>
+<td>基础质量</td>
+<td>需要全帧深度 /
+空间材料时，全帧深度有效率和空间坐标有效率不能低于硬底线；扫描 /
+跟踪优先检查目标 ROI / mask 内质量</td>
+<td>对全帧任务：<code>深度有效率 &lt; 5000</code> 或
+<code>空间坐标有效率 &lt; 5000</code>；对目标任务：目标区域有效点不足或空间点集不可回查</td>
+<td><code>双目相机本能适配器.cpp</code> 补观察缺失原因；050002
+局部质量口径</td>
+</tr>
+<tr>
+<td>目标上下文</td>
+<td>扫描 / 跟踪必须有目标种子或目标区域</td>
+<td><code>目标区域或目标簇</code> 为空</td>
+<td><code>D455_扫描变化等待项前置满足</code>；<code>D455_目标跟踪等待项前置满足</code></td>
+</tr>
+<tr>
+<td>边界合法</td>
+<td>不得把外设报告直接当世界事实或需求满足</td>
+<td>未经自我组织和提交入口直接写真值</td>
+<td>050004 / 050005 边界</td>
+</tr>
+</tbody>
+</table>
+<h2 id="优质观察材料推荐门槛">优质观察材料推荐门槛</h2>
+<p>说明：</p>
+<pre class="text"><code>硬底线来自当前代码；
+优质门槛用于外设侧优化采集和自我侧优先消费。
+若代码尚未实现对应等级字段，可先作为判断契约和日志口径。</code></pre>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>维度</th>
+<th>可用门槛</th>
+<th>优质门槛</th>
+<th>依据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>帧质量评分</td>
+<td><code>帧质量评分 &gt; 0</code>，且未触发硬失败</td>
+<td><code>帧质量评分 &gt;= 7000</code></td>
+<td>代码按深度有效率 35%、空间坐标有效率 35%、候选验证通过率
+20%、低未解释比例 10% 计算</td>
+</tr>
+<tr>
+<td>全局深度有效率</td>
+<td><code>&gt;= 5000</code></td>
+<td><code>&gt;= 7000</code>，且深度空洞不支配全局任务所需范围</td>
+<td>只用于需要全帧深度 / 空间材料的任务</td>
+</tr>
+<tr>
+<td>全局空间坐标有效率</td>
+<td><code>&gt;= 5000</code></td>
+<td><code>&gt;= 7000</code>，且全局点集可回查</td>
+<td>只用于需要全帧深度 / 空间材料的任务</td>
+</tr>
+<tr>
+<td>目标区域深度有效率</td>
+<td>目标 ROI / mask 内有效点数达标</td>
+<td>目标 ROI / mask 主体深度有效，空洞不支配目标特征</td>
+<td>扫描 / 跟踪 / 指定目标复验优先使用该指标</td>
+</tr>
+<tr>
+<td>目标区域空间坐标有效率</td>
+<td>目标点集可回查，且覆盖目标 ROI / mask 主体</td>
+<td>目标点集连续、稳定、可比较</td>
+<td>扫描 / 跟踪 / 指定目标复验优先使用该指标</td>
+</tr>
+<tr>
+<td>轮廓闭合度</td>
+<td><code>&gt;= 7000</code> 才不视为明显断裂</td>
+<td><code>&gt;= 8000</code>，且无跨越深度断裂 / 无穿过无效深度区域</td>
+<td>轮廓闭合度 <code>&lt; 7000</code> 触发轮廓断裂</td>
+</tr>
+<tr>
+<td>轮廓置信度</td>
+<td><code>&gt;= 7000</code> 才不视为低置信</td>
+<td><code>&gt;= 8000</code>，且不依赖补全深度</td>
+<td>低置信轮廓状态以 <code>&lt; 7000</code> 或依赖补全深度触发</td>
+</tr>
+<tr>
+<td>空间连续性 / 范围稳定性</td>
+<td><code>&gt;= 5000</code></td>
+<td><code>&gt;= 7000</code></td>
+<td>低于 5000 触发边界不稳定</td>
+</tr>
+<tr>
+<td>有效点</td>
+<td>候选有效点数 <code>&gt;= 16</code>，有效点比例
+<code>&gt;= 3000</code></td>
+<td>有效点充足且覆盖目标 ROI / mask 主体</td>
+<td>低于该值触发有效点不足</td>
+</tr>
+<tr>
+<td>未解释区域</td>
+<td>允许少量局部未解释</td>
+<td>目标 ROI 内未解释区域比例低，且不影响目标轮廓归属</td>
+<td>未解释像素计入缺口和帧质量评分</td>
+</tr>
+<tr>
+<td>补观察缺口</td>
+<td>可存在，但只能作为待验证材料</td>
+<td><code>补观察缺口状态=0</code>；待补观察区域数量为 0</td>
+<td>补观察缺失原因、待补观察区域、低置信轮廓等聚合</td>
+</tr>
+<tr>
+<td>多帧稳定性</td>
+<td>至少有可读多帧材料</td>
+<td>多帧低稳定像素为 0 或不落在目标 ROI；融合深度稳定性高</td>
+<td>融合低稳定像素触发补观察建议</td>
+</tr>
+</tbody>
+</table>
+<h2 id="识别数据标准">识别数据标准</h2>
+<p>识别观察材料用于：</p>
+<pre class="text"><code>当前观察范围内的外设观察存在、未知区域、冲突区域、像素簇归属验证。</code></pre>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>项</th>
+<th>优质标准</th>
+<th>降级 / 补观察条件</th>
+<th>依据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>识别观察材料队列项</td>
+<td>队列项新鲜、采集成功、帧结构完整、至少一个空间候选或明确无候选材料</td>
+<td>采集失败、帧结构缺失、材料不可回查</td>
+<td><code>D455_从调用结果生成逐簇识别报告</code></td>
+</tr>
+<tr>
+<td>外设观察存在材料</td>
+<td>每个外设观察存在至少具备 ROI / 掩码 / 点集 / 空间候选 /
+像素归属材料之一，且句柄可回查</td>
+<td>句柄空、过期、未找到、材料未就绪</td>
+<td><code>结构_外设观察像素簇摘要</code>；<code>解析D455观察材料句柄</code></td>
+</tr>
+<tr>
+<td>像素归属</td>
+<td>像素归属验证状态成立，外设观察存在验证通过率高</td>
+<td>空间匹配点数为 0，外设观察存在条件不足</td>
+<td><code>像素归属验证状态</code>；<code>外设观察存在验证通过率</code></td>
+</tr>
+<tr>
+<td>轮廓质量</td>
+<td>轮廓闭合、置信高、深度/颜色/空间至少两类支持</td>
+<td>轮廓断裂、低置信、依赖补全深度</td>
+<td>轮廓闭合度、轮廓置信度、轮廓来源类型</td>
+</tr>
+<tr>
+<td>未知 / 冲突</td>
+<td>未知区和冲突区被明确标注，不伪装成已确认存在</td>
+<td>未解释区域多但未生成缺口</td>
+<td>050004 / 050005</td>
+</tr>
+</tbody>
+</table>
+<p>识别观察材料即使优质，也只允许进入自我侧验证和确认流程；不得由外设直接创建世界存在。</p>
+<h2 id="扫描数据标准">扫描数据标准</h2>
+<p>扫描观察材料用于：</p>
+<pre class="text"><code>已识别区域或已确认存在的变化检查。
+首次扫描只建立扫描基准或形成观察 / 识别线索；
+有可比历史后才允许形成变化候选材料。</code></pre>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>项</th>
+<th>优质标准</th>
+<th>降级 / 补观察条件</th>
+<th>依据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>扫描种子</td>
+<td>目标观察约束缓冲区中有目标存在、ROI / mask /
+点集、基准报告或下一轮扫描基准</td>
+<td>目标区域或目标簇为空；基准不可回查；目标已过期</td>
+<td>等待项目标字段；v0.2 缓冲区流程</td>
+</tr>
+<tr>
+<td>可比较基准</td>
+<td>当前材料与基准在同一目标上下文，且约束generation、目标特征generation、来源材料generation
+未失配或存在可解释关系</td>
+<td>缺上一逐簇识别基准时只建立首帧基准</td>
+<td><code>D455_从逐簇识别报告生成扫描变化报告</code></td>
+</tr>
+<tr>
+<td>变化判定</td>
+<td>跨帧簇 ID 稳定且连续命中 &gt;= 2
+时优先判稳定；否则检查中心、像素数、轮廓置信度差异</td>
+<td>中心 X/Y 差异 &gt; 30，Z &gt; 50，像素数超容差，轮廓置信度差异 &gt;
+1500</td>
+<td><code>D455_观察像素簇存在明显变化</code></td>
+</tr>
+<tr>
+<td>目标约束</td>
+<td>扫描只比较目标 ROI、mask、边界带或已识别区域</td>
+<td>全帧变化直接替代目标变化</td>
+<td>050004：扫描处理可扫描的已识别区域</td>
+</tr>
+<tr>
+<td>输出口径</td>
+<td>输出无变化、值域内变化候选、冲突、待复验、需重识别、未解释残差</td>
+<td>无基准却提交发现事实或变化动态；未变化仍提交变化事实；冲突 /
+待复验被当作变化事实</td>
+<td>20260607 扫描修正口径</td>
+</tr>
+</tbody>
+</table>
+<p>扫描优质观察材料的核心不是“全帧都清楚”，而是“目标区域可比较、基准可追溯、变化判断有材料依据”。
+扫描优质观察材料可以是全局优质、目标区域优质或目标特征优质；生成扫描变化候选只要求目标特征优质，不要求整帧优质。</p>
+<p>扫描变化候选用途门必须额外满足：</p>
+<pre class="text"><code>目标存在.归属状态 == 已归属
+目标存在.背景状态 != 背景
+目标特征当前值可读
+目标特征值域可读
+上一轮扫描基准可读
+目标观察约束状态 == 可用
+约束generation匹配
+目标特征generation匹配
+来源材料generation匹配
+扫描范围.高价值待识别区域数量 == 0</code></pre>
+<h2 id="跟踪数据标准">跟踪数据标准</h2>
+<p>跟踪观察材料用于：</p>
+<pre class="text"><code>指定已确认存在的连续观察。
+跟踪只盯一个目标，不替代全场景识别或扫描。
+跟踪材料不是目标存在正式一阶特征值。</code></pre>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>项</th>
+<th>优质标准</th>
+<th>降级 / 补观察条件</th>
+<th>依据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>强目标观察约束</td>
+<td>目标存在ID、目标特征类型ID、目标特征当前值、目标特征值域、ROI / 掩码
+/ AABB / 点集之一、TTL 和三类 generation 均可用</td>
+<td>无强约束但有旧目标种子时，只能降级重捕获 /
+待复验，不能提交稳定跟踪事实</td>
+<td>目标观察约束缓冲区；20260607 跟踪修正口径</td>
+</tr>
+<tr>
+<td>跟踪种子</td>
+<td>自我缓冲区或等待项提供目标存在 / 目标簇 ID / 预测窗口 /
+上一轮中心</td>
+<td>目标种子不可解析或为空；约束过期；generation 失配</td>
+<td><code>D455_从逐簇识别报告生成跟踪报告</code></td>
+</tr>
+<tr>
+<td>目标命中</td>
+<td>当前逐簇识别材料能命中目标簇或来源空间候选，且命中与目标约束匹配</td>
+<td>未命中时只生成丢失 / 遮挡 /
+重捕获候选材料，不写目标特征外设观测值</td>
+<td>跟踪报告生成逻辑</td>
+</tr>
+<tr>
+<td>连续稳定</td>
+<td>有上一帧，连续成功次数 &gt;= 2</td>
+<td>连续样本不足则证据不足</td>
+<td><code>D455_记录跟踪成功到缓存</code></td>
+</tr>
+<tr>
+<td>复现离散度</td>
+<td>坐标离散度 &lt;= 150</td>
+<td>大于 150 则复现离散或质量未达标</td>
+<td>跟踪状态值计算</td>
+</tr>
+<tr>
+<td>目标质量</td>
+<td>命中簇深度有效率 &gt;= 5000，空间坐标有效率 &gt;= 5000</td>
+<td>低于硬底线则跟踪状态不稳定</td>
+<td>跟踪状态值计算</td>
+</tr>
+<tr>
+<td>目标窗口待识别像素</td>
+<td>目标窗口净待识别像素比例低于阈值</td>
+<td>待识别像素增加时，输出遮挡候选 / 身份复验线索，冻结基准</td>
+<td>20260607 跟踪修正口径</td>
+</tr>
+<tr>
+<td>当前值域区间ID</td>
+<td>目标当前值能归入明确细分区间</td>
+<td>当前值无法归区间或区间来源不可回查</td>
+<td>目标特征当前值 / 特征值域</td>
+</tr>
+<tr>
+<td>预测区间</td>
+<td>有预测窗口或预测区间，且与上一轮状态连续</td>
+<td>缺预测区间或预测窗口过期</td>
+<td>跟踪预测区间状态</td>
+</tr>
+<tr>
+<td>预测误差值</td>
+<td>预测误差在目标特征允许范围内</td>
+<td>预测误差持续扩大或超过允许范围</td>
+<td>跟踪预测误差</td>
+</tr>
+<tr>
+<td>非法区间跳变次数</td>
+<td>非法区间跳变次数为 0 或在复验阈值内</td>
+<td>出现不可解释区间跳变</td>
+<td>跟踪区间迁移状态</td>
+</tr>
+<tr>
+<td>合法区间迁移状态</td>
+<td>动态变化连续、可预测，区间迁移有来源材料</td>
+<td>区间迁移无来源材料或跳变不可解释</td>
+<td>目标存在区间迁移动态</td>
+</tr>
+<tr>
+<td>硬冲突数量</td>
+<td>身份、值域、掩码、轮廓和空间冲突数量为 0</td>
+<td>硬冲突数量 &gt; 0 时不提交稳定跟踪事实，进入识别复验或观察</td>
+<td>识别唯一性 / 跟踪修正口径</td>
+</tr>
+<tr>
+<td>非目标处理</td>
+<td>主动忽略非目标存在，只输出目标连续观察材料</td>
+<td>用跟踪报告替代全场景扫描</td>
+<td>050004 / 用户口径</td>
+</tr>
+</tbody>
+</table>
+<p>跟踪优质观察材料的核心是“目标连续可复现，并且动态变化合法、连续、可预测”，不是“场景整体明确”。</p>
+<p>跟踪用途门：</p>
+<pre class="text"><code>不合格：
+    若不影响活跃父需求，只回执 / 清理；
+    若命中活跃父需求关键缺口，上报缺口事实或派生需求消息。
+
+可用但非优质：
+    可进入 6147 跟踪复验；
+    只能输出待复验 / 证据不足 / 降级跟踪状态；
+    不得提交稳定跟踪事实。
+
+优质 + 强约束命中：
+    可进入 6147；
+    可生成跟踪动态候选；
+    仍需提交入口裁决。</code></pre>
+<p>稳定跟踪动态候选必须额外满足：</p>
+<pre class="text"><code>目标存在.归属状态 == 已归属
+目标存在.背景状态 != 背景
+目标特征generation匹配
+约束generation匹配
+来源材料generation匹配
+跟踪目标命中状态 == 命中
+目标存在.丢失状态 == 未丢失
+当前观测值落入目标特征值域
+当前观测值落入预测区间
+预测误差值 &lt; 最大允许预测误差
+非法区间跳变次数 == 0
+硬冲突数量 == 0
+来源动作动态可追溯</code></pre>
+<h2 id="自我消费与删除标准">自我消费与删除标准</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>队列</th>
+<th>自我读取条件</th>
+<th>用完删除条件</th>
+<th>过期清理条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>识别观察材料队列视图</td>
+<td>需求目标是外设观察存在验证、观察存在确认、未知区域识别</td>
+<td>自我已读取并生成结果场景或缺口</td>
+<td>超过最大允许年龄、句柄不可回查、队列超容量</td>
+</tr>
+<tr>
+<td>扫描特征变化材料队列视图</td>
+<td>需求目标是已识别区域扫描、目标特征变化、发现事实承接</td>
+<td>自我已读取并提交发现 / 变化 / 无变化结果或派生复验缺口</td>
+<td>目标约束过期、基准失效、generation 失配、队列超容量</td>
+</tr>
+<tr>
+<td>跟踪观测材料队列视图</td>
+<td>需求目标是指定存在跟踪、丢失 / 遮挡 / 重捕获 / 区间迁移</td>
+<td>自我已读取并提交对应类型跟踪事实、状态动态或派生前置缺口；不得直接写目标新一阶特征值</td>
+<td>目标种子过期、主动目标切换、连续失败超策略、队列超容量、generation
+失配</td>
+</tr>
+<tr>
+<td>可回查观察材料页</td>
+<td>自我按 d455:// 句柄回查材料</td>
+<td>被队列项消费完成后仍可保留到 TTL</td>
+<td>过期时间到达、材料页队列超容量</td>
+</tr>
+<tr>
+<td>目标观察约束缓冲区</td>
+<td>外设侧扫描或跟踪读取目标约束</td>
+<td>目标任务完成、目标被替代、需求撤销</td>
+<td>TTL 到期、约束generation / 目标特征generation / 来源材料generation
+失配、来源报告不可回查</td>
+</tr>
+</tbody>
+</table>
+<h2 id="补观察触发依据">补观察触发依据</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>触发原因</th>
+<th>典型字段</th>
+<th>建议补观察动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>深度空洞 / 未解释区域</td>
+<td><code>深度空洞数量</code>、<code>未解释区域比例</code>、<code>未解释像素数</code></td>
+<td>重新取得观察特征帧；继续观察未解释区域</td>
+</tr>
+<tr>
+<td>有效点不足</td>
+<td>全帧任务：<code>深度有效率 &lt; 5000</code>、<code>空间坐标有效率 &lt; 5000</code>；目标任务：目标
+ROI / mask 内有效点不足、候选有效点数 <code>&lt; 16</code></td>
+<td>缩小 ROI 重新观察</td>
+</tr>
+<tr>
+<td>轮廓断裂 / 低置信</td>
+<td><code>轮廓闭合度 &lt; 7000</code>、<code>轮廓置信度 &lt; 7000</code>、低置信轮廓状态</td>
+<td>内部世界细分；目标边界重采样</td>
+</tr>
+<tr>
+<td>对齐缺失</td>
+<td>彩色深度对齐状态不成立</td>
+<td>调整双目相机工作模式</td>
+</tr>
+<tr>
+<td>补全依赖高 / 融合低稳定</td>
+<td>轮廓依赖补全深度、融合低稳定像素数量</td>
+<td>融合稳定观察帧深度；多帧重采样</td>
+</tr>
+<tr>
+<td>目标种子缺失</td>
+<td><code>目标区域或目标簇</code> 空、跟踪种子不可解析</td>
+<td>回到自我侧补目标存在 / 目标窗口 / 基准特征</td>
+</tr>
+<tr>
+<td>基准不可回查</td>
+<td>来源报告过期、材料页未找到、generation 失配</td>
+<td>重新建立扫描基准或目标跟踪基准</td>
+</tr>
+</tbody>
+</table>
+<h2 id="最小判断函数口径">最小判断函数口径</h2>
+<p>可落成代码时，建议按以下顺序判断：</p>
+<pre class="text"><code>判断优质观察材料(队列项, 需求类型, 目标上下文):
     1. 检查采集成功、报告类型、外设ID、时间戳；
-    2. 检查报告年龄 <= 等待项最大允许报告年龄；
+    2. 检查报告年龄 &lt;= 等待项最大允许报告年龄；
     3. 检查 d455:// 材料句柄可回查，且未过期；
-    4. 若需求类型是扫描 / 跟踪，检查自我存在信息缓冲区中目标上下文新鲜；
-    5. 检查适用范围质量硬底线：全帧任务检查全局深度 / 空间质量；目标任务检查目标 ROI / mask 内深度 / 空间质量；颜色、轮廓、二维回查任务允许深度 / 空间不足时降级；
-    6. 检查优质门槛：帧质量评分 >= 7000，轮廓闭合度 >= 8000，轮廓置信度 >= 8000，补观察缺口状态 = 0；
-    7. 按识别 / 扫描 / 跟踪分别检查模式专属条件；跟踪还要检查当前值域区间ID、预测区间、预测误差值、非法区间跳变次数和合法区间迁移状态；
-    8. 返回不合格 / 可用 / 优质、质量依据字段、需补观察原因、建议外设动作。</pre>
-    </section>
-  </main>
+    4. 若需求类型是扫描 / 跟踪，检查目标观察约束缓冲区中目标上下文新鲜；
+    5. 检查适用范围质量硬底线：
+           全帧任务检查全局深度 / 空间质量；
+           目标任务检查目标 ROI / mask 内深度 / 空间质量；
+           颜色、轮廓、二维回查任务允许深度 / 空间不足时降级；
+    6. 检查优质推荐门槛：
+           帧质量评分 &gt;= 7000；
+           轮廓闭合度 &gt;= 8000；
+           轮廓置信度 &gt;= 8000；
+           空间连续性 / 范围稳定性 &gt;= 7000；
+           补观察缺口状态 = 0；
+    7. 按识别 / 扫描 / 跟踪分别检查模式专属条件；
+       跟踪还要检查强目标观察约束、三类 generation、目标窗口待识别像素比例、当前值域区间ID、预测区间、预测误差值、非法区间跳变次数、合法区间迁移状态和硬冲突数量；
+    8. 返回：
+           不合格 / 可用 / 优质；
+           质量依据字段；
+           需补观察原因；
+           建议外设动作。</code></pre>
+<h2 id="定案">定案</h2>
+<pre class="text"><code>优质观察材料不是“看到了东西”，而是：
+
+新鲜：
+    报告、材料页、目标上下文未过期；
+
+完整：
+    帧结构、ROI、mask、点集、空间候选、基准材料可回查；
+
+稳定：
+    深度、空间、轮廓、多帧复现达到硬底线，优先达到推荐门槛；
+
+相关：
+    扫描 / 跟踪数据必须绑定自我提供的目标存在和目标约束；
+
+可消费：
+    能进入识别 / 扫描 / 跟踪队列视图，被任务管理按等待项读取、删除和追溯，并由自我侧裁决。
+
+只有满足这些条件的观察材料，才是外设侧应优先生产和自我侧应优先消费的优质观察材料。</code></pre>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  for (const block of document.querySelectorAll("pre.mermaid")) {
+    const code = block.querySelector("code");
+    if (code) block.textContent = code.textContent;
+  }
+  mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+</script>
 </body>
 </html>

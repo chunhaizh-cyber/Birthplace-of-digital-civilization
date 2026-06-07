@@ -1,113 +1,207 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>本能方法：跟踪内部实现逻辑流程图 v0.2</title>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>20260605_本能方法_跟踪内部实现逻辑流程图_v0.2</title>
   <style>
-    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
-    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
-    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
-    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
-    main { padding: 20px; }
-    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
-    .canvas { min-width: 2880px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
-    .mermaid { min-width: 2840px; }
-    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
 </head>
 <body>
-  <header>
-    <h1>本能方法：跟踪内部实现逻辑流程图 v0.2</h1>
-    <p class="hint">跟踪守动态：对指定已归属存在持续取值，判断动态特征是否连续、合法、稳定。</p>
-  </header>
-  <main>
-    <section>
-      <h2>流程图</h2>
-      <div class="canvas">
-        <pre class="mermaid">
-flowchart TD
-    START["跟踪本能方法启动<br/>目标: 持续读取指定存在动态特征"]
-    IN0["输入条件特征<br/>指定存在归属状态=已归属<br/>跟踪窗口明确状态=1<br/>跟踪基准特征可读状态=1<br/>期望动态特征类型集合可读"]
-    IN1["输入存在与特征<br/>指定存在<br/>上一轮/跟踪基准特征<br/>跟踪特征值域区间<br/>预测区间<br/>最大允许预测误差"]
-    G0{"跟踪可启动?"}
-    GAP0["输出缺口特征<br/>指定存在跟踪不可启动状态=1<br/>回扫描/识别/观察"]
-    READ["读取指定存在当前特征值<br/>位置 / 距离 / 姿态 / 速度趋势 / 接近远离<br/>当前观测年龄 / 遮挡状态 / 丢失状态"]
-    V0{"目标身份是否匹配<br/>指定存在?"}
-    ID_CONFLICT["身份冲突<br/>指定存在.跟踪身份冲突状态=存在<br/>跟踪身份冲突动态=已生成<br/>回识别"]
-    Q0{"跟踪质量是否合格?"}
-    LOWQ["质量不足<br/>指定存在.跟踪质量状态=质量不足<br/>质量缺口状态动态=已生成<br/>回观察或调整窗口"]
-    L0{"目标是否丢失/遮挡?"}
-    LOST["丢失/遮挡<br/>指定存在.跟踪状态=丢失/遮挡<br/>跟踪丢失动态=已生成<br/>重捕获候选状态=已生成"]
-    CMP["计算动态二次特征<br/>当前值_上一轮值.变化幅度<br/>当前值_预测值.预测误差<br/>当前值域区间ID<br/>区间迁移类型<br/>非法区间跳变次数"]
-    V1{"当前特征值是否落入<br/>合法值域区间?"}
-    RANGE_BAD["值域非法<br/>指定存在.动态值域冲突状态=存在<br/>动态值域冲突动态=已生成<br/>回识别/复验"]
-    P0{"当前特征值是否落入<br/>预测区间?"}
-    P_BAD["预测偏差超限<br/>指定存在.预测误差值 > 最大允许预测误差<br/>预测偏差超限动态=已生成"]
-    T0{"区间迁移是否合法?"}
-    JUMP["非法跳变<br/>非法区间跳变次数+1<br/>非法区间跳变动态=已生成<br/>回识别/复验"]
-    DYN["合法连续动态<br/>指定存在.当前特征值=当前值<br/>指定存在.跟踪状态=稳定<br/>动态区间迁移动态=已生成<br/>指定存在动态信息取得状态=1"]
-    STABLE["稳定或低速<br/>当前特征误差 &lt; 稳定阈值<br/>不生成完整变化动态<br/>更新最近观测时间 / 稳定计数"]
-    BASE["更新跟踪基准特征<br/>下一轮跟踪基准特征状态=已更新<br/>预测区间状态=已更新"]
-    CONT{"持续条件仍满足?"}
-    LOOP["继续下一轮跟踪"]
-    END["结束跟踪<br/>跟踪完成状态=已完成/已中止"]
-    OUT0["输出特征<br/>指定存在当前特征值<br/>跟踪状态 / 丢失状态 / 遮挡状态<br/>当前值域区间ID<br/>最近观测年龄"]
-    OUT1["输出二次特征<br/>预测误差值<br/>区间迁移类型<br/>非法区间跳变次数<br/>动态连续性状态"]
-    OUT2["输出状态动态<br/>动态区间迁移动态<br/>跟踪丢失动态<br/>重捕获动态<br/>预测偏差超限动态<br/>身份冲突动态"]
-    OUT3["回流线索特征<br/>身份冲突/超值域 -> 识别<br/>丢失/重捕获 -> 扫描/识别<br/>质量不足 -> 观察"]
-    R0["硬边界<br/>跟踪只盯一个指定存在"]
-    R1["硬边界<br/>跟踪不能证明全场扫描完成"]
-    R2["硬边界<br/>跟踪丢失不能直接确认新存在"]
-    R3["硬边界<br/>无变化不大量写动态"]
-    R4["硬边界<br/>跟踪结果不能承接线程传输容器"]
-    START --> IN0 --> IN1 --> G0
-    G0 -->|否| GAP0 --> OUT0
-    G0 -->|是| READ --> V0
-    V0 -->|否| ID_CONFLICT --> OUT3
-    V0 -->|是| Q0
-    Q0 -->|否| LOWQ --> OUT3
-    Q0 -->|是| L0
-    L0 -->|丢失/遮挡| LOST --> OUT2
-    L0 -->|稳定可见| CMP --> V1
-    V1 -->|否| RANGE_BAD --> OUT3
-    V1 -->|是| P0
-    P0 -->|否| P_BAD --> OUT2
-    P0 -->|是| T0
-    T0 -->|否| JUMP --> OUT3
-    T0 -->|是| DYN --> BASE
-    CMP -->|低速稳定| STABLE --> BASE
-    BASE --> OUT0 --> OUT1 --> OUT2 --> CONT
-    CONT -->|是| LOOP --> READ
-    CONT -->|否| END
-    R0 -.约束.-> IN0
-    R1 -.约束.-> END
-    R2 -.约束.-> LOST
-    R3 -.约束.-> STABLE
-    R4 -.约束.-> OUT0
-    classDef input fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
-    classDef process fill:#eef7ed,stroke:#3f7f4f,color:#102010;
-    classDef compare fill:#f1edff,stroke:#6c56a4,color:#1d1730;
-    classDef output fill:#eef8f7,stroke:#397b77,color:#102827;
-    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
-    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
-    class START,IN0,IN1 input;
-    class READ,DYN,STABLE,BASE,LOOP process;
-    class CMP compare;
-    class G0,V0,Q0,L0,V1,P0,T0,CONT gate;
-    class OUT0,OUT1,OUT2,OUT3,END output;
-    class GAP0,ID_CONFLICT,LOWQ,LOST,RANGE_BAD,P_BAD,JUMP,R0,R1,R2,R3,R4 warn;
-        </pre>
-      </div>
-    </section>
-    <section class="notes">
-      <h2>正式输出</h2>
-      <p>跟踪输出指定存在当前特征、预测误差和区间迁移等二次特征，以及动态区间迁移、丢失、重捕获、预测偏差超限和身份冲突状态动态。</p>
-    </section>
-  </main>
-  <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
-    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
-  </script>
+<header id="title-block-header">
+<h1 class="title">20260605_本能方法_跟踪内部实现逻辑流程图_v0.2</h1>
+</header>
+<h1
+id="本能方法跟踪内部实现逻辑流程图-v0.2">本能方法：跟踪内部实现逻辑流程图
+v0.2</h1>
+<p>更新时间：2026-06-07</p>
+<p>本文件原 2026-06-05 版本已被 2026-06-07
+跟踪边界修正口径覆盖。当前有效图请使用：</p>
+<pre class="text"><code>流程图/当前_本能方法_跟踪内部实现逻辑流程图.md</code></pre>
+<p>替代原因：</p>
+<pre class="text"><code>旧图中“读取当前特征值”“指定存在.当前特征值=当前值”等表达，
+容易把跟踪观测材料、外设侧当前观测值、目标存在正式一阶特征值和跟踪动态混在一起。</code></pre>
+<p>当前定案：</p>
+<pre class="text"><code>D455 跟踪报告只能提供指定目标的外设观测材料 / 当前观测值 / 比较材料。
+6147 自我_跟踪指定存在只能基于已有目标特征、基准、值域、预测区间进行比较。
+正式写入目标存在新一阶特征值，必须回观察并经提交入口裁决。
+跟踪可以写二次特征、跟踪状态、状态动态、预测误差、区间迁移、丢失 / 遮挡 / 重捕获状态。</code></pre>
+<p>不得再使用旧图中的以下口径作为实施依据：</p>
+<pre class="text"><code>跟踪直接写目标存在当前特征值。
+未命中目标簇仍生成普通跟踪成功报告。
+无强目标观察约束仍允许提交稳定跟踪事实。
+提交_指定存在跟踪事实 只检查报告可提交。</code></pre>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  for (const block of document.querySelectorAll("pre.mermaid")) {
+    const code = block.querySelector("code");
+    if (code) block.textContent = code.textContent;
+  }
+  mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+</script>
 </body>
 </html>

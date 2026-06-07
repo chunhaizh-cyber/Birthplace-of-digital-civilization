@@ -608,6 +608,11 @@ public:
     std::vector<结构_回流结算快照> 读取最近回流结算列表快照() const;
     std::vector<结构_关键中间状态分组快照> 读取最近关键中间状态分组快照() const;
     结构_自检报告修复治理快照 读取最近自检报告修复治理快照() const;
+    bool 尝试抢占落账观察事实承接(
+        const char* 来源,
+        时间戳 now = 结构体_时间戳::当前_微秒(),
+        std::size_t 最大承接数量 = 1);
+    bool 请求观察事实承接轻量唤醒(const char* 来源 = nullptr) noexcept;
     结构_自我线程配置& 配置() noexcept;
     const 结构_自我线程配置& 配置() const noexcept;
 
@@ -978,6 +983,7 @@ private:
         bool 已应用需求树变更 = false;
         bool 本轮有需求与权重输入 = false;
         bool 本轮已完成需求与权重更新 = false;
+        bool 规范化后清空全局冻结批次 = true;
     };
 
     friend bool 投递治理外部反馈事件(
@@ -1001,6 +1007,16 @@ private:
     void 步骤_刷新线程上下文并生成治理帧_(结构_主循环骨架上下文* 上下文);
     void 步骤_整理需求并做根层重判_(结构_主循环骨架上下文* 上下文);
     void 步骤_生成并执行主派发决议_(结构_主循环骨架上下文* 上下文);
+    bool 抢占落账观察事实承接_(
+        结构_主循环骨架上下文* 上下文,
+        const char* 来源,
+        时间戳 now,
+        std::size_t 最大承接数量 = 1);
+    bool 抢占审批执行前许可_(
+        结构_主循环骨架上下文* 上下文,
+        const char* 来源,
+        时间戳 now,
+        std::size_t 最大许可数量 = 0);
     void 记录自检报告待处理_(
         const 自我线程消息协议::结构_治理消息& 消息);
     void 执行休眠期自检报告修复门控_(

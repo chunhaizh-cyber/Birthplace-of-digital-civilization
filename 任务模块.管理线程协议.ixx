@@ -6,6 +6,7 @@ module;
 
 #include "基础信息节点类型.h"
 #include "需求节点类型.h"
+#include "方法类.h"
 #include "任务主信息类.h"
 
 export module 任务模块.管理线程协议;
@@ -94,7 +95,8 @@ enum class 枚举_任务工作项类型 : std::uint8_t {
 
 struct 结构_任务治理请求 {
     // 请求类型决定界面线程如何解释本请求：
-    // 发起任务允许任务信息节点为空；调度和状态推进类请求必须有任务信息节点。
+    // 发起任务允许任务信息节点为空；调度、重筹办、等待等治理请求必须有任务信息节点。
+    // 任务状态值推进不作为自我线程可提交的跨线程请求；外部只提交生命周期事件。
     枚举_任务管理请求类型 请求类型 = 枚举_任务管理请求类型::调度任务;
 
     std::uint64_t 请求ID = 0;
@@ -127,6 +129,8 @@ struct 结构_任务治理请求 {
 };
 
 struct 结构_任务状态推进请求 {
+    // 仅供任务管理界面线程内部把已裁决状态写入任务壳。
+    // 自我线程不得构造本结构来指定目标任务状态或阶段。
     任务节点类* 任务信息节点 = nullptr;
     需求节点类* 来源需求 = nullptr;
     枚举_任务状态 建议任务状态 = 枚举_任务状态::未定义;
@@ -149,6 +153,69 @@ struct 结构_任务状态推进结果 {
     bool 等待缺口唤醒 = false;
     动态节点类* 任务状态动作动态 = nullptr;
     std::string 摘要{};
+};
+
+struct 结构_观察事实更新任务唤醒通知 {
+    任务节点类* 任务信息节点 = nullptr;
+    需求节点类* 来源需求 = nullptr;
+    std::uint64_t 报告ID = 0;
+    std::uint64_t 等待项ID = 0;
+    bool 安全根路径 = false;
+    时间戳 当前时间 = 0;
+    std::string 事件摘要{};
+};
+
+struct 结构_父任务等待条件变化通知 {
+    任务节点类* 任务信息节点 = nullptr;
+    需求节点类* 父需求 = nullptr;
+    需求节点类* 子需求 = nullptr;
+    任务节点类* 子任务信息节点 = nullptr;
+    动态节点类* 子任务状态动作动态 = nullptr;
+    bool 父需求仍需推进 = false;
+    bool 子需求已满足 = false;
+    时间戳 当前时间 = 0;
+    std::string 事件摘要{};
+};
+
+struct 结构_任务价值结算完成通知 {
+    任务节点类* 任务信息节点 = nullptr;
+    需求节点类* 来源需求 = nullptr;
+    时间戳 当前时间 = 0;
+    std::string 事件摘要{};
+};
+
+struct 结构_任务执行前许可请求 {
+    任务节点类* 任务信息节点 = nullptr;
+    需求节点类* 来源需求 = nullptr;
+    方法类::节点类* 当前方法 = nullptr;
+    std::uint64_t 请求ID = 0;
+    std::uint64_t 工作项ID = 0;
+    时间戳 当前时间 = 0;
+    I64 预计安全变化量 = 0;
+    I64 预计服务变化量 = 0;
+    bool 禁止项接口已预留 = true;
+    bool 禁止项命中 = false;
+    bool 方向证据已提供 = false;
+    bool 方向不一致 = false;
+    // 仅供日志展示，不作为机器审批语义。
+    std::string 请求摘要{};
+};
+
+struct 结构_任务执行前许可结果 {
+    任务节点类* 任务信息节点 = nullptr;
+    需求节点类* 来源需求 = nullptr;
+    方法类::节点类* 当前方法 = nullptr;
+    std::uint64_t 工作项ID = 0;
+    bool 已审批 = false;
+    bool 允许执行 = false;
+    bool 需要等待 = false;
+    bool 需要收束 = false;
+    bool 禁止项接口已预留 = true;
+    bool 禁止项命中 = false;
+    bool 方向证据已提供 = false;
+    bool 方向不一致 = false;
+    // 仅供日志展示，不作为机器审批语义。
+    std::string 原因{};
 };
 
 struct 结构_任务权重固化请求 {

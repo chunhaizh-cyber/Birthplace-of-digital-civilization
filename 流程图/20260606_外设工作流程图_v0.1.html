@@ -1,136 +1,410 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>外设工作流程图 v0.1</title>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>20260606_外设工作流程图_v0.1</title>
   <style>
-    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
-    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
-    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
-    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1320px; }
-    main { padding: 20px; }
-    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
-    .canvas { min-width: 1900px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; margin-bottom: 18px; }
-    .mermaid { min-width: 1860px; }
-    .notes { padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; margin-bottom: 18px; }
-    table { border-collapse: collapse; width: 100%; max-width: 1320px; background: #fff; margin-bottom: 18px; }
-    th, td { border: 1px solid #d8dee4; padding: 8px 10px; text-align: left; vertical-align: top; }
-    th { background: #eef2f6; }
-    code { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
 </head>
 <body>
-  <header>
-    <h1>外设工作流程图 v0.1</h1>
-    <p class="hint">任务缺供料 -> 外设等待项 -> D455 报告 -> 任务管理承接 -> 自我材料落账 -> 四类方法重入 -> 提交入口正式入账。本图不宣称 6127 / 6145 / 6146 / 6147 自然业务链已经全部闭合。</p>
-  </header>
-  <main>
-    <section>
-      <h2>总流程</h2>
-      <div class="canvas">
-        <pre class="mermaid">
-flowchart TB
-    A["需求 / 任务进入筹办或执行"] --> B["当前方法缺外设供料"]
-    B --> C{"任务管理按方法结果能力映射口径"}
-    C -->|6127 观察验证| D1["等待项: 陌生环境逐簇识别<br/>期望: 逐簇识别报告"]
-    C -->|6145 识别| D1
-    C -->|6146 扫描| D2["等待项: 已识别场景扫描变化<br/>期望: 扫描变化报告<br/>需要目标 / 基准"]
-    C -->|6147 跟踪| D3["等待项: 目标跟踪观察<br/>期望: 跟踪报告<br/>需要目标种子"]
-    D1 --> E["启动或复用 D455 外设线程"]
-    D2 --> E
-    D3 --> E
-    E --> F["D455 采集一帧"]
-    F --> G["入队逐簇识别报告<br/>写短期材料页 d455://..."]
-    G --> H{"是否有匹配等待项"}
-    H -->|扫描等待项且有目标 / 基准| I["由逐簇报告生成扫描变化报告"]
-    H -->|跟踪等待项且有目标种子| J["由逐簇报告生成跟踪报告"]
-    H -->|观察验证 / 识别等待项| K["直接匹配逐簇识别报告"]
-    I --> L["外设观察报告队列"]
-    J --> L
-    K --> L
-    G --> L
-    L --> M["任务管理巡检等待项并匹配报告"]
-    M --> N["生成观察事实承接请求<br/>携带等待项ID / 报告ID / 来源需求ID"]
-    N --> O["自我线程承接到自我内部世界<br/>只落材料 / 簇 / 候选摘要"]
-    O --> P["触发来源需求或原任务重筹办"]
-    P --> Q{"方法重入"}
-    Q -->|6127| R["自我_验证外设观察像素簇候选<br/>写材料可回查 / 候选验证状态"]
-    Q -->|6145| S["自我_识别外设观察材料<br/>写同一性 / 归属 / 扫描可启动"]
-    Q -->|6146| T["自我_扫描已识别区域<br/>写发现事实或变化结果"]
-    Q -->|6147| U["自我_跟踪指定存在<br/>写窗口 / 基准 / 预测 / 丢失重捕获"]
-    S --> V1["提交_当前观察范围可观测单位存在对应事实"]
-    T --> V2["提交_观察存在发现事实"]
-    T --> V3["提交_观察存在特征值变化事实"]
-    U --> V4["提交_指定存在跟踪事实"]
-    V1 --> W["串接来源动作动态<br/>正式事实 / 状态 / 动态入账"]
-    V2 --> W
-    V3 --> W
-    V4 --> W
+<header id="title-block-header">
+<h1 class="title">20260606_外设工作流程图_v0.1</h1>
+</header>
+<h1 id="外设工作流程图-v0.1">外设工作流程图 v0.1</h1>
+<p>更新时间：2026-06-06</p>
+<h2 id="用途">用途</h2>
+<p>本图用于梳理当前 D455 / 外设工作链路：</p>
+<pre class="text"><code>任务缺供料
+-&gt; 外设等待项
+-&gt; D455 报告
+-&gt; 任务管理承接
+-&gt; 自我材料落账
+-&gt; 四类外设相关方法重入
+-&gt; 提交入口正式入账</code></pre>
+<p>本图只描述当前代码与计划索引中的工作流程，不宣称
+<code>6127 / 6145 / 6146 / 6147</code> 自然业务链已经全部闭合。</p>
+<h2 id="依据">依据</h2>
+<ul>
+<li><code>规范/外设观察特征与自我场景认知本能方法分层规范20260525.md</code></li>
+<li><code>规范/双目相机外设独占观察线程规范20260527.md</code></li>
+<li><code>规范/双目相机外设功能能力与实现途径总结20260527.md</code></li>
+<li><code>规范/观察像素簇与存在候选分层规范20260527.md</code></li>
+<li><code>计划/计划索引.md</code></li>
+<li><code>任务模块.管理界面线程.impl.cpp</code></li>
+<li><code>任务模块.管理工作线程.ixx</code></li>
+<li><code>外设观察报告队列.ixx</code></li>
+<li><code>外设线程_D455深度相机.ixx</code></li>
+<li><code>自我线程模块.impl.cpp</code></li>
+<li><code>自我动作实现.外设模块.ixx</code></li>
+</ul>
+<h2 id="总流程">总流程</h2>
+<pre class="mermaid"><code>flowchart TB
+    A[&quot;需求 / 任务进入筹办或执行&quot;] --&gt; B[&quot;当前方法缺外设供料&quot;]
+    B --&gt; C{&quot;任务管理按方法结果能力映射口径&quot;}
+
+    C --&gt;|6127 观察验证| D1[&quot;等待项: 陌生环境逐簇识别&lt;br/&gt;期望: 逐簇识别报告&quot;]
+    C --&gt;|6145 识别| D1
+    C --&gt;|6146 扫描| D2[&quot;等待项: 已识别场景扫描变化&lt;br/&gt;期望: 扫描变化报告&lt;br/&gt;需要目标 / 基准&quot;]
+    C --&gt;|6147 跟踪| D3[&quot;等待项: 目标跟踪观察&lt;br/&gt;期望: 跟踪报告&lt;br/&gt;需要目标种子&quot;]
+
+    D1 --&gt; E[&quot;启动或复用 D455 外设线程&quot;]
+    D2 --&gt; E
+    D3 --&gt; E
+
+    E --&gt; F[&quot;D455 采集一帧&quot;]
+    F --&gt; G[&quot;入队逐簇识别报告&lt;br/&gt;写短期材料页 d455://...&quot;]
+    G --&gt; H{&quot;是否有匹配等待项&quot;}
+    H --&gt;|扫描等待项且有目标 / 基准| I[&quot;由逐簇报告生成扫描变化报告&quot;]
+    H --&gt;|跟踪等待项且有目标种子| J[&quot;由逐簇报告生成跟踪报告&quot;]
+    H --&gt;|观察验证 / 识别等待项| K[&quot;直接匹配逐簇识别报告&quot;]
+
+    I --&gt; L[&quot;外设观察报告队列&quot;]
+    J --&gt; L
+    K --&gt; L
+    G --&gt; L
+
+    L --&gt; M[&quot;任务管理巡检等待项并匹配报告&quot;]
+    M --&gt; N[&quot;生成观察事实承接请求&lt;br/&gt;携带等待项ID / 报告ID / 来源需求ID&quot;]
+    N --&gt; O[&quot;自我线程承接到自我内部世界&lt;br/&gt;只落材料 / 簇 / 候选摘要&quot;]
+    O --&gt; P[&quot;触发来源需求或原任务重筹办&quot;]
+
+    P --&gt; Q{&quot;方法重入&quot;}
+    Q --&gt;|6127| R[&quot;自我_验证外设观察像素簇候选&lt;br/&gt;写材料可回查 / 候选验证状态&quot;]
+    Q --&gt;|6145| S[&quot;自我_识别外设观察材料&lt;br/&gt;写同一性 / 归属 / 扫描可启动&quot;]
+    Q --&gt;|6146| T[&quot;自我_扫描已识别区域&lt;br/&gt;写发现事实或变化结果&quot;]
+    Q --&gt;|6147| U[&quot;自我_跟踪指定存在&lt;br/&gt;写窗口 / 基准 / 预测 / 丢失重捕获&quot;]
+
+    S --&gt; V1[&quot;提交_当前观察范围可观测单位存在对应事实&quot;]
+    T --&gt; V2[&quot;提交_观察存在发现事实&quot;]
+    T --&gt; V3[&quot;提交_观察存在特征值变化事实&quot;]
+    U --&gt; V4[&quot;提交_指定存在跟踪事实&quot;]
+
+    V1 --&gt; W[&quot;串接来源动作动态&lt;br/&gt;正式事实 / 状态 / 动态入账&quot;]
+    V2 --&gt; W
+    V3 --&gt; W
+    V4 --&gt; W
+
     classDef demand fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
     classDef task fill:#eef7ed,stroke:#3f7f4f,color:#102010;
     classDef peripheral fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
     classDef self fill:#f1edff,stroke:#6c56a4,color:#1d1730;
     classDef result fill:#eef8f7,stroke:#397b77,color:#102827;
+
     class A demand;
     class B,C,M,N,P,Q task;
     class D1,D2,D3,E,F,G,H,I,J,K,L peripheral;
     class O,R,S,T,U self;
-    class V1,V2,V3,V4,W result;
-        </pre>
-      </div>
-    </section>
-    <section>
-      <h2>分层边界</h2>
-      <div class="canvas">
-        <pre class="mermaid">
-flowchart LR
-    P1["外设线程<br/>看 / 报 / 缓存材料"]
-    P2["外设观察报告队列<br/>等待项 / 报告 / d455://句柄"]
-    P3["任务管理<br/>按等待项匹配报告<br/>生成观察事实承接请求"]
-    P4["自我线程<br/>承接材料到自我内部世界<br/>触发来源需求重筹办"]
-    P5["自我外设方法<br/>验证 / 识别 / 扫描 / 跟踪"]
-    P6["提交入口<br/>裁决并写入事实 / 状态 / 动态"]
-    P1 --> P2 --> P3 --> P4 --> P5 --> P6
-    B1["禁止: 外设线程直接写世界树真值"]
-    B2["禁止: 报告直接等于需求满足"]
-    B3["禁止: 任务管理直接写需求树或世界树事实"]
-    B4["禁止: 自我承接材料时确认稳定世界存在"]
-    B5["禁止: 提交入口写安全值 / 服务值"]
-    B1 -.约束.-> P1
-    B2 -.约束.-> P2
-    B3 -.约束.-> P3
-    B4 -.约束.-> P4
-    B5 -.约束.-> P6
+    class V1,V2,V3,V4,W result;</code></pre>
+<h2 id="分层边界">分层边界</h2>
+<pre class="mermaid"><code>flowchart LR
+    P1[&quot;外设线程&lt;br/&gt;看 / 报 / 缓存材料&quot;]
+    P2[&quot;外设观察报告队列&lt;br/&gt;等待项 / 报告 / d455://句柄&quot;]
+    P3[&quot;任务管理&lt;br/&gt;按等待项匹配报告&lt;br/&gt;生成观察事实承接请求&quot;]
+    P4[&quot;自我线程&lt;br/&gt;承接材料到自我内部世界&lt;br/&gt;触发来源需求重筹办&quot;]
+    P5[&quot;自我外设方法&lt;br/&gt;验证 / 识别 / 扫描 / 跟踪&quot;]
+    P6[&quot;提交入口&lt;br/&gt;裁决并写入事实 / 状态 / 动态&quot;]
+
+    P1 --&gt; P2 --&gt; P3 --&gt; P4 --&gt; P5 --&gt; P6
+
+    B1[&quot;禁止: 外设线程直接写世界树真值&quot;]
+    B2[&quot;禁止: 报告直接等于需求满足&quot;]
+    B3[&quot;禁止: 任务管理直接写需求树或世界树事实&quot;]
+    B4[&quot;禁止: 自我承接材料时确认稳定世界存在&quot;]
+    B5[&quot;禁止: 提交入口写安全值 / 服务值&quot;]
+
+    B1 -.约束.-&gt; P1
+    B2 -.约束.-&gt; P2
+    B3 -.约束.-&gt; P3
+    B4 -.约束.-&gt; P4
+    B5 -.约束.-&gt; P6
+
     classDef layer fill:#eef8f7,stroke:#397b77,color:#102827;
     classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
     class P1,P2,P3,P4,P5,P6 layer;
-    class B1,B2,B3,B4,B5 warn;
-        </pre>
-      </div>
-    </section>
-    <section class="notes">
-      <h2>当前未闭合点</h2>
-      <p>计划索引当前主动切片是 P9c。6127 / 6145 等待项和 D455 逐簇识别报告链存在，外设报告承接能按来源需求ID唤醒原等待任务，6127 已能重入执行到完成。当前缺口是 6145 已自然执行，但稳定复现 / 观察完成 / 可复验条件仍未自然闭合；6146 / 6147 仍需要已归属存在、基准、目标种子和观察窗口。</p>
-      <p>定案：外设只供材料；任务管理只承接报告并上报请求；自我线程只先落材料和候选摘要；自我外设方法生成正式中间结果；提交入口才把事实、状态和动态写入账本。</p>
-    </section>
-    <section>
-      <h2>三类外显观察运行模式</h2>
-      <table>
-        <thead>
-          <tr><th>运行模式</th><th>报告类型</th><th>主要用途</th><th>当前关键前置</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>陌生环境逐簇识别</td><td>逐簇识别报告</td><td>提供观察像素簇、材料句柄、候选与冲突材料</td><td>观察验证 / 识别等待项可直接匹配</td></tr>
-          <tr><td>已识别场景扫描变化</td><td>扫描变化报告</td><td>为已归属区域生成发现事实或变化材料</td><td>需要目标 / 基准；无目标时拒绝创建扫描等待项</td></tr>
-          <tr><td>目标跟踪观察</td><td>跟踪报告</td><td>为指定目标提供连续观察、丢失、重捕获材料</td><td>需要目标种子；无目标种子时拒绝创建跟踪等待项</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
-  <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
-    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", theme: "default" });
-  </script>
+    class B1,B2,B3,B4,B5 warn;</code></pre>
+<h2 id="三类外显观察运行模式">三类外显观察运行模式</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>运行模式</th>
+<th>报告类型</th>
+<th>主要用途</th>
+<th>当前关键前置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>陌生环境逐簇识别</td>
+<td>逐簇识别报告</td>
+<td>提供观察像素簇、材料句柄、候选与冲突材料</td>
+<td>观察验证 / 识别等待项可直接匹配</td>
+</tr>
+<tr>
+<td>已识别场景扫描变化</td>
+<td>扫描变化报告</td>
+<td>为已归属区域生成发现事实或变化材料</td>
+<td>需要目标 / 基准；无目标时拒绝创建扫描等待项</td>
+</tr>
+<tr>
+<td>目标跟踪观察</td>
+<td>跟踪报告</td>
+<td>为指定目标提供连续观察、丢失、重捕获材料</td>
+<td>需要目标种子；无目标种子时拒绝创建跟踪等待项</td>
+</tr>
+</tbody>
+</table>
+<h2 id="四方法与提交入口">四方法与提交入口</h2>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>方法</th>
+<th style="text-align: right;">本能ID</th>
+<th>读取材料</th>
+<th>写出正式结果</th>
+<th>后续提交入口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自我_验证外设观察像素簇候选</td>
+<td style="text-align: right;">6127</td>
+<td>最新 D455 逐簇识别报告、d455:// 材料句柄、簇投影与空间材料</td>
+<td>外设观察材料可回查状态、外设像素簇候选验证状态、观察稳定状态摘要</td>
+<td>为 6145 提供前置</td>
+</tr>
+<tr>
+<td>自我_识别外设观察材料</td>
+<td style="text-align: right;">6145</td>
+<td>6127
+单轮验证状态、多帧稳定统计、材料可复验状态、逐簇识别材料回查来源</td>
+<td>同一性状态、归属状态、候选确认方案、扫描可启动状态</td>
+<td>提交_当前观察范围可观测单位存在对应事实</td>
+</tr>
+<tr>
+<td>自我_扫描已识别区域</td>
+<td style="text-align: right;">6146</td>
+<td>已归属状态、扫描可启动状态、当前 / 历史观察存在</td>
+<td>发现事实、扫描入账状态、变化结果、扫描基准</td>
+<td>提交_观察存在发现事实；提交_观察存在特征值变化事实</td>
+</tr>
+<tr>
+<td>自我_跟踪指定存在</td>
+<td style="text-align: right;">6147</td>
+<td>目标存在、已归属状态、目标观察窗口、跟踪基准、预测区间</td>
+<td>目标跟踪状态、窗口状态、预测误差、丢失 / 重捕获状态</td>
+<td>提交_指定存在跟踪事实</td>
+</tr>
+</tbody>
+</table>
+<h2 id="当前未闭合点">当前未闭合点</h2>
+<pre class="text"><code>计划索引当前主动切片是 P9c。
+
+已确认：
+    6127 / 6145 等待项和 D455 逐簇识别报告链存在。
+    外设报告承接能按 来源需求ID 唤醒原等待任务。
+    6127 已能重入执行到完成。
+
+当前缺口：
+    6145 已自然执行，但稳定复现 / 观察完成 / 可复验条件仍未自然闭合。
+    6146 / 6147 仍需要已归属存在、基准、目标种子和观察窗口。</code></pre>
+<h2 id="定案">定案</h2>
+<pre class="text"><code>外设只供材料；
+任务管理只承接报告并上报请求；
+自我线程只先落材料和候选摘要；
+自我外设方法生成正式中间结果；
+提交入口才把事实、状态和动态写入账本。</code></pre>
+<p>不得把以下内容画成已经成立的事实：</p>
+<pre class="text"><code>D455 报告 == 世界存在真值
+观察像素簇 == 已确认观察存在
+扫描变化报告 == 当前场景明确
+跟踪报告 == 全场景安全
+提交入口成功 == 需求满足 / 安全值 / 服务值结算</code></pre>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  for (const block of document.querySelectorAll("pre.mermaid")) {
+    const code = block.querySelector("code");
+    if (code) block.textContent = code.textContent;
+  }
+  mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+</script>
 </body>
 </html>

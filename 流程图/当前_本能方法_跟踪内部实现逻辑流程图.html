@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>当前_本能方法_跟踪内部实现逻辑流程图</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">当前_本能方法_跟踪内部实现逻辑流程图</h1>
+</header>
+<h1
+id="当前_本能方法_跟踪内部实现逻辑流程图">当前_本能方法_跟踪内部实现逻辑流程图</h1>
+<p>生成时间：2026-06-07</p>
+<p>依据范围：当前 D455 / 任务管理 / 自我外设方法主链 + 2026-06-07
+跟踪权限修正口径。本文只更新流程图和后续修正依据，不证明代码已经全部实现。</p>
+<h2 id="当前主链保留">1. 当前主链保留</h2>
+<pre class="text"><code>任务 / 需求命中跟踪口径
+    -&gt; 任务管理构造目标跟踪等待项
+    -&gt; D455 生成目标跟踪观测材料
+    -&gt; 任务管理按等待项匹配并做质量用途门
+    -&gt; 自我线程承接跟踪材料
+    -&gt; 6147 自我_跟踪指定存在
+    -&gt; 提交_指定存在跟踪事实</code></pre>
+<p>必须保留的边界：</p>
+<pre class="text"><code>1. 跟踪不是全场扫描，只盯指定目标。
+2. D455 线程只生成跟踪观测材料，不是最终真值生产者。
+3. 任务管理只做等待项匹配、材料质量用途门和上行请求。
+4. 自我线程承接报告时不直接生成世界存在真值。
+5. 6147 自我_跟踪指定存在 负责正式跟踪判断。
+6. 提交_指定存在跟踪事实 负责最终提交。</code></pre>
+<p>本次修正后的核心定案：</p>
+<pre class="text"><code>D455 跟踪报告只能提供：
+    指定目标的外设观测材料
+    外设侧当前观测值
+    目标特征比较材料
+    跟踪质量特征
+    丢失 / 遮挡 / 重捕获候选材料
+
+6147 只能基于已有目标特征、基准、值域、预测区间进行比较。
+
+正式写入目标存在新一阶特征值：
+    仍然必须回观察，并经提交入口裁决。
+
+跟踪可以写：
+    二次特征
+    跟踪状态
+    状态动态
+    预测误差
+    区间迁移
+    丢失 / 遮挡 / 重捕获状态。</code></pre>
+<h2 id="修正后总流程图">2. 修正后总流程图</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;任务 / 需求命中跟踪口径&lt;br/&gt;目标: 指定已归属存在的动态连续性&quot;]
+    B[&quot;任务管理创建跟踪等待项&lt;br/&gt;目标存在ID / 目标特征类型ID / 目标观察约束ID&lt;br/&gt;来源需求ID / 来源任务ID&quot;]
+    C{&quot;强目标观察约束是否可用?&quot;}
+    C0[&quot;否&lt;br/&gt;只允许降级重捕获 / 待复验跟踪&lt;br/&gt;不得提交稳定跟踪事实&quot;]
+    D[&quot;D455 读取目标观察约束&lt;br/&gt;目标存在 / 当前值 / 值域 / ROI / 掩码 / AABB / 点集&lt;br/&gt;约束generation / 目标特征generation / 来源材料generation&quot;]
+    E{&quot;命中目标簇?&quot;}
+    F1[&quot;命中&lt;br/&gt;生成目标跟踪观测材料&lt;br/&gt;写外设侧当前观测值 / 预测误差材料 / 质量特征&quot;]
+    F2[&quot;未命中&lt;br/&gt;生成目标未命中材料&lt;br/&gt;写丢失候选 / 遮挡候选 / 重捕获候选&lt;br/&gt;不写目标特征观测值&quot;]
+    G[&quot;任务管理质量用途门&lt;br/&gt;可复验 / 可判断跟踪状态 / 可生成动态候选 / 可进入提交入口&quot;]
+    H[&quot;自我线程承接跟踪材料&lt;br/&gt;记录等待项ID / 需求ID / 任务ID / 约束ID / 三类generation / 报告ID / 来源动作动态&quot;]
+    I[&quot;6147 自我_跟踪指定存在&lt;br/&gt;校验归属、窗口、基准、值域、预测区间、generation、待识别像素、硬冲突&quot;]
+    J{&quot;正式跟踪动态候选成立?&quot;}
+    J0[&quot;否&lt;br/&gt;证据不足 / 条件不足 / 丢失 / 遮挡 / 重捕获 / 冲突&lt;br/&gt;按状态分支处理&quot;]
+    K[&quot;计算二次比较特征&lt;br/&gt;预测误差 / 当前值域区间ID / 合法区间迁移 / 非法跳变 / 掩码重合 / 硬冲突&quot;]
+    L[&quot;输出跟踪状态动态输入&lt;br/&gt;不写新一阶特征值&quot;]
+    M[&quot;提交_指定存在跟踪事实&lt;br/&gt;按事实类型和提交闸门裁决&quot;]
+
+    A --&gt; B --&gt; C
+    C --&gt;|&quot;否&quot;| C0 --&gt; G
+    C --&gt;|&quot;是&quot;| D --&gt; E
+    E --&gt;|&quot;是&quot;| F1 --&gt; G
+    E --&gt;|&quot;否&quot;| F2 --&gt; G
+    G --&gt; H --&gt; I --&gt; J
+    J --&gt;|&quot;否&quot;| J0 --&gt; M
+    J --&gt;|&quot;是&quot;| K --&gt; L --&gt; M</code></pre>
+<h2 id="d455-外设侧跟踪材料分支">3. D455 外设侧跟踪材料分支</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;D455 处理目标跟踪等待项&quot;]
+    B{&quot;目标观察强约束可用?&lt;br/&gt;目标存在ID / 特征类型ID / 当前值 / 值域&lt;br/&gt;ROI 或 掩码 或 AABB 或 点集&lt;br/&gt;TTL / generation 通过&quot;}
+    B0[&quot;无强约束&lt;br/&gt;按旧目标种子降级匹配&quot;]
+    B1[&quot;降级输出&lt;br/&gt;候选命中 / 待复验 / 重捕获候选 / 证据不足&lt;br/&gt;不得输出稳定跟踪动态候选&quot;]
+    C[&quot;强约束路径&lt;br/&gt;限定目标窗口和目标特征&quot;]
+    D{&quot;命中目标簇?&quot;}
+    E[&quot;命中材料&lt;br/&gt;目标特征外设观测值&lt;br/&gt;预测误差计算材料&lt;br/&gt;质量特征 / 当前值域候选&quot;]
+    F[&quot;未命中材料&lt;br/&gt;丢失候选&lt;br/&gt;遮挡候选&lt;br/&gt;重捕获候选集合&lt;br/&gt;证据不足原因&quot;]
+    G[&quot;跟踪观测材料队列项入队&lt;br/&gt;报告 / 队列项 / 材料页仍是通信容器&quot;]
+
+    A --&gt; B
+    B --&gt;|&quot;否&quot;| B0 --&gt; B1 --&gt; G
+    B --&gt;|&quot;是&quot;| C --&gt; D
+    D --&gt;|&quot;是&quot;| E --&gt; G
+    D --&gt;|&quot;否&quot;| F --&gt; G</code></pre>
+<p>外设命名收紧：</p>
+<pre class="text"><code>跟踪报告 -&gt; 跟踪观测材料 / 跟踪比较材料 / 跟踪队列项。
+
+写目标特征观察值 -&gt; 写目标特征外设观测值 / 写跟踪当前观测值。</code></pre>
+<p>禁止解释成：</p>
+<pre class="text"><code>目标存在.空间坐标 = 当前观测坐标
+目标存在.距离值 = 当前观测距离
+目标存在.轮廓 = 当前轮廓</code></pre>
+<h2 id="任务管理质量用途门">4. 任务管理质量用途门</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;跟踪观测材料进入任务管理&quot;]
+    B[&quot;质量用途门&quot;]
+    C[&quot;不合格&quot;]
+    C1[&quot;普通非关键目标&lt;br/&gt;任务回执 / 清理&quot;]
+    C2[&quot;命中活跃父需求关键缺口&lt;br/&gt;上报缺口事实或派生需求消息&quot;]
+    D[&quot;可用但非优质&quot;]
+    D1[&quot;可进入 6147 跟踪复验&quot;]
+    D2[&quot;只能输出待复验 / 证据不足 / 降级跟踪状态&quot;]
+    D3[&quot;不得提交稳定跟踪事实&quot;]
+    E[&quot;优质 + 强约束命中&quot;]
+    E1[&quot;可进入 6147&quot;]
+    E2[&quot;可生成跟踪动态候选&quot;]
+    E3[&quot;仍需提交入口裁决&quot;]
+
+    A --&gt; B
+    B --&gt; C
+    C --&gt; C1
+    C --&gt; C2
+    B --&gt; D
+    D --&gt; D1
+    D --&gt; D2
+    D --&gt; D3
+    B --&gt; E
+    E --&gt; E1
+    E --&gt; E2
+    E --&gt; E3</code></pre>
+<p>质量用途门至少返回：</p>
+<pre class="text"><code>可进入跟踪复验
+可进入跟踪状态判断
+可生成稳定跟踪动态候选
+可进入提交入口
+是否需要观察补特征
+是否需要重捕获
+是否需要识别复验</code></pre>
+<h2 id="自我线程承接追溯">5. 自我线程承接追溯</h2>
+<p>自我线程承接跟踪材料时必须保留追溯索引：</p>
+<pre class="text"><code>来源等待项ID
+来源需求ID
+来源任务ID
+目标观察约束ID
+约束generation
+目标特征generation
+来源材料generation
+报告ID
+来源动作动态</code></pre>
+<p>承接输出：</p>
+<pre class="text"><code>跟踪材料承接状态 == 已承接
+跟踪材料.目标约束匹配状态 == 匹配 / 降级匹配 / 失配
+跟踪材料.目标特征generation匹配状态 == 匹配 / 失配
+跟踪材料.材料generation匹配状态 == 匹配 / 失配</code></pre>
+<h2 id="正式跟踪闸门">6. 6147 正式跟踪闸门</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;6147 输入&lt;br/&gt;目标存在 + 跟踪材料 + 目标观察约束&quot;]
+    B{&quot;基础前置通过?&quot;}
+    B0[&quot;否&lt;br/&gt;条件不足&lt;br/&gt;缺目标 / 缺归属 / 缺窗口 / 缺基准 / 缺预测区间 / 缺约束&quot;]
+    C{&quot;目标窗口净待识别像素比例&lt;br/&gt;是否低于阈值?&quot;}
+    C0[&quot;否&lt;br/&gt;遮挡候选 / 识别复验线索&lt;br/&gt;冻结基准&quot;]
+    D{&quot;跟踪目标命中且未丢失?&quot;}
+    D0[&quot;否&lt;br/&gt;丢失 / 重捕获 / 遮挡状态&quot;]
+    E{&quot;当前观测值在目标特征值域内&lt;br/&gt;且在预测区间内?&quot;}
+    E0[&quot;否&lt;br/&gt;值域冲突 / 预测偏差超限&quot;]
+    F{&quot;预测误差达标&lt;br/&gt;非法跳变=0&lt;br/&gt;硬冲突=0?&quot;}
+    F0[&quot;否&lt;br/&gt;冲突 / 不稳定 / 复验&quot;]
+    G[&quot;正式跟踪动态候选成立&quot;]
+    H[&quot;写二次特征和状态动态&lt;br/&gt;预测误差 / 区间ID / 区间迁移 / 跟踪状态&quot;]
+
+    A --&gt; B
+    B --&gt;|&quot;否&quot;| B0
+    B --&gt;|&quot;是&quot;| C
+    C --&gt;|&quot;否&quot;| C0
+    C --&gt;|&quot;是&quot;| D
+    D --&gt;|&quot;否&quot;| D0
+    D --&gt;|&quot;是&quot;| E
+    E --&gt;|&quot;否&quot;| E0
+    E --&gt;|&quot;是&quot;| F
+    F --&gt;|&quot;否&quot;| F0
+    F --&gt;|&quot;是&quot;| G --&gt; H</code></pre>
+<p>基础前置：</p>
+<pre class="text"><code>目标存在存在
+目标存在.归属状态 == 已归属
+目标存在.背景状态 != 背景
+跟踪窗口明确状态 == 已明确
+目标特征类型已确定
+目标特征当前值可读
+目标特征值域可读
+目标特征generation匹配
+跟踪基准可读
+当前有效基准状态 == 可用
+目标观察约束状态 == 可用
+约束generation匹配
+来源材料generation匹配
+跟踪材料可复验状态 == 可复验
+目标未被其它强匹配冲突占用</code></pre>
+<p>稳定跟踪动态候选前置：</p>
+<pre class="text"><code>跟踪目标命中状态 == 命中
+目标存在.丢失状态 == 未丢失
+跟踪质量状态 == 可用 / 降级可用
+当前观测值落入目标特征值域
+当前观测值落入预测区间
+预测误差值 &lt; 最大允许预测误差
+非法区间跳变次数 == 0
+硬冲突数量 == 0</code></pre>
+<h2 id="跟踪输出对象">7. 跟踪输出对象</h2>
+<p>6147 可以写：</p>
+<pre class="text"><code>目标存在.跟踪状态
+目标存在.跟踪窗口状态
+目标存在.预测误差值
+目标存在.当前值域区间ID
+目标存在.区间迁移状态
+目标存在.丢失状态
+目标存在.遮挡状态
+目标存在.重捕获候选状态
+目标存在.跟踪动态状态
+目标存在.跟踪基准更新状态 / 跟踪基准冻结状态</code></pre>
+<p>6147 禁止写：</p>
+<pre class="text"><code>目标存在.空间坐标 = 当前观测坐标
+目标存在.距离值 = 当前观测距离
+目标存在.轮廓 = 当前轮廓
+目标存在.颜色 = 当前颜色</code></pre>
+<p>需要正式更新目标一阶特征值时：</p>
+<pre class="text"><code>回观察
+    -&gt; 取得新特征值
+    -&gt; 提交入口裁决</code></pre>
+<h2 id="跟踪事实提交分型">8. 跟踪事实提交分型</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;提交_指定存在跟踪事实&quot;]
+    B{&quot;跟踪事实类型&quot;}
+    C[&quot;稳定跟踪事实&lt;br/&gt;命中 / 未丢失 / 预测误差达标 / 区间合法 / 硬冲突=0&quot;]
+    D[&quot;动态区间迁移事实&lt;br/&gt;区间迁移合法且来源可追溯&quot;]
+    E[&quot;跟踪丢失事实&lt;br/&gt;未命中 / 观测年龄超限 / 重捕获失败或候选不足&quot;]
+    F[&quot;重捕获事实&lt;br/&gt;重捕获候选唯一 / 无身份冲突 / 可复验&quot;]
+    G[&quot;遮挡事实&lt;br/&gt;窗口待识别像素增加 / 遮挡候选评分达标 / 空间预测仍合理&quot;]
+    H[&quot;预测偏差超限事实&lt;br/&gt;目标命中但预测误差超限&quot;]
+    I[&quot;跟踪冲突事实&lt;br/&gt;值域冲突 / 身份冲突 / 掩码轮廓冲突 / 非法跳变&quot;]
+
+    A --&gt; B
+    B --&gt; C
+    B --&gt; D
+    B --&gt; E
+    B --&gt; F
+    B --&gt; G
+    B --&gt; H
+    B --&gt; I</code></pre>
+<p>稳定跟踪事实提交条件：</p>
+<pre class="text"><code>目标存在存在
+&amp;&amp; 目标存在.归属状态 == 已归属
+&amp;&amp; 上游跟踪结果可读
+&amp;&amp; 来源报告可提交
+&amp;&amp; 来源报告为强约束命中
+&amp;&amp; 目标特征generation匹配
+&amp;&amp; 约束generation匹配
+&amp;&amp; 当前观测值落入目标特征值域
+&amp;&amp; 当前观测值落入预测区间
+&amp;&amp; 预测误差值 &lt; 最大允许预测误差
+&amp;&amp; 非法区间跳变次数 == 0
+&amp;&amp; 丢失状态 == 未丢失
+&amp;&amp; 硬冲突数量 == 0
+&amp;&amp; 来源动作动态可追溯</code></pre>
+<h2 id="基准更新与冻结">9. 基准更新与冻结</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;跟踪基准管理&quot;]
+    B{&quot;可滚动更新?&quot;}
+    C[&quot;更新当前有效基准&lt;br/&gt;跟踪基准更新状态=已更新&quot;]
+    D{&quot;应冻结?&quot;}
+    E[&quot;冻结当前有效基准&lt;br/&gt;跟踪基准冻结状态=已冻结&lt;br/&gt;进入重捕获 / 识别 / 观察&quot;]
+
+    A --&gt; B
+    B --&gt;|&quot;是&quot;| C
+    B --&gt;|&quot;否&quot;| D
+    D --&gt;|&quot;是&quot;| E</code></pre>
+<p>更新条件：</p>
+<pre class="text"><code>跟踪命中
+未丢失
+预测误差 &lt; 阈值
+连续命中帧数 &gt; 最小连续命中帧数
+非法区间跳变次数 == 0
+质量可用</code></pre>
+<p>冻结条件：</p>
+<pre class="text"><code>未命中
+丢失
+遮挡
+待识别像素增加
+值域冲突
+身份冲突
+预测误差超限</code></pre>
+<p>冻结后：</p>
+<pre class="text"><code>不提交稳定动态；
+进入重捕获 / 识别 / 观察。</code></pre>
+<h2 id="硬边界">10. 硬边界</h2>
+<pre class="text"><code>1. 跟踪报告 / 跟踪队列项 / 跟踪材料页不是正式跟踪事实。
+2. 外设侧当前观测值不是目标存在正式一阶特征值。
+3. 无强目标观察约束时，只允许降级重捕获 / 待复验跟踪。
+4. 未命中目标簇时，不生成普通跟踪成功材料，不写目标特征外设观测值。
+5. 跟踪不是问“有没有变化”，而是问“动态是否在合法值域和预测区间内连续演化”。
+6. 可用但非优质材料可复验，不可提交稳定跟踪事实。
+7. 目标窗口净待识别像素增加时，冻结基准并回识别 / 观察。
+8. 6147 不写目标新一阶特征值。
+9. 提交_指定存在跟踪事实 必须带跟踪事实类型。
+10. 跟踪失败不全是条件不足；丢失、遮挡、预测超限、身份冲突本身可能是状态动态。</code></pre>
+<h2 id="最终定案">11. 最终定案</h2>
+<pre class="text"><code>跟踪不是“看到了就写新值”，
+而是“盯住已知目标，看它的观测值是否沿着合法区间稳定演化”。
+
+看不见：
+    丢失 / 遮挡 / 重捕获候选。
+
+超区间：
+    预测偏差超限 / 值域冲突。
+
+冲突：
+    身份冲突 / 掩码轮廓冲突 / 非法跳变。
+
+这些都不是简单条件不足；
+它们要么进入状态动态入账，要么回观察 / 识别复验。</code></pre>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  for (const block of document.querySelectorAll("pre.mermaid")) {
+    const code = block.querySelector("code");
+    if (code) block.textContent = code.textContent;
+  }
+  mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+</script>
+</body>
+</html>

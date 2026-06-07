@@ -1,310 +1,589 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>当前_本能方法_识别内部实现逻辑流程图</title>
   <style>
-    :root {
-      color-scheme: light;
-      --bg: #f6f7f9;
-      --paper: #ffffff;
-      --ink: #1f2933;
-      --muted: #5f6b7a;
-      --line: #d8dee6;
-      --accent: #1769aa;
-      --code: #f1f4f8;
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
     }
     body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
-      line-height: 1.65;
-    }
-    main {
-      max-width: 1180px;
       margin: 0 auto;
-      padding: 32px 20px 56px;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
     }
-    h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-      line-height: 1.25;
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
     }
-    h2 {
-      margin: 34px 0 12px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--line);
-      font-size: 20px;
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
     }
-    p.meta {
-      margin: 0 0 18px;
-      color: var(--muted);
+    p {
+      margin: 1em 0;
     }
-    section {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 18px 20px;
-      margin: 18px 0;
+    a {
+      color: #1a1a1a;
     }
-    pre {
-      overflow: auto;
-      background: var(--code);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px 16px;
-      white-space: pre-wrap;
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
     }
     code {
-      font-family: Consolas, "Cascadia Mono", monospace;
-      font-size: 0.94em;
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    th, td {
-      border: 1px solid var(--line);
-      padding: 8px 10px;
-      vertical-align: top;
-    }
-    th {
-      background: #eef3f8;
-      text-align: left;
-    }
-    .mermaid {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 10px;
+    pre {
+      margin: 1em 0;
       overflow: auto;
     }
-    .note {
-      border-left: 4px solid var(--accent);
-      padding-left: 12px;
-      color: var(--muted);
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
     }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
 </head>
 <body>
-<main>
-  <h1>当前_本能方法_识别内部实现逻辑流程图</h1>
-  <p class="meta">生成时间：2026-06-07。依据范围：当前代码；报告、等待项、材料页和承接请求只作为通信或材料容器。</p>
+<header id="title-block-header">
+<h1 class="title">当前_本能方法_识别内部实现逻辑流程图</h1>
+</header>
+<h1
+id="当前_本能方法_识别内部实现逻辑流程图">当前_本能方法_识别内部实现逻辑流程图</h1>
+<p>生成时间：2026-06-07</p>
+<p>依据范围：当前代码主链 +
+<code>规范/识别本能方法唯一性收敛规范20260607.md</code>。本文保留当前识别实现骨架，但同步
+2026-06-07
+修正口径：识别完成不以“所有观察材料完成”为核心，而以“当前识别范围内候选唯一且无硬冲突”为核心。本文只修订流程图和计划口径，不证明代码已经全部实现。</p>
+<h2 id="当前主链保留">1. 当前主链保留</h2>
+<pre class="text"><code>当前代码里的识别主链继续保留：
 
-  <section>
-    <h2>1. 当前代码结论</h2>
-    <pre><code>当前代码中的“识别”不是 D455 直接确认世界存在。
+任务管理创建逐簇识别等待项
+    -&gt; D455 生成逐簇识别材料
+    -&gt; 任务管理质量用途门分拣
+    -&gt; 自我线程承接材料候选
+    -&gt; 6127 验证材料可回查和候选有效
+    -&gt; 6128 生成识别候选方案
+    -&gt; 6145 生成同一性 / 归属 / 识别状态
+    -&gt; 6129 分级提交观察存在
+    -&gt; 6150 只把已归属稳定子集桥接给扫描目标观察约束</code></pre>
+<p>当前仍然成立的边界：</p>
+<pre class="text"><code>D455 只产逐簇识别材料，不裁决世界真值。
+任务管理线程只是承接和分拣外设报告。
+自我线程先承接材料候选，不直接确认世界存在。
+6127 只验证材料可回查、候选有效和单轮可复验性。
+6128 只生成识别候选方案，不创建观察存在。
+6145 生成同一性、归属映射和识别状态，不写新一阶特征值。
+6129 才是观察存在正式提交入口。
+6150 才把稳定已归属子集桥接给扫描约束。</code></pre>
+<p>本次修正后的核心定案：</p>
+<pre class="text"><code>识别完成 != 所有特征观察完成。
+识别完成 = 当前识别范围已确定
+          + 候选集合数量 == 1
+          + 硬冲突数量 == 0
+          + 用于唯一识别特征数量 &gt; 0
+          + 归属映射状态 == 已建立。</code></pre>
+<h2 id="代码依据索引">2. 代码依据索引</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>链路</th>
+<th>当前代码位置</th>
+<th>当前含义</th>
+<th>修正口径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>方法 ID</td>
+<td><code>本能方法类.h:60-62</code>、<code>:78</code></td>
+<td>6127 / 6128 / 6129 / 6145 已登记。</td>
+<td>方法主键保留。</td>
+</tr>
+<tr>
+<td>任务管理供料映射</td>
+<td><code>任务模块.管理界面线程.impl.cpp:846-849</code>、<code>:2860-2910</code></td>
+<td>6145 映射到陌生环境逐簇识别和逐簇识别报告。</td>
+<td>等待项仍是通信容器。</td>
+</tr>
+<tr>
+<td>D455 逐簇识别材料</td>
+<td><code>外设线程_D455深度相机.ixx:525-626</code>、<code>:1551-1570</code></td>
+<td>生成逐簇识别报告、材料句柄和跨帧字段。</td>
+<td>报告只作材料，不作事实。</td>
+</tr>
+<tr>
+<td>材料质量门</td>
+<td><code>外设观察报告队列.ixx:1537-1700</code></td>
+<td>判断不合格 / 可用 / 优质及用途能力。</td>
+<td>可用可入识别待复验，优质才可入强确认候选。</td>
+</tr>
+<tr>
+<td>自我线程材料承接</td>
+<td><code>自我线程模块.impl.cpp:12877-13125</code></td>
+<td>按报告 ID 回查并落内部候选材料。</td>
+<td>不确认存在真值。</td>
+</tr>
+<tr>
+<td>6127 验证</td>
+<td><code>自我动作实现.外设模块.ixx:20386-20715</code></td>
+<td>验证报告、帧、空间候选、像素归属材料和簇投影。</td>
+<td>不写观察完成、识别完成或已确认存在。</td>
+</tr>
+<tr>
+<td>6128 候选方案</td>
+<td><code>自我动作实现.外设模块.ixx:20717-20892</code>、<code>:9649-9745</code></td>
+<td>当前按固定分数生成新建 / 合并 / 冲突 / 证据不足。</td>
+<td>改为候选召回、特征组筛选、唯一性统计和冲突统计。</td>
+</tr>
+<tr>
+<td>匹配分数</td>
+<td><code>自我动作实现.外设模块.ixx:9202-9232</code></td>
+<td>当前由投影重叠、中心距离、深度差计算 0..10000 分。</td>
+<td>作为默认视觉特征组评分，不再替代唯一性原则。</td>
+</tr>
+<tr>
+<td>6145 识别主体</td>
+<td><code>自我动作实现.外设模块.ixx:19421-19805</code></td>
+<td>当前读取前置、验证、质量并生成归属结果。</td>
+<td>成功条件改为唯一性成立，不以观察完成为硬前置。</td>
+</tr>
+<tr>
+<td>6129 提交事实</td>
+<td><code>自我动作实现.外设模块.ixx:20894-21215</code></td>
+<td>当前正式创建或合并已确认观察存在。</td>
+<td>拆为待复验观察存在提交和已确认观察存在提交。</td>
+</tr>
+<tr>
+<td>6150 对应事实桥</td>
+<td><code>自我动作实现.外设模块.ixx:21327-21839</code></td>
+<td>消费识别结果，形成稳定对应事实和扫描约束。</td>
+<td>只桥接已归属稳定子集；扫描启动仍由扫描闸门判定。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="修正后总流程图">3. 修正后总流程图</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;任务 / 需求需要识别材料&lt;br/&gt;目标方法: 自我_识别外设观察材料 6145&quot;]
+    B[&quot;任务管理创建逐簇识别等待项&lt;br/&gt;运行模式=陌生环境逐簇识别&lt;br/&gt;等待项只是通信容器&quot;]
+    C[&quot;D455 采集并生成外设观察存在材料&lt;br/&gt;逐簇识别报告 + ROI / 掩码 / 点集 / AABB / 跨帧字段&quot;]
+    D[&quot;任务管理质量用途门&lt;br/&gt;不合格 / 可用 / 优质&lt;br/&gt;报告仍不是事实&quot;]
+    D0[&quot;不合格&lt;br/&gt;只回执 / 清理 / 缺口&quot;]
+    D1[&quot;可用&lt;br/&gt;允许进入 6127 / 识别待复验&lt;br/&gt;不允许强确认提交&quot;]
+    D2[&quot;优质&lt;br/&gt;允许进入 6127 / 识别候选 / 提交入口组织候选&lt;br/&gt;仍需唯一性和提交裁决&quot;]
+    E[&quot;自我线程承接材料候选&lt;br/&gt;按报告ID回查材料&lt;br/&gt;不确认世界存在&quot;]
+    F[&quot;6127 验证外设观察像素簇候选&lt;br/&gt;材料可回查 / 候选有效 / 单轮可复验&quot;]
+    G{&quot;6127 验证通过或可复验?&quot;}
+    G0[&quot;否&lt;br/&gt;验证缺口 / 观察补完&quot;]
+    H[&quot;6128 生成识别候选方案&lt;br/&gt;候选召回 -&gt; 特征组筛选 -&gt; 候选数量统计 -&gt; 硬冲突统计&quot;]
+    I[&quot;6145 生成识别结果&lt;br/&gt;同一 / 候选同一 / 无匹配候选 / 证据不足 / 冲突&quot;]
+    J{&quot;唯一性是否成立?&quot;}
+    J0[&quot;候选数量 &gt; 1&lt;br/&gt;证据不足 -&gt; 观察补特征&quot;]
+    J1[&quot;候选数量 == 0&lt;br/&gt;无匹配候选 -&gt; 待复验观察存在&quot;]
+    J2[&quot;候选数量 == 1&lt;br/&gt;但硬冲突 &gt; 0&lt;br/&gt;冲突 -&gt; 观察复验&quot;]
+    K[&quot;候选数量 == 1&lt;br/&gt;硬冲突 == 0&lt;br/&gt;用于唯一识别特征 &gt; 0&lt;br/&gt;归属映射已建立&quot;]
+    L[&quot;6129 分级提交&quot;]
+    L1[&quot;提交_外设观察存在待复验事实&lt;br/&gt;待复验 / 待识别 / 未归属&lt;br/&gt;保存材料，不写已确认真值&quot;]
+    L2[&quot;提交_确认观察存在事实&lt;br/&gt;创建或合并已确认观察存在&lt;br/&gt;写同一性 / 归属 / 关系二次特征&quot;]
+    M[&quot;6150 桥接稳定已归属子集&lt;br/&gt;生成扫描目标观察约束候选&lt;br/&gt;不直接宣称扫描可启动&quot;]
 
-实际链路：
-1. 任务管理把 6145 映射为陌生环境逐簇识别等待项。
-2. D455 生成逐簇识别报告和跨帧证据。
-3. 任务管理工作线程按质量门生成观察事实承接请求。
-4. 自我线程按报告ID回查材料，写入内部世界候选。
-5. 6127 验证材料，6128/6145 生成候选确认和识别归属结果。
-6. 6129 / 6150 才进入正式提交和稳定对应事实桥。</code></pre>
-    <p class="note">当前边界：6145 输出同一性、归属、候选确认方案、稳定对应计数和扫描可启动状态；不写变化动态，不结算安全值。</p>
-  </section>
+    A --&gt; B --&gt; C --&gt; D
+    D --&gt; D0
+    D --&gt; D1 --&gt; E
+    D --&gt; D2 --&gt; E
+    E --&gt; F --&gt; G
+    G --&gt;|&quot;否&quot;| G0
+    G --&gt;|&quot;是&quot;| H --&gt; I --&gt; J
+    J --&gt; J0
+    J --&gt; J1 --&gt; L --&gt; L1
+    J --&gt; J2
+    J --&gt; K --&gt; L --&gt; L2 --&gt; M</code></pre>
+<h2 id="职责收紧">4. 6127 职责收紧</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;6127 输入&lt;br/&gt;外设报告ID / 材料页 / 观察像素簇集合&quot;]
+    B[&quot;回查材料&lt;br/&gt;原始帧 / 深度帧 / 空间候选 / 像素归属材料&quot;]
+    C[&quot;校验簇级材料&lt;br/&gt;ROI / 掩码 / 点集 / AABB / 投影范围&quot;]
+    D[&quot;输出允许项&quot;]
+    D1[&quot;材料可回查状态&quot;]
+    D2[&quot;候选材料验证状态&quot;]
+    D3[&quot;簇投影有效状态&quot;]
+    D4[&quot;单轮可复验状态&quot;]
+    E[&quot;禁止输出项&quot;]
+    E1[&quot;观察完成&quot;]
+    E2[&quot;识别完成&quot;]
+    E3[&quot;已确认观察存在&quot;]
+    E4[&quot;需求满足或安全值&quot;]
 
-  <section>
-    <h2>2. 代码依据索引</h2>
-    <table>
-      <thead>
-        <tr><th>链路</th><th>当前代码位置</th><th>说明</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>方法 ID / 登记</td><td><code>本能方法类.h:60-62,78</code>、<code>本能方法类.cpp:39-41,57</code></td><td>验证、确认、提交确认、识别方法。</td></tr>
-        <tr><td>任务管理供料映射</td><td><code>任务模块.管理界面线程.impl.cpp:846-849</code>、<code>:2860-2910</code></td><td>6145 映射到陌生环境逐簇识别和逐簇识别报告。</td></tr>
-        <tr><td>D455 逐簇识别报告</td><td><code>外设线程_D455深度相机.ixx:525-626</code>、<code>:360-455</code>、<code>:1551-1570</code></td><td>生成报告、跨帧证据并入队。</td></tr>
-        <tr><td>材料质量门</td><td><code>外设观察报告队列.ixx:1537-1700</code></td><td>判断可验证、可识别、可提交入口组织。</td></tr>
-        <tr><td>任务管理承接</td><td><code>任务模块.管理工作线程.ixx:3239-3265</code>、<code>:3318-3358</code></td><td>生成观察事实承接请求并保留报告ID回查。</td></tr>
-        <tr><td>自我线程材料候选</td><td><code>自我线程模块.impl.cpp:12877-13125</code></td><td>材料候选入自我内部世界，不确认世界对象。</td></tr>
-        <tr><td>6127 / 6128 / 6145</td><td><code>自我动作实现.外设模块.ixx:20386-20892</code>、<code>:19421-19805</code></td><td>验证材料、生成确认方案、生成识别归属结果。</td></tr>
-        <tr><td>确认方案算法</td><td><code>自我动作实现.外设模块.ixx:9649-9745</code>、<code>:9202-9232</code>、<code>:8541-8628</code></td><td>按跨帧证据、匹配分、冲突规则生成同一性和归属状态。</td></tr>
-        <tr><td>提交后续</td><td><code>自我动作实现.外设模块.ixx:20894-21215</code>、<code>:21327-21839</code></td><td>创建/合并已确认观察存在，写稳定对应事实和扫描目标上下文。</td></tr>
-      </tbody>
-    </table>
-  </section>
+    A --&gt; B --&gt; C --&gt; D
+    D --&gt; D1
+    D --&gt; D2
+    D --&gt; D3
+    D --&gt; D4
+    C --&gt; E
+    E --&gt; E1
+    E --&gt; E2
+    E --&gt; E3
+    E --&gt; E4</code></pre>
+<h2 id="唯一性筛选算法">5. 6128 唯一性筛选算法</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;6128 输入&lt;br/&gt;外设观察存在 + 当前识别范围 + 已有特征集合&quot;]
+    B{&quot;识别范围状态 == 已确定?&quot;}
+    B0[&quot;否&lt;br/&gt;范围缺口 / 不得宣称唯一&quot;]
+    C[&quot;读取当前范围内自我存在集合 C0&quot;]
+    D{&quot;C0 数量 &gt; 0?&quot;}
+    D0[&quot;否&lt;br/&gt;无候选范围 / 回观察或待复验承接&quot;]
+    E[&quot;确定比较值域和策略特征&lt;br/&gt;最低同一性评分 / 最低唯一性分差 / 证据帧要求&quot;]
+    F[&quot;按可用特征组逐步筛选&lt;br/&gt;标记ID / 空间范围 / 掩码 / 轮廓 / 颜色 / 深度 / 点集 / AABB&quot;]
+    G{&quot;候选数量 == 0?&quot;}
+    G0[&quot;是&lt;br/&gt;无匹配候选&lt;br/&gt;允许提交=0 或仅待复验&quot;]
+    H{&quot;候选数量 == 1?&quot;}
+    I{&quot;还有可用已有特征?&quot;}
+    I0[&quot;否&lt;br/&gt;证据不足&lt;br/&gt;观察补特征&quot;]
+    J[&quot;最低限度硬冲突验算&lt;br/&gt;空间 / 掩码 / 轮廓 / 身份 / 值域&quot;]
+    K{&quot;硬冲突数量 == 0?&quot;}
+    K0[&quot;否&lt;br/&gt;冲突&lt;br/&gt;不建立归属&quot;]
+    L[&quot;输出唯一识别候选&lt;br/&gt;用于唯一识别特征数量 &gt; 0&lt;br/&gt;归属映射候选已建立&quot;]
 
-  <section>
-    <h2>3. 总流程图</h2>
-    <div class="mermaid">
-flowchart TD
-    A["任务 / 需求需要识别材料<br/>目标方法: 6145"]
-    B["任务管理界面线程<br/>按方法供料口径映射"]
-    C["创建外设观察等待项<br/>陌生环境逐簇识别<br/>逐簇识别报告"]
-    D["D455 采集一帧"]
-    E["生成逐簇识别报告<br/>簇集合 + 材料句柄 + 跨帧证据"]
-    F["报告入外设观察队列"]
-    G["任务管理工作线程匹配报告"]
-    H{"材料质量门"}
-    H0["不合格<br/>只回执"]
-    H1["可用 / 优质<br/>观察事实承接请求"]
-    I["自我线程回查报告<br/>材料候选入内部世界<br/>不确认世界存在"]
-    J["6127 验证外设观察像素簇候选"]
-    K{"验证状态"}
-    K0["失败 / 证据不足<br/>派生缺口"]
-    L["6128 生成候选确认方案"]
-    M["6145 识别外设观察材料<br/>同一性 / 归属 / 扫描可启动"]
-    N{"6145 成功?"}
-    N0["失败<br/>补稳定复现 / 可复验 / 候选验证"]
-    O["识别结果摘要和方案项"]
-    P["6129 提交确认观察存在事实"]
-    Q["6150 当前观察范围对应事实<br/>稳定子集桥 / 扫描约束"]
+    A --&gt; B
+    B --&gt;|&quot;否&quot;| B0
+    B --&gt;|&quot;是&quot;| C --&gt; D
+    D --&gt;|&quot;否&quot;| D0
+    D --&gt;|&quot;是&quot;| E --&gt; F --&gt; G
+    G --&gt;|&quot;是&quot;| G0
+    G --&gt;|&quot;否&quot;| H
+    H --&gt;|&quot;否&quot;| I
+    I --&gt;|&quot;是&quot;| F
+    I --&gt;|&quot;否&quot;| I0
+    H --&gt;|&quot;是&quot;| J --&gt; K
+    K --&gt;|&quot;否&quot;| K0
+    K --&gt;|&quot;是&quot;| L</code></pre>
+<p>当前固定打分逻辑的修正位置：</p>
+<pre class="text"><code>投影重叠率 60% + 中心评分 25% + 深度评分 15%
+最佳分数 &gt;= 7500
+最佳分数 - 次佳分数 &gt;= 1200</code></pre>
+<p>修正后只作为默认视觉特征组评分，不再作为唯一识别原则本身。对应阈值应改为可读取的策略特征：</p>
+<pre class="text"><code>识别策略.最低同一性评分
+识别策略.最低唯一性分差
+识别策略.候选匹配评分值域
+识别策略.最小同一性证据帧数</code></pre>
+<p>阈值来源必须可追溯：</p>
+<pre class="text"><code>特征类型默认比较值域
+当前任务容差
+外设测量不确定度
+目标存在历史稳定值域
+外设学习结果
+安全 / 服务根需求约束</code></pre>
+<h2 id="唯一性识别主体">6. 6145 唯一性识别主体</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;进入 6145 自我_识别外设观察材料&quot;]
+    B[&quot;读取材料可回查状态 / 质量用途门 / 6127 验证状态&quot;]
+    C{&quot;可进入识别?&quot;}
+    C0[&quot;否&lt;br/&gt;材料缺口 / 复验缺口&quot;]
+    D[&quot;读取识别范围&lt;br/&gt;来源场景 / ROI / 掩码 / AABB / 有效期 / 候选生成规则&quot;]
+    E{&quot;识别范围已确定&lt;br/&gt;且同一性比较值域可读?&quot;}
+    E0[&quot;否&lt;br/&gt;范围或值域缺口&quot;]
+    F[&quot;读取外设观察存在已有特征组&quot;]
+    G{&quot;可识别特征组数量 &gt; 0?&quot;}
+    G0[&quot;否&lt;br/&gt;观察补特征&quot;]
+    H[&quot;消费 6128 识别候选方案&quot;]
+    I{&quot;候选集合数量&quot;}
+    I0[&quot;0&lt;br/&gt;无匹配候选&lt;br/&gt;进入待复验观察存在承接&quot;]
+    I1[&quot;&gt;1&lt;br/&gt;证据不足&lt;br/&gt;继续观察补特征&quot;]
+    I2[&quot;1&lt;br/&gt;进入硬冲突验算&quot;]
+    J{&quot;硬冲突数量 == 0&lt;br/&gt;且用于唯一识别特征数量 &gt; 0?&quot;}
+    J0[&quot;否&lt;br/&gt;识别冲突 / 观察复验&quot;]
+    K[&quot;建立归属映射&lt;br/&gt;外设观察存在 -&gt; 自我存在&quot;]
+    L[&quot;输出识别完成状态&lt;br/&gt;同一性二次特征 / 归属映射 / 识别状态动态&quot;]
+    M[&quot;输出扫描候选线索&lt;br/&gt;不直接写强扫描可启动状态&quot;]
 
-    A --> B --> C --> D --> E --> F --> G --> H
-    H --> H0
-    H --> H1 --> I --> J --> K
-    K -->|"未通过"| K0
-    K -->|"已验证"| L --> M --> N
-    N -->|"否"| N0
-    N -->|"是"| O --> P --> Q
-    </div>
-  </section>
+    A --&gt; B --&gt; C
+    C --&gt;|&quot;否&quot;| C0
+    C --&gt;|&quot;是&quot;| D --&gt; E
+    E --&gt;|&quot;否&quot;| E0
+    E --&gt;|&quot;是&quot;| F --&gt; G
+    G --&gt;|&quot;否&quot;| G0
+    G --&gt;|&quot;是&quot;| H --&gt; I
+    I --&gt; I0
+    I --&gt; I1
+    I --&gt; I2 --&gt; J
+    J --&gt;|&quot;否&quot;| J0
+    J --&gt;|&quot;是&quot;| K --&gt; L --&gt; M</code></pre>
+<p>6145 修正后成功条件：</p>
+<pre class="text"><code>识别范围状态 == 已确定
+外设观察存在.材料可回查状态 == 可回查
+外设观察存在.可识别特征组数量 &gt; 0
+同一性比较值域状态 == 可读
+候选集合数量 == 1
+硬冲突数量 == 0
+用于唯一识别特征数量 &gt; 0
+归属映射状态 == 已建立</code></pre>
+<p>不再把以下组合当成识别完成的充分条件：</p>
+<pre class="text"><code>稳定复现状态 == 稳定
+&amp;&amp; 观察完成状态 == 已完成
+&amp;&amp; 可复验状态 == 可复验</code></pre>
+<p>这些状态仍可作为普通视觉材料质量、可复验和观察完成的输入证据，但不能替代候选唯一性。</p>
+<h2 id="新建方案降级">7. 新建方案降级</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;6128 当前风险&lt;br/&gt;最佳分不足 -&gt; 方案项=新建&quot;]
+    B[&quot;修正语义&quot;]
+    B1[&quot;无匹配候选&quot;]
+    B2[&quot;新外设观察存在待承接&quot;]
+    B3[&quot;未归属 / 待复验&quot;]
+    C{&quot;是否满足强确认条件?&quot;}
+    C0[&quot;否&lt;br/&gt;允许提交=0&lt;br/&gt;或仅提交待复验观察存在&quot;]
+    D[&quot;满足强确认条件&lt;br/&gt;新唯一 + 可复验 + 无硬冲突 + 材料等级允许&quot;]
+    E[&quot;进入 6129 已确认观察存在提交&quot;]
 
-  <section>
-    <h2>4. 6145 内部流程</h2>
-    <div class="mermaid">
-flowchart TD
-    A["进入 6145 自我_识别外设观察材料"]
-    B["确保方法环境"]
-    C["解析输出场景 / 相机 / 目标宿主"]
-    D["读稳定复现 / 观察完成 / 可复验"]
-    E["读最新逐簇识别报告<br/>判定材料质量"]
-    F{"可进入识别?"}
-    F0["否<br/>条件不足"]
-    G["由报告派生前置状态"]
-    H{"观察存在可进入识别?"}
-    H0["否<br/>补观察前置缺口"]
-    I["读取上游验证状态"]
-    J{"验证已通过?"}
-    J0["否<br/>补候选验证缺口"]
-    K["读取当前场景已确认存在集合"]
-    L["构造确认方案"]
-    M{"方案取得状态 > 0?"}
-    M0["否<br/>证据不足"]
-    N["聚合同一性 / 归属 / 最高评分"]
-    O["写识别摘要和方案项"]
-    P["输出运行虚拟存在"]
+    A --&gt; B
+    B --&gt; B1
+    B --&gt; B2
+    B --&gt; B3
+    B --&gt; C
+    C --&gt;|&quot;否&quot;| C0
+    C --&gt;|&quot;是&quot;| D --&gt; E</code></pre>
+<p>定案：</p>
+<pre class="text"><code>无最佳匹配 != 可以正式新建已确认观察存在。
 
-    A --> B --> C --> D --> E --> F
-    F -->|"否"| F0 --> P
-    F -->|"是"| G --> H
-    H -->|"否"| H0 --> P
-    H -->|"是"| I --> J
-    J -->|"否"| J0 --> P
-    J -->|"是"| K --> L --> M
-    M -->|"否"| M0 --> P
-    M -->|"是"| N --> O --> P
-    </div>
-    <pre><code>6145 成功条件：
-观察存在可进入识别
-&& 有 D455 逐簇识别报告
-&& 观察材料可进入识别方法
-&& 上游验证状态 == 已验证
-&& 方案.方案取得状态 > 0</code></pre>
-  </section>
+无匹配候选默认输出：
+    同一性状态 == 无匹配候选
+    归属状态 == 未归属
+    允许提交 == 0
+    或仅允许提交为 待复验观察存在。</code></pre>
+<h2 id="提交入口分级">8. 6129 提交入口分级</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;6129 读取识别结果和候选方案&quot;]
+    B{&quot;提交类型&quot;}
+    C[&quot;提交_外设观察存在待复验事实&quot;]
+    C1[&quot;适用&lt;br/&gt;无匹配候选&lt;br/&gt;材料可回查&lt;br/&gt;稳定或可复验&lt;br/&gt;尚未唯一识别&quot;]
+    C2[&quot;输出&lt;br/&gt;确认状态=待复验&lt;br/&gt;识别状态=待识别 / 未归属&lt;br/&gt;保存材料引用&quot;]
+    D[&quot;提交_确认观察存在事实&quot;]
+    D1[&quot;适用&lt;br/&gt;候选数量 == 1&lt;br/&gt;硬冲突数量 == 0&lt;br/&gt;归属映射状态 == 已建立&lt;br/&gt;材料等级允许进入提交入口&quot;]
+    D2[&quot;输出&lt;br/&gt;确认状态=已确认&lt;br/&gt;创建或合并观察存在&lt;br/&gt;写同一性 / 归属 / 关系二次特征&quot;]
+    E[&quot;禁止&lt;br/&gt;优质报告直接等价为已确认存在&lt;br/&gt;新建方案直接等价为已确认存在&quot;]
 
-  <section>
-    <h2>5. 确认方案算法</h2>
-    <div class="mermaid">
-flowchart TD
-    A["输入: 逐簇识别报告 + 验证状态 + 当前场景已确认存在集合"]
-    B["遍历观察像素簇"]
-    C{"验证通过且材料可提交?"}
-    C0["否<br/>证据不足"]
-    D{"跨帧证据足够?"}
-    D0["否<br/>证据不足: 缺跨帧同一性证据"]
-    E["对已确认存在逐个打分"]
-    F["分数=重叠率60% + 中心25% + 深度15%"]
-    G["取最佳分数 / 最佳存在 / 次佳分数"]
-    H{"最佳>=7500 且最佳-次佳<1200?"}
-    H1["冲突<br/>允许提交=0"]
-    I{"最佳>=7500 且有最佳存在?"}
-    I1["合并<br/>同一性=已同一<br/>归属=已归属"]
-    J["新建<br/>同一性=未命中已知存在<br/>归属=待建立"]
-    K["统计方案数量和聚合状态"]
+    A --&gt; B
+    B --&gt; C --&gt; C1 --&gt; C2
+    B --&gt; D --&gt; D1 --&gt; D2
+    B --&gt; E</code></pre>
+<h2 id="硬冲突量化">9. 硬冲突量化</h2>
+<pre class="text"><code>硬冲突至少分为：
 
-    A --> B --> C
-    C -->|"否"| C0 --> K
-    C -->|"是"| D
-    D -->|"否"| D0 --> K
-    D -->|"是"| E --> F --> G --> H
-    H -->|"是"| H1 --> K
-    H -->|"否"| I
-    I -->|"是"| I1 --> K
-    I -->|"否"| J --> K
-    </div>
-    <pre><code>当前代码量化点：
-跨帧连续命中次数 >= 外设观察存在同一性最小证据帧数
-最佳匹配分数 >= 7500
-最佳分数 - 次佳分数 >= 1200 才避免多候选冲突
-匹配分数值域 = 0..10000</code></pre>
-  </section>
+空间冲突：
+    空间中心误差 &gt; 最大允许空间误差
+    或 空间范围重合率 &lt; 最低空间范围重合率
 
-  <section>
-    <h2>6. 提交后续</h2>
-    <div class="mermaid">
-flowchart TD
-    A["6145 识别归属结果"]
-    B{"后续提交目标"}
-    C["6129 提交确认观察存在事实"]
-    D{"来源报告可进入提交入口组织<br/>且有允许提交方案项?"}
-    D0["否<br/>条件不足"]
-    E["新建或合并已确认观察存在<br/>写原始事实和二次关系"]
-    F["6150 当前观察范围可观测单位存在对应事实"]
-    G["读取识别确认状态 / 方案取得 / 可提交 / 冲突 / 证据不足"]
-    H{"对应事实可写?"}
-    H0["否<br/>条件不足 / 缺口可解释"]
-    I["写有效单位 / 稳定对应 / 冲突 / 扫描可启动"]
-    J["稳定子集桥<br/>扫描目标观察约束"]
+掩码冲突：
+    掩码重合率 &lt; 最低硬掩码重合率
 
-    A --> B
-    B --> C --> D
-    D -->|"否"| D0
-    D -->|"是"| E
-    B --> F --> G --> H
-    H -->|"否"| H0
-    H -->|"是"| I --> J
-    </div>
-  </section>
+轮廓冲突：
+    轮廓偏差 &gt; 最大允许硬轮廓偏差
 
-  <section>
-    <h2>7. 当前运行口径</h2>
-    <pre><code>计划索引当前记录：
-P9c 已完成：6145 已能承接稳定复现 / 观察完成 / 可复验和候选验证状态。
-P9d 已推进：6150 已消费 6145 识别结果，稳定对应存在数量明确状态已完成。
-6150 已把稳定子集组织成正式已确认观察存在、映射项和扫描目标观察约束。
+身份冲突：
+    同一外设观察存在强匹配多个自我存在
+    或 同一自我存在被多个互斥外设观察存在强匹配
 
-不能宣称：
-识别结果等于全场景全部明确；
-识别结果直接生成扫描变化动态或跟踪动态；
-识别结果直接写需求满足或安全值。</code></pre>
-  </section>
+值域冲突：
+    当前特征值超出目标存在该特征的合法值域</code></pre>
+<p>输出不应只写“冲突”，而应写：</p>
+<pre class="text"><code>外设观察存在.硬冲突数量
+外设观察存在.识别冲突类型
+外设观察存在.冲突二次特征集合</code></pre>
+<h2 id="扫描衔接边界">10. 扫描衔接边界</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;6145 识别成功&quot;]
+    B[&quot;归属映射状态 == 已建立&quot;]
+    C[&quot;6150 生成稳定对应事实&lt;br/&gt;和扫描目标观察约束候选&quot;]
+    D[&quot;扫描自己的当前闸门&quot;]
+    D1[&quot;目标特征当前值可读&quot;]
+    D2[&quot;目标特征值域可读&quot;]
+    D3[&quot;上一轮基准可读&quot;]
+    D4[&quot;目标观察约束可用且三类 generation 匹配&quot;]
+    D5[&quot;非背景 / 优先级达标 / 待识别像素不过多&quot;]
+    E{&quot;扫描当前可启动?&quot;}
+    E0[&quot;否&lt;br/&gt;不创建普通扫描动态&quot;]
+    F[&quot;是&lt;br/&gt;进入 6146 扫描比较&quot;]
 
-  <section>
-    <h2>8. 硬边界</h2>
-    <pre><code>1. D455 只生产逐簇识别材料，不裁决世界真值。
-2. 任务管理承接请求只是上行通信，不是正式世界事实。
-3. 自我线程材料承接只写材料候选，不确认稳定世界对象。
-4. 6127 验证材料可回查和候选簇有效，不创建已确认观察存在。
-5. 6128 生成候选确认方案，不创建已确认观察存在。
-6. 6145 生成识别归属结果、同一性状态和归属状态，不写变化动态。
-7. 6129 才是已确认观察存在创建 / 合并的提交入口。
-8. 6150 才把识别结果组织成当前观察范围稳定对应事实和扫描目标上下文。
-9. 当前代码的唯一性判断是局部量化收敛，不是全世界唯一，也不是所有特征全量比较。</code></pre>
-  </section>
-</main>
+    A --&gt; B --&gt; C --&gt; D
+    D --&gt; D1
+    D --&gt; D2
+    D --&gt; D3
+    D --&gt; D4
+    D --&gt; D5
+    D --&gt; E
+    E --&gt;|&quot;否&quot;| E0
+    E --&gt;|&quot;是&quot;| F</code></pre>
+<p>6145 输出应从强状态收紧为：</p>
+<pre class="text"><code>扫描候选线索状态 == 已生成</code></pre>
+<p>扫描是否启动由 6146 / 6150 /
+任务管理扫描等待项闸门重新判定，不能由一次识别通过长期写死。</p>
+<h2 id="硬边界">11. 硬边界</h2>
+<pre class="text"><code>1. 报告 / 等待项 / 材料页只作通信和缓存容器。
+2. 6127 不写观察完成、识别完成或已确认观察存在。
+3. 6128 不以固定分数替代唯一性筛选。
+4. 6145 不要求所有特征观察完成，只要求当前范围唯一且无硬冲突。
+5. 无匹配候选不等于正式新建已确认观察存在。
+6. 候选唯一但有硬冲突，不得写已归属。
+7. 识别不补写颜色、空间坐标、轮廓、深度等一阶特征值。
+8. 扫描候选线索不等于扫描可启动状态。
+9. 识别完成不反推全场景明确、安全明确、需求满足或安全 / 服务值结算。</code></pre>
+<h2 id="最终定案">12. 最终定案</h2>
+<pre class="text"><code>当前代码已经会“打分选候选”；
+下一步要升级为“用已有合法特征把当前识别范围内候选集合压成唯一”。
+
+能压唯一且无硬冲突：
+    识别完成，建立归属映射。
+
+候选不唯一：
+    观察补特征。
+
+无匹配候选：
+    待复验观察存在承接，不直接新建已确认存在。
+
+唯一但冲突：
+    观察复验，不写归属。
+
+识别成功后：
+    只输出扫描候选线索，扫描启动仍走扫描自己的闸门。</code></pre>
 <script type="module">
   import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: "default",
-    flowchart: { htmlLabels: true, curve: "basis" }
-  });
+  for (const block of document.querySelectorAll("pre.mermaid")) {
+    const code = block.querySelector("code");
+    if (code) block.textContent = code.textContent;
+  }
+  mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
 </script>
 </body>
 </html>
