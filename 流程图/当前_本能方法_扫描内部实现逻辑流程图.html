@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>当前_本能方法_扫描内部实现逻辑流程图</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --paper: #ffffff;
+      --ink: #1f2933;
+      --muted: #5f6b7a;
+      --line: #d8dee6;
+      --accent: #1769aa;
+      --code: #f1f4f8;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      line-height: 1.65;
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.25;
+    }
+    h2 {
+      margin: 34px 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-size: 20px;
+    }
+    p.meta {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+    pre {
+      overflow: auto;
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+      white-space: pre-wrap;
+    }
+    code {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 0.94em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: #eef3f8;
+      text-align: left;
+    }
+    .mermaid {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 10px;
+      overflow: auto;
+    }
+    .note {
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>当前_本能方法_扫描内部实现逻辑流程图</h1>
+  <p class="meta">生成时间：2026-06-07。依据范围：当前代码；报告、等待项、目标观察约束和队列项只作为通信或材料容器。</p>
+
+  <section>
+    <h2>1. 当前代码结论</h2>
+    <pre><code>当前代码中的“扫描”不是 D455 报告直接入账。
+
+实际链路分成五段：
+1. 6150 写入稳定子集桥：正式已确认观察存在、映射项、归属状态、扫描可启动状态、扫描目标观察约束。
+2. 任务管理界面线程按稳定子集可用扫描约束批量创建扫描等待项。
+3. D455 独占线程按等待项和目标观察约束生成扫描变化报告。
+4. 任务管理工作线程匹配报告并做材料质量分级。
+5. 自我侧 6146 读取报告和正式目标存在，生成扫描正式结果；提交入口再决定发现事实或变化事实是否入账。</code></pre>
+    <p class="note">当前边界：首次扫描不写变化动态；无变化不写变化动态；只有“有历史 + 优质扫描材料 + 有实际变化”才允许提交观察存在特征值变化事实。</p>
+  </section>
+
+  <section>
+    <h2>2. 代码依据索引</h2>
+    <table>
+      <thead>
+        <tr><th>链路</th><th>当前代码位置</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>方法登记</td><td><code>本能方法类.cpp:56-64</code></td><td>登记扫描、发现事实、变化事实、对应事实提交等方法。</td></tr>
+        <tr><td>稳定子集桥</td><td><code>自我动作实现.外设模块.ixx:21327-21839</code></td><td>6150 写正式目标、映射项、扫描可启动状态、目标观察约束。</td></tr>
+        <tr><td>扫描等待项</td><td><code>任务模块.管理界面线程.impl.cpp:3064-3190</code></td><td>按稳定子集全量创建扫描等待项。</td></tr>
+        <tr><td>D455 扫描报告</td><td><code>外设线程_D455深度相机.ixx:978-1113</code>、<code>:1550-1599</code></td><td>校验等待项，生成并入队扫描变化报告。</td></tr>
+        <tr><td>任务管理质量门</td><td><code>任务模块.管理工作线程.ixx:3239-3358</code></td><td>区分不合格、可用、优质扫描材料。</td></tr>
+        <tr><td>6146 扫描主体</td><td><code>自我动作实现.外设模块.ixx:19799-20090</code></td><td>读取当前存在、历史存在、报告质量和闸门，生成扫描正式结果。</td></tr>
+        <tr><td>提交入口</td><td><code>自我动作实现.外设模块.ixx:21963-22310</code></td><td>发现事实和特征值变化事实的正式提交入口。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. 总流程图</h2>
+    <div class="mermaid">
+flowchart TD
+    A["6145 识别结果 / 对应事实材料"]
+    B["提交_当前观察范围可观测单位存在对应事实<br/>方法ID: 6150"]
+    C{"对应事实可写?"}
+    C0["条件不足<br/>不写扫描目标上下文"]
+    D["写稳定子集桥<br/>正式已确认观察存在<br/>可观测单位到存在映射项"]
+    E["写目标存在扫描前置<br/>外设观察存在自我归属状态=已归属<br/>扫描可启动状态=1"]
+    F["提交扫描目标观察约束特征组<br/>目标存在ID + 目标特征ID<br/>ROI / 掩码 / 点集 / AABB<br/>TTL / generation"]
+    G["任务管理界面线程<br/>读取可用扫描目标观察约束集合"]
+    H["批量创建外设观察等待项<br/>模式=已识别场景扫描变化<br/>期望报告=扫描变化报告"]
+    I["D455 独占线程采集一帧<br/>生成逐簇识别报告"]
+    J{"扫描等待项前置满足?"}
+    J0["跳过本等待项<br/>缺目标约束或目标区域"]
+    K["生成扫描变化报告<br/>只写外设消息队列"]
+    L["任务管理工作线程匹配报告<br/>判断观察材料质量"]
+    M{"扫描材料等级"}
+    M0["不合格<br/>只生成任务回执"]
+    M1["可用<br/>待复验观察承接<br/>不生成扫描变化动态候选"]
+    M2["优质<br/>扫描变化观察承接请求"]
+    N["自我线程按报告ID回查材料<br/>按目标存在生成 6146 任务主体"]
+    O["自我_扫描已识别区域<br/>方法ID: 6146"]
+    P{"6146 闸门成立?"}
+    P0["失败<br/>条件不足"]
+    Q{"是否有历史存在?"}
+    R{"材料可生成扫描变化候选?"}
+    S["计算匹配关系 / 变化结果 / 变化事件<br/>扫描入账状态=已生成"]
+    T["待重识别<br/>补观察 / 复验缺口"]
+    U["首次扫描<br/>创建或取得观察存在发现事实"]
+    V{"提交入口选择"}
+    W["提交_观察存在发现事实<br/>不写变化动态"]
+    X["提交_观察存在特征值变化事实<br/>要求有实际变化"]
+
+    A --> B --> C
+    C -->|"否"| C0
+    C -->|"是"| D --> E --> F --> G --> H --> I --> J
+    J -->|"否"| J0
+    J -->|"是"| K --> L --> M
+    M --> M0
+    M --> M1 --> N
+    M --> M2 --> N
+    N --> O --> P
+    P -->|"否"| P0
+    P -->|"是"| Q
+    Q -->|"有历史"| R
+    R -->|"是"| S --> V
+    R -->|"否"| T --> V
+    Q -->|"无历史"| U --> V
+    V -->|"发现事实"| W
+    V -->|"变化事实"| X
+    </div>
+  </section>
+
+  <section>
+    <h2>4. D455 报告生成</h2>
+    <div class="mermaid">
+flowchart TD
+    A["D455 线程循环"]
+    B["采集一帧"]
+    C{"采集成功?"}
+    C0["本轮无扫描报告"]
+    D["读取上一逐簇识别报告<br/>作为可比基准"]
+    E["生成当前逐簇识别报告<br/>提交报告和短期材料页"]
+    F["读取扫描变化等待项集合"]
+    G{"等待项前置满足?"}
+    G0["跳过<br/>缺已识别场景基准或目标区域"]
+    H["读取目标观察约束<br/>判断强匹配 / 降级匹配"]
+    I{"目标约束命中当前簇?"}
+    I0["采集失败报告<br/>不生成扫描变化动态候选"]
+    J{"是否有上一逐簇识别基准?"}
+    J0["无基准<br/>只建立首帧基准"]
+    K["有基准<br/>统计新增 / 消失 / 变化 / 高风险未知"]
+    L["提交扫描变化报告<br/>仍是外设材料容器"]
+
+    A --> B --> C
+    C -->|"否"| C0
+    C -->|"是"| D --> E --> F --> G
+    G -->|"否"| G0
+    G -->|"是"| H --> I
+    I -->|"否"| I0 --> L
+    I -->|"是"| J
+    J -->|"否"| J0 --> L
+    J -->|"是"| K --> L
+    </div>
+  </section>
+
+  <section>
+    <h2>5. 6146 内部流程</h2>
+    <div class="mermaid">
+flowchart TD
+    A["进入 自我_扫描已识别区域"]
+    B["确保本能方法自身环境"]
+    C["解析输出场景 / 相机 / 目标宿主<br/>当前观察存在 / 历史观察存在"]
+    D["读取最新扫描变化报告<br/>判定材料质量"]
+    E["读取归属状态和扫描可启动状态"]
+    F{"闸门成立?"}
+    F0["失败<br/>当前方法条件不满足"]
+    G{"有历史存在?"}
+    H{"材料可生成扫描变化候选?"}
+    I["计算匹配关系<br/>计算变化结果<br/>计算变化事件"]
+    J{"变化状态"}
+    J0["未变化<br/>稳定计数+1<br/>不写变化动态"]
+    J1["实际变化<br/>允许后续变化事实提交"]
+    J2["冲突 / 不确定<br/>待复验缺口"]
+    K["有历史但材料不足<br/>待重识别 / 补观察"]
+    L["无历史<br/>创建发现事实<br/>首次扫描只写发现"]
+    M["写扫描正式结果摘要<br/>输出运行虚拟存在"]
+
+    A --> B --> C --> D --> E --> F
+    F -->|"否"| F0 --> M
+    F -->|"是"| G
+    G -->|"有历史"| H
+    H -->|"是"| I --> J
+    J --> J0 --> M
+    J --> J1 --> M
+    J --> J2 --> M
+    H -->|"否"| K --> M
+    G -->|"无历史"| L --> M
+    </div>
+    <pre><code>6146 成功闸门：
+有当前存在
+&& 归属状态已读
+&& 归属状态 == 已归属
+&& 扫描可启动状态已读
+&& 扫描可启动状态 == 1
+&& 扫描材料可复验</code></pre>
+  </section>
+
+  <section>
+    <h2>6. 提交入口</h2>
+    <div class="mermaid">
+flowchart TD
+    A["6146 扫描正式结果"]
+    B{"结果类型"}
+    C["首次扫描 / 无历史<br/>发现状态=已发现"]
+    D["有历史且有实际变化<br/>变化状态 != 未变化"]
+    E["有历史但无变化<br/>或材料只可复验<br/>不提交变化事实"]
+    F["提交_观察存在发现事实"]
+    G{"发现事实提交条件成立?"}
+    G0["失败<br/>条件不足"]
+    H["成功<br/>只写发现存在或发现特征事实<br/>不写变化动态"]
+    I["提交_观察存在特征值变化事实"]
+    J{"变化事实提交条件成立?"}
+    J0["失败<br/>不写存在特征变化动态"]
+    K["成功<br/>写存在特征变化动态"]
+
+    A --> B
+    B -->|"发现"| C --> F --> G
+    G -->|"否"| G0
+    G -->|"是"| H
+    B -->|"变化"| D --> I --> J
+    J -->|"否"| J0
+    J -->|"是"| K
+    B -->|"无可提交变化"| E
+    </div>
+    <pre><code>发现事实提交条件：
+当前存在存在
+&& 扫描正式结果可读
+&& 观察存在发现状态 == 已发现
+&& 来源报告可进入验证方法
+
+变化事实提交条件：
+当前存在存在
+&& 已识别区域扫描入账状态 == 已生成
+&& 变化结果已生成
+&& 变化状态 != 未变化
+&& 来源报告可生成扫描变化候选</code></pre>
+  </section>
+
+  <section>
+    <h2>7. 当前运行状态口径</h2>
+    <pre><code>当前计划索引记录：
+6150 已形成稳定子集扫描目标上下文。
+任务管理已按稳定子集全量提交扫描等待项。
+D455 已生成扫描变化报告。
+6146 已自然执行。
+归属状态已读 == 1。
+扫描可启动状态已读 == 1。
+扫描闸门成立 == 1。
+
+但当前质量门：
+当前扫描材料等级 == 可用
+可生成扫描变化候选 == 0
+可生成跟踪动态候选 == 0
+可进入提交入口组织 == 0
+
+因此只能作为可复验材料、首帧扫描基准或待重识别输入，不能宣称已生成扫描变化动态候选或提交入口事实。</code></pre>
+  </section>
+
+  <section>
+    <h2>8. 硬边界</h2>
+    <pre><code>1. D455 是观察材料生产者，不是世界真值裁决者。
+2. 外设报告 / 等待项 / 目标观察约束 / 队列项不作为事实主体入正式认知链。
+3. 扫描必须绑定已归属且扫描可启动的当前存在。
+4. 首次扫描只能建立发现存在或发现特征事实，不写变化动态。
+5. 有历史但材料未达“可生成扫描变化候选”时，只能待重识别或补观察复验。
+6. 无实际变化时不提交变化事实。
+7. 扫描链不直接写需求满足，不直接写安全值。</code></pre>
+  </section>
+</main>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "default",
+    flowchart: { htmlLabels: true, curve: "basis" }
+  });
+</script>
+</body>
+</html>
