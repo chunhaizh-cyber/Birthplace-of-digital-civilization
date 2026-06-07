@@ -1,6 +1,7 @@
 module;
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
@@ -1197,6 +1198,68 @@ struct 结构_任务域本能调用上下文 {
     std::uint64_t 准备_写任务指针耗时微秒 = 0;
 };
 
+bool 私有_本能方法首节点匹配(
+    方法类::节点类* 方法首节点,
+    枚举_本能方法ID 本能ID) noexcept
+{
+    return 方法首节点
+        && 本能ID != 枚举_本能方法ID::未定义
+        && 方法首节点->主信息.公共.节点种类 == 枚举_方法节点种类::方法首节点
+        && 方法首节点->主信息.首节点信息().动作句柄.类型 == 枚举_动作句柄类型::本能函数ID
+        && 方法首节点->主信息.首节点信息().动作句柄.本能ID == static_cast<I64>(本能ID);
+}
+
+std::atomic<std::uintptr_t>& 私有_状态提交方法缓存_自我存在() noexcept
+{
+    static std::atomic<std::uintptr_t> s_值{0};
+    return s_值;
+}
+
+std::atomic<std::uintptr_t>& 私有_状态提交方法缓存_方法首节点() noexcept
+{
+    static std::atomic<std::uintptr_t> s_值{0};
+    return s_值;
+}
+
+方法类::节点类* 私有_读取状态提交方法首节点缓存(
+    存在节点类* 自我存在,
+    枚举_本能方法ID 本能ID) noexcept
+{
+    if (!自我存在 || 本能ID != 枚举_本能方法ID::自我_提交任务状态变化) {
+        return nullptr;
+    }
+    const auto 自我存在指针 =
+        reinterpret_cast<std::uintptr_t>(自我存在);
+    if (私有_状态提交方法缓存_自我存在().load(std::memory_order_acquire)
+        != 自我存在指针) {
+        return nullptr;
+    }
+    auto* 方法首节点 = reinterpret_cast<方法类::节点类*>(
+        私有_状态提交方法缓存_方法首节点().load(std::memory_order_acquire));
+    return 私有_本能方法首节点匹配(方法首节点, 本能ID)
+        ? 方法首节点
+        : nullptr;
+}
+
+void 私有_写入状态提交方法首节点缓存(
+    存在节点类* 自我存在,
+    枚举_本能方法ID 本能ID,
+    方法类::节点类* 方法首节点) noexcept
+{
+    if (!自我存在
+        || 本能ID != 枚举_本能方法ID::自我_提交任务状态变化
+        || !私有_本能方法首节点匹配(方法首节点, 本能ID)) {
+        return;
+    }
+    私有_状态提交方法缓存_自我存在().store(0, std::memory_order_release);
+    私有_状态提交方法缓存_方法首节点().store(
+        reinterpret_cast<std::uintptr_t>(方法首节点),
+        std::memory_order_release);
+    私有_状态提交方法缓存_自我存在().store(
+        reinterpret_cast<std::uintptr_t>(自我存在),
+        std::memory_order_release);
+}
+
 结构_任务域本能调用上下文 私有_准备任务域本能调用(
     任务节点* 任务,
     枚举_本能方法ID 本能ID,
@@ -1216,10 +1279,19 @@ struct 结构_任务域本能调用上下文 {
     }
 
     const auto 查找本能方法开始 = 私有_时间(0);
-    上下文.方法首节点 = 本能方法类::查找或创建本能方法首节点(
-        自我存在,
-        本能ID,
-        now);
+    if (auto* 缓存方法首节点 =
+            私有_读取状态提交方法首节点缓存(自我存在, 本能ID)) {
+        上下文.方法首节点 = 缓存方法首节点;
+    } else {
+        上下文.方法首节点 = 本能方法类::查找或创建本能方法首节点(
+            自我存在,
+            本能ID,
+            now);
+        私有_写入状态提交方法首节点缓存(
+            自我存在,
+            本能ID,
+            上下文.方法首节点);
+    }
     上下文.准备_查找本能方法耗时微秒 =
         私有_耗时微秒(查找本能方法开始, 私有_时间(0));
     if (!上下文.方法首节点) {
@@ -3171,8 +3243,13 @@ bool 私有_过期工作项已被新状态取代(
     预判请求.允许派发工作线程 = true;
     const auto 当前状态 = 任务类::读取任务状态(任务, 枚举_任务状态::未定义);
     const auto 推进裁决 = 私有_裁决任务推进(预判请求, 当前状态);
-    return 推进裁决.工作类型 == 任务管理线程协议::枚举_任务工作项类型::未定义
-        || 推进裁决.工作类型 != 工作项.工作类型;
+    if (推进裁决.工作类型 == 任务管理线程协议::枚举_任务工作项类型::未定义
+        || 推进裁决.工作类型 != 工作项.工作类型) {
+        return true;
+    }
+
+    // 状态版本已落后时，同类工作项也不能带旧版本执行，交由当前状态重新调度。
+    return 工作项.状态版本 != 0;
 }
 
 void 私有_终止过期工作项(
