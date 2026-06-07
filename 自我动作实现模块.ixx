@@ -3697,6 +3697,125 @@ namespace {
         const 语素入口节点类* 失败原因 = nullptr;
     };
 
+    struct 结构_任务状态提交环境缓存快照 {
+        方法类::节点类* 方法首节点 = nullptr;
+        方法类::节点类* 方法条件节点 = nullptr;
+        存在节点类* 方法虚拟存在 = nullptr;
+        场景节点类* 条件场景 = nullptr;
+        场景节点类* 结果场景 = nullptr;
+    };
+
+    inline bool 是任务状态提交环境快路径调用(
+        枚举_本能方法ID 本能ID,
+        const char* 调用方) noexcept
+    {
+        return 本能ID == 枚举_本能方法ID::自我_提交任务状态变化
+            && 调用方
+            && std::strcmp(调用方, "自我_提交任务状态变化") == 0;
+    }
+
+    inline std::atomic<std::uintptr_t>& 任务状态提交环境缓存_方法首节点() noexcept
+    {
+        static std::atomic<std::uintptr_t> s_值{0};
+        return s_值;
+    }
+
+    inline std::atomic<std::uintptr_t>& 任务状态提交环境缓存_方法条件节点() noexcept
+    {
+        static std::atomic<std::uintptr_t> s_值{0};
+        return s_值;
+    }
+
+    inline std::atomic<std::uintptr_t>& 任务状态提交环境缓存_方法虚拟存在() noexcept
+    {
+        static std::atomic<std::uintptr_t> s_值{0};
+        return s_值;
+    }
+
+    inline std::atomic<std::uintptr_t>& 任务状态提交环境缓存_条件场景() noexcept
+    {
+        static std::atomic<std::uintptr_t> s_值{0};
+        return s_值;
+    }
+
+    inline std::atomic<std::uintptr_t>& 任务状态提交环境缓存_结果场景() noexcept
+    {
+        static std::atomic<std::uintptr_t> s_值{0};
+        return s_值;
+    }
+
+    inline bool 读取任务状态提交环境缓存(
+        方法类::节点类* 输入方法首节点,
+        枚举_本能方法ID 本能ID,
+        const char* 调用方,
+        结构_任务状态提交环境缓存快照& 快照) noexcept
+    {
+        if (!输入方法首节点 || !是任务状态提交环境快路径调用(本能ID, 调用方)) {
+            return false;
+        }
+
+        const auto 输入方法指针 = reinterpret_cast<std::uintptr_t>(输入方法首节点);
+        const auto 方法首节点指针 =
+            任务状态提交环境缓存_方法首节点().load(std::memory_order_acquire);
+        if (!方法首节点指针 || 方法首节点指针 != 输入方法指针) {
+            return false;
+        }
+
+        const auto 方法条件节点指针 =
+            任务状态提交环境缓存_方法条件节点().load(std::memory_order_acquire);
+        const auto 方法虚拟存在指针 =
+            任务状态提交环境缓存_方法虚拟存在().load(std::memory_order_acquire);
+        const auto 条件场景指针 =
+            任务状态提交环境缓存_条件场景().load(std::memory_order_acquire);
+        const auto 结果场景指针 =
+            任务状态提交环境缓存_结果场景().load(std::memory_order_acquire);
+        if (!方法条件节点指针
+            || !方法虚拟存在指针
+            || !条件场景指针
+            || !结果场景指针) {
+            return false;
+        }
+
+        快照.方法首节点 = reinterpret_cast<方法类::节点类*>(方法首节点指针);
+        快照.方法条件节点 = reinterpret_cast<方法类::节点类*>(方法条件节点指针);
+        快照.方法虚拟存在 = reinterpret_cast<存在节点类*>(方法虚拟存在指针);
+        快照.条件场景 = reinterpret_cast<场景节点类*>(条件场景指针);
+        快照.结果场景 = reinterpret_cast<场景节点类*>(结果场景指针);
+        return true;
+    }
+
+    inline void 写入任务状态提交环境缓存(
+        枚举_本能方法ID 本能ID,
+        const char* 调用方,
+        const 结构_本能方法自身环境& 环境) noexcept
+    {
+        if (!环境.已成功
+            || !是任务状态提交环境快路径调用(本能ID, 调用方)
+            || !环境.方法首节点
+            || !环境.方法条件节点
+            || !环境.方法虚拟存在
+            || !环境.条件场景
+            || !环境.结果场景) {
+            return;
+        }
+
+        任务状态提交环境缓存_方法条件节点().store(
+            reinterpret_cast<std::uintptr_t>(环境.方法条件节点),
+            std::memory_order_release);
+        任务状态提交环境缓存_方法虚拟存在().store(
+            reinterpret_cast<std::uintptr_t>(环境.方法虚拟存在),
+            std::memory_order_release);
+        任务状态提交环境缓存_条件场景().store(
+            reinterpret_cast<std::uintptr_t>(环境.条件场景),
+            std::memory_order_release);
+        任务状态提交环境缓存_结果场景().store(
+            reinterpret_cast<std::uintptr_t>(环境.结果场景),
+            std::memory_order_release);
+        任务状态提交环境缓存_方法首节点().store(
+            reinterpret_cast<std::uintptr_t>(环境.方法首节点),
+            std::memory_order_release);
+    }
+
     inline std::string 指针日志文本(const void* 指针) noexcept
     {
         return std::to_string(reinterpret_cast<std::uintptr_t>(指针));
@@ -3785,6 +3904,7 @@ namespace {
         std::uint64_t 确认规格耗时微秒 = 0;
         std::uint64_t 解析条件节点耗时微秒 = 0;
         std::uint64_t 二次同步方法虚拟存在耗时微秒 = 0;
+        bool 任务状态提交环境快路径命中 = false;
         auto 耗时微秒 = [](const auto 开始) noexcept -> std::uint64_t {
             return static_cast<std::uint64_t>(
                 std::chrono::duration_cast<std::chrono::microseconds>(
@@ -3831,6 +3951,7 @@ namespace {
                 << " | 本能ID=" << static_cast<std::uint32_t>(本能ID)
                 << " | 方法=" << (环境.方法首节点 ? 环境.方法首节点->获取主键() : std::string("空"))
                 << " | 结果=" << (结果 ? 结果 : "未知")
+                << " | 快路径=" << (任务状态提交环境快路径命中 ? 1 : 0)
                 << " | 总耗时微秒=" << 总耗时微秒
                 << " | 最慢阶段=" << 最慢阶段
                 << " | 最慢阶段耗时微秒=" << 最慢阶段耗时微秒
@@ -3856,6 +3977,35 @@ namespace {
             输出慢环境日志("失败");
             return 环境;
         };
+
+        结构_任务状态提交环境缓存快照 缓存快照{};
+        if (读取任务状态提交环境缓存(输入方法首节点, 本能ID, 调用方, 缓存快照)) {
+            任务状态提交环境快路径命中 = true;
+            环境.方法首节点 = 缓存快照.方法首节点;
+            环境.方法条件节点 = 缓存快照.方法条件节点;
+            环境.方法虚拟存在 = 缓存快照.方法虚拟存在;
+            环境.条件场景 = 缓存快照.条件场景;
+            环境.结果场景 = 缓存快照.结果场景;
+            环境.方法头已就绪 = 环境.方法首节点 != nullptr;
+            环境.方法条件节点已就绪 = 环境.方法条件节点 != nullptr;
+            环境.方法虚拟存在已就绪 = 环境.方法虚拟存在 != nullptr;
+            环境.条件场景已就绪 = 环境.条件场景 != nullptr;
+            环境.结果场景已就绪 = 环境.结果场景 != nullptr;
+            环境.方法规格已确认 = true;
+
+            const auto 本轮运行开始 = std::chrono::steady_clock::now();
+            环境.本轮运行虚拟存在 = 本轮运行虚拟存在(环境.方法首节点, 输出结果场景, now);
+            本轮运行虚拟存在耗时微秒 = 耗时微秒(本轮运行开始);
+            环境.本轮运行虚拟存在已就绪 = 环境.本轮运行虚拟存在 != nullptr;
+            if (!环境.本轮运行虚拟存在已就绪) {
+                环境.失败原因 = 值_本轮运行虚拟存在缺失();
+                return 失败返回();
+            }
+
+            环境.已成功 = true;
+            输出慢环境日志("成功快路径");
+            return 环境;
+        }
 
         const auto 确保本能方法开始 = std::chrono::steady_clock::now();
         环境.方法首节点 = 确保本能方法(输入方法首节点, 本能ID, now);
@@ -3940,6 +4090,7 @@ namespace {
         二次同步方法虚拟存在耗时微秒 = 耗时微秒(二次同步开始);
 
         环境.已成功 = true;
+        写入任务状态提交环境缓存(本能ID, 调用方, 环境);
         输出慢环境日志("成功");
         return 环境;
     }
