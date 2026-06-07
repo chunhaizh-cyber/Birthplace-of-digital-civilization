@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>当前_本能方法_观察内部实现逻辑流程图</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+<style>
+  body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; line-height: 1.65; }
+  body > header, body > main { max-width: 1420px; margin: 0 auto; }
+  body { padding: 20px 24px 36px; }
+  h1 { margin: 0 0 10px; font-size: 26px; font-weight: 650; }
+  h2 { margin-top: 28px; padding-top: 12px; border-top: 1px solid #d8dee4; font-size: 20px; }
+  p, li { font-size: 15px; }
+  pre { overflow: auto; padding: 14px 16px; border: 1px solid #d8dee4; background: #fff; border-radius: 6px; }
+  pre.mermaid { min-width: 1320px; background: #fff; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0 18px; background: #fff; }
+  th, td { border: 1px solid #d8dee4; padding: 8px 10px; vertical-align: top; }
+  th { background: #f0f3f6; text-align: left; }
+  blockquote { margin: 12px 0; padding: 8px 14px; border-left: 4px solid #8c959f; color: #57606a; background: #fff; }
+</style>
+</head>
+<body>
+<h1
+id="当前_本能方法_观察内部实现逻辑流程图">当前_本能方法_观察内部实现逻辑流程图</h1>
+<p>生成时间：2026-06-07</p>
+<p>依据范围：当前代码。本文只描述已在代码中能追踪到的观察相关实现链，不把报告、等待项、材料页或队列项写成正式世界事实。</p>
+<h2 id="当前代码结论">1. 当前代码结论</h2>
+<pre class="text"><code>当前代码中，“观察”不是一个单一的自我_观察外设材料方法。
+
+已落地的观察相关实现分成三层：
+
+1. 基础观察事实链：
+   双目相机_取得当前观察特征帧
+   -&gt; 自我_建立观察帧存在
+   -&gt; 自我_建立观察帧到自我场景接口
+   -&gt; 自我_建立像素观察事实索引
+   -&gt; 自我_校验观察事实完备性
+   -&gt; 自我_评估观察帧质量
+   -&gt; 自我_判断基础观察事实可用性
+
+2. D455 外设报告承接链：
+   任务管理按方法供料要求创建外设观察等待项
+   -&gt; D455 独占线程生成逐簇识别 / 扫描变化 / 跟踪报告
+   -&gt; 外设观察报告队列缓存和质量门控
+   -&gt; 任务管理工作线程生成观察事实承接请求
+   -&gt; 自我线程按报告ID回查并落到自我内部世界材料候选
+
+3. 观察存在提交链：
+   自我_验证外设观察像素簇候选
+   -&gt; 自我_确认外设观察存在候选
+   -&gt; 提交_确认观察存在事实</code></pre>
+<p>当前边界：</p>
+<pre class="text"><code>外设报告 / 等待项 / 材料页 / 队列项 = 通信与缓存容器。
+自我线程承接报告 = 材料候选入自我内部世界，不确认世界存在真值。
+提交_确认观察存在事实 = 当前代码中正式创建或合并已确认观察存在的入口。
+扫描 / 跟踪报告质量不足时，只能形成待复验材料或任务回执，不生成变化动态或稳定跟踪动态候选。</code></pre>
+<h2 id="代码依据索引">2. 代码依据索引</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>链路</th>
+<th>当前代码位置</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本能方法 ID</td>
+<td><code>本能方法类.h:49-62</code>、<code>本能方法类.h:84-85</code></td>
+<td>观察事实、观察验证、确认提交、发现事实相关方法 ID。</td>
+</tr>
+<tr>
+<td>方法登记</td>
+<td><code>本能方法类.cpp:37-41</code>、<code>本能方法类.cpp:64</code>、<code>本能方法类.cpp:95</code></td>
+<td>基础观察、观察验证、确认提交、目标观察约束方法登记。</td>
+</tr>
+<tr>
+<td>基础观察事实链</td>
+<td><code>自我动作实现.外设模块.ixx:16219</code>、<code>:16284</code>、<code>:16355</code>、<code>:16489</code>、<code>:16654</code>、<code>:16734</code>、<code>:16814</code></td>
+<td>取得观察特征帧、建立帧存在、接口、像素索引、完备性、质量、基础可用性。</td>
+</tr>
+<tr>
+<td>目标观察约束</td>
+<td><code>自我动作实现.外设模块.ixx:19157</code></td>
+<td>写入目标观察约束特征组，不作为世界真值。</td>
+</tr>
+<tr>
+<td>观察验证 / 确认 / 提交</td>
+<td><code>自我动作实现.外设模块.ixx:20386</code>、<code>:20717</code>、<code>:20894</code></td>
+<td>验证像素簇候选、生成确认方案、提交确认观察存在事实。</td>
+</tr>
+<tr>
+<td>任务管理等待项</td>
+<td><code>任务模块.管理界面线程.impl.cpp:784</code>、<code>:2856</code>、<code>:2990</code>、<code>:3336</code></td>
+<td>方法供料口径映射、等待项创建、启动 D455、巡检等待项。</td>
+</tr>
+<tr>
+<td>任务管理承接</td>
+<td><code>任务模块.管理工作线程.ixx:3214</code></td>
+<td>匹配报告、质量门控、生成观察事实承接上行。</td>
+</tr>
+<tr>
+<td>外设报告质量门</td>
+<td><code>外设观察报告队列.ixx:1537</code>、<code>:2519</code></td>
+<td>判断观察材料质量、按等待项匹配未消费报告。</td>
+</tr>
+<tr>
+<td>D455 线程生产报告</td>
+<td><code>外设线程_D455深度相机.ixx:1538</code></td>
+<td>采集一帧，生成逐簇识别报告，并按等待项生成扫描 / 跟踪报告。</td>
+</tr>
+<tr>
+<td>自我线程材料承接</td>
+<td><code>自我线程模块.impl.cpp:12877</code></td>
+<td>按报告ID回查，材料候选入自我内部世界，不确认世界真值。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="当前总流程图">3. 当前总流程图</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;需求 / 任务需要观察材料&lt;br/&gt;或当前方法执行缺外设供料&quot;]
+    B[&quot;任务管理读取当前方法结果能力&lt;br/&gt;映射观察口径&quot;]
+    B1{&quot;观察口径&quot;}
+    C1[&quot;观察验证 / 识别&lt;br/&gt;运行模式: 陌生环境逐簇识别&lt;br/&gt;期望报告: 逐簇识别报告&quot;]
+    C2[&quot;扫描&lt;br/&gt;运行模式: 已识别场景扫描变化&lt;br/&gt;期望报告: 扫描变化报告&lt;br/&gt;需要目标观察约束&quot;]
+    C3[&quot;跟踪&lt;br/&gt;运行模式: 目标跟踪观察&lt;br/&gt;期望报告: 跟踪报告&lt;br/&gt;需要目标观察约束&quot;]
+    D[&quot;任务管理创建外设观察等待项&lt;br/&gt;写目标外设 / 模式 / 报告类型 / 目标存在 / 目标特征 / 约束ID&quot;]
+    E[&quot;若 D455 线程未运行&lt;br/&gt;启动外设线程_D455深度相机&quot;]
+    F[&quot;D455 独占线程采集一帧&quot;]
+    G[&quot;生成逐簇识别报告&lt;br/&gt;提交外设观察报告&lt;br/&gt;提交 D455 短期观察材料页&quot;]
+    H{&quot;存在扫描 / 跟踪等待项?&quot;}
+    I1[&quot;按扫描等待项生成扫描变化报告&lt;br/&gt;缺目标约束或基准则跳过&quot;]
+    I2[&quot;按跟踪等待项生成跟踪报告&lt;br/&gt;缺目标种子则跳过&quot;]
+    J[&quot;外设观察报告队列缓存&lt;br/&gt;报告仍是通信 / 材料容器&quot;]
+    K[&quot;任务管理外设承接后台巡检等待项&quot;]
+    L[&quot;按等待项匹配未消费报告&quot;]
+    M[&quot;观察材料质量门控&lt;br/&gt;不合格 / 可用 / 优质&quot;]
+    N{&quot;质量门允许上行?&quot;}
+    O1[&quot;不合格&lt;br/&gt;只生成任务回执&lt;br/&gt;不消费报告&lt;br/&gt;不上行自我线程&quot;]
+    O2[&quot;可用&lt;br/&gt;生成观察事实承接请求&lt;br/&gt;通常只作验证 / 待复验材料&quot;]
+    O3[&quot;优质&lt;br/&gt;生成观察事实承接请求&lt;br/&gt;或稳定特征承接请求&quot;]
+    P[&quot;标记报告已消费&lt;br/&gt;仍可按报告ID回查直到 TTL 清理&quot;]
+    Q[&quot;自我线程收到观察事实承接请求&quot;]
+    R[&quot;按报告ID回查报告缓存&quot;]
+    S[&quot;落到自我内部世界&lt;br/&gt;报告承接状态 / 像素簇数量 / 候选集合 / 摘要&quot;]
+    T[&quot;明确边界&lt;br/&gt;不确认世界存在真值&lt;br/&gt;不直接写需求满足&lt;br/&gt;不结算安全值&quot;]
+    U[&quot;后续自我本能方法消费材料&lt;br/&gt;6127 验证&lt;br/&gt;6128 确认方案&lt;br/&gt;6129 提交确认观察存在事实&quot;]
+
+    A --&gt; B --&gt; B1
+    B1 --&gt; C1
+    B1 --&gt; C2
+    B1 --&gt; C3
+    C1 --&gt; D
+    C2 --&gt; D
+    C3 --&gt; D
+    D --&gt; E --&gt; F --&gt; G --&gt; H
+    H --&gt;|&quot;有扫描等待项&quot;| I1 --&gt; J
+    H --&gt;|&quot;有跟踪等待项&quot;| I2 --&gt; J
+    H --&gt;|&quot;无&quot;| J
+    G --&gt; J
+    J --&gt; K --&gt; L --&gt; M --&gt; N
+    N --&gt;|&quot;否&quot;| O1
+    N --&gt;|&quot;可用&quot;| O2 --&gt; P
+    N --&gt;|&quot;优质&quot;| O3 --&gt; P
+    P --&gt; Q --&gt; R --&gt; S --&gt; T --&gt; U</code></pre>
+<h2 id="基础观察事实链">4. 基础观察事实链</h2>
+<p>这条链是当前代码中较早落地的“当前观察帧 -&gt;
+基础观察事实可用”的内部实现路径。</p>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;6097 双目相机_取得当前观察特征帧&quot;]
+    A1[&quot;采集双目相机帧&lt;br/&gt;写 当前观察材料集取得状态&lt;br/&gt;写观察帧摘要&quot;]
+    B[&quot;6100 自我_建立观察帧存在&quot;]
+    B1{&quot;观察帧容器状态 == 已建立?&quot;}
+    B2[&quot;写 观察帧容器状态&lt;br/&gt;写自我观察帧存在摘要&quot;]
+    C[&quot;6101 自我_建立观察帧到自我场景接口&quot;]
+    C1[&quot;读取已落账观察特征帧摘要&lt;br/&gt;写 观察帧到自我场景接口&quot;]
+    D[&quot;6102 自我_建立像素观察事实索引&quot;]
+    D1{&quot;像素索引证据闭合?&quot;}
+    D2[&quot;条件包括&lt;br/&gt;像素数量 == 预期像素数量&lt;br/&gt;缺失像素数量 == 0&lt;br/&gt;重复映射数量 == 0&lt;br/&gt;坐标 / 帧内编号回查可用&quot;]
+    D3[&quot;写 像素覆盖状态&lt;br/&gt;写像素观察事实索引摘要&quot;]
+    E[&quot;6116 自我_校验观察事实完备性&quot;]
+    E1[&quot;检查像素覆盖 / 像素特征承接 / 回查可用&lt;br/&gt;写 观察事实完备状态&quot;]
+    F[&quot;6117 自我_评估观察帧质量&quot;]
+    F1[&quot;检查质量诊断摘要 / 帧质量评分&lt;br/&gt;深度有效率 / 空间坐标有效率&lt;br/&gt;写 质量可用状态&quot;]
+    G[&quot;6125 自我_判断基础观察事实可用性&quot;]
+    G1{&quot;已落账观察特征帧摘要可读?&quot;}
+    G2[&quot;补全基础观察事实状态&lt;br/&gt;写 基础观察事实可用状态&quot;]
+    G3[&quot;条件不足时&lt;br/&gt;选择首个缺口特征&lt;br/&gt;写宿主 I64 特征派生需求&quot;]
+
+    A --&gt; A1 --&gt; B
+    B --&gt; B1
+    B1 --&gt;|&quot;是&quot;| B2 --&gt; C
+    B1 --&gt;|&quot;否&quot;| G3
+    C --&gt; C1 --&gt; D
+    D --&gt; D1
+    D1 --&gt;|&quot;是&quot;| D2 --&gt; D3 --&gt; E
+    D1 --&gt;|&quot;否&quot;| G3
+    E --&gt; E1 --&gt; F
+    F --&gt; F1 --&gt; G
+    G --&gt; G1
+    G1 --&gt;|&quot;是&quot;| G2
+    G1 --&gt;|&quot;否&quot;| G3</code></pre>
+<h2 id="d455-报告质量门控">5. D455 报告质量门控</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;外设观察报告队列项&quot;]
+    B{&quot;报告类型明确&lt;br/&gt;且采集成功?&quot;}
+    C[&quot;不合格&lt;br/&gt;报告类型未指定 / 采集失败&quot;]
+    D{&quot;报告年龄是否超过等待项上限?&quot;}
+    E[&quot;不合格&lt;br/&gt;报告过期&quot;]
+    F{&quot;是否有可回查材料?&quot;}
+    G[&quot;不合格&lt;br/&gt;缺原始帧 / 深度帧 / 彩色帧 / 空间候选 / 像素归属 / 簇材料句柄&quot;]
+    H{&quot;报告是否需要簇材料&lt;br/&gt;且簇集合为空?&quot;}
+    I[&quot;不合格&lt;br/&gt;缺观察像素簇集合&quot;]
+    J{&quot;全局或目标区域&lt;br/&gt;是否有基础深度 / 空间质量?&quot;}
+    K[&quot;不合格&lt;br/&gt;基础质量不可用&quot;]
+    L[&quot;计算质量等级&lt;br/&gt;优质: 全局优质或目标区域优质&lt;br/&gt;否则: 可用&quot;]
+    M[&quot;设置入口能力&lt;br/&gt;可进入验证方法&lt;br/&gt;可进入识别方法&lt;br/&gt;可生成扫描变化候选&lt;br/&gt;可生成跟踪动态候选&lt;br/&gt;可进入提交入口组织&quot;]
+    N[&quot;输出质量判定摘要&lt;br/&gt;供任务管理承接和自我方法复验&quot;]
+
+    A --&gt; B
+    B --&gt;|&quot;否&quot;| C
+    B --&gt;|&quot;是&quot;| D
+    D --&gt;|&quot;是&quot;| E
+    D --&gt;|&quot;否&quot;| F
+    F --&gt;|&quot;否&quot;| G
+    F --&gt;|&quot;是&quot;| H
+    H --&gt;|&quot;是&quot;| I
+    H --&gt;|&quot;否&quot;| J
+    J --&gt;|&quot;否&quot;| K
+    J --&gt;|&quot;是&quot;| L --&gt; M --&gt; N</code></pre>
+<h2 id="观察验证-确认-正式提交链">6. 观察验证 / 确认 / 正式提交链</h2>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;6127 自我_验证外设观察像素簇候选&quot;]
+    A1[&quot;读取最新 D455 逐簇识别报告&quot;]
+    A2[&quot;判定自我侧观察材料质量&lt;br/&gt;必须可进入验证方法&quot;]
+    A3[&quot;检查报告材料可回查&lt;br/&gt;原始帧 / 深度帧 / 空间候选队列 / 像素归属账本&quot;]
+    A4[&quot;逐簇验证&lt;br/&gt;像素材料 / 像素归属材料 / 空间材料 / 投影有效&quot;]
+    A5{&quot;全部候选簇验证通过?&quot;}
+    A6[&quot;写验证结果&lt;br/&gt;外设观察材料可回查状态&lt;br/&gt;外设像素簇候选验证状态&lt;br/&gt;候选簇数量 / 通过 / 失败 / 证据不足&lt;br/&gt;外设观察存在稳定复现 / 观察完成 / 可复验状态&quot;]
+    A7[&quot;验证失败&lt;br/&gt;写宿主 I64 特征派生需求&quot;]
+
+    B[&quot;6128 自我_确认外设观察存在候选&quot;]
+    B1[&quot;读取上游验证状态&lt;br/&gt;读取逐簇识别报告&quot;]
+    B2{&quot;上游验证已通过?&quot;}
+    B3[&quot;构造外设观察存在确认方案&lt;br/&gt;读取当前场景已确认存在集合&lt;br/&gt;输出新建 / 合并 / 冲突 / 证据不足 / 可提交数量&quot;]
+    B4[&quot;只写确认方案和方案项&lt;br/&gt;不创建观察存在&lt;br/&gt;不写当前场景存在集合明确&quot;]
+
+    C[&quot;6129 提交_确认观察存在事实&quot;]
+    C1[&quot;读取方案取得状态&lt;br/&gt;读取最新逐簇识别报告&lt;br/&gt;质量门必须可进入提交入口组织&quot;]
+    C2[&quot;重新构造确认方案&quot;]
+    C3{&quot;存在允许提交项?&quot;}
+    C4[&quot;按方案新建或合并已确认观察存在&lt;br/&gt;写原始事实 / 报告ID / 像素簇ID / 帧号 / 掩码状态&quot;]
+    C5[&quot;写关系二次特征&lt;br/&gt;观察存在属于当前场景存在&lt;br/&gt;观察存在来源于外设报告&lt;br/&gt;观察存在对应外设像素簇&quot;]
+    C6[&quot;写提交摘要&lt;br/&gt;外设观察存在事实提交状态&lt;br/&gt;已确认观察存在提交入账状态&lt;br/&gt;当前场景存在集合明确状态&lt;br/&gt;当前场景各存在特征值可读状态&quot;]
+    C7[&quot;条件不足&lt;br/&gt;不提交世界事实&lt;br/&gt;保留缺口状态&quot;]
+
+    A --&gt; A1 --&gt; A2 --&gt; A3 --&gt; A4 --&gt; A5
+    A5 --&gt;|&quot;是&quot;| A6 --&gt; B
+    A5 --&gt;|&quot;否&quot;| A7
+    B --&gt; B1 --&gt; B2
+    B2 --&gt;|&quot;是&quot;| B3 --&gt; B4 --&gt; C
+    B2 --&gt;|&quot;否&quot;| A7
+    C --&gt; C1 --&gt; C2 --&gt; C3
+    C3 --&gt;|&quot;是&quot;| C4 --&gt; C5 --&gt; C6
+    C3 --&gt;|&quot;否&quot;| C7</code></pre>
+<h2 id="目标观察约束支线">7. 目标观察约束支线</h2>
+<p>目标观察约束不是观察结果事实，而是扫描 /
+跟踪等后续外设运行的约束输入。</p>
+<pre class="mermaid"><code>flowchart TD
+    A[&quot;6152 自我_提交目标观察约束特征组&quot;]
+    B[&quot;读取目标存在&lt;br/&gt;读取目标特征类型&lt;br/&gt;读取目标特征当前值&quot;]
+    C[&quot;读取内部世界上下文&lt;br/&gt;ROI / 掩码 / 点集 / AABB / 来源报告&quot;]
+    D{&quot;目标存在 / 目标特征 / 当前值 / 定位材料是否齐备?&quot;}
+    E[&quot;条件不足&lt;br/&gt;目标观察约束写入状态=条件不足&quot;]
+    F[&quot;构造目标观察约束特征组&lt;br/&gt;目标存在ID / 目标特征类型ID / 当前值&lt;br/&gt;ROI / 掩码 / 点集 / AABB&lt;br/&gt;TTL / generation / 来源材料generation&quot;]
+    G[&quot;提交到目标观察约束缓冲区&quot;]
+    H[&quot;判断目标观察约束可用性&lt;br/&gt;可强匹配 / 可降级匹配&quot;]
+    I[&quot;写目标观察约束写入状态&lt;br/&gt;目标观察约束ID&lt;br/&gt;目标观察约束可用性状态&quot;]
+    J[&quot;日志边界&lt;br/&gt;不是世界真值&lt;br/&gt;不提交需求满足&lt;br/&gt;不结算安全值&quot;]
+
+    A --&gt; B --&gt; C --&gt; D
+    D --&gt;|&quot;否&quot;| E
+    D --&gt;|&quot;是&quot;| F --&gt; G --&gt; H --&gt; I --&gt; J</code></pre>
+<h2 id="当前实现硬边界">8. 当前实现硬边界</h2>
+<pre class="text"><code>1. 观察事实链可以写当前观察帧、观察帧容器、像素索引、完备性、质量、基础观察事实可用性等特征。
+2. D455 外设线程只生产报告和材料页，不直接写需求树、世界树真值或安全 / 服务结算。
+3. 任务管理工作线程是报告的第一承接者：匹配等待项、做质量门控、生成上行请求。
+4. 自我线程收到观察事实承接请求后，只把报告和簇材料作为自我内部世界候选材料落账。
+5. 自我_验证外设观察像素簇候选只验证材料可回查和簇候选一致性。
+6. 自我_确认外设观察存在候选只生成确认方案，不创建观察存在。
+7. 提交_确认观察存在事实才创建或合并已确认观察存在，并写关系二次特征和提交状态。
+8. 目标观察约束特征组是外设后续观察输入，不是世界事实。
+9. 可用但非优质扫描 / 跟踪材料只能形成待复验材料，不能生成扫描变化动态候选或稳定跟踪动态候选。
+10. 当前代码没有把“观察完成”直接等同于“当前场景全部明确”或“安全值提高”。</code></pre>
+<p>一句话：</p>
+<pre class="text"><code>当前观察实现是“外设产材料、任务管理分拣、自我承接候选、提交入口确认存在”的链路；报告和等待项不是事实，6129 才是观察存在正式入账入口。</code></pre>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+  for (const block of document.querySelectorAll("pre.mermaid")) {
+    const code = block.querySelector("code");
+    if (code) {
+      block.textContent = code.textContent;
+    }
+  }
+  mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+</script>
+</body>
+</html>
