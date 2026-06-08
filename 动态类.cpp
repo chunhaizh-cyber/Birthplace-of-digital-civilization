@@ -150,6 +150,22 @@ namespace {
         return !引用.主键.empty() && 引用.主键 == 节点->获取主键();
     }
 
+    template<class T节点, class T主信息>
+    T节点* 私有_尝试按指针解析引用(基础信息类* 基础信息, const 可解析引用<T节点>& 引用) noexcept
+    {
+        if (!基础信息 || !引用.指针) {
+            return nullptr;
+        }
+        auto* 节点 = 引用.指针;
+        if (!基础信息->取主信息<T主信息>(节点)) {
+            return nullptr;
+        }
+        if (!引用.主键.empty() && 节点->获取主键() != 引用.主键) {
+            return nullptr;
+        }
+        return 节点;
+    }
+
     bool 私有_特征值相等(const 特征值& 左, const 特征值& 右) noexcept
     {
         if (左.index() != 右.index()) return false;
@@ -244,6 +260,10 @@ namespace {
             return nullptr;
         }
 
+        if (auto* 指针节点 = 私有_尝试按指针解析引用<动态节点类, 动态节点主信息类>(基础信息, 引用)) {
+            return 指针节点;
+        }
+
         if (!引用.主键.empty()) {
             auto* 基础节点 = 基础信息->查找主键(引用.主键);
             auto* 动态节点 = 基础节点 ? static_cast<动态节点类*>(基础节点) : nullptr;
@@ -268,6 +288,10 @@ namespace {
     {
         if (!基础信息) {
             return nullptr;
+        }
+
+        if (auto* 指针节点 = 私有_尝试按指针解析引用<状态节点类, 状态节点主信息类>(基础信息, 引用)) {
+            return 指针节点;
         }
 
         if (!引用.主键.empty()) {
