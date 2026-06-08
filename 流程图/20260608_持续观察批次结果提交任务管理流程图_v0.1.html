@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>持续观察批次结果提交任务管理流程图 v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    section { margin-bottom: 18px; }
+    .canvas { min-width: 1760px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 1720px; }
+    .notes { max-width: 1180px; padding: 16px; border: 1px solid #d8dee4; background: #fff; line-height: 1.65; font-size: 14px; }
+    code { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>持续观察批次结果提交任务管理流程图 v0.1</h1>
+    <p class="hint">持续执行、批次提交结果、未完成不结算。持续观察类方法在有推进未达成时保持执行中；已结算仍只表示完成后的价值结算后处理。</p>
+  </header>
+  <main>
+    <section>
+      <h2>任务管理执行回路</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    START["任务进入执行轮<br/>就绪 / 排队中 / 执行中"]
+    DISPATCH["任务管理界面线程派发工作项<br/>保持当前方法和任务壳"]
+    WORKER["任务管理工作线程执行当前方法<br/>任务执行普通函数"]
+    METHOD_SET["持续观察类方法<br/>6133 明确持续观察需求<br/>6134 持续观察当前场景<br/>6127 验证候选<br/>6145 识别<br/>6146 扫描<br/>6147 跟踪"]
+    RESULT["方法产出输出结果场景与推进回执<br/>目标是否达成 / 本轮是否有推进<br/>推进量 / 剩余差距 / 执行结果类型"]
+    COMPARE{"目标结果是否符合?"}
+    COMPLETE["任务状态推导为完成<br/>进入收束"]
+    COMPLETE_NOTIFY["任务完成通知与结果状态消息<br/>是否成功=1 / 完成度"]
+    VALUE_SETTLE["完成后价值结算链<br/>结算叶子任务价值"]
+    SETTLED["任务状态已结算<br/>终结后处理完成"]
+    NOT_REACHED{"未达成时是否为<br/>持续观察批次推进?"}
+    BATCH_COND["条件同时成立<br/>阶段=执行<br/>状况=目标结果不符合<br/>本轮有推进=1<br/>执行结果类型=有推进未达成<br/>当前方法属于持续观察类"]
+    BATCH_SUBMIT["提交批次结果<br/>同步任务壳回执字段<br/>上行部分完成结果状态<br/>不触发正式价值结算"]
+    KEEP_RUNNING["任务状态推导为执行中<br/>下一步去向=进入运行"]
+    NEXT_ROUND["下一轮直接继续执行当前方法<br/>不重新走完整筹办链"]
+    REPLAN_CHECK{"是否需要重新筹办?"}
+    REPLAN_REASON["目标 / 对象 / 参数变化<br/>方法有效性变化<br/>前置条件或安全约束变化<br/>停止条件变化<br/>无推进未达成"]
+    REPLAN["任务状态推导为待重筹办<br/>下一步去向=回到重筹办"]
+    PREPARE["任务筹办普通函数<br/>重新填充候选集 / 选择方法 / 补条件"]
+    WAIT["等待中 / 挂起<br/>已有子需求 / 条件缺口 / 阻塞派生"]
+    FAIL["失败 / 无法执行<br/>动作失败且无可恢复路径"]
+    START --> DISPATCH --> WORKER
+    WORKER --> METHOD_SET --> RESULT --> COMPARE
+    COMPARE -->|符合| COMPLETE --> COMPLETE_NOTIFY --> VALUE_SETTLE --> SETTLED
+    COMPARE -->|不符合| NOT_REACHED
+    NOT_REACHED -->|是| BATCH_COND --> BATCH_SUBMIT --> KEEP_RUNNING --> NEXT_ROUND --> DISPATCH
+    NOT_REACHED -->|否| REPLAN_CHECK
+    REPLAN_CHECK -->|需要| REPLAN_REASON --> REPLAN --> PREPARE --> START
+    REPLAN_CHECK -->|缺条件或等子需求| WAIT --> START
+    REPLAN_CHECK -->|不可恢复失败| FAIL
+    classDef running fill:#e8f4ff,stroke:#2f6f9f,color:#102030;
+    classDef worker fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef batch fill:#eef7ed,stroke:#3f7f4f,color:#102010;
+    classDef settle fill:#f1edff,stroke:#6c56a4,color:#1d1730;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    class START,DISPATCH,KEEP_RUNNING,NEXT_ROUND running;
+    class WORKER,METHOD_SET,RESULT,PREPARE worker;
+    class COMPARE,NOT_REACHED,REPLAN_CHECK gate;
+    class BATCH_COND,BATCH_SUBMIT batch;
+    class COMPLETE,COMPLETE_NOTIFY,VALUE_SETTLE,SETTLED settle;
+    class REPLAN_REASON,REPLAN,WAIT,FAIL warn;
+        </pre>
+      </div>
+    </section>
+    <section>
+      <h2>状态机口径</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+stateDiagram-v2
+    [*] --> 待筹办
+    待筹办 --> 筹办中: 调度筹办工作项
+    筹办中 --> 就绪: 方法可执行
+    就绪 --> 排队中: 入执行队列
+    排队中 --> 执行中: 派发执行工作项
+    执行中 --> 执行中: 持续观察批次推进, 有推进未达成, 批次结果已提交
+    执行中 --> 待重筹办: 目标/对象/参数/方法/约束变化, 或无推进未达成
+    执行中 --> 等待中: 缺条件 / 等子需求 / 阻塞派生
+    执行中 --> 完成: 目标结果符合
+    执行中 --> 失败: 动作失败且无恢复路径
+    待重筹办 --> 筹办中: 重新填充候选集并选择方法
+    等待中 --> 待重筹办: 条件更新或子需求回写
+    完成 --> 已结算: 完成后价值结算后处理
+    已结算 --> [*]
+    失败 --> [*]
+        </pre>
+      </div>
+    </section>
+    <section class="notes">
+      <h2>当前代码落点</h2>
+      <p><code>私有_任务推进回执是持续观察批次推进</code> 识别执行阶段的持续观察批次推进；命中时任务状态推导为 <code>执行中</code>，下一步去向进入运行。正式价值结算仍要求任务完成后走结算链。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
