@@ -92,16 +92,39 @@ static std::string 私有_动作名键(const 语素入口节点类* 名)
     return 私有_指针键(名);
 }
 
-static bool 私有_向量含动态(const std::vector<可解析引用<动态节点类>>& v, const 动态节点类* d)
+static bool 私有_向量含动态(
+    const std::vector<可解析引用<动态节点类>>& v,
+    const 动态节点类* d,
+    const std::string& 动态主键)
 {
-    return std::any_of(v.begin(), v.end(), [&](const auto& r) { return 私有_引用等于节点(r, d); });
+    if (!d) return false;
+    if (动态主键.empty()) {
+        return std::any_of(v.begin(), v.end(), [&](const auto& r) { return 私有_引用等于节点(r, d); });
+    }
+    return std::any_of(v.begin(), v.end(), [&](const auto& r) {
+        const auto k = 私有_引用键(r);
+        return !k.empty() && k == 动态主键;
+    });
 }
 
-static bool 私有_登记证据动态样本_已加锁(std::vector<可解析引用<动态节点类>>& v, 动态节点类* d)
+static 可解析引用<动态节点类> 私有_制动态引用(动态节点类* 节点, const std::string& 动态主键)
+{
+    可解析引用<动态节点类> r{};
+    r.指针 = 节点;
+    r.主键 = !动态主键.empty()
+        ? 动态主键
+        : 私有_节点键(节点);
+    return r;
+}
+
+static bool 私有_登记证据动态样本_已加锁(
+    std::vector<可解析引用<动态节点类>>& v,
+    动态节点类* d,
+    const std::string& 动态主键)
 {
     if (!d) return false;
 
-    if (私有_向量含动态(v, d)) {
+    if (私有_向量含动态(v, d, 动态主键)) {
         return false;
     }
 
@@ -111,7 +134,7 @@ static bool 私有_登记证据动态样本_已加锁(std::vector<可解析引�
         if (v.capacity() < 私有_证据动态样本上限) {
             v.reserve(私有_证据动态样本上限);
         }
-        v.push_back(私有_制引用(d));
+        v.push_back(私有_制动态引用(d, 动态主键));
     }
 
     return true;
@@ -121,8 +144,9 @@ static bool 私有_登记证据动态样本(std::vector<可解析引用<动态�
 {
     if (!d) return false;
 
+    const auto 动态主键 = 私有_节点键(d);
     std::lock_guard<std::mutex> guard(私有_因果证据样本互斥);
-    return 私有_登记证据动态样本_已加锁(v, d);
+    return 私有_登记证据动态样本_已加锁(v, d, 动态主键);
 }
 
 static bool 私有_向量含二次特征(const std::vector<可解析引用<二次特征节点类>>& v, const 二次特征节点类* n)
@@ -1742,12 +1766,13 @@ std::size_t 因果类::批量追加证据动态样本(
 {
     if (节点集合.empty() || !证据动态) return 0;
 
+    const auto 证据动态主键 = 私有_节点键(证据动态);
     std::size_t 追加数量 = 0;
     std::lock_guard<std::mutex> guard(私有_因果证据样本互斥);
     for (auto* 节点 : 节点集合) {
         auto* m = 取模板主信息(节点);
         if (!m) continue;
-        if (私有_登记证据动态样本_已加锁(m->证据动态样本, 证据动态)) {
+        if (私有_登记证据动态样本_已加锁(m->证据动态样本, 证据动态, 证据动态主键)) {
             ++m->观察次数;
             ++m->因出现次数;
             ++m->果出现次数;
