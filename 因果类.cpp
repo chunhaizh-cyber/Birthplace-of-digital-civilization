@@ -97,11 +97,10 @@ static bool 私有_向量含动态(const std::vector<可解析引用<动态节�
     return std::any_of(v.begin(), v.end(), [&](const auto& r) { return 私有_引用等于节点(r, d); });
 }
 
-static bool 私有_登记证据动态样本(std::vector<可解析引用<动态节点类>>& v, 动态节点类* d)
+static bool 私有_登记证据动态样本_已加锁(std::vector<可解析引用<动态节点类>>& v, 动态节点类* d)
 {
     if (!d) return false;
 
-    std::lock_guard<std::mutex> guard(私有_因果证据样本互斥);
     if (私有_向量含动态(v, d)) {
         return false;
     }
@@ -116,6 +115,14 @@ static bool 私有_登记证据动态样本(std::vector<可解析引用<动态�
     }
 
     return true;
+}
+
+static bool 私有_登记证据动态样本(std::vector<可解析引用<动态节点类>>& v, 动态节点类* d)
+{
+    if (!d) return false;
+
+    std::lock_guard<std::mutex> guard(私有_因果证据样本互斥);
+    return 私有_登记证据动态样本_已加锁(v, d);
 }
 
 static bool 私有_向量含二次特征(const std::vector<可解析引用<二次特征节点类>>& v, const 二次特征节点类* n)
@@ -1727,6 +1734,29 @@ bool 因果类::追加证据动态样本(因果模板节点类* 节点, 动态�
         m->最近命中时间 = 0;
     }
     return true;
+}
+
+std::size_t 因果类::批量追加证据动态样本(
+    const std::vector<因果模板节点类*>& 节点集合,
+    动态节点类* 证据动态)
+{
+    if (节点集合.empty() || !证据动态) return 0;
+
+    std::size_t 追加数量 = 0;
+    std::lock_guard<std::mutex> guard(私有_因果证据样本互斥);
+    for (auto* 节点 : 节点集合) {
+        auto* m = 取模板主信息(节点);
+        if (!m) continue;
+        if (私有_登记证据动态样本_已加锁(m->证据动态样本, 证据动态)) {
+            ++m->观察次数;
+            ++m->因出现次数;
+            ++m->果出现次数;
+            ++m->成立次数;
+            m->最近命中时间 = 0;
+            ++追加数量;
+        }
+    }
+    return 追加数量;
 }
 
 bool 因果类::追加证据实例(因果模板节点类* 节点, 因果实例节点类* 证据实例)

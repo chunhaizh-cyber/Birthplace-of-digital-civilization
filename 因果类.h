@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -298,6 +299,9 @@ public:
     );
 
     bool 追加证据动态样本(因果模板节点类* 节点, 动态节点类* 证据动态);
+    std::size_t 批量追加证据动态样本(
+        const std::vector<因果模板节点类*>& 节点集合,
+        动态节点类* 证据动态);
     bool 追加证据实例(因果模板节点类* 节点, 因果实例节点类* 证据实例);
 
     std::string 计算动态状态变化签名(const 动态节点类* 动态节点) const;
