@@ -983,11 +983,21 @@ namespace {
     动态节点类* 私有_解析动态引用(世界树类* 世界树, const 可解析引用<动态节点类>& 引用)
     {
         if (!世界树) return nullptr;
+        auto* 引用指针 = 引用.指针;
+        if (引用指针) {
+            if (引用.主键.empty()) {
+                return 引用指针;
+            }
+            const auto 指针主键 = 引用指针->获取主键();
+            if (!指针主键.empty() && 指针主键 == 引用.主键) {
+                return 引用指针;
+            }
+        }
         if (!引用.主键.empty()) {
             auto* 基础节点 = 世界树->基础信息().查找主键(引用.主键);
             if (基础节点) return static_cast<动态节点类*>(基础节点);
         }
-        return 引用.指针;
+        return 引用指针;
     }
 
     std::vector<结构_动态视图片段> 私有_标准化动态单元列表(
@@ -1015,6 +1025,7 @@ namespace {
             return 结果;
         }
 
+        结果.reserve(动态主信息->来源低层动态.size());
         for (const auto& 来源引用 : 动态主信息->来源低层动态) {
             auto* 来源动态 = 私有_解析动态引用(世界树, 来源引用);
             if (!来源动态) return {};
