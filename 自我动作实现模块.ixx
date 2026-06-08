@@ -10361,6 +10361,13 @@ export namespace 自我动作实现模块 {
         if (!任务状态提交来源方法可生成动作动态(方法首节点)) {
             return 值_任务状态动作动态_来源方法入口无效();
         }
+
+        static std::atomic<std::uintptr_t> s_已确认方法首节点{0};
+        const auto 方法首节点指针 = reinterpret_cast<std::uintptr_t>(方法首节点);
+        if (s_已确认方法首节点.load(std::memory_order_acquire) == 方法首节点指针) {
+            return nullptr;
+        }
+
         auto* 方法存在 = 方法虚拟存在(方法首节点, now);
         if (!方法存在) {
             return 值_方法虚拟存在缺失();
@@ -10372,6 +10379,7 @@ export namespace 自我动作实现模块 {
             方法首节点,
             nullptr,
             now);
+        s_已确认方法首节点.store(方法首节点指针, std::memory_order_release);
         return nullptr;
     }
 
