@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+
 #include "基础信息类.h"
 
 class 二次特征类 {
@@ -76,5 +80,7 @@ public:
 
 private:
     void 私有_确保默认概念刻度(二次特征节点类* 链根);
+    std::unordered_map<std::string, 二次特征节点类*> 签名父节点索引_{};
+    std::unordered_set<std::string> 签名父节点索引已建立_{};
     基础信息类* 基础信息_ = nullptr;
 };
