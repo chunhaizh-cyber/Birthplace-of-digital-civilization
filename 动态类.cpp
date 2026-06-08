@@ -1,8 +1,11 @@
 #include "动态类.h"
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <functional>
 #include <mutex>
+#include <sstream>
 #include <string_view>
 
 #include "场景索引同步.h"
@@ -10,6 +13,7 @@
 #include "世界树类.h"
 #include "语素类.h"
 
+import 日志模块;
 import 二次特征应用模块;
 
 namespace {
@@ -30,6 +34,32 @@ namespace {
     bool 私有_包含片段(const std::string& 文本, const char* 片段)
     {
         return !文本.empty() && 片段 && 文本.find(片段) != std::string::npos;
+    }
+
+    std::chrono::steady_clock::time_point 私有_动态阶段时间点() noexcept
+    {
+        return std::chrono::steady_clock::now();
+    }
+
+    std::uint64_t 私有_动态阶段耗时微秒(
+        std::chrono::steady_clock::time_point 起点,
+        std::chrono::steady_clock::time_point 终点) noexcept
+    {
+        return static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::microseconds>(终点 - 起点).count());
+    }
+
+    std::uint64_t 私有_相邻前状态查找采样序号(std::uint64_t 总耗时微秒) noexcept
+    {
+        if (总耗时微秒 < 100000) {
+            return 0;
+        }
+        static std::atomic<std::uint64_t> s_慢查找序号{0};
+        const auto 序号 = s_慢查找序号.fetch_add(1, std::memory_order_relaxed) + 1;
+        if (序号 <= 3 || (序号 % 10) == 0 || 总耗时微秒 >= 500000) {
+            return 序号;
+        }
+        return 0;
     }
 
     std::string 私有_动态动作标题(const 动态节点主信息类& 主信息)
@@ -799,6 +829,18 @@ std::vector<动态节点类*> 动态类::获取场景动态(const 场景节点�
 {
     if (!基础信息_ || !场景 || !新状态) return nullptr;
 
+    const auto 查找开始 = 私有_动态阶段时间点();
+    std::uint64_t 前置检查耗时微秒 = 0;
+    std::uint64_t 状态索引快照耗时微秒 = 0;
+    std::uint64_t 倒序扫描耗时微秒 = 0;
+    std::size_t 状态索引数量 = 0;
+    std::size_t 扫描数量 = 0;
+    std::size_t 解析成功数量 = 0;
+    std::size_t 主信息有效数量 = 0;
+    std::size_t 当前状态跳过数量 = 0;
+    std::size_t 基础动态失败数量 = 0;
+
+    const auto 前置检查开始 = 私有_动态阶段时间点();
     const auto* 新状态主信息 = 基础信息_->取主信息<状态节点主信息类>(新状态);
     if (!新状态主信息 || !新状态主信息->状态主体.有效() || !新状态主信息->状态特征.有效()) {
         return nullptr;
@@ -808,22 +850,83 @@ std::vector<动态节点类*> 动态类::获取场景动态(const 场景节点�
     if (!场景主信息) {
         return nullptr;
     }
+    前置检查耗时微秒 = 私有_动态阶段耗时微秒(
+        前置检查开始,
+        私有_动态阶段时间点());
+
+    auto 记录慢查找 = [&](状态节点类* 前状态) {
+        const auto 总耗时微秒 = 私有_动态阶段耗时微秒(
+            查找开始,
+            私有_动态阶段时间点());
+        const auto 采样序号 = 私有_相邻前状态查找采样序号(总耗时微秒);
+        if (采样序号 == 0) {
+            return;
+        }
+
+        std::string 最慢阶段 = "前置检查";
+        std::uint64_t 最慢阶段耗时微秒 = 前置检查耗时微秒;
+        auto 记录最慢 = [&最慢阶段, &最慢阶段耗时微秒](
+            const char* 阶段,
+            std::uint64_t 耗时) {
+            if (耗时 > 最慢阶段耗时微秒) {
+                最慢阶段 = 阶段;
+                最慢阶段耗时微秒 = 耗时;
+            }
+        };
+        记录最慢("状态索引快照", 状态索引快照耗时微秒);
+        记录最慢("倒序扫描", 倒序扫描耗时微秒);
+
+        std::ostringstream 日志;
+        日志 << "相邻前状态查找/内部阶段耗时"
+            << " | 序号=" << 采样序号
+            << " | 场景=" << (场景 ? 场景->获取主键() : std::string{})
+            << " | 新状态=" << (新状态 ? 新状态->获取主键() : std::string{})
+            << " | 主体=" << (新状态主信息 && 新状态主信息->状态主体.指针 ? 新状态主信息->状态主体.指针->获取主键() : std::string{})
+            << " | 特征=" << (新状态主信息 && 新状态主信息->状态特征.指针 ? 新状态主信息->状态特征.指针->获取主键() : std::string{})
+            << " | 命中=" << (前状态 ? 1 : 0)
+            << " | 前状态=" << (前状态 ? 前状态->获取主键() : std::string{})
+            << " | 状态索引数量=" << 状态索引数量
+            << " | 扫描数量=" << 扫描数量
+            << " | 解析成功数量=" << 解析成功数量
+            << " | 主信息有效数量=" << 主信息有效数量
+            << " | 当前状态跳过数量=" << 当前状态跳过数量
+            << " | 基础动态失败数量=" << 基础动态失败数量
+            << " | 总耗时微秒=" << 总耗时微秒
+            << " | 最慢阶段=" << 最慢阶段
+            << " | 最慢阶段耗时微秒=" << 最慢阶段耗时微秒
+            << " | 前置检查=" << 前置检查耗时微秒
+            << " | 状态索引快照=" << 状态索引快照耗时微秒
+            << " | 倒序扫描=" << 倒序扫描耗时微秒;
+        项目运行日志(日志.str());
+    };
 
     std::vector<可解析引用<状态节点类>> 状态索引快照;
     {
+        const auto 状态索引快照开始 = 私有_动态阶段时间点();
         std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
         状态索引快照 = 场景主信息->状态索引;
+        状态索引快照耗时微秒 = 私有_动态阶段耗时微秒(
+            状态索引快照开始,
+            私有_动态阶段时间点());
     }
+    状态索引数量 = 状态索引快照.size();
     if (状态索引快照.empty()) {
+        记录慢查找(nullptr);
         return nullptr;
     }
 
     bool 已跳过当前状态 = false;
+    const auto 倒序扫描开始 = 私有_动态阶段时间点();
     for (std::size_t i = 状态索引快照.size(); i > 0; --i) {
         const auto& 状态引用 = 状态索引快照[i - 1];
+        ++扫描数量;
         auto* 候选节点 = 私有_解析状态引用(基础信息_, 状态引用);
+        if (候选节点) {
+            ++解析成功数量;
+        }
         const auto* 候选主信息 = 基础信息_->取主信息<状态节点主信息类>(候选节点);
         if (!候选主信息) continue;
+        ++主信息有效数量;
 
         const bool 是当前状态 =
             候选节点 == 新状态
@@ -835,13 +938,25 @@ std::vector<动态节点类*> 动态类::获取场景动态(const 场景节点�
                 && 私有_特征值相等(候选主信息->状态值, 新状态主信息->状态值));
         if (!已跳过当前状态 && 是当前状态) {
             已跳过当前状态 = true;
+            ++当前状态跳过数量;
             continue;
         }
 
-        if (!私有_可形成基础动态(候选主信息, 新状态主信息)) continue;
+        if (!私有_可形成基础动态(候选主信息, 新状态主信息)) {
+            ++基础动态失败数量;
+            continue;
+        }
+        倒序扫描耗时微秒 = 私有_动态阶段耗时微秒(
+            倒序扫描开始,
+            私有_动态阶段时间点());
+        记录慢查找(候选节点);
         return 候选节点;
     }
 
+    倒序扫描耗时微秒 = 私有_动态阶段耗时微秒(
+        倒序扫描开始,
+        私有_动态阶段时间点());
+    记录慢查找(nullptr);
     return nullptr;
 }
 
