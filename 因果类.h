@@ -2,7 +2,9 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "基础信息类.h"
@@ -363,5 +365,13 @@ public:
     std::string 生成抽象因果自然语言(const 因果模板节点类* 节点) const;
 
 private:
+    void 标记因果模板签名索引失效() const;
+    void 确保因果模板签名索引() const;
+    void 刷新因果模板签名索引项(因果模板节点类* 节点) const;
+
     基础信息类* 基础信息_ = nullptr;
+    mutable std::mutex 因果模板签名索引互斥_{};
+    mutable bool 因果模板签名索引有效_ = false;
+    mutable std::unordered_map<std::string, std::vector<因果模板节点类*>> 状态变化关系模板索引_{};
+    mutable std::unordered_map<std::string, std::vector<因果模板节点类*>> 动作致变关系模板索引_{};
 };
