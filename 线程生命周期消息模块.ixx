@@ -4,8 +4,10 @@ module;
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -101,6 +103,7 @@ export const char* 线程生命周期消息事件文本(
 namespace {
     std::atomic_uint64_t g_线程生命周期消息序号{ 1 };
     std::mutex g_线程信息表锁;
+    std::mutex g_消息中间件维护锁;
     std::unordered_map<std::string, 结构_控制面板线程信息项> g_线程信息表;
     bool g_线程信息表缓存已加载 = false;
 
@@ -114,16 +117,44 @@ namespace {
         return 私有_消息目录() / std::filesystem::path(L"已消费");
     }
 
+    std::filesystem::path 私有_归档目录()
+    {
+        return 私有_消息目录() / std::filesystem::path(L"归档");
+    }
+
     std::filesystem::path 私有_线程信息表缓存路径()
     {
         return 私有_消息目录() / std::filesystem::path(L"control_panel_thread_info_table.cache");
     }
+
+    constexpr auto 消息中间件临时文件保留时长 = std::chrono::minutes(5);
+    constexpr auto 消息中间件已消费短期保留时长 = std::chrono::minutes(10);
+    constexpr auto 消息中间件无效消息保留时长 = std::chrono::minutes(10);
+    constexpr auto 消息中间件归档保留时长 = std::chrono::hours(24 * 30);
+    constexpr std::uint64_t 消息归档最早可信发生时间 = 1577836800000000ull;
+
+    struct 结构_消息中间件维护统计 {
+        std::size_t 归档消息数 = 0;
+        std::size_t 删除已消费普通消息数 = 0;
+        std::size_t 删除无效消息数 = 0;
+        std::size_t 删除临时文件数 = 0;
+        std::size_t 删除过期归档数 = 0;
+        std::size_t 归档失败数 = 0;
+        std::size_t 删除失败数 = 0;
+    };
 
     bool 私有_是终态事件(const 枚举_线程生命周期消息事件 事件) noexcept
     {
         return 事件 == 枚举_线程生命周期消息事件::已退出
             || 事件 == 枚举_线程生命周期消息事件::故障
             || 事件 == 枚举_线程生命周期消息事件::异常退出;
+    }
+
+    std::uint64_t 私有_当前时间_微秒() noexcept
+    {
+        const auto now = std::chrono::system_clock::now().time_since_epoch();
+        return static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::microseconds>(now).count());
     }
 
     std::string 私有_转义字段值(std::string_view 文本)
@@ -599,6 +630,269 @@ namespace {
             项目运行错误日志("线程生命周期消息/消费后移动失败 | 异常=未知");
         }
     }
+
+    template <class Duration>
+    bool 私有_文件早于(
+        const std::filesystem::path& 路径,
+        const Duration 保留时长) noexcept
+    {
+        std::error_code ec;
+        const auto 写入时间 = std::filesystem::last_write_time(路径, ec);
+        if (ec) {
+            return false;
+        }
+        const auto 当前时间 = std::filesystem::file_time_type::clock::now();
+        return 当前时间 - 写入时间 > 保留时长;
+    }
+
+    bool 私有_删除文件(
+        const std::filesystem::path& 路径,
+        const char* 原因,
+        结构_消息中间件维护统计& 统计) noexcept
+    {
+        std::error_code ec;
+        const bool 已删除 = std::filesystem::remove(路径, ec);
+        if (ec) {
+            ++统计.删除失败数;
+            项目运行错误日志(
+                std::string("线程生命周期消息/消息中间件删除失败 | 原因=")
+                + 原因
+                + " | 路径="
+                + 路径.string()
+                + " | 错误="
+                + ec.message());
+            return false;
+        }
+        return 已删除;
+    }
+
+    std::string 私有_归档日期文本(const std::uint64_t 发生时间微秒) noexcept
+    {
+        const auto 有效时间 = 发生时间微秒 < 消息归档最早可信发生时间
+            ? 私有_当前时间_微秒()
+            : 发生时间微秒;
+        const auto 秒值 = static_cast<std::time_t>(有效时间 / 1000000ull);
+        std::tm 本地时间{};
+#if defined(_WIN32)
+        if (localtime_s(&本地时间, &秒值) != 0) {
+            return "unknown";
+        }
+#else
+        if (localtime_r(&秒值, &本地时间) == nullptr) {
+            return "unknown";
+        }
+#endif
+        std::ostringstream 输出;
+        输出 << std::put_time(&本地时间, "%Y%m%d");
+        return 输出.str();
+    }
+
+    bool 私有_消息值得归档(const 结构_线程生命周期消息& 消息) noexcept
+    {
+        return 消息.事件类型 == 枚举_线程生命周期消息事件::创建
+            || 消息.事件类型 == 枚举_线程生命周期消息事件::退出前
+            || 私有_是终态事件(消息.事件类型)
+            || 消息.是否堵塞
+            || 消息.是否暂停
+            || !消息.是否健康
+            || 消息.关联任务ID != 0
+            || 消息.关联工作项ID != 0
+            || !消息.原因键.empty()
+            || !消息.显示摘要.empty();
+    }
+
+    bool 私有_归档已消费消息文件(
+        const std::filesystem::path& 源路径,
+        const 结构_线程生命周期消息& 消息) noexcept
+    {
+        try {
+            const auto 目录 = 私有_归档目录();
+            std::filesystem::create_directories(目录);
+            const auto 日期 = 私有_归档日期文本(消息.发生时间);
+            const auto 归档路径 =
+                目录 / std::filesystem::path(std::string("thread_lifecycle_") + 日期 + ".archive");
+
+            std::ifstream 输入(源路径, std::ios::binary);
+            if (!输入) {
+                项目运行错误日志("线程生命周期消息/归档失败 | 原因=源文件打开失败 | 路径=" + 源路径.string());
+                return false;
+            }
+            std::ofstream 输出(归档路径, std::ios::binary | std::ios::app);
+            if (!输出) {
+                项目运行错误日志("线程生命周期消息/归档失败 | 原因=归档文件打开失败 | 路径=" + 归档路径.string());
+                return false;
+            }
+
+            输出 << "\n";
+            私有_写字段(输出, "记录类型", "线程生命周期消息");
+            私有_写字段(输出, "归档源文件", 源路径.filename().string());
+            私有_写字段(输出, "归档时间", std::to_string(私有_当前时间_微秒()));
+            私有_写字段(输出, "原始消息开始", "1");
+            输出 << 输入.rdbuf();
+            输出 << "\n";
+            私有_写字段(输出, "记录结束", "线程生命周期消息");
+            return true;
+        } catch (const std::exception& 异常) {
+            项目运行错误日志(
+                std::string("线程生命周期消息/归档失败 | 异常=") + 异常.what());
+            return false;
+        } catch (...) {
+            项目运行错误日志("线程生命周期消息/归档失败 | 异常=未知");
+            return false;
+        }
+    }
+
+    void 私有_维护消息中间件根目录(结构_消息中间件维护统计& 统计)
+    {
+        const auto 目录 = 私有_消息目录();
+        if (!std::filesystem::exists(目录)) {
+            return;
+        }
+
+        for (const auto& 项 : std::filesystem::directory_iterator(目录)) {
+            if (!项.is_regular_file()) {
+                continue;
+            }
+
+            const auto 路径 = 项.path();
+            if (路径.extension() == L".tmp"
+                && 私有_文件早于(路径, 消息中间件临时文件保留时长)
+                && 私有_删除文件(路径, "陈旧临时文件", 统计)) {
+                ++统计.删除临时文件数;
+                continue;
+            }
+
+            if (!私有_是正式线程生命周期消息文件(项)) {
+                continue;
+            }
+
+            const auto 字段 = 私有_读取字段文件(路径);
+            const auto 消息 = 私有_从字段构造消息(字段);
+            if ((消息.消息ID == 0 || 消息.线程逻辑ID.empty())
+                && 私有_文件早于(路径, 消息中间件无效消息保留时长)
+                && 私有_删除文件(路径, "根目录无效消息", 统计)) {
+                ++统计.删除无效消息数;
+            }
+        }
+    }
+
+    void 私有_维护消息中间件已消费目录(结构_消息中间件维护统计& 统计)
+    {
+        const auto 目录 = 私有_已消费目录();
+        if (!std::filesystem::exists(目录)) {
+            return;
+        }
+
+        for (const auto& 项 : std::filesystem::directory_iterator(目录)) {
+            if (!项.is_regular_file()) {
+                continue;
+            }
+
+            const auto 路径 = 项.path();
+            if (路径.extension() == L".tmp"
+                && 私有_文件早于(路径, 消息中间件临时文件保留时长)
+                && 私有_删除文件(路径, "已消费目录陈旧临时文件", 统计)) {
+                ++统计.删除临时文件数;
+                continue;
+            }
+
+            if (!私有_是正式线程生命周期消息文件(项)) {
+                continue;
+            }
+
+            const auto 字段 = 私有_读取字段文件(路径);
+            const auto 消息 = 私有_从字段构造消息(字段);
+            if (消息.消息ID == 0 || 消息.线程逻辑ID.empty()) {
+                if (私有_文件早于(路径, 消息中间件无效消息保留时长)
+                    && 私有_删除文件(路径, "已消费目录无效消息", 统计)) {
+                    ++统计.删除无效消息数;
+                }
+                continue;
+            }
+
+            if (私有_消息值得归档(消息)) {
+                if (私有_归档已消费消息文件(路径, 消息)) {
+                    ++统计.归档消息数;
+                    私有_删除文件(路径, "已归档已消费消息", 统计);
+                }
+                else {
+                    ++统计.归档失败数;
+                }
+                continue;
+            }
+
+            if (私有_文件早于(路径, 消息中间件已消费短期保留时长)
+                && 私有_删除文件(路径, "普通已消费消息", 统计)) {
+                ++统计.删除已消费普通消息数;
+            }
+        }
+    }
+
+    void 私有_维护消息中间件归档目录(结构_消息中间件维护统计& 统计)
+    {
+        const auto 目录 = 私有_归档目录();
+        if (!std::filesystem::exists(目录)) {
+            return;
+        }
+
+        for (const auto& 项 : std::filesystem::directory_iterator(目录)) {
+            if (!项.is_regular_file()) {
+                continue;
+            }
+            const auto 路径 = 项.path();
+            if (路径.extension() == L".archive"
+                && 私有_文件早于(路径, 消息中间件归档保留时长)
+                && 私有_删除文件(路径, "过期归档", 统计)) {
+                ++统计.删除过期归档数;
+            }
+        }
+    }
+
+    void 私有_维护消息中间件文件() noexcept
+    {
+        std::lock_guard<std::mutex> 锁(g_消息中间件维护锁);
+        结构_消息中间件维护统计 统计{};
+        try {
+            私有_维护消息中间件根目录(统计);
+            私有_维护消息中间件已消费目录(统计);
+            私有_维护消息中间件归档目录(统计);
+        } catch (const std::exception& 异常) {
+            项目运行错误日志(
+                std::string("线程生命周期消息/消息中间件维护失败 | 异常=") + 异常.what());
+            return;
+        } catch (...) {
+            项目运行错误日志("线程生命周期消息/消息中间件维护失败 | 异常=未知");
+            return;
+        }
+
+        const auto 变化数 =
+            统计.归档消息数
+            + 统计.删除已消费普通消息数
+            + 统计.删除无效消息数
+            + 统计.删除临时文件数
+            + 统计.删除过期归档数
+            + 统计.归档失败数
+            + 统计.删除失败数;
+        if (变化数 == 0) {
+            return;
+        }
+
+        项目运行日志(
+            "线程生命周期消息/消息中间件维护 | 归档="
+            + std::to_string(统计.归档消息数)
+            + " | 删除普通已消费="
+            + std::to_string(统计.删除已消费普通消息数)
+            + " | 删除无效="
+            + std::to_string(统计.删除无效消息数)
+            + " | 删除临时="
+            + std::to_string(统计.删除临时文件数)
+            + " | 删除过期归档="
+            + std::to_string(统计.删除过期归档数)
+            + " | 归档失败="
+            + std::to_string(统计.归档失败数)
+            + " | 删除失败="
+            + std::to_string(统计.删除失败数));
+    }
 }
 
 export const char* 线程生命周期消息事件文本(
@@ -617,9 +911,7 @@ export const char* 线程生命周期消息事件文本(
 
 export std::uint64_t 线程生命周期当前时间_微秒() noexcept
 {
-    const auto now = std::chrono::system_clock::now().time_since_epoch();
-    return static_cast<std::uint64_t>(
-        std::chrono::duration_cast<std::chrono::microseconds>(now).count());
+    return 私有_当前时间_微秒();
 }
 
 export std::uint64_t 当前系统线程ID_控制面板线程消息() noexcept
@@ -809,6 +1101,7 @@ export std::vector<结构_控制面板线程信息项> 消费并读取控制面�
     for (const auto& 项 : 待消费) {
         私有_移动到已消费(项.路径);
     }
+    私有_维护消息中间件文件();
 
     return 读取控制面板线程信息表快照();
 }
