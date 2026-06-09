@@ -2,7 +2,6 @@
 #include "语素主信息类.h"
 #include "语素类.h"
 
-#include <sstream>
 #include <stdexcept>
 
 #include "语言类.h"
@@ -18,8 +17,6 @@
 #undef 私有_世界类型文本
 #undef 私有_安全文本
 #undef 私有_安全词
-
-import 日志模块;
 
 基础信息类::基础信息类() = default;
 
@@ -92,49 +89,12 @@ std::vector<基础信息类::节点类*> 基础信息类::枚举子节点(const 
 
     auto* first = static_cast<节点类*>(parent->子);
     auto* it = first;
-    std::size_t 保护计数 = 0;
     do {
-        if (!私有_节点属于当前树_已加锁(it)) {
-            私有_记录子链枚举异常_已加锁(
-                "枚举子节点",
-                parent,
-                it,
-                "子节点不属于当前基础信息主链");
-            break;
-        }
         out.push_back(it);
-        if (++保护计数 > 100000) {
-            私有_记录子链枚举异常_已加锁(
-                "枚举子节点",
-                parent,
-                it,
-                "子链保护计数超限");
-            break;
-        }
         it = static_cast<节点类*>(it->下);
     } while (it && it != first);
 
     return out;
-}
-
-void 基础信息类::私有_记录子链枚举异常_已加锁(
-    const char* 来源,
-    const 节点类* 父节点,
-    const 节点类* 子节点,
-    const char* 原因) const noexcept
-{
-    try {
-        std::ostringstream 输出;
-        输出 << "基础信息类/子链枚举异常"
-            << " | 来源=" << (来源 ? 来源 : "未定义")
-            << " | 父节点指针=" << static_cast<const void*>(父节点)
-            << " | 父节点主键=" << (父节点 ? 父节点->获取主键() : std::string("空"))
-            << " | 子节点指针=" << static_cast<const void*>(子节点)
-            << " | 原因=" << (原因 ? 原因 : "未定义")
-            << " | 处理=停止本轮子链枚举";
-        项目运行错误日志(输出.str());
-    } catch (...) {
-    }
 }
 
 
