@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>三线程消息传递清单与流程图 v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    h2 { margin: 0 0 10px; font-size: 18px; font-weight: 650; }
+    h3 { margin: 14px 0 8px; font-size: 15px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1320px; }
+    main { padding: 20px; }
+    section { margin-bottom: 18px; }
+    .canvas { min-width: 1800px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .sequence-canvas { min-width: 1280px; }
+    .mermaid { min-width: 1740px; }
+    .sequence-canvas .mermaid { min-width: 1240px; }
+    .notes { max-width: 1280px; padding: 16px; border: 1px solid #d8dee4; background: #fff; line-height: 1.65; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 10px; }
+    .box { padding: 12px; border: 1px solid #d8dee4; background: #fff; }
+    .box strong { display: block; margin-bottom: 6px; }
+    code { font-family: Consolas, "Courier New", monospace; font-size: 12px; }
+    ul { margin: 8px 0 0 18px; padding: 0; }
+    li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>三线程消息传递清单与流程图 v0.1</h1>
+    <p class="hint">按 2026-06-09 当前规范和代码整理：自我线程发意图和许可；任务管理界面线程承接、裁决任务域状态并派发工作项；任务管理工作线程只跑一轮筹办 / 执行 / 外设承接并返回回执和上行材料。</p>
+  </header>
+  <main>
+    <section class="notes">
+      <h2>边界摘要</h2>
+      <div class="grid">
+        <div class="box">
+          <strong>自我线程</strong>
+          负责需求树、需求估权、任务发起意图、调度意图、执行前许可和任务回执后的需求裁决。
+        </div>
+        <div class="box">
+          <strong>任务管理界面线程</strong>
+          负责任务请求承接、任务虚拟存在维护、工作项构造、调度队列、状态提交和上行消息桥接。
+        </div>
+        <div class="box">
+          <strong>任务管理工作线程</strong>
+          负责执行一轮筹办或执行工作包，承接外设等待项，生成工作结果与上行消息。
+        </div>
+      </div>
+      <h3>禁止误读</h3>
+      <ul>
+        <li>自我线程不直接写任务状态、当前方法、候选方法集、执行输入参数场景、筹办 / 执行缺口。</li>
+        <li>任务管理工作线程不裸写任务状态、需求树或世界真值。</li>
+        <li>外设报告、等待项、材料页和目标观察约束只是通信容器，不是正式世界事实。</li>
+        <li>任务状态动作动态必须由任务域被动状态提交动作入口生成，来源方法固定为 <code>提交任务状态变化</code>。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>整体任务消息流</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    SELF_START["自我线程<br/>需求整理 / 当前主需求 / 主派发决议"]
+    SELF_INTENT{"是否需要任务承接或调度?"}
+    TASK_REQ["结构_任务治理请求<br/>发起任务 / 调度任务 / 重筹办等意图"]
+    UI_ACCEPT["任务管理界面线程<br/>提交任务治理请求"]
+    UI_CREATE["创建或复用任务信息节点<br/>绑定来源需求<br/>确保任务虚拟存在"]
+    UI_DECIDE{"是否可构造工作项?"}
+    UI_QUEUE["登记等待工作项<br/>状态版本 / 租约 / 入队原因"]
+    UI_GATE{"执行工作项是否需要<br/>执行前许可?"}
+    PERMIT_UP["上行执行前许可请求<br/>结构_任务管理执行前许可请求消息"]
+    SELF_PERMIT["自我线程审批许可<br/>结构_任务执行前许可结果"]
+    UI_PERMIT["界面线程收到许可结果<br/>继续 / 等待 / 阻断"]
+    WORK_ITEM["结构_任务工作项<br/>工作类型=筹办或执行"]
+    WORKER["任务管理工作线程<br/>提交任务工作项"]
+    WORK_KIND{"工作类型"}
+    PREPARE["任务筹办普通函数<br/>找路径 / 找方法 / 找条件"]
+    EXECUTE["任务执行普通函数<br/>执行当前方法 / 形成输出结果场景"]
+    WORK_RESULT["结构_任务工作结果<br/>筹办/执行回执 + 上行消息集"]
+    UI_APPLY["任务管理界面线程<br/>同步回执 / 状态提交 / 下一轮调度"]
+    STATE_SUBMIT["内部结构_任务状态推进请求<br/>提交任务状态变化<br/>生成任务状态动作动态"]
+    UP_MSG["结构_任务管理上行消息<br/>线程状态 / 派生需求 / 结果状态 / 观察承接"]
+    SELF_MAILBOX["自我线程治理 mailbox<br/>转换为结构_治理消息"]
+    SELF_MERGE["消息归并与裁决<br/>派生需求入树 / 结果回写 / 观察材料承接 / 主需求重判"]
+
+    SELF_START --> SELF_INTENT
+    SELF_INTENT -->|是| TASK_REQ --> UI_ACCEPT --> UI_CREATE --> UI_DECIDE
+    UI_DECIDE -->|可派发| UI_QUEUE --> UI_GATE
+    UI_DECIDE -->|等待/拒绝/无工作项| UP_MSG
+    UI_GATE -->|需要| PERMIT_UP --> SELF_MAILBOX --> SELF_PERMIT --> UI_PERMIT --> UI_GATE
+    UI_GATE -->|不需要或许可通过| WORK_ITEM --> WORKER --> WORK_KIND
+    WORK_KIND -->|筹办| PREPARE --> WORK_RESULT
+    WORK_KIND -->|执行| EXECUTE --> WORK_RESULT
+    WORK_RESULT --> UI_APPLY
+    UI_APPLY --> STATE_SUBMIT
+    UI_APPLY --> UP_MSG
+    STATE_SUBMIT --> UP_MSG
+    UP_MSG --> SELF_MAILBOX --> SELF_MERGE --> SELF_START
+
+    classDef self fill:#e9f5ff,stroke:#2f6f9f,color:#102030;
+    classDef ui fill:#fff3dc,stroke:#a0671e,color:#24160a;
+    classDef worker fill:#edf7ed,stroke:#3f7f4f,color:#102010;
+    classDef msg fill:#f6f0ff,stroke:#6c56a4,color:#1d1730;
+    classDef gate fill:#fff8e8,stroke:#9a6a1a,color:#24160a;
+    classDef state fill:#ffecec,stroke:#b84a4a,color:#401111;
+
+    class SELF_START,SELF_INTENT,SELF_PERMIT,SELF_MAILBOX,SELF_MERGE self;
+    class UI_ACCEPT,UI_CREATE,UI_DECIDE,UI_QUEUE,UI_GATE,UI_PERMIT,UI_APPLY ui;
+    class WORKER,WORK_KIND,PREPARE,EXECUTE,WORK_RESULT worker;
+    class TASK_REQ,WORK_ITEM,PERMIT_UP,UP_MSG msg;
+    class STATE_SUBMIT state;
+        </pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>执行前许可流程</h2>
+      <div class="canvas sequence-canvas">
+        <pre class="mermaid">
+sequenceDiagram
+    participant UI as 任务管理界面线程
+    participant SELF as 自我线程
+    participant WK as 任务管理工作线程
+
+    UI->>UI: 准备派发执行工作项
+    UI->>UI: 检查同任务在途工作项和许可占用
+    alt 当前方法命中免审批默认集
+        UI->>UI: 记录许可通过
+        UI->>WK: 派发结构_任务工作项
+    else 需要自我审批
+        UI->>SELF: 结构_任务管理执行前许可请求消息
+        UI->>UI: 登记执行前许可等待表并重排工作项
+        SELF->>SELF: 治理消息归并或抢占审批
+        SELF->>UI: 结构_任务执行前许可结果
+        alt 允许执行
+            UI->>WK: 派发结构_任务工作项
+        else 需要等待
+            UI->>UI: 重排等待执行前许可工作项
+        else 阻断或收束
+            UI->>UI: 构造执行前许可阻断工作结果
+        end
+    end
+        </pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>外设观察承接流程</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    WAIT["任务工作项携带外设观察等待项"]
+    WORKER["任务管理工作线程<br/>任务管理外设消息承接_处理一次"]
+    MATCH{"按等待项匹配外设观察报告"}
+    CACHE["无匹配报告<br/>仅保留队列缓存<br/>不上报自我线程"]
+    QUALITY{"观察材料质量门控"}
+    BAD["材料不合格<br/>只生成任务回执<br/>不生成观察事实承接上行"]
+    TYPE{"报告类型 / 可进入路径"}
+    REQUEST["结构_任务管理观察事实承接请求<br/>等待项ID / 报告ID / 约束ID / 目标存在 / 目标特征 / 承接请求位"]
+    UP["结构_任务管理上行消息<br/>类型=观察事实承接请求"]
+    SELF["自我线程<br/>落观察事实承接请求到内部世界"]
+    REPLAY{"报告ID可回查?"}
+    MATERIAL["承接材料摘要<br/>观察像素簇 / 候选 / 识别摘要<br/>不确认世界存在"]
+    INSUFF["证据不足记录<br/>报告缓存不可回查"]
+    WAKE["必要时提交观察事实更新任务唤醒通知<br/>由界面线程裁决是否待重筹办"]
+
+    WAIT --> WORKER --> MATCH
+    MATCH -->|否| CACHE
+    MATCH -->|是| QUALITY
+    QUALITY -->|不合格| BAD
+    QUALITY -->|可用或优质| TYPE --> REQUEST --> UP --> SELF --> REPLAY
+    REPLAY -->|是| MATERIAL --> WAKE
+    REPLAY -->|否| INSUFF
+
+    classDef worker fill:#edf7ed,stroke:#3f7f4f,color:#102010;
+    classDef msg fill:#f6f0ff,stroke:#6c56a4,color:#1d1730;
+    classDef self fill:#e9f5ff,stroke:#2f6f9f,color:#102030;
+    classDef warn fill:#ffecec,stroke:#b84a4a,color:#401111;
+    class WAIT,WORKER,MATCH,QUALITY,TYPE worker;
+    class REQUEST,UP msg;
+    class SELF,MATERIAL,WAKE self;
+    class CACHE,BAD,INSUFF warn;
+        </pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>状态提交边界</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    WRESULT["工作线程返回结构_任务工作结果<br/>建议任务状态 / 筹办回执 / 执行回执"]
+    UI["任务管理界面线程读取结果"]
+    SYNC["同步筹办/执行回执到任务壳<br/>普通整理代码"]
+    NEED_STATE{"是否存在任务状态/阶段变化?"}
+    INTERNAL_REQ["内部结构_任务状态推进请求<br/>仅任务管理界面线程构造"]
+    PASSIVE["任务域被动状态提交动作入口<br/>来源方法=提交任务状态变化"]
+    DYN["任务状态动作动态<br/>动作语义=被动动作"]
+    UP["结果状态消息 / 线程状态消息 / 派生需求消息<br/>上报自我线程"]
+    SELF["自我线程根据回执裁决需求树/结算/重判"]
+
+    WRESULT --> UI --> SYNC --> NEED_STATE
+    NEED_STATE -->|是| INTERNAL_REQ --> PASSIVE --> DYN --> UP --> SELF
+    NEED_STATE -->|否| UP --> SELF
+        </pre>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h2>当前代码落点</h2>
+      <ul>
+        <li>自我线程构造任务发起请求：<code>私有_提交任务发起请求到任务管理界面线程_线程侧</code></li>
+        <li>任务请求承接：<code>任务管理界面线程::提交任务治理请求</code></li>
+        <li>工作线程执行一轮：<code>任务管理工作线程::提交任务工作项</code></li>
+        <li>工作线程外设承接：<code>任务管理外设消息承接_处理一次</code></li>
+        <li>上行消息统一载体：<code>结构_任务管理上行消息</code></li>
+        <li>上行消息入自我线程：<code>上报任务管理上行消息</code></li>
+        <li>上行消息转治理消息：<code>从任务管理上行消息构造治理消息</code></li>
+        <li>内部任务状态推进：<code>任务管理界面线程::提交任务状态推进请求</code></li>
+      </ul>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" },
+      sequence: { useMaxWidth: false },
+      theme: "base",
+      themeVariables: {
+        fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif",
+        lineColor: "#6a737d"
+      }
+    });
+  </script>
+</body>
+</html>
