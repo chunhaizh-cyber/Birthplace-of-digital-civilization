@@ -24,7 +24,6 @@ module;
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <TlHelp32.h>
 
 #include "世界树类.h"
 #include "语素类.h"
@@ -57,7 +56,6 @@ namespace {
 
     constexpr std::uintptr_t 私有_线程详情_自我 = 1;
     constexpr std::uintptr_t 私有_线程详情_工作 = 2;
-    constexpr std::uintptr_t 私有_线程详情_系统 = 3;
     constexpr std::uintptr_t 私有_线程详情_摘要 = 4;
     constexpr std::uintptr_t 私有_线程详情_任务界面 = 5;
     constexpr std::size_t 私有_列表分页大小 = 100;
@@ -5915,29 +5913,6 @@ namespace {
         return 树节点;
     }
 
-    std::vector<THREADENTRY32> 私有_枚举当前进程线程()
-    {
-        std::vector<THREADENTRY32> 线程集{};
-        HANDLE 快照 = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-        if (快照 == INVALID_HANDLE_VALUE) {
-            return 线程集;
-        }
-
-        const DWORD 进程ID = GetCurrentProcessId();
-        THREADENTRY32 条目{};
-        条目.dwSize = sizeof(条目);
-        if (Thread32First(快照, &条目)) {
-            do {
-                if (条目.th32OwnerProcessID == 进程ID) {
-                    线程集.push_back(条目);
-                }
-                条目.dwSize = sizeof(条目);
-            } while (Thread32Next(快照, &条目));
-        }
-        CloseHandle(快照);
-        return 线程集;
-    }
-
     struct 结构_线程状态页统计 {
         std::size_t 已知逻辑线程数 = 0;
         std::size_t 当前运行数 = 0;
@@ -6042,16 +6017,14 @@ namespace {
     }
 
     std::string 私有_线程状态统计文本(
-        const 结构_控制面板快照& 快照,
         const 结构_线程状态页统计& 统计)
     {
         std::ostringstream 输出;
-        输出 << "已知逻辑线程=" << 统计.已知逻辑线程数
+        输出 << "已知项目线程=" << 统计.已知逻辑线程数
             << " | 当前运行=" << 统计.当前运行数
             << " | 未启动=" << 统计.未启动数
             << " | 已结束=" << 统计.已结束数
-            << " | 故障=" << 统计.故障数
-            << " | 系统线程=" << 快照.线程数;
+            << " | 故障=" << 统计.故障数;
         return 输出.str();
     }
 
@@ -6093,16 +6066,15 @@ namespace {
     {
         const auto 详情加载时间 = 结构体_时间戳::当前_微秒();
         const auto 统计 = 私有_计算线程状态页统计(快照);
-        const auto 统计文本 = 私有_线程状态统计文本(快照, 统计);
-        const auto 系统线程集 = 私有_枚举当前进程线程();
+        const auto 统计文本 = 私有_线程状态统计文本(统计);
         auto 根节点 = 私有_新节点(
             "线程列表 | " + 统计文本,
             0,
             true);
         私有_追加线程显示详情(
             根节点,
-            "线程状态统计",
-            "控制面板线程状态页上部统计",
+            "项目线程状态统计",
+            "控制面板线程状态页上部统计，仅统计项目自身创建并登记的线程",
             "统计",
             "thread-status-summary",
             "不适用",
@@ -6111,8 +6083,8 @@ namespace {
             私有_时间文本(详情加载时间),
             "不适用",
             详情加载时间,
-            "列表不分页、不省略",
-            "中间栏显示完整线程列表；右侧显示选中线程详情。线程真实创建时间由 002002 线程信息表接入后补齐。");
+            "只显示项目线程，不显示系统线程",
+            "中间栏只显示项目自身线程；右侧显示选中线程详情。正式来源为 消息中间件 中的线程生命周期消息和控制面板线程信息表，消息表未接入字段显示待线程生命周期消息接入。");
 
         auto 自我线程节点 = 私有_新节点(
             std::string("自我线程 | 生命周期=")
@@ -6205,7 +6177,7 @@ namespace {
             工作线程快照.最近推进阶段.empty()
                 ? std::string("推进=") + std::to_string(工作线程快照.累计推进次数)
                 : 私有_截断文本(工作线程快照.最近推进阶段 + " / " + 工作线程快照.最近推进状况, 160),
-            "加载时间和运行时长当前按最近工作项开始 / 结束时间显示；线程本体创建时间由 002002 消息表接入后替换。");
+            "当前按项目工作线程快照显示；线程本体加载时间和运行时长由 002002 消息表接入后替换。");
         根节点.子项.push_back(std::move(工作线程节点));
 
         auto 摘要线程节点 = 私有_新节点(
@@ -6238,53 +6210,6 @@ namespace {
                 : 私有_截断文本(快照.控制面板摘要线程摘要, 160),
             "当前快照提供生命周期、健康状态和摘要序号；真实加载时间 / 连续运行时长由线程信息消息表接入后显示。");
         根节点.子项.push_back(std::move(摘要线程节点));
-
-        auto 系统线程节点 = 私有_新节点(
-            std::string("系统线程摘要 | 当前进程线程数=") + std::to_string(快照.线程数),
-            私有_线程详情_系统,
-            true,
-            false,
-            "thread-system");
-        私有_追加线程显示详情(
-            系统线程节点,
-            "系统线程摘要",
-            "当前进程 OS 线程枚举",
-            "系统线程集合",
-            "system-thread-list",
-            "多线程",
-            "系统枚举可见",
-            "当前进程线程数=" + std::to_string(快照.线程数),
-            私有_时间文本(详情加载时间),
-            "系统枚举未提供",
-            详情加载时间,
-            "列表不分页、不省略",
-            "系统线程来自 ToolHelp 快照；只能展示线程 ID 和优先级，不能替代逻辑线程状态事实。");
-        for (const auto& 线程 : 系统线程集) {
-            auto 单线程节点 = 私有_新节点(
-                "系统线程 | TID=" + std::to_string(线程.th32ThreadID)
-                    + " | 基础优先级=" + std::to_string(线程.tpBasePri)
-                    + " | 状态=系统枚举可见",
-                static_cast<std::uintptr_t>(线程.th32ThreadID),
-                false,
-                false,
-                "thread-system-instance");
-            私有_追加线程显示详情(
-                单线程节点,
-                "系统线程 " + std::to_string(线程.th32ThreadID),
-                "当前进程 OS 线程",
-                "系统线程",
-                "system-" + std::to_string(线程.th32ThreadID),
-                std::to_string(线程.th32ThreadID),
-                "系统枚举可见",
-                "基础优先级=" + std::to_string(线程.tpBasePri),
-                私有_时间文本(详情加载时间),
-                "系统枚举未提供",
-                详情加载时间,
-                "OwnerPID=" + std::to_string(线程.th32OwnerProcessID),
-                "OS 线程快照不提供业务状态、加载时间或运行时长；这些字段等待 002002 线程信息表补齐。");
-            系统线程节点.子项.push_back(std::move(单线程节点));
-        }
-        根节点.子项.push_back(std::move(系统线程节点));
 
         return 根节点;
     }
@@ -7404,7 +7329,6 @@ namespace {
     std::optional<结构_任务管理结果> 最近治理结果{};
     std::optional<结构_治理恢复快照> 最近恢复快照{};
 
-    快照.线程数 = 私有_枚举当前进程线程().size();
     if (仅标量摘要) {
         记录快照阶段("轻量摘要跳过树骨架构建");
         return 快照;
@@ -8032,8 +7956,7 @@ std::string 读取控制面板节点详情JSON(
     if (展开类型 == "thread-self"
         || 展开类型 == "thread-task-interface"
         || 展开类型 == "thread-worker"
-        || 展开类型 == "thread-summary"
-        || 展开类型 == "thread-system") {
+        || 展开类型 == "thread-summary") {
         const auto 快照 = 读取控制面板快照(1, 16);
         任务管理工作线程::结构_工作线程实例快照 工作线程快照{};
         (void)任务管理工作线程::读取任务管理工作线程快照(&工作线程快照);
@@ -8176,8 +8099,8 @@ std::string 读取控制面板节点详情JSON(
             私有_追加叶字段(字段节点, "自检报告修复门控", 私有_截断文本(快照.自检报告修复门控摘要, 200));
         }
         else {
-            私有_追加叶字段(字段节点, "当前进程线程数", 快照.线程数);
-            私有_追加叶字段(字段节点, "说明", "重构版先保留稳定摘要，逐线程探测后续再补。");
+            私有_追加叶字段(字段节点, "项目线程信息来源", "消息中间件 / 控制面板线程生命周期消息表");
+            私有_追加叶字段(字段节点, "说明", "未匹配到项目线程详情类型；线程状态页不显示系统线程枚举。");
         }
         return 私有_树节点列表JSON({ std::move(字段节点) });
     }
@@ -8616,18 +8539,18 @@ std::string 私有_生成控制面板HTML(
     const auto 参数设定JSON = 私有_树节点JSON(参数设定根);
 
     const auto 树交互提示 = 私有_转义HTML("结构节点与字段摘要");
-    const auto 线程树交互提示 = 私有_转义HTML("完整线程列表，不分页、不省略；点击线程查看右侧详情");
+    const auto 线程树交互提示 = 私有_转义HTML("完整项目线程列表，不分页、不省略；点击项目线程查看右侧详情");
     const auto 任务树交互提示 = 私有_转义HTML("任务根节点结构与运行壳摘要");
     const auto 线程统计 = 私有_计算线程状态页统计(快照);
     const auto 线程页摘要 = 私有_转义HTML(
-        私有_线程状态统计文本(快照, 线程统计)
+        私有_线程状态统计文本(线程统计)
         + " | 自我线程阶段=" + 私有_页面摘要(快照.自我线程当前阶段)
         + " | 去向=" + 私有_页面摘要(快照.自我线程当前最终去向)
         + " | 任务界面线程=" + std::string(私有_布尔文本(快照.任务管理界面线程已启动))
         + " | 最近巡检=" + std::to_string(快照.任务管理界面线程最近巡检任务数)
         + "/" + std::to_string(快照.任务管理界面线程最近巡检入队任务数)
         + " | 工作线程=" + std::string(私有_布尔文本(快照.任务管理工作线程已启动))
-        + " | 系统线程数=" + std::to_string(快照.线程数));
+        + " | 来源=消息中间件/项目线程快照");
     const auto 世界页摘要 = 私有_转义HTML(
         "节点仓库=基础信息类 | 基础节点=" + std::to_string(快照.基础信息节点数)
         + " | 场景=" + std::to_string(快照.场景数)
@@ -9698,7 +9621,7 @@ std::string 私有_生成控制面板HTML(
         <p>需求、任务、方法和线程运行总览。</p>
         <nav class="nav" aria-label="控制面板菜单">
           <button class="menu-item active" type="button" data-page="thread-status"><span>线程状态</span><span class="menu-badge">)HTML"
-        << 快照.线程数
+        << 线程统计.已知逻辑线程数
         << R"HTML(</span></button>
           <button class="menu-item" type="button" data-page="world-tree"><span>世界树</span><span class="menu-badge">)HTML"
         << 快照.基础信息节点数
@@ -9787,11 +9710,11 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page active" data-page="thread-status" data-title="线程状态" data-subtitle="上部显示线程统计，中间栏显示完整线程列表，右侧栏显示选中线程详情。">
+        <section class="page active" data-page="thread-status" data-title="线程状态" data-subtitle="上部显示项目线程统计，中间栏显示完整项目线程列表，右侧栏显示选中线程详情。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">线程统计</div>
-              <h3>线程列表</h3>
+              <h3>项目线程列表</h3>
               <div class="summary">)HTML"
         << 线程页摘要
         << R"HTML(</div>
@@ -10264,7 +10187,6 @@ std::string 私有_生成控制面板HTML(
       'thread-task-interface': '任务管理界面线程',
       'thread-worker': '任务管理工作线程',
       'thread-summary': '控制面板摘要线程',
-      'thread-system': '系统线程摘要',
       'need-list-more': '需求列表分页',
       'base-ref': '基础信息节点引用',
       'need-ref': '需求节点引用',
