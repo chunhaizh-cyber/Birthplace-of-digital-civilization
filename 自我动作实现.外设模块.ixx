@@ -10311,9 +10311,43 @@ namespace {
         return 节点 ? 节点->获取主键() : std::string("空");
     }
 
+    inline bool 基础节点属于当前世界树(const 基础信息节点类* 节点) noexcept
+    {
+        if (!节点) return false;
+        const auto* 根节点 = 世界树.基础信息().世界根();
+        if (节点 == 根节点) return true;
+        const auto 全部节点 = 世界树.基础信息().枚举全部节点();
+        for (const auto* 当前 : 全部节点) {
+            if (当前 == 节点) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     inline std::string 基础节点日志文本(const 基础信息节点类* 节点) noexcept
     {
-        return 节点 ? 节点->获取主键() : std::string("空");
+        if (!节点) {
+            return "空";
+        }
+        if (!基础节点属于当前世界树(节点)) {
+            return "无效基础节点指针:" + 指针日志文本(节点);
+        }
+        return 节点->获取主键();
+    }
+
+    inline void 记录无效基础节点引用(
+        const char* 来源,
+        const 基础信息节点类* 候选节点,
+        const 基础信息节点类* 默认节点) noexcept
+    {
+        std::ostringstream 输出;
+        输出 << "外设模块/无效基础节点引用"
+            << " | 来源=" << (来源 ? 来源 : "未定义")
+            << " | 候选指针=" << 指针日志文本(候选节点)
+            << " | 默认宿主=" << 基础节点日志文本(默认节点)
+            << " | 处理=拒绝使用候选指针并回退默认宿主";
+        项目运行错误日志(输出.str());
     }
 
     inline void 记录双目相机本能动作结果(
@@ -16038,7 +16072,15 @@ export namespace 自我动作实现模块::外设模块 {
     {
         void* 指针 = nullptr;
         if (读取输入参数指针(输入参数场景, 特征_目标外设(), 指针)) {
-            return reinterpret_cast<存在节点类*>(指针);
+            auto* 候选节点 = reinterpret_cast<基础信息节点类*>(指针);
+            if (基础节点属于当前世界树(候选节点)
+                && 世界树.存在().取存在主信息(reinterpret_cast<存在节点类*>(候选节点))) {
+                return reinterpret_cast<存在节点类*>(候选节点);
+            }
+            记录无效基础节点引用(
+                "输入参数.目标外设",
+                候选节点,
+                reinterpret_cast<基础信息节点类*>(输出场景));
         }
         return 取或创建双目相机外设存在(输出场景);
     }
@@ -16049,7 +16091,14 @@ export namespace 自我动作实现模块::外设模块 {
     {
         void* 指针 = nullptr;
         if (读取输入参数指针(输入参数场景, 特征_目标宿主(), 指针)) {
-            return reinterpret_cast<基础信息节点类*>(指针);
+            auto* 候选节点 = reinterpret_cast<基础信息节点类*>(指针);
+            if (基础节点属于当前世界树(候选节点)) {
+                return 候选节点;
+            }
+            记录无效基础节点引用(
+                "输入参数.目标宿主",
+                候选节点,
+                默认宿主);
         }
         return 默认宿主;
     }
