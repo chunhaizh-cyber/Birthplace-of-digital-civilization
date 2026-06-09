@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 
 #include "基础信息主信息类.h"
@@ -87,9 +88,26 @@ public:
 
         auto* first = static_cast<节点类*>(parent->子);
         auto* it = first;
+        std::size_t 保护计数 = 0;
         do {
+            if (!私有_节点属于当前树_已加锁(it)) {
+                私有_记录子链枚举异常_已加锁(
+                    "枚举子节点_按类型",
+                    parent,
+                    it,
+                    "子节点不属于当前基础信息主链");
+                break;
+            }
             if (dynamic_cast<T主信息*>(it->主信息)) {
                 out.push_back(it);
+            }
+            if (++保护计数 > 100000) {
+                私有_记录子链枚举异常_已加锁(
+                    "枚举子节点_按类型",
+                    parent,
+                    it,
+                    "子链保护计数超限");
+                break;
             }
             it = static_cast<节点类*>(it->下);
         } while (it && it != first);
@@ -118,6 +136,12 @@ private:
         }
         return false;
     }
+
+    void 私有_记录子链枚举异常_已加锁(
+        const char* 来源,
+        const 节点类* 父节点,
+        const 节点类* 子节点,
+        const char* 原因) const noexcept;
 
     static 基础信息基类* 私有_创建语素入口模板主信息(const 语素入口节点类* 入口节点, 枚举_主信息类型 类型);
     static bool 私有_主信息引用语素入口节点(const 基础信息基类* 主信息, const 语素入口节点类* 入口节点) noexcept;
