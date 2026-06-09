@@ -80,24 +80,6 @@ std::vector<基础信息类::节点类*> 基础信息类::枚举全部节点() c
     return out;
 }
 
-std::vector<基础信息类::节点类*> 基础信息类::枚举子节点(const 节点类* 父节点) const
-{
-    std::vector<节点类*> out;
-    auto lk = 获取读锁();
-    auto* parent = 父节点 ? const_cast<节点类*>(父节点) : 世界根();
-    if (!parent || !私有_节点属于当前树_已加锁(parent) || !parent->子) return out;
-
-    auto* first = static_cast<节点类*>(parent->子);
-    auto* it = first;
-    do {
-        out.push_back(it);
-        it = static_cast<节点类*>(it->下);
-    } while (it && it != first);
-
-    return out;
-}
-
-
 基础信息类::节点类* 基础信息类::查找语素入口模板(const 语素入口节点类* 入口节点, 枚举_主信息类型 类型) const
 {
     if (!入口节点 || 类型 == 枚举_主信息类型::未定义) return nullptr;
@@ -334,12 +316,26 @@ std::string 基础信息类::获取名称(const 节点类* 节点) const
 
     const auto* 根名 = 语素集.添加信息入口词("存在概念根", 枚举_信息入口类型::存在概念入口);
     const auto* 根型 = 语素集.添加信息入口词("概念根", 枚举_信息入口类型::存在概念入口);
-    for (auto* 节点 : 枚举子节点_按类型<存在节点主信息类>(世界根())) {
-        const auto* 主信息 = 取主信息<存在节点主信息类>(节点);
-        if (主信息 && 主信息->名称 == 根名) {
-            存在概念根_ = 节点;
-            return static_cast<存在节点类*>(存在概念根_);
+    节点类* 已有根节点 = nullptr;
+    {
+        auto lk = 获取读锁();
+        auto* 父 = 世界根();
+        if (父 && 父->子) {
+            auto* 首节点 = static_cast<节点类*>(父->子);
+            auto* 当前 = 首节点;
+            do {
+                const auto* 主信息 = dynamic_cast<存在节点主信息类*>(当前->主信息);
+                if (主信息 && 主信息->名称 == 根名) {
+                    已有根节点 = 当前;
+                    break;
+                }
+                当前 = static_cast<节点类*>(当前->下);
+            } while (当前 && 当前 != 首节点);
         }
+    }
+    if (已有根节点) {
+        存在概念根_ = 已有根节点;
+        return static_cast<存在节点类*>(存在概念根_);
     }
 
     auto* 主信息 = new 存在节点主信息类(根名, 根型);

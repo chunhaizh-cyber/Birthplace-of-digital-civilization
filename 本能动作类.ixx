@@ -178,12 +178,19 @@ public:
             if (!类型) {
                 return true;
             }
-            for (auto* 子节点 : 基础信息.枚举子节点(条件场景)) {
-                const auto* 特征主信息 = 基础信息.取主信息<特征节点主信息类>(子节点);
+            auto lk = 基础信息.获取读锁();
+            if (!条件场景->子) {
+                return false;
+            }
+            auto* 首节点 = static_cast<基础信息节点类*>(条件场景->子);
+            auto* 当前 = 首节点;
+            do {
+                const auto* 特征主信息 = dynamic_cast<特征节点主信息类*>(当前->主信息);
                 if (特征主信息 && 特征主信息->类型 == 类型) {
                     return true;
                 }
-            }
+                当前 = static_cast<基础信息节点类*>(当前->下);
+            } while (当前 && 当前 != 首节点);
             return false;
         };
 

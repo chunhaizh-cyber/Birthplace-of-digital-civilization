@@ -89,6 +89,27 @@ namespace {
         return s_词;
     }
 
+    template<class T主信息>
+    std::vector<基础信息节点类*> 私有_直接基础信息子节点_按类型_自检(
+        const 基础信息类& 基础信息,
+        const 基础信息节点类* 父节点)
+    {
+        std::vector<基础信息节点类*> 结果{};
+        auto lk = 基础信息.获取读锁();
+        auto* 父 = 父节点 ? const_cast<基础信息节点类*>(父节点) : 基础信息.世界根();
+        if (!父 || !父->子) return 结果;
+
+        auto* 首节点 = static_cast<基础信息节点类*>(父->子);
+        auto* 当前 = 首节点;
+        do {
+            if (dynamic_cast<T主信息*>(当前->主信息)) {
+                结果.push_back(当前);
+            }
+            当前 = static_cast<基础信息节点类*>(当前->下);
+        } while (当前 && 当前 != 首节点);
+        return 结果;
+    }
+
     const 语素入口节点类* 私有_特征模板词_自检(const char* 名称) noexcept
     {
         return 名称 ? 语素集.添加信息入口词(名称, 枚举_信息入口类型::特征模板入口) : nullptr;
@@ -589,7 +610,7 @@ namespace {
         if (!父抽象特征 || !目标入口) {
             return nullptr;
         }
-        for (auto* 节点 : 世界树.基础信息().枚举子节点_按类型<抽象特征主信息类>(父抽象特征)) {
+        for (auto* 节点 : 私有_直接基础信息子节点_按类型_自检<抽象特征主信息类>(世界树.基础信息(), 父抽象特征)) {
             auto* 抽象节点 = static_cast<抽象特征节点类*>(节点);
             const auto* 主信息 = 世界树.特征().取抽象特征主信息(抽象节点);
             if (!主信息) {

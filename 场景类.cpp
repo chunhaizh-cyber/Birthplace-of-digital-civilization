@@ -34,6 +34,27 @@ namespace {
         return false;
     }
 
+    template<class T主信息>
+    std::vector<基础信息节点类*> 私有_直接基础信息子节点_按类型(
+        const 基础信息类& 基础信息,
+        const 基础信息节点类* 父节点)
+    {
+        std::vector<基础信息节点类*> 结果{};
+        auto lk = 基础信息.获取读锁();
+        auto* 父 = 父节点 ? const_cast<基础信息节点类*>(父节点) : 基础信息.世界根();
+        if (!父 || !父->子) return 结果;
+
+        auto* 首节点 = static_cast<基础信息节点类*>(父->子);
+        auto* 当前 = 首节点;
+        do {
+            if (dynamic_cast<T主信息*>(当前->主信息)) {
+                结果.push_back(当前);
+            }
+            当前 = static_cast<基础信息节点类*>(当前->下);
+        } while (当前 && 当前 != 首节点);
+        return 结果;
+    }
+
     时间戳 私有_取状态排序时间(const 状态节点主信息类& 主信息) noexcept
     {
         return 主信息.发生时间 != 0 ? 主信息.发生时间 : 主信息.收到时间;
@@ -59,7 +80,7 @@ namespace {
     {
         if (!基础信息 || !宿主 || !特征类型) return nullptr;
 
-        for (auto* 节点 : 基础信息->枚举子节点_按类型<特征节点主信息类>(宿主)) {
+        for (auto* 节点 : 私有_直接基础信息子节点_按类型<特征节点主信息类>(*基础信息, 宿主)) {
             const auto* 主信息 = 基础信息->取主信息<特征节点主信息类>(节点);
             if (主信息 && 私有_语素入口相同(主信息->类型, 特征类型)) {
                 return static_cast<特征节点类*>(节点);
@@ -176,7 +197,7 @@ std::vector<场景节点类*> 场景类::获取子场景(const 基础信息节�
     std::vector<场景节点类*> out;
     if (!基础信息_) return out;
 
-    for (auto* 节点 : 基础信息_->枚举子节点_按类型<场景节点主信息类>(父节点)) {
+    for (auto* 节点 : 私有_直接基础信息子节点_按类型<场景节点主信息类>(*基础信息_, 父节点)) {
         out.push_back(static_cast<场景节点类*>(节点));
     }
     return out;
@@ -187,7 +208,7 @@ std::vector<存在节点类*> 场景类::获取子存在(const 基础信息节�
     std::vector<存在节点类*> out;
     if (!基础信息_) return out;
 
-    for (auto* 节点 : 基础信息_->枚举子节点_按类型<存在节点主信息类>(父节点)) {
+    for (auto* 节点 : 私有_直接基础信息子节点_按类型<存在节点主信息类>(*基础信息_, 父节点)) {
         out.push_back(static_cast<存在节点类*>(节点));
     }
     return out;
@@ -198,7 +219,7 @@ std::vector<特征节点类*> 场景类::获取子特征(const 基础信息节�
     std::vector<特征节点类*> out;
     if (!基础信息_) return out;
 
-    for (auto* 节点 : 基础信息_->枚举子节点_按类型<特征节点主信息类>(父节点)) {
+    for (auto* 节点 : 私有_直接基础信息子节点_按类型<特征节点主信息类>(*基础信息_, 父节点)) {
         out.push_back(static_cast<特征节点类*>(节点));
     }
     return out;

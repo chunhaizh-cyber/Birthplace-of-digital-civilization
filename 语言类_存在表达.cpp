@@ -40,6 +40,24 @@ namespace {
         return 词 ? 词->获取主键() : std::string{};
     }
 
+    std::vector<基础信息节点类*> 私有_直接基础信息子节点(
+        const 基础信息类& 基础信息,
+        const 基础信息节点类* 父节点)
+    {
+        std::vector<基础信息节点类*> 结果{};
+        auto lk = 基础信息.获取读锁();
+        auto* 父 = 父节点 ? const_cast<基础信息节点类*>(父节点) : 基础信息.世界根();
+        if (!父 || !父->子) return 结果;
+
+        auto* 首节点 = static_cast<基础信息节点类*>(父->子);
+        auto* 当前 = 首节点;
+        do {
+            结果.push_back(当前);
+            当前 = static_cast<基础信息节点类*>(当前->下);
+        } while (当前 && 当前 != 首节点);
+        return 结果;
+    }
+
     std::string 私有_存在称呼(const 语言类& 语言, const 存在节点类* 节点, const 存在节点主信息类* 主信息)
     {
         const auto 节点名称 = 语言.获取基础信息名称(节点);
@@ -64,7 +82,7 @@ namespace {
             return;
         }
 
-        const auto 直接子项 = 世界树.基础信息().枚举子节点(树根节点);
+        const auto 直接子项 = 私有_直接基础信息子节点(世界树.基础信息(), 树根节点);
         if (直接子项.empty()) {
             私有_追加去重项(输出, 语言.获取基础信息名称(树根节点), 上限);
             return;

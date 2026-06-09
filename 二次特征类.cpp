@@ -68,6 +68,27 @@ namespace {
         return 私有_节点缓存键(父节点) + "|" + 度量签名;
     }
 
+    template<class T主信息>
+    std::vector<基础信息节点类*> 私有_直接基础信息子节点_按类型(
+        const 基础信息类& 基础信息,
+        const 基础信息节点类* 父节点)
+    {
+        std::vector<基础信息节点类*> 结果{};
+        auto lk = 基础信息.获取读锁();
+        auto* 父 = 父节点 ? const_cast<基础信息节点类*>(父节点) : 基础信息.世界根();
+        if (!父 || !父->子) return 结果;
+
+        auto* 首节点 = static_cast<基础信息节点类*>(父->子);
+        auto* 当前 = 首节点;
+        do {
+            if (dynamic_cast<T主信息*>(当前->主信息)) {
+                结果.push_back(当前);
+            }
+            当前 = static_cast<基础信息节点类*>(当前->下);
+        } while (当前 && 当前 != 首节点);
+        return 结果;
+    }
+
     std::chrono::steady_clock::time_point 私有_二次特征类阶段时间点() noexcept
     {
         return std::chrono::steady_clock::now();
@@ -464,7 +485,7 @@ const 二次特征主信息类* 二次特征类::取二次特征主信息(const 
     if (签名父节点索引已建立_.insert(父节点缓存键).second) {
         本轮建立缓存 = true;
         const auto 子节点枚举开始 = 私有_二次特征类阶段时间点();
-        const auto 子节点列表 = 基础信息_->枚举子节点_按类型<二次特征主信息类>(父节点);
+        const auto 子节点列表 = 私有_直接基础信息子节点_按类型<二次特征主信息类>(*基础信息_, 父节点);
         子节点数量 = 子节点列表.size();
         子节点枚举耗时微秒 = 私有_二次特征类阶段耗时微秒(
             子节点枚举开始,
@@ -513,7 +534,7 @@ const 二次特征主信息类* 二次特征类::取二次特征主信息(const 
 {
     if (!基础信息_) return nullptr;
 
-    for (auto* 节点 : 基础信息_->枚举子节点_按类型<二次特征主信息类>(nullptr)) {
+    for (auto* 节点 : 私有_直接基础信息子节点_按类型<二次特征主信息类>(*基础信息_, nullptr)) {
         auto* 二次节点 = static_cast<二次特征节点类*>(节点);
         const auto* 主信息 = 取二次特征主信息(二次节点);
         if (!主信息) continue;
@@ -703,7 +724,7 @@ std::vector<二次特征节点类*> 二次特征类::获取子二次特征(const
     std::vector<二次特征节点类*> out;
     if (!基础信息_) return out;
 
-    for (auto* 节点 : 基础信息_->枚举子节点_按类型<二次特征主信息类>(父节点)) {
+    for (auto* 节点 : 私有_直接基础信息子节点_按类型<二次特征主信息类>(*基础信息_, 父节点)) {
         out.push_back(static_cast<二次特征节点类*>(节点));
     }
     return out;

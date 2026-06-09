@@ -74,6 +74,45 @@ namespace {
         return false;
     }
 
+    std::vector<基础信息节点类*> 私有_直接基础信息子节点(
+        const 基础信息类& 基础信息,
+        const 基础信息节点类* 父节点)
+    {
+        std::vector<基础信息节点类*> 结果{};
+        auto lk = 基础信息.获取读锁();
+        auto* 父 = 父节点 ? const_cast<基础信息节点类*>(父节点) : 基础信息.世界根();
+        if (!父 || !父->子) return 结果;
+
+        auto* 首节点 = static_cast<基础信息节点类*>(父->子);
+        auto* 当前 = 首节点;
+        do {
+            结果.push_back(当前);
+            当前 = static_cast<基础信息节点类*>(当前->下);
+        } while (当前 && 当前 != 首节点);
+        return 结果;
+    }
+
+    template<class T主信息>
+    std::vector<基础信息节点类*> 私有_直接基础信息子节点_按类型(
+        const 基础信息类& 基础信息,
+        const 基础信息节点类* 父节点)
+    {
+        std::vector<基础信息节点类*> 结果{};
+        auto lk = 基础信息.获取读锁();
+        auto* 父 = 父节点 ? const_cast<基础信息节点类*>(父节点) : 基础信息.世界根();
+        if (!父 || !父->子) return 结果;
+
+        auto* 首节点 = static_cast<基础信息节点类*>(父->子);
+        auto* 当前 = 首节点;
+        do {
+            if (dynamic_cast<T主信息*>(当前->主信息)) {
+                结果.push_back(当前);
+            }
+            当前 = static_cast<基础信息节点类*>(当前->下);
+        } while (当前 && 当前 != 首节点);
+        return 结果;
+    }
+
     bool 私有_确保概念特征槽(世界树类& 世界树对象, 存在节点类* 概念, const char* 特征名) noexcept
     {
         if (!概念 || !特征名 || !*特征名) return false;
@@ -243,7 +282,7 @@ const 因果类& 世界树类::因果() const noexcept { return 因果服务_; }
 
 std::vector<基础信息节点类*> 世界树类::获取子节点(const 基础信息节点类* 父节点) const
 {
-    return 基础信息链_.枚举子节点(父节点);
+    return 私有_直接基础信息子节点(基础信息链_, 父节点);
 }
 
 std::string 世界树类::获取名称(const 基础信息节点类* 节点) const
@@ -511,7 +550,7 @@ bool 世界树类::初始化存在概念系统()
     }
 
     const auto* 根词 = 语素集.添加信息入口词("抽象特征根", 枚举_信息入口类型::特征模板入口);
-    for (auto* 节点 : 基础信息链_.枚举子节点_按类型<抽象特征主信息类>(世界根())) {
+    for (auto* 节点 : 私有_直接基础信息子节点_按类型<抽象特征主信息类>(基础信息链_, 世界根())) {
         const auto* 主信息 = 基础信息链_.取主信息<抽象特征主信息类>(节点);
         if (主信息 && 主信息->名称 == 根词) {
             抽象特征根 = 节点;

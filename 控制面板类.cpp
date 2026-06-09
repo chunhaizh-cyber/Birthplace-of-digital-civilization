@@ -55,6 +55,9 @@ namespace {
 
     std::string 私有_需求显示名_控制面板(const 需求节点* 节点);
 
+    template<class T节点>
+    std::vector<T节点*> 私有_枚举子节点(const T节点* 父节点, const std::size_t 上限);
+
     constexpr std::uintptr_t 私有_线程详情_自我 = 1;
     constexpr std::uintptr_t 私有_线程详情_工作 = 2;
     constexpr std::uintptr_t 私有_线程详情_摘要 = 4;
@@ -1482,7 +1485,7 @@ namespace {
                 最佳深度帧号 = 当前深度帧号;
             }
 
-            for (auto* 子节点 : 世界树.基础信息().枚举子节点(当前)) {
+            for (auto* 子节点 : 私有_枚举子节点(当前, (std::numeric_limits<std::size_t>::max)())) {
                 if (子节点) {
                     栈.push_back(子节点);
                 }
@@ -1574,7 +1577,7 @@ namespace {
                 最佳观察帧 = 当前观察帧;
             }
 
-            for (auto* 子节点 : 世界树.基础信息().枚举子节点(当前)) {
+            for (auto* 子节点 : 私有_枚举子节点(当前, (std::numeric_limits<std::size_t>::max)())) {
                 if (子节点) {
                     栈.push_back(子节点);
                 }
@@ -1640,7 +1643,7 @@ namespace {
         }
 
         std::vector<const 基础信息节点类*> 栈{};
-        for (auto* 子节点 : 世界树.基础信息().枚举子节点(根)) {
+        for (auto* 子节点 : 私有_枚举子节点(根, (std::numeric_limits<std::size_t>::max)())) {
             if (子节点) {
                 栈.push_back(子节点);
             }
@@ -1660,7 +1663,7 @@ namespace {
             }
             ++已扫描;
             私有_累计自我场景内容节点(统计, 当前, 采集样例);
-            for (auto* 子节点 : 世界树.基础信息().枚举子节点(当前)) {
+            for (auto* 子节点 : 私有_枚举子节点(当前, (std::numeric_limits<std::size_t>::max)())) {
                 if (子节点) {
                     栈.push_back(子节点);
                 }
@@ -1707,7 +1710,7 @@ namespace {
             return;
         }
 
-        const auto 直接子节点 = 世界树.基础信息().枚举子节点(场景宿主);
+        const auto 直接子节点 = 私有_枚举子节点(场景宿主, (std::numeric_limits<std::size_t>::max)());
         结构_自我场景内容统计 直接统计{};
         for (auto* 子节点 : 直接子节点) {
             私有_累计自我场景内容节点(直接统计, 子节点, false);
@@ -5184,7 +5187,7 @@ namespace {
         }
         树节点.子项.push_back(std::move(字段节点));
 
-        const auto 子节点集 = 世界树.基础信息().枚举子节点(节点);
+        const auto 子节点集 = 私有_枚举子节点(节点, (std::numeric_limits<std::size_t>::max)());
         const auto 实际上限 = (std::min)(上下文.树广度上限, 子节点集.size());
         for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
             树节点.子项.push_back(私有_基础信息骨架节点(子节点集[索引], 上下文, false));
@@ -5787,7 +5790,7 @@ namespace {
             上下文,
             !节点->父 || 上下文.世界默认展开路径.contains(私有_地址(节点)));
 
-        const auto 子节点集 = 世界树.基础信息().枚举子节点(节点);
+        const auto 子节点集 = 私有_枚举子节点(节点, (std::numeric_limits<std::size_t>::max)());
         const auto 实际上限 = (std::min)(上下文.树广度上限, 子节点集.size());
         for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
             auto* 子节点 = 子节点集[索引];
@@ -7953,7 +7956,7 @@ std::string 读取控制面板节点子项JSON(
         if (!父节点) {
             return 私有_失效节点JSON("父节点已失效或已移出当前树");
         }
-        const auto 子节点集 = 父节点 ? 世界树.基础信息().枚举子节点(父节点) : std::vector<基础信息节点类*>{};
+        const auto 子节点集 = 父节点 ? 私有_枚举子节点(父节点, (std::numeric_limits<std::size_t>::max)()) : std::vector<基础信息节点类*>{};
         const auto 起始偏移 = (std::min)(static_cast<std::size_t>(附加参数), 子节点集.size());
         const auto 结束偏移 = (std::min)(起始偏移 + 上下文.树广度上限, 子节点集.size());
         for (std::size_t 索引 = 起始偏移; 索引 < 结束偏移; ++索引) {
