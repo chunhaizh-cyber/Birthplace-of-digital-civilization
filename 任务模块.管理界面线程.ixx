@@ -4,6 +4,8 @@ module;
 #include <string>
 #include <vector>
 
+#include "需求节点类型.h"
+
 export module 任务模块.管理界面线程;
 
 export import 任务模块.管理线程协议;
@@ -48,6 +50,14 @@ bool 提交任务治理请求(
     自我类& 自我对象,
     const 任务管理线程协议::结构_任务治理请求& 请求,
     任务管理线程协议::结构_任务界面承接结果* 输出 = nullptr) noexcept;
+
+bool 确认需求已有关联任务可承接(
+    自我类& 自我对象,
+    需求节点类* 需求,
+    const std::string& 任务主键,
+    std::uint64_t 当前时间 = 0,
+    任务节点类** 输出任务 = nullptr,
+    std::string* 输出说明 = nullptr) noexcept;
 
 bool 巡检并派发就绪任务(
     自我类& 自我对象,
