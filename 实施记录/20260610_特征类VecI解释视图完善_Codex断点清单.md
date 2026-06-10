@@ -4,8 +4,8 @@
 
 ```text
 计划：计划/20260610_特征类VecI解释视图完善计划_v0.1.md
-切片：P2 VecI64 特征值包装入口
-状态：P0 阻塞已解除；P1 已闭合并提交；P2 已新增特征值池和世界树 VecI64 薄包装入口，`git diff --check` 通过，Debug x64 构建通过；下一步进入 P3 特征类型解释规则。
+切片：P3 特征类型解释规则
+状态：P0 阻塞已解除；P1/P2 已闭合并提交；P3 已新增 VecU 解释规则查询入口，`git diff --check` 通过，Debug x64 构建通过；下一步进入 P4 轮廓格式校验函数。
 ```
 
 ## 依据文件
@@ -33,6 +33,9 @@ msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncrement
 rg -n "VecI64|std::variant|枚举_特征值编码类型|编码类型" 特征值主信息类.h
 rg -n "获取或创建VecI64|写入特征_VecI64|读取特征VecI64" 特征值类.h 世界树类.h 世界树类.cpp
 git diff --check -- 特征值类.h 世界树类.h 世界树类.cpp 计划/计划索引.md 计划/20260610_特征类VecI解释视图完善计划_v0.1.md 实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
+msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
+rg -n "VecU解释规则_按特征类型|轮廓坐标维度_按特征类型|VecIU64_ZigZag_I64_二维坐标链|VecIU64_ZigZag_I64_三维坐标链" 特征类.h 特征类.cpp
+git diff --check -- 特征类.h 特征类.cpp 实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
 msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
 ```
 
@@ -184,6 +187,64 @@ Debug x64 构建：
     构建日志：日志/鱼巢_build_20260610_VecI_P2.log。
 ```
 
+## P3 预测结果
+
+```text
+新增入口：
+    枚举_VecU解释规则
+    结构_VecU特征解释规则
+    特征类::VecU解释规则_按特征类型
+    特征类::轮廓坐标维度_按特征类型
+
+预期：
+    特征类型 == 平面轮廓：
+        规则 = VecIU64_ZigZag_I64_二维坐标链
+        坐标维度 = 2
+        需要ZigZag解码 = true
+
+    特征类型 == 空间极值轮廓：
+        规则 = VecIU64_ZigZag_I64_三维坐标链
+        坐标维度 = 3
+        需要ZigZag解码 = true
+
+    其他特征类型：
+        规则 = 未定义
+        坐标维度无值
+
+不应发生：
+    修改 `特征值主信息类` 字段；
+    在值节点写入编码类型或维度字段；
+    拆轮廓子链；
+    把颜色摘要、掩码等未知类型猜成坐标链。
+```
+
+## P3 已改文件
+
+```text
+特征类.h
+特征类.cpp
+实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
+```
+
+## P3 验证结果
+
+```text
+rg 解释规则落点：
+    特征类.h / 特征类.cpp 命中 `VecU解释规则_按特征类型`、`轮廓坐标维度_按特征类型`、二维 / 三维 ZigZag 坐标链枚举值。
+
+禁止字段扫描：
+    `rg -n "VecI64|std::variant|枚举_特征值编码类型|编码类型|坐标维度" 特征值主信息类.h`
+    退出码 1，无命中，表示 `特征值主信息类` 未新增 VecI64 / variant / 编码类型 / 坐标维度字段。
+
+git diff --check：
+    退出码 0。
+
+Debug x64 构建：
+    命令：msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
+    退出码：0。
+    构建日志：日志/鱼巢_build_20260610_VecI_P3.log。
+```
+
 ## 已定解决方向
 
 ```text
@@ -201,9 +262,11 @@ VecI64 只作为读取、创建、校验、比较时的解释视图。
 完成 P2：
     已完成差异检查、禁止字段扫描和 Debug x64 构建。
 
-P2 完成后进入 P3：
-    由特征类型决定 VecIU64 的解释规则；
-    不向值节点写入编码类型或维度字段。
+完成 P3：
+    已完成差异检查、禁止字段扫描和 Debug x64 构建。
+
+P3 完成后进入 P4：
+    新增平面轮廓 / 空间极值轮廓 VecI64 格式校验函数。
 
 P1/P2 仍不得改 `特征值主信息类`，不得新增 VecI64 底层字段，不得拆轮廓子链。
 ```

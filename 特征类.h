@@ -68,6 +68,22 @@ struct 结构_特征状态比较结果 {
     std::string 说明{};
 };
 
+enum class 枚举_VecU解释规则 : std::uint8_t {
+    未定义 = 0,
+    原始VecIU64 = 1,
+    VecIU64_ZigZag_I64_二维坐标链 = 2,
+    VecIU64_ZigZag_I64_三维坐标链 = 3,
+};
+
+struct 结构_VecU特征解释规则 {
+    枚举_VecU解释规则 规则 = 枚举_VecU解释规则::未定义;
+    std::uint32_t 坐标维度 = 0;
+    bool 需要ZigZag解码 = false;
+
+    bool 有效() const noexcept { return 规则 != 枚举_VecU解释规则::未定义; }
+    bool 是坐标链() const noexcept { return 坐标维度 == 2 || 坐标维度 == 3; }
+};
+
 struct 常用抽象特征初始化结果 {
     std::uint32_t 抽象特征数 = 0;
     std::uint32_t 区间状态数 = 0;
@@ -166,6 +182,8 @@ public:
         const 特征值& 右值,
         const 特征节点主信息类* 左特征主信息 = nullptr,
         const 特征节点主信息类* 右特征主信息 = nullptr) const;
+    static 结构_VecU特征解释规则 VecU解释规则_按特征类型(const 语素入口节点类* 特征类型);
+    static std::optional<std::uint32_t> 轮廓坐标维度_按特征类型(const 语素入口节点类* 特征类型);
     结构_特征状态比较结果 比较状态(
         const 状态节点类* 当前状态,
         const 状态节点类* 目标状态) const;
