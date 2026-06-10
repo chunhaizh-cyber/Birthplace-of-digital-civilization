@@ -664,6 +664,69 @@ using 字符串UTF8 = std::string;
 constexpr I64 I64_MIN = (std::numeric_limits<I64>::min)();
 constexpr I64 I64_MAX = (std::numeric_limits<I64>::max)();
 
+inline constexpr std::uint64_t 编码I64为U64_ZigZag(const I64 值) noexcept
+{
+    const auto 原始位 = static_cast<std::uint64_t>(值);
+    const auto 符号掩码 = 值 < 0 ? (std::numeric_limits<std::uint64_t>::max)() : 0ull;
+    return (原始位 << 1) ^ 符号掩码;
+}
+
+inline constexpr I64 解码U64为I64_ZigZag(const std::uint64_t 值) noexcept
+{
+    const auto 半值 = 值 >> 1;
+    if ((值 & 1ull) == 0ull) return static_cast<I64>(半值);
+    if (半值 == static_cast<std::uint64_t>(I64_MAX)) return I64_MIN;
+    return -static_cast<I64>(半值 + 1ull);
+}
+
+inline constexpr std::uint64_t 编码I64为U64(const I64 值) noexcept
+{
+    return 编码I64为U64_ZigZag(值);
+}
+
+inline constexpr I64 解码U64为I64(const std::uint64_t 值) noexcept
+{
+    return 解码U64为I64_ZigZag(值);
+}
+
+inline VecIU64 编码VecI64为VecIU64_ZigZag(const VecI64& 值)
+{
+    VecIU64 输出{};
+    输出.reserve(值.size());
+    for (const auto 单值 : 值) {
+        输出.push_back(编码I64为U64_ZigZag(单值));
+    }
+    return 输出;
+}
+
+inline VecI64 解码VecIU64为VecI64_ZigZag(const VecIU64& 值)
+{
+    VecI64 输出{};
+    输出.reserve(值.size());
+    for (const auto 单值 : 值) {
+        输出.push_back(解码U64为I64_ZigZag(单值));
+    }
+    return 输出;
+}
+
+inline VecIU64 编码VecI64为VecIU64(const VecI64& 值)
+{
+    return 编码VecI64为VecIU64_ZigZag(值);
+}
+
+inline VecI64 解码VecIU64为VecI64(const VecIU64& 值)
+{
+    return 解码VecIU64为VecI64_ZigZag(值);
+}
+
+static_assert(编码I64为U64_ZigZag(0) == 0);
+static_assert(编码I64为U64_ZigZag(-1) == 1);
+static_assert(编码I64为U64_ZigZag(1) == 2);
+static_assert(编码I64为U64_ZigZag(-2) == 3);
+static_assert(编码I64为U64_ZigZag(2) == 4);
+static_assert(解码U64为I64_ZigZag(编码I64为U64_ZigZag(I64_MIN)) == I64_MIN);
+static_assert(解码U64为I64_ZigZag(编码I64为U64_ZigZag(I64_MAX)) == I64_MAX);
+
 
 
 struct I64多维区间 {
