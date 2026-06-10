@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 
+#include "日志接入.h"
 #include "语言类.h"
 #include "语言类_基础信息命名.cpp"
 #define 私有_安全词 语言类二次_私有_安全词
@@ -37,14 +38,14 @@ void 基础信息类::初始化()
 
 基础信息类::节点类* 基础信息类::添加节点(节点类* 位置节点, 基础信息基类* 主信息)
 {
-    if (!主信息) return nullptr;
+    if (鱼巢_不允许空指(主信息, "基础信息类/添加节点/主信息缺失")) return nullptr;
     auto* pos = 位置节点 ? 位置节点 : 世界根();
     return static_cast<节点类*>(基类::添加节点(pos, 主信息));
 }
 
 基础信息类::节点类* 基础信息类::添加子节点(节点类* 父节点, 基础信息基类* 主信息)
 {
-    if (!主信息) return nullptr;
+    if (鱼巢_不允许空指(主信息, "基础信息类/添加子节点/主信息缺失")) return nullptr;
     auto* parent = 父节点 ? 父节点 : 世界根();
     return static_cast<节点类*>(基类::添加子节点(parent, 主信息));
 }
@@ -58,7 +59,9 @@ bool 基础信息类::删除节点(节点类* 节点)
 
 bool 基础信息类::更新主信息(节点类* 节点, 基础信息基类* 主信息)
 {
-    if (!节点 || 节点 == 世界根() || !主信息) return false;
+    if (鱼巢_不允许空指(节点, "基础信息类/更新主信息/节点缺失")) return false;
+    if (节点 == 世界根()) return false;
+    if (鱼巢_不允许空指(主信息, "基础信息类/更新主信息/主信息缺失")) return false;
 
     auto lk = 获取锁();
     if (节点->主信息 == 主信息) return true;
