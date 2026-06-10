@@ -2306,4 +2306,155 @@ export namespace 自我动作实现模块::服务模块 {
             static_cast<I64>(候选状态),
             now);
     }
+
+    constexpr I64 服务评分_满分 = 10000;
+    constexpr I64 服务评分_确认阈值 = 7500;
+
+    enum class 枚举_服务离散评分 : I64 {
+        零 = 0,
+        四分之一 = 2500,
+        二分之一 = 5000,
+        四分之三 = 7500,
+        满 = 10000,
+    };
+
+    enum class 枚举_服务有效性档位 : I64 {
+        无帮助 = 0,
+        假定有交付 = 2500,
+        部分解决需求 = 5000,
+        主要解决需求 = 7500,
+        明确解决需求 = 10000,
+    };
+
+    enum class 枚举_服务证据强度档位 : I64 {
+        无证据 = 0,
+        只有自我输出 = 2500,
+        单侧状态或接受 = 5000,
+        前后对比且可验证 = 7500,
+        完整证据链 = 10000,
+    };
+
+    struct 服务三评分 {
+        I64 完成度 = 0;
+        I64 有效性 = 0;
+        I64 证据强度 = 0;
+        I64 基础分 = 0;
+    };
+
+    inline I64 约束服务评分(I64 分值) noexcept
+    {
+        if (分值 < 0) return 0;
+        if (分值 > 服务评分_满分) return 服务评分_满分;
+        return 分值;
+    }
+
+    inline I64 量化为服务离散评分(I64 原始分值) noexcept
+    {
+        const I64 分值 = 约束服务评分(原始分值);
+        if (分值 <= 0) return static_cast<I64>(枚举_服务离散评分::零);
+        if (分值 < 5000) return static_cast<I64>(枚举_服务离散评分::四分之一);
+        if (分值 < 7000) return static_cast<I64>(枚举_服务离散评分::二分之一);
+        if (分值 < 9000) return static_cast<I64>(枚举_服务离散评分::四分之三);
+        return static_cast<I64>(枚举_服务离散评分::满);
+    }
+
+    inline I64 服务评分最小值(I64 左, I64 右) noexcept
+    {
+        return 左 < 右 ? 左 : 右;
+    }
+
+    inline long double 服务绝对差距(I64 左, I64 右) noexcept
+    {
+        const long double 差距 = static_cast<long double>(左) - static_cast<long double>(右);
+        return 差距 >= 0.0L ? 差距 : -差距;
+    }
+
+    inline I64 计算数值目标完成度评分(I64 服务前值, I64 服务后值, I64 目标值) noexcept
+    {
+        const long double 服务前差距 = 服务绝对差距(服务前值, 目标值);
+        const long double 服务后差距 = 服务绝对差距(服务后值, 目标值);
+        if (服务前差距 <= 0.0L) {
+            return 服务后差距 <= 0.0L
+                ? static_cast<I64>(枚举_服务离散评分::满)
+                : static_cast<I64>(枚举_服务离散评分::零);
+        }
+
+        const long double 改善比例 =
+            (服务前差距 - 服务后差距) / 服务前差距;
+        if (改善比例 <= 0.0L) {
+            return static_cast<I64>(枚举_服务离散评分::零);
+        }
+        const auto 原始分值 = static_cast<I64>(改善比例 * 服务评分_满分 + 0.5L);
+        return 量化为服务离散评分(原始分值);
+    }
+
+    inline I64 计算枚举布尔目标完成度评分(
+        bool 目标达成,
+        bool 阶段性改善) noexcept
+    {
+        if (目标达成) return static_cast<I64>(枚举_服务离散评分::满);
+        if (阶段性改善) return static_cast<I64>(枚举_服务离散评分::二分之一);
+        return static_cast<I64>(枚举_服务离散评分::零);
+    }
+
+    inline I64 有效性评分(枚举_服务有效性档位 档位) noexcept
+    {
+        return 约束服务评分(static_cast<I64>(档位));
+    }
+
+    inline I64 证据强度评分(枚举_服务证据强度档位 档位) noexcept
+    {
+        return 约束服务评分(static_cast<I64>(档位));
+    }
+
+    inline bool 证据强度达到确认阈值(I64 证据强度) noexcept
+    {
+        return 约束服务评分(证据强度) >= 服务评分_确认阈值;
+    }
+
+    inline 服务三评分 计算服务三评分(
+        I64 完成度,
+        I64 有效性,
+        I64 证据强度) noexcept
+    {
+        服务三评分 结果{};
+        结果.完成度 = 量化为服务离散评分(完成度);
+        结果.有效性 = 量化为服务离散评分(有效性);
+        结果.证据强度 = 量化为服务离散评分(证据强度);
+        结果.基础分 = 服务评分最小值(
+            结果.完成度,
+            服务评分最小值(结果.有效性, 结果.证据强度));
+        return 结果;
+    }
+
+    inline bool 写入G0三评分(
+        存在节点类* G0治理视图,
+        const 服务三评分& 评分,
+        时间戳 now = 结构体_时间戳::当前_微秒()) noexcept
+    {
+        auto* 宿主 = G0治理视图 ? reinterpret_cast<基础信息节点类*>(G0治理视图) : nullptr;
+        if (!宿主) return false;
+        bool ok = true;
+        ok = 世界树.写入特征_I64(宿主, 特征_完成度(), 评分.完成度, now) && ok;
+        ok = 世界树.写入特征_I64(宿主, 特征_有效性(), 评分.有效性, now) && ok;
+        ok = 世界树.写入特征_I64(宿主, 特征_证据强度(), 评分.证据强度, now) && ok;
+        ok = 世界树.写入特征_I64(宿主, 特征_基础分(), 评分.基础分, now) && ok;
+        return ok;
+    }
+
+    inline bool 读取G0三评分(存在节点类* G0治理视图, 服务三评分& 输出评分) noexcept
+    {
+        auto* 宿主 = G0治理视图 ? reinterpret_cast<基础信息节点类*>(G0治理视图) : nullptr;
+        if (!宿主) return false;
+        I64 完成度 = 0;
+        I64 有效性 = 0;
+        I64 证据强度 = 0;
+        const bool ok =
+            读取基础节点I64(宿主, 特征_完成度(), 完成度)
+            && 读取基础节点I64(宿主, 特征_有效性(), 有效性)
+            && 读取基础节点I64(宿主, 特征_证据强度(), 证据强度);
+        if (!ok) return false;
+        输出评分 = 计算服务三评分(完成度, 有效性, 证据强度);
+        return true;
+    }
 }
