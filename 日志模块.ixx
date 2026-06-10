@@ -17,6 +17,8 @@ module;
 #include <utility>
 #include <windows.h>
 
+#include "预处理开关变量.h"
+
 export module 日志模块;
 
 // 说明：
@@ -134,6 +136,12 @@ export void 项目运行日志(const std::string& 文本) noexcept;
 export void 项目运行警告日志(const std::string& 文本) noexcept;
 export void 项目运行错误日志(const std::string& 文本) noexcept;
 export void 项目弹窗错误提示(const std::string& 标题, const std::string& 文本) noexcept;
+export void 项目提示不允许空指(
+    const char* 上下文,
+    const char* 表达式,
+    const char* 文件,
+    int 行,
+    const char* 函数) noexcept;
 export void 项目自检无上级需求日志(const std::string& 文本) noexcept;
 export void 项目记录异常日志(const std::exception& 异常, const std::string& 上下文) noexcept;
 export void 项目致命日志(const std::string& 文本) noexcept;
@@ -546,6 +554,31 @@ void 项目弹窗错误提示(const std::string& 标题, const std::string& 文�
             MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND);
         // 弹窗是同步阻塞调用；返回后再落一条日志，便于确认用户侧是否已看到并关闭弹窗。
         日志::运行_错误("弹窗错误提示已返回 | 标题=" + 标题 + " | 返回值=" + std::to_string(返回值));
+    }
+    catch (...) {
+    }
+}
+
+void 项目提示不允许空指(
+    const char* 上下文,
+    const char* 表达式,
+    const char* 文件,
+    int 行,
+    const char* 函数) noexcept
+{
+    try {
+        std::ostringstream 输出;
+        输出 << "不允许为空的指针为空"
+            << " | 上下文=" << (上下文 ? 上下文 : "")
+            << " | 表达式=" << (表达式 ? 表达式 : "")
+            << " | 文件=" << (文件 ? 文件 : "")
+            << " | 行=" << 行
+            << " | 函数=" << (函数 ? 函数 : "");
+        const auto 文本 = 输出.str();
+        项目运行错误日志(文本);
+#if 鱼巢_开关_启用不允许空指弹窗
+        项目弹窗错误提示("鱼巢 - 空指逻辑错误", 文本);
+#endif
     }
     catch (...) {
     }
