@@ -184,6 +184,10 @@ public:
         const 特征节点主信息类* 右特征主信息 = nullptr) const;
     static 结构_VecU特征解释规则 VecU解释规则_按特征类型(const 语素入口节点类* 特征类型);
     static std::optional<std::uint32_t> 轮廓坐标维度_按特征类型(const 语素入口节点类* 特征类型);
+    static bool 校验坐标链VecI64(const VecI64& 值, std::uint32_t 坐标维度) noexcept;
+    static bool 校验平面轮廓VecI64(const VecI64& 值) noexcept;
+    static bool 校验空间极值轮廓VecI64(const VecI64& 值) noexcept;
+    static bool 校验坐标类VecI64_按特征类型(const 语素入口节点类* 特征类型, const VecI64& 值);
     结构_特征状态比较结果 比较状态(
         const 状态节点类* 当前状态,
         const 状态节点类* 目标状态) const;

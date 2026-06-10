@@ -2580,6 +2580,29 @@ std::optional<std::uint32_t> 特征类::轮廓坐标维度_按特征类型(const
     return 规则.坐标维度;
 }
 
+bool 特征类::校验坐标链VecI64(const VecI64& 值, const std::uint32_t 坐标维度) noexcept
+{
+    return 坐标维度 != 0
+        && 值.size() >= 坐标维度
+        && (值.size() % 坐标维度) == 0;
+}
+
+bool 特征类::校验平面轮廓VecI64(const VecI64& 值) noexcept
+{
+    return 校验坐标链VecI64(值, 2);
+}
+
+bool 特征类::校验空间极值轮廓VecI64(const VecI64& 值) noexcept
+{
+    return 校验坐标链VecI64(值, 3);
+}
+
+bool 特征类::校验坐标类VecI64_按特征类型(const 语素入口节点类* 特征类型, const VecI64& 值)
+{
+    const auto 维度 = 轮廓坐标维度_按特征类型(特征类型);
+    return 维度.has_value() && 校验坐标链VecI64(值, *维度);
+}
+
 结构_特征状态比较结果 特征类::比较状态(
     const 状态节点类* 当前状态,
     const 状态节点类* 目标状态) const

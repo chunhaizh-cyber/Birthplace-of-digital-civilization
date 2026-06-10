@@ -4,8 +4,8 @@
 
 ```text
 计划：计划/20260610_特征类VecI解释视图完善计划_v0.1.md
-切片：P3 特征类型解释规则
-状态：P0 阻塞已解除；P1/P2 已闭合并提交；P3 已新增 VecU 解释规则查询入口，`git diff --check` 通过，Debug x64 构建通过；下一步进入 P4 轮廓格式校验函数。
+切片：P4 格式校验函数
+状态：P0 阻塞已解除；P1/P2/P3 已闭合并提交；P4 已新增 VecI64 坐标链和平面 / 空间轮廓格式校验函数，`git diff --check` 通过，Debug x64 构建通过；下一步进入 P5 轮廓专用比较函数。
 ```
 
 ## 依据文件
@@ -35,6 +35,9 @@ rg -n "获取或创建VecI64|写入特征_VecI64|读取特征VecI64" 特征值�
 git diff --check -- 特征值类.h 世界树类.h 世界树类.cpp 计划/计划索引.md 计划/20260610_特征类VecI解释视图完善计划_v0.1.md 实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
 msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
 rg -n "VecU解释规则_按特征类型|轮廓坐标维度_按特征类型|VecIU64_ZigZag_I64_二维坐标链|VecIU64_ZigZag_I64_三维坐标链" 特征类.h 特征类.cpp
+git diff --check -- 特征类.h 特征类.cpp 实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
+msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
+rg -n "校验坐标链VecI64|校验平面轮廓VecI64|校验空间极值轮廓VecI64|校验坐标类VecI64_按特征类型" 特征类.h 特征类.cpp
 git diff --check -- 特征类.h 特征类.cpp 实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
 msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
 ```
@@ -245,6 +248,64 @@ Debug x64 构建：
     构建日志：日志/鱼巢_build_20260610_VecI_P3.log。
 ```
 
+## P4 预测结果
+
+```text
+新增入口：
+    特征类::校验坐标链VecI64
+    特征类::校验平面轮廓VecI64
+    特征类::校验空间极值轮廓VecI64
+    特征类::校验坐标类VecI64_按特征类型
+
+预期：
+    平面轮廓：
+        长度 >= 2
+        长度 % 2 == 0
+
+    空间极值轮廓：
+        长度 >= 3
+        长度 % 3 == 0
+
+    按特征类型路由：
+        平面轮廓 -> 二维校验
+        空间极值轮廓 -> 三维校验
+        未知特征类型 -> false
+
+不应发生：
+    截断尾值；
+    补 0；
+    静默忽略非法长度；
+    修改 `特征值主信息类`；
+    拆轮廓子链。
+```
+
+## P4 已改文件
+
+```text
+特征类.h
+特征类.cpp
+实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
+```
+
+## P4 验证结果
+
+```text
+rg 校验函数落点：
+    特征类.h / 特征类.cpp 命中 `校验坐标链VecI64`、`校验平面轮廓VecI64`、`校验空间极值轮廓VecI64`、`校验坐标类VecI64_按特征类型`。
+
+禁止字段扫描：
+    `rg -n "VecI64|std::variant|枚举_特征值编码类型|编码类型|坐标维度" 特征值主信息类.h`
+    退出码 1，无命中，表示 `特征值主信息类` 未新增 VecI64 / variant / 编码类型 / 坐标维度字段。
+
+git diff --check：
+    退出码 0。
+
+Debug x64 构建：
+    命令：msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
+    退出码：0。
+    构建日志：日志/鱼巢_build_20260610_VecI_P4.log。
+```
+
 ## 已定解决方向
 
 ```text
@@ -265,8 +326,11 @@ VecI64 只作为读取、创建、校验、比较时的解释视图。
 完成 P3：
     已完成差异检查、禁止字段扫描和 Debug x64 构建。
 
-P3 完成后进入 P4：
-    新增平面轮廓 / 空间极值轮廓 VecI64 格式校验函数。
+完成 P4：
+    已完成差异检查、禁止字段扫描和 Debug x64 构建。
+
+P4 完成后进入 P5：
+    新增平面轮廓 / 空间极值轮廓的专用比较入口，输出可入账的二次特征材料。
 
 P1/P2 仍不得改 `特征值主信息类`，不得新增 VecI64 底层字段，不得拆轮廓子链。
 ```
