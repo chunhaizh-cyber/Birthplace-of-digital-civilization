@@ -676,6 +676,41 @@ export namespace 自我动作实现模块::服务模块 {
         return s_词;
     }
 
+    inline const 语素入口节点类* 特征_OR胜出子任务() noexcept
+    {
+        static const 语素入口节点类* s_词 =
+            语素集.添加信息入口词("OR胜出子任务", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_OR胜出G0() noexcept
+    {
+        static const 语素入口节点类* s_词 =
+            语素集.添加信息入口词("OR胜出G0", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_OR胜出摘要() noexcept
+    {
+        static const 语素入口节点类* s_词 =
+            语素集.添加信息入口词("OR胜出摘要", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_OR未选路径数() noexcept
+    {
+        static const 语素入口节点类* s_词 =
+            语素集.添加信息入口词("OR未选路径数", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
+    inline const 语素入口节点类* 特征_OR路径已选择() noexcept
+    {
+        static const 语素入口节点类* s_词 =
+            语素集.添加信息入口词("OR路径已选择", 枚举_信息入口类型::特征模板入口);
+        return s_词;
+    }
+
     inline const 语素入口节点类* 特征_硬门槛_人类对象成立() noexcept
     {
         static const 语素入口节点类* s_词 =
@@ -3728,6 +3763,35 @@ export namespace 自我动作实现模块::服务模块 {
         ok = 世界树.写入特征_I64(父任务宿主, 特征_待确认子任务数(), 输入.待确认子任务数, now) && ok;
         ok = 世界树.写入特征_I64(父任务宿主, 特征_失败子任务数(), 输入.失败子任务数, now) && ok;
         ok = 世界树.写入特征_I64(父任务宿主, 特征_组合输出一致性(), 输入.组合输出一致 ? 1 : 0, now) && ok;
+        return ok;
+    }
+
+    struct OR胜出路径记录输入 {
+        任务类::节点类* 父任务 = nullptr;
+        任务类::节点类* 胜出子任务 = nullptr;
+        存在节点类* 胜出G0 = nullptr;
+        存在节点类* 胜出摘要 = nullptr;
+        I64 未选路径数 = 0;
+        bool 组合输出一致 = false;
+    };
+
+    inline bool 记录OR胜出路径(
+        const OR胜出路径记录输入& 输入,
+        时间戳 now = 结构体_时间戳::当前_微秒()) noexcept
+    {
+        auto* 父任务宿主 = 读取任务虚拟存在宿主(输入.父任务);
+        if (!父任务宿主 || !输入.胜出子任务) return false;
+        bool ok = true;
+        ok = 世界树.写入特征_指针(父任务宿主, 特征_OR胜出子任务(), 输入.胜出子任务, now) && ok;
+        ok = 世界树.写入特征_I64(父任务宿主, 特征_OR路径已选择(), 1, now) && ok;
+        ok = 世界树.写入特征_I64(父任务宿主, 特征_OR未选路径数(), 输入.未选路径数, now) && ok;
+        ok = 世界树.写入特征_I64(父任务宿主, 特征_组合输出一致性(), 输入.组合输出一致 ? 1 : 0, now) && ok;
+        if (输入.胜出G0) {
+            ok = 世界树.写入特征_指针(父任务宿主, 特征_OR胜出G0(), 输入.胜出G0, now) && ok;
+        }
+        if (输入.胜出摘要) {
+            ok = 世界树.写入特征_指针(父任务宿主, 特征_OR胜出摘要(), 输入.胜出摘要, now) && ok;
+        }
         return ok;
     }
 }
