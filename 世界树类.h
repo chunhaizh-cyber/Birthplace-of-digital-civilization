@@ -193,6 +193,19 @@ public:
         枚举_轮廓维度 维度 = 枚举_轮廓维度::未定义,
         时间戳 now = 结构体_时间戳::当前_微秒()
     );
+    bool 写入特征_VecI64(
+        特征节点类* 节点,
+        const VecI64& 值,
+        枚举_轮廓维度 维度 = 枚举_轮廓维度::未定义,
+        时间戳 now = 结构体_时间戳::当前_微秒()
+    );
+    bool 写入特征_VecI64(
+        基础信息节点类* 宿主,
+        const 语素入口节点类* 特征类型,
+        const VecI64& 值,
+        枚举_轮廓维度 维度 = 枚举_轮廓维度::未定义,
+        时间戳 now = 结构体_时间戳::当前_微秒()
+    );
     特征值 读取特征快照(const 特征节点类* 节点) const;
     特征值 读取特征快照(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型) const;
     bool 读取特征_I64(const 特征节点类* 节点, I64& 输出值) const;
@@ -200,6 +213,8 @@ public:
     bool 读取特征_指针(const 特征节点类* 节点, void*& 输出指针) const;
     bool 读取特征_指针(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型, void*& 输出指针) const;
     const VecIU64* 读取特征VecU(const 特征节点类* 节点) const;
+    bool 读取特征VecI64(const 特征节点类* 节点, VecI64& 输出值) const;
+    bool 读取特征VecI64(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型, VecI64& 输出值) const;
     存在比较结果 比较存在(
         const 存在节点类* 左存在,
         const 存在节点类* 右存在,

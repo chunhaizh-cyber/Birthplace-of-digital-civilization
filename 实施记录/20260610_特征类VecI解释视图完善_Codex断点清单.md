@@ -4,8 +4,8 @@
 
 ```text
 计划：计划/20260610_特征类VecI解释视图完善计划_v0.1.md
-切片：P1 编码工具
-状态：P0 阻塞已解除；P1 已新增 ZigZag 编解码和 VecI64 / VecIU64 包装函数，`git diff --check` 通过，Debug x64 构建通过；下一步进入 P2 VecI64 特征值包装入口。
+切片：P2 VecI64 特征值包装入口
+状态：P0 阻塞已解除；P1 已闭合并提交；P2 已新增特征值池和世界树 VecI64 薄包装入口，`git diff --check` 通过，Debug x64 构建通过；下一步进入 P3 特征类型解释规则。
 ```
 
 ## 依据文件
@@ -31,6 +31,9 @@ rg -n "编码I64为U64_ZigZag|解码U64为I64_ZigZag|编码VecI64为VecIU64_ZigZ
 git diff --check -- 基础数据类型.h 基础数据类型.ixx 实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
 msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
 rg -n "VecI64|std::variant|枚举_特征值编码类型|编码类型" 特征值主信息类.h
+rg -n "获取或创建VecI64|写入特征_VecI64|读取特征VecI64" 特征值类.h 世界树类.h 世界树类.cpp
+git diff --check -- 特征值类.h 世界树类.h 世界树类.cpp 计划/计划索引.md 计划/20260610_特征类VecI解释视图完善计划_v0.1.md 实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
+msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
 ```
 
 ## 关键证据
@@ -128,6 +131,59 @@ Debug x64 构建：
     构建日志：日志/鱼巢_build_20260610_VecI_P1.log。
 ```
 
+## P2 预测结果
+
+```text
+新增入口：
+    特征值类::获取或创建VecI64特征值节点
+    特征值类::获取或创建VecI64句柄
+    世界树类::写入特征_VecI64(特征节点类*, ...)
+    世界树类::写入特征_VecI64(基础信息节点类*, 特征类型, ...)
+    世界树类::读取特征VecI64(特征节点类*, ...)
+    世界树类::读取特征VecI64(宿主, 特征类型, ...)
+
+预期：
+    写入 VecI64 时先调用 P1 的 VecI64 -> VecIU64 编码，再进入现有 VecIU64 证据池。
+    读取 VecI64 时只通过现有 VecU句柄只读指针取得原始 VecIU64，再解码为 VecI64 输出。
+    不复制或修改证据池原值。
+
+不应发生：
+    修改 `特征值主信息类` 字段；
+    新增 VecI64 底层值池；
+    新增编码类型字段；
+    绕开 `写入特征_VecU` / `读取特征VecU` 的新裸写路径；
+    拆轮廓子链。
+```
+
+## P2 已改文件
+
+```text
+特征值类.h
+世界树类.h
+世界树类.cpp
+实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
+```
+
+## P2 验证结果
+
+```text
+rg 包装入口落点：
+    特征值类.h 命中 `获取或创建VecI64特征值节点`、`获取或创建VecI64句柄`。
+    世界树类.h / 世界树类.cpp 命中 `写入特征_VecI64`、`读取特征VecI64`。
+
+禁止字段扫描：
+    `rg -n "VecI64|std::variant|枚举_特征值编码类型|编码类型" 特征值主信息类.h`
+    退出码 1，无命中，表示 `特征值主信息类` 未新增 VecI64 / variant / 编码类型字段。
+
+git diff --check：
+    退出码 0。
+
+Debug x64 构建：
+    命令：msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
+    退出码：0。
+    构建日志：日志/鱼巢_build_20260610_VecI_P2.log。
+```
+
 ## 已定解决方向
 
 ```text
@@ -142,9 +198,12 @@ VecI64 只作为读取、创建、校验、比较时的解释视图。
 完成 P1：
     已完成差异检查、禁止字段扫描和 Debug x64 构建。
 
-进入 P2：
-    在特征值类 / 世界树层增加 VecI64 特征值包装入口；
-    底层仍调用 VecIU64 证据池。
+完成 P2：
+    已完成差异检查、禁止字段扫描和 Debug x64 构建。
+
+P2 完成后进入 P3：
+    由特征类型决定 VecIU64 的解释规则；
+    不向值节点写入编码类型或维度字段。
 
 P1/P2 仍不得改 `特征值主信息类`，不得新增 VecI64 底层字段，不得拆轮廓子链。
 ```

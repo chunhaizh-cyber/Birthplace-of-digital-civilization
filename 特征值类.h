@@ -58,11 +58,19 @@ public:
         return 获取或创建_已加锁(std::move(v), dim);
     }
 
+    节点类* 获取或创建VecI64特征值节点(const VecI64& v, 枚举_轮廓维度 dim = 枚举_轮廓维度::未定义) {
+        return 获取或创建(编码VecI64为VecIU64(v), dim);
+    }
+
     VecU句柄 获取或创建句柄(VecIU64 v, 枚举_轮廓维度 dim = 枚举_轮廓维度::未定义) {
         auto* n = 获取或创建(std::move(v), dim);
         VecU句柄 h{};
         h.主信息指针 = n ? reinterpret_cast<std::uintptr_t>(&n->主信息) : 0;
         return h;
+    }
+
+    VecU句柄 获取或创建VecI64句柄(const VecI64& v, 枚举_轮廓维度 dim = 枚举_轮廓维度::未定义) {
+        return 获取或创建句柄(编码VecI64为VecIU64(v), dim);
     }
 
     VecU句柄 获取或创建VecU(VecIU64 v, 枚举_轮廓维度 dim = 枚举_轮廓维度::未定义) {

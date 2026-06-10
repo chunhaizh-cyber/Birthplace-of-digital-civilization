@@ -856,6 +856,26 @@ bool 世界树类::写入特征_VecU(
     return 特征节点 ? 写入特征_VecU(特征节点, std::move(值), 维度, now) : false;
 }
 
+bool 世界树类::写入特征_VecI64(
+    特征节点类* 节点,
+    const VecI64& 值,
+    枚举_轮廓维度 维度,
+    时间戳 now)
+{
+    return 写入特征_VecU(节点, 编码VecI64为VecIU64(值), 维度, now);
+}
+
+bool 世界树类::写入特征_VecI64(
+    基础信息节点类* 宿主,
+    const 语素入口节点类* 特征类型,
+    const VecI64& 值,
+    枚举_轮廓维度 维度,
+    时间戳 now)
+{
+    auto* 特征节点 = 确保特征(宿主, 特征类型);
+    return 特征节点 ? 写入特征_VecI64(特征节点, 值, 维度, now) : false;
+}
+
 特征值 世界树类::读取特征快照(const 特征节点类* 节点) const
 {
     return 特征服务_.读取特征值(节点);
@@ -910,6 +930,24 @@ const VecIU64* 世界树类::读取特征VecU(const 特征节点类* 节点) con
         return 值池_.取VecU只读指针(*句柄);
     }
     return nullptr;
+}
+
+bool 世界树类::读取特征VecI64(const 特征节点类* 节点, VecI64& 输出值) const
+{
+    输出值.clear();
+    const auto* 原始值 = 读取特征VecU(节点);
+    if (!原始值) return false;
+    输出值 = 解码VecIU64为VecI64(*原始值);
+    return true;
+}
+
+bool 世界树类::读取特征VecI64(
+    const 基础信息节点类* 宿主,
+    const 语素入口节点类* 特征类型,
+    VecI64& 输出值) const
+{
+    auto* 特征节点 = 特征服务_.查找子特征_按类型(宿主, 特征类型);
+    return 特征节点 ? 读取特征VecI64(特征节点, 输出值) : false;
 }
 
 存在比较结果 世界树类::比较存在(
