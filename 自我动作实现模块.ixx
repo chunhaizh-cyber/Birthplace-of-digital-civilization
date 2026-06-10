@@ -31,6 +31,7 @@ import 任务模块.筹办;
 import 日志模块;
 import 自我动作实现.内部模块;
 import 自我动作实现.外部模块;
+import 自我动作实现.服务模块;
 
 namespace {
     inline constexpr I64 历史本能方法ID_增加可用方法数量 = 6049;

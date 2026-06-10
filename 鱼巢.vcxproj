@@ -188,6 +188,7 @@
     <ClCompile Include="自我动作实现.外设模块.ixx" />
     <ClCompile Include="自我动作实现.外部模块.ixx" />
     <ClCompile Include="自我动作实现.内部模块.ixx" />
+    <ClCompile Include="自我动作实现.服务模块.ixx" />
     <ClCompile Include="自我动作实现模块.ixx" />
     <ClCompile Include="自我类.初始化.cpp" />
     <ClCompile Include="任务模块.工作线程消息协议.ixx" />
