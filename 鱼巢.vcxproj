@@ -220,6 +220,7 @@
     <ClCompile Include="自我类.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="预处理开关变量.h" />
     <ClInclude Include="日志接入.h" />
     <ClInclude Include="度量模板注册表桥接.h" />
     <ClInclude Include="任务信息类型.h" />

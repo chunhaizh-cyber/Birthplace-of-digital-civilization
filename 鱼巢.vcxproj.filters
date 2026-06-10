@@ -191,6 +191,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="预处理开关变量.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="日志接入.h">
       <Filter>头文件</Filter>
     </ClInclude>
