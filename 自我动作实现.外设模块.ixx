@@ -31,8 +31,6 @@ import 二次特征应用模块;
 namespace {
     inline constexpr I64 历史本能方法ID_增加可用方法数量 = 6049;
     inline constexpr I64 历史本能方法ID_改变特征值 = 6058;
-    inline constexpr I64 历史本能方法ID_任务筹办 = 6062;
-    inline constexpr I64 历史本能方法ID_任务执行 = 6063;
     inline constexpr I64 空间候选独立状态_不确定 = 0;
     inline constexpr I64 空间候选独立状态_相对独立 = 1;
     inline constexpr I64 空间候选独立状态_不独立 = 2;
