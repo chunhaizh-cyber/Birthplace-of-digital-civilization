@@ -134,6 +134,72 @@ namespace {
         return 值 < 0 ? -值 : 值;
     }
 
+    I64 私有_尺寸转I64(const std::size_t 值) noexcept
+    {
+        const auto 最大 = static_cast<std::uint64_t>(I64_MAX);
+        return 值 > 最大 ? I64_MAX : static_cast<I64>(值);
+    }
+
+    I64 私有_坐标点L1误差(
+        const VecI64& 左值,
+        const std::size_t 左起点,
+        const VecI64& 右值,
+        const std::size_t 右起点,
+        const std::uint32_t 坐标维度) noexcept
+    {
+        I64 误差 = 0;
+        for (std::uint32_t i = 0; i < 坐标维度; ++i) {
+            const auto 左索引 = 左起点 + static_cast<std::size_t>(i);
+            const auto 右索引 = 右起点 + static_cast<std::size_t>(i);
+            if (左索引 >= 左值.size() || 右索引 >= 右值.size()) return I64_MAX;
+
+            const I64 差值 = 私有_饱和减(左值[左索引], 右值[右索引]);
+            误差 = 私有_饱和加(误差, 私有_绝对值饱和(差值));
+        }
+        return 误差;
+    }
+
+    bool 私有_计算点链平均最大误差(
+        const VecI64& 左值,
+        const VecI64& 右值,
+        const std::uint32_t 坐标维度,
+        I64& 输出平均L1误差,
+        I64& 输出最大L1误差) noexcept
+    {
+        输出平均L1误差 = 0;
+        输出最大L1误差 = 0;
+        if (坐标维度 == 0 || 左值.size() != 右值.size() || 左值.size() % 坐标维度 != 0) {
+            return false;
+        }
+
+        const std::size_t 点数 = 左值.size() / 坐标维度;
+        if (点数 <= 1) return true;
+
+        I64 总误差 = 0;
+        for (std::size_t 点索引 = 1; 点索引 < 点数; ++点索引) {
+            const auto 起点 = 点索引 * 坐标维度;
+            const I64 单点误差 = 私有_坐标点L1误差(左值, 起点, 右值, 起点, 坐标维度);
+            总误差 = 私有_饱和加(总误差, 单点误差);
+            输出最大L1误差 = std::max(输出最大L1误差, 单点误差);
+        }
+
+        输出平均L1误差 = 总误差 / static_cast<I64>(点数 - 1);
+        return true;
+    }
+
+    I64 私有_计算轮廓匹配评分Q10000(
+        const I64 中心L1误差,
+        const I64 点链平均L1误差,
+        const I64 点链最大L1误差) noexcept
+    {
+        const I64 总误差 = 私有_饱和加(
+            私有_饱和加(中心L1误差, 点链平均L1误差),
+            点链最大L1误差);
+        if (总误差 <= 0) return 10000;
+        if (总误差 >= 10000) return 0;
+        return 10000 - 总误差;
+    }
+
     I64 私有_点到区间距离(I64 x, const I64区间& 区间) noexcept
     {
         if (!区间.有效()) return 0;
@@ -2601,6 +2667,64 @@ bool 特征类::校验坐标类VecI64_按特征类型(const 语素入口节点�
 {
     const auto 维度 = 轮廓坐标维度_按特征类型(特征类型);
     return 维度.has_value() && 校验坐标链VecI64(值, *维度);
+}
+
+结构_轮廓比较结果 特征类::比较坐标轮廓VecI64(
+    const VecI64& 左值,
+    const VecI64& 右值,
+    const std::uint32_t 坐标维度) noexcept
+{
+    结构_轮廓比较结果 结果{};
+    结果.坐标维度 = 坐标维度;
+
+    if (坐标维度 != 2 && 坐标维度 != 3) {
+        结果.状态 = 枚举_轮廓比较状态::维度不支持;
+        return 结果;
+    }
+
+    if (!校验坐标链VecI64(左值, 坐标维度) || !校验坐标链VecI64(右值, 坐标维度)) {
+        结果.状态 = 枚举_轮廓比较状态::格式非法;
+        return 结果;
+    }
+
+    const std::size_t 左点数 = 左值.size() / 坐标维度;
+    const std::size_t 右点数 = 右值.size() / 坐标维度;
+    结果.左点数量 = 私有_尺寸转I64(左点数);
+    结果.右点数量 = 私有_尺寸转I64(右点数);
+    结果.点数量差异 = 私有_绝对值饱和(私有_饱和减(结果.左点数量, 结果.右点数量));
+
+    if (左点数 != 右点数) {
+        结果.状态 = 枚举_轮廓比较状态::点数量不一致;
+        return 结果;
+    }
+
+    结果.中心L1误差 = 私有_坐标点L1误差(左值, 0, 右值, 0, 坐标维度);
+    if (!私有_计算点链平均最大误差(
+        左值,
+        右值,
+        坐标维度,
+        结果.点链平均L1误差,
+        结果.点链最大L1误差)) {
+        结果.状态 = 枚举_轮廓比较状态::不可对齐;
+        return 结果;
+    }
+
+    结果.匹配评分Q10000 = 私有_计算轮廓匹配评分Q10000(
+        结果.中心L1误差,
+        结果.点链平均L1误差,
+        结果.点链最大L1误差);
+    结果.状态 = 枚举_轮廓比较状态::可比较;
+    return 结果;
+}
+
+结构_轮廓比较结果 特征类::比较平面轮廓VecI64(const VecI64& 左值, const VecI64& 右值) noexcept
+{
+    return 比较坐标轮廓VecI64(左值, 右值, 2);
+}
+
+结构_轮廓比较结果 特征类::比较空间极值轮廓VecI64(const VecI64& 左值, const VecI64& 右值) noexcept
+{
+    return 比较坐标轮廓VecI64(左值, 右值, 3);
 }
 
 结构_特征状态比较结果 特征类::比较状态(

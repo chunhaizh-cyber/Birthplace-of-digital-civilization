@@ -84,6 +84,29 @@ struct 结构_VecU特征解释规则 {
     bool 是坐标链() const noexcept { return 坐标维度 == 2 || 坐标维度 == 3; }
 };
 
+enum class 枚举_轮廓比较状态 : std::uint8_t {
+    未定义 = 0,
+    可比较 = 1,
+    格式非法 = 2,
+    维度不支持 = 3,
+    点数量不一致 = 4,
+    不可对齐 = 5,
+};
+
+struct 结构_轮廓比较结果 {
+    枚举_轮廓比较状态 状态 = 枚举_轮廓比较状态::未定义;
+    std::uint32_t 坐标维度 = 0;
+    I64 左点数量 = 0;
+    I64 右点数量 = 0;
+    I64 点数量差异 = 0;
+    I64 中心L1误差 = 0;
+    I64 点链平均L1误差 = 0;
+    I64 点链最大L1误差 = 0;
+    I64 匹配评分Q10000 = 0;
+
+    bool 可比较() const noexcept { return 状态 == 枚举_轮廓比较状态::可比较; }
+};
+
 struct 常用抽象特征初始化结果 {
     std::uint32_t 抽象特征数 = 0;
     std::uint32_t 区间状态数 = 0;
@@ -188,6 +211,12 @@ public:
     static bool 校验平面轮廓VecI64(const VecI64& 值) noexcept;
     static bool 校验空间极值轮廓VecI64(const VecI64& 值) noexcept;
     static bool 校验坐标类VecI64_按特征类型(const 语素入口节点类* 特征类型, const VecI64& 值);
+    static 结构_轮廓比较结果 比较坐标轮廓VecI64(
+        const VecI64& 左值,
+        const VecI64& 右值,
+        std::uint32_t 坐标维度) noexcept;
+    static 结构_轮廓比较结果 比较平面轮廓VecI64(const VecI64& 左值, const VecI64& 右值) noexcept;
+    static 结构_轮廓比较结果 比较空间极值轮廓VecI64(const VecI64& 左值, const VecI64& 右值) noexcept;
     结构_特征状态比较结果 比较状态(
         const 状态节点类* 当前状态,
         const 状态节点类* 目标状态) const;
