@@ -215,6 +215,11 @@ public:
     const VecIU64* 读取特征VecU(const 特征节点类* 节点) const;
     bool 读取特征VecI64(const 特征节点类* 节点, VecI64& 输出值) const;
     bool 读取特征VecI64(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型, VecI64& 输出值) const;
+    // 从现有 VecIU64 值池只读解码后比较轮廓，不写二次特征。
+    结构_轮廓比较结果 比较轮廓特征_按特征类型(
+        const 语素入口节点类* 特征类型,
+        const 特征节点类* 左特征,
+        const 特征节点类* 右特征) const;
     存在比较结果 比较存在(
         const 存在节点类* 左存在,
         const 存在节点类* 右存在,

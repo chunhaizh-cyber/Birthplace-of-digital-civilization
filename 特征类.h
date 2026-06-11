@@ -217,6 +217,7 @@ public:
         std::uint32_t 坐标维度) noexcept;
     static 结构_轮廓比较结果 比较平面轮廓VecI64(const VecI64& 左值, const VecI64& 右值) noexcept;
     static 结构_轮廓比较结果 比较空间极值轮廓VecI64(const VecI64& 左值, const VecI64& 右值) noexcept;
+    // 按特征类型选择平面或空间轮廓比较规则，未知类型返回不可比较状态。
     static 结构_轮廓比较结果 比较轮廓VecI64_按特征类型(
         const 语素入口节点类* 特征类型,
         const VecI64& 左值,

@@ -4,8 +4,8 @@
 
 ```text
 计划：计划/20260610_特征类VecI解释视图完善计划_v0.1.md
-切片：P5f 特征节点读取后比较入口
-状态：P0 阻塞已解除；P1/P2/P3/P4 已闭合并提交；P5a-P5d 已新增轮廓比较结果结构、坐标 L1 误差 helper、通用坐标链比较和平面 / 空间显式比较入口并提交；P5e 已新增按特征类型路由比较入口，`git diff --check` 通过，Debug x64 构建通过；当前进入 P5f 特征节点读取后比较入口。
+切片：P5g 二次特征写入适配
+状态：P0 阻塞已解除；P1/P2/P3/P4 已闭合并提交；P5a-P5d 已新增轮廓比较结果结构、坐标 L1 误差 helper、通用坐标链比较和平面 / 空间显式比较入口并提交；P5e/P5f 已实施并通过 `git diff --check` 与 Debug x64 构建；当前进入 P5g 二次特征写入适配。
 ```
 
 ## 依据文件
@@ -46,6 +46,10 @@ msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncrement
 rg -n "比较轮廓VecI64_按特征类型|比较平面轮廓VecI64|比较空间极值轮廓VecI64|维度不支持" 特征类.h 特征类.cpp
 rg -n "VecI64|std::variant|枚举_特征值编码类型|编码类型|坐标维度|轮廓比较" 特征值主信息类.h
 git diff --check -- 特征类.h 特征类.cpp 实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
+msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
+rg -n "比较轮廓特征_按特征类型|比较轮廓VecI64_按特征类型|读取特征VecI64\\(" 世界树类.h 世界树类.cpp 特征类.h
+rg -n "VecI64|std::variant|枚举_特征值编码类型|编码类型|坐标维度|轮廓比较" 特征值主信息类.h
+git diff --check -- 世界树类.h 世界树类.cpp 特征类.h 实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
 msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
 ```
 
@@ -428,6 +432,58 @@ Debug x64 构建：
     构建日志：日志/鱼巢_build_20260611_VecI_P5e.log。
 ```
 
+## P5f 预测结果
+
+```text
+新增入口：
+    世界树类::比较轮廓特征_按特征类型
+
+预期：
+    特征类型无轮廓维度：
+        返回 P5e 的维度不支持结果。
+
+    左右任一特征不能通过 `读取特征VecI64` 读取：
+        状态 = 格式非法。
+
+    左右特征均可读取：
+        调用 `特征类::比较轮廓VecI64_按特征类型` 返回运行期比较结果。
+
+不应发生：
+    直接操作 VecU句柄或 VecIU64 原始值；
+    读取失败时把缺值当 0 误差；
+    写二次特征；
+    修改 `特征值主信息类::比较`。
+```
+
+## P5f 已改文件
+
+```text
+世界树类.h
+世界树类.cpp
+特征类.h
+实施记录/20260610_特征类VecI解释视图完善_Codex断点清单.md
+计划/计划索引.md
+```
+
+## P5f 验证结果
+
+```text
+rg 特征节点比较入口落点：
+    世界树类.h / 世界树类.cpp 命中 `比较轮廓特征_按特征类型`，并命中 `读取特征VecI64` 和 `比较轮廓VecI64_按特征类型` 调用。
+
+禁止字段扫描：
+    `rg -n "VecI64|std::variant|枚举_特征值编码类型|编码类型|坐标维度|轮廓比较" 特征值主信息类.h`
+    退出码 1，无命中，表示 `特征值主信息类` 未新增 VecI64 / variant / 编码类型 / 坐标维度 / 轮廓比较字段。
+
+git diff --check：
+    退出码 0。
+
+Debug x64 构建：
+    命令：msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
+    退出码：0。
+    构建日志：日志/鱼巢_build_20260611_VecI_P5f.log。
+```
+
 ## 已定解决方向
 
 ```text
@@ -458,15 +514,18 @@ P5a-P5d 完成后进入 P5e：
     已完成差异检查、禁止字段扫描和 Debug x64 构建。
 
 P5e 完成后进入 P5f：
-    新增世界树层从特征节点读取 VecI64 后比较的统一入口。
+    已完成差异检查、禁止字段扫描和 Debug x64 构建。
 
-后续 P5f-P5g 仍不得改 `特征值主信息类`，不得新增 VecI64 底层字段，不得拆轮廓子链。
+P5f 完成后进入 P5g：
+    新增轮廓比较结果到二次特征材料的写入适配。
+
+后续 P5g 仍不得改 `特征值主信息类`，不得新增 VecI64 底层字段，不得拆轮廓子链。
 ```
 
 ## 禁止宣称项
 
 ```text
-不得宣称 P5f/P5g 已实现。
+不得宣称 P5g 已实现。
 不得把 VecI 解释视图、校验或比较函数完成宣称为观察链业务通过。
 不得宣称识别 / 扫描 / 跟踪比较链已通过。
 不得宣称自我苏醒完成或初步成熟完成。
