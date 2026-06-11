@@ -36,8 +36,6 @@ import 自我动作实现.服务模块;
 namespace {
     inline constexpr I64 历史本能方法ID_增加可用方法数量 = 6049;
     inline constexpr I64 历史本能方法ID_改变特征值 = 6058;
-    inline constexpr I64 历史本能方法ID_任务筹办 = 6062;
-    inline constexpr I64 历史本能方法ID_任务执行 = 6063;
     inline constexpr I64 OR组结算令牌状态_未领取 = 0;
     inline constexpr I64 OR组结算令牌状态_已领取 = 1;
     inline constexpr I64 OR组令牌提交状态_拒绝 = -1;
@@ -11001,15 +10999,11 @@ export namespace 自我动作实现模块 {
             能力值 == 历史本能方法ID_改变特征值;
         const bool 是内部计数治理入口 =
             能力值 == 历史本能方法ID_增加可用方法数量;
-        const bool 是历史任务生命周期入口 =
-            能力值 == 历史本能方法ID_任务筹办
-            || 能力值 == 历史本能方法ID_任务执行;
         const bool 能力可提交 = 能力值范围有效
             && 本能ID != 枚举_本能方法ID::未定义
             && 目标动作运行时已注册
             && !是根写入原语
             && !是内部计数治理入口
-            && !是历史任务生命周期入口
             && 本能方法类::是默认自我本能方法(本能ID);
 
         auto* 目标方法存在 = 目标方法 ? 方法虚拟存在(目标方法, now) : nullptr;
