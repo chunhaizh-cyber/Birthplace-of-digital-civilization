@@ -36,9 +36,11 @@ C:\Users\zhchh\.codex\tools\sysinternals\procdump\procdump64.exe
 cdb：
 
 ```text
-当前未找到 cdb.exe。
-已尝试 Windows SDK / Debugging Tools 安装；当前 shell 非管理员，winget / winsdksetup 超时并已清理挂起进程。
-脚本已实现 CDB_PATH / PATH / Windows Kits 常见路径自动检测。
+PATH 中未找到裸 cdb.exe。
+已确认 Microsoft.WinDbg Appx 包提供 cdb.exe：
+    C:\Program Files\WindowsApps\Microsoft.WinDbg_1.2603.20001.0_x64__8wekyb3d8bbwe\amd64\cdb.exe
+Analyze-DumpWithCdb.ps1 已实现 CDB_PATH / PATH / WinDbg Appx / Windows Kits 常见路径自动检测。
+默认使用快速当前线程栈；需要完整 !analyze 或全线程栈时显式开启对应参数，避免现场验证被符号服务器或全线程托管栈拖住。
 ```
 
 ## 已改文件
@@ -83,7 +85,11 @@ winget install Microsoft.WindowsSDK.10.0.18362 --silent ...
 3. Capture-ProcessDump.ps1 对临时 cmd 进程成功生成约 27 MB dump。
 4. Capture-ProcessDump.ps1 在 dump 已生成时退出码归一为 0，并在日志保留 ProcDumpExitCode。
 5. Analyze-DumpWithCdb.ps1 在 cdb 缺失时稳定退出 2，并写出明确提示文件。
-6. 临时测试 dump 已删除。
+6. Analyze-DumpWithCdb.ps1 已能自动发现 WinDbg Appx cdb.exe。
+7. 对临时 powershell 进程 dump 运行：
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\debug-stack\Analyze-DumpWithCdb.ps1 -DumpPath <temp>.dmp -Mode Stack -ThreadScope Current -TimeoutSeconds 60
+   退出码 0，生成 .cdb.txt，并包含 `Microsoft (R) Windows Debugger Version 10.0.29547.1002 AMD64`、`Child-SP`、`ntdll!NtWaitForMultipleObjects`、`KERNELBASE!WaitForMultipleObjectsEx` 等栈证据。
+8. `-ThreadScope All` 在托管 PowerShell 测试进程上会持续输出大量线程栈；脚本已增加超时杀进程并保留部分输出，避免残留 cdb 进程。
 ```
 
 ## 使用入口
@@ -104,19 +110,23 @@ cdb 分析：
 
 ```powershell
 .\tools\debug-stack\Analyze-DumpWithCdb.ps1 -DumpPath .\日志\dump\<run>\<file>.dmp
+.\tools\debug-stack\Analyze-DumpWithCdb.ps1 -DumpPath .\日志\dump\<run>\<file>.dmp -ThreadScope All -TimeoutSeconds 300
+.\tools\debug-stack\Analyze-DumpWithCdb.ps1 -DumpPath .\日志\dump\<run>\<file>.dmp -Mode Analyze -TimeoutSeconds 300
 ```
 
 ## 下一步
 
 ```text
-若需要自动导出真实调用栈，需要以管理员方式安装 Windows SDK 的 Debugging Tools for Windows，或把已安装的 cdb.exe 路径写入 CDB_PATH。
-安装后直接重跑 Analyze-DumpWithCdb.ps1，无需改脚本。
+后续遇到真实 Debug Error / CRT abort 弹窗时：
+1. 先用 Capture-ProcessDump.ps1 -Mode Snapshot -ProcessName 鱼巢 抓现场。
+2. 先运行默认 Analyze-DumpWithCdb.ps1 获取当前线程栈。
+3. 若当前线程不是弹窗 / abort 线程，再用 -ThreadScope All -TimeoutSeconds 300 导出全线程栈并在 .cdb.txt 中检索 MessageBox / abort / 项目弹窗错误提示 / 鱼巢业务帧。
 ```
 
 ## 禁止宣称
 
 ```text
-1. 当前不宣称 cdb 已安装。
-2. 当前不宣称已能自动分析 dump 调用栈；只能自动抓 dump，并在 cdb 可用时自动分析。
+1. 不宣称 cdb 在 PATH 中可裸调用；当前是脚本自动发现 WinDbg Appx cdb.exe。
+2. 不宣称完整 !analyze-v 每次都会快速完成；默认先取快速栈，必要时再完整分析。
 3. 当前未修改业务代码，未验证任何业务根因。
 ```

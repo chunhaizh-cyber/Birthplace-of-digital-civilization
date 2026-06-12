@@ -10,7 +10,13 @@ ProcDump 已按用户级工具安装到：
 C:\Users\zhchh\.codex\tools\sysinternals\procdump\procdump64.exe
 ```
 
-`cdb.exe` 属于 Microsoft Debugging Tools for Windows。若脚本提示缺失，需要以管理员方式安装 Windows SDK 中的 `Debugging Tools for Windows`，或设置：
+`cdb.exe` 属于 Microsoft Debugging Tools for Windows。本机已通过 `Microsoft.WinDbg` Appx 包提供 `cdb.exe`，脚本会自动查找：
+
+```text
+C:\Program Files\WindowsApps\Microsoft.WinDbg_*\amd64\cdb.exe
+```
+
+如果自动查找失败，需要以管理员方式安装 Windows SDK 中的 `Debugging Tools for Windows`，或设置：
 
 ```powershell
 $env:CDB_PATH = 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe'
@@ -46,16 +52,40 @@ $env:CDB_PATH = 'C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\cdb.exe'
 
 ## 用 cdb 分析已有 dump
 
+默认使用快速栈模式，导出当前线程调用栈：
+
 ```powershell
 .\tools\debug-stack\Analyze-DumpWithCdb.ps1 -DumpPath .\日志\dump\<run>\xxx.dmp
 ```
 
-分析输出默认写到同目录的 `.cdb.txt`。关键段落：
+需要查找弹窗 UI 线程、后台阻塞线程或非当前线程异常时，再导出全线程栈：
+
+```powershell
+.\tools\debug-stack\Analyze-DumpWithCdb.ps1 -DumpPath .\日志\dump\<run>\xxx.dmp -ThreadScope All -TimeoutSeconds 300
+```
+
+需要完整 `!analyze -v` 时再显式开启，避免符号服务器或扩展初始化拖慢弹窗现场排查：
+
+```powershell
+.\tools\debug-stack\Analyze-DumpWithCdb.ps1 -DumpPath .\日志\dump\<run>\xxx.dmp -Mode Analyze -TimeoutSeconds 300
+```
+
+分析输出默认写到同目录的 `.cdb.txt`。快速模式关键段落：
+
+```text
+.ecxr
+kpn
+```
+
+完整模式会额外执行：
 
 ```text
 !analyze -v
-.ecxr
-kpn
+```
+
+全线程模式会额外执行：
+
+```text
 ~* kpn
 ```
 
