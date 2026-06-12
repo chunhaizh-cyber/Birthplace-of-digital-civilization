@@ -70,7 +70,7 @@ flowchart TD
     end
 
     WT18 --&gt; UP0
-    IF5 -.-&gt;|任务完成 / 已结算动作动态证据| SET1
+    IF5 -.-&gt; SET1
 
     subgraph Upstream["结果上行与自我线程落账"]
         direction TD
@@ -101,12 +101,12 @@ flowchart TD
         VAL1 --&gt;|缺任务 / 需求 / 硬目标 / actual| VAL_STOP["失败或跳过&lt;br/&gt;不形成核心值入账&lt;br/&gt;自我线程模块.impl.cpp:1810-1855"]
         VAL1 --&gt;|通过| VAL2["去重并计算计划安全 / 服务增量&lt;br/&gt;I64_MAX 哨兵按0处理&lt;br/&gt;自我线程模块.impl.cpp:1868-1959"]
         VAL2 --&gt; VAL3["提交任务已结算状态&lt;br/&gt;通过任务管理界面线程提交完成通知&lt;br/&gt;自我线程模块.impl.cpp:1769-1798, 1980-2005"]
-        VAL3 --&gt; IF_SETTLE["任务管理界面线程/任务价值结算完成通知&lt;br/&gt;任务完成 -&gt; 已结算&lt;br/&gt;任务模块.管理界面线程.impl.cpp:9156-9220"]
+        VAL3 --&gt; IF_SETTLE["任务管理界面线程/任务价值结算完成通知&lt;br/&gt;任务完成到已结算&lt;br/&gt;任务模块.管理界面线程.impl.cpp:9156-9220"]
         IF_SETTLE --&gt; VAL4["确保结算被动初始因果模板&lt;br/&gt;被动因=任务虚拟存在.任务状态=已结算&lt;br/&gt;自我线程模块.impl.cpp:2032-2054"]
         VAL4 --&gt; VAL5["调用结算叶子任务价值本能方法&lt;br/&gt;构造输入参数场景和输出结果场景&lt;br/&gt;自我线程模块.impl.cpp:8000-8148"]
-        VAL5 --&gt; ACTION["自我动作/结算叶子任务价值&lt;br/&gt;要求任务状态=已结算、完成度&gt;0、增量合法、实际结果状态存在&lt;br/&gt;自我动作实现模块.ixx:12667-12760"]
+        VAL5 --&gt; ACTION["自我动作/结算叶子任务价值&lt;br/&gt;要求任务状态=已结算、完成度大于0、增量合法、实际结果状态存在&lt;br/&gt;自我动作实现模块.ixx:12667-12760"]
         ACTION --&gt; ACTION2["安全增量按完成度折算并写自我安全值&lt;br/&gt;服务直接入账关闭，转G0确认路径&lt;br/&gt;运行存在写D2动作动态和闭环事实&lt;br/&gt;自我动作实现模块.ixx:12775-12898"]
-        ACTION2 --&gt; VAL6["增强任务结算被动因果&lt;br/&gt;任务已结算动态 -&gt; D2结算动作动态&lt;br/&gt;自我线程模块.impl.cpp:2092-2105"]
+        ACTION2 --&gt; VAL6["增强任务结算被动因果&lt;br/&gt;任务已结算动态到D2结算动作动态&lt;br/&gt;自我线程模块.impl.cpp:2092-2105"]
         VAL6 --&gt; VAL7["写任务价值结算回执&lt;br/&gt;更新任务已折算安全 / 服务值&lt;br/&gt;自我线程模块.impl.cpp:2121-2132"]
         VAL7 --&gt; IF_RECEIPT["任务管理界面线程/任务价值折算回执&lt;br/&gt;同步任务运行镜像&lt;br/&gt;任务模块.管理界面线程.impl.cpp:9310-9342"]
         VAL7 --&gt; PARENT["唤醒派生需求来源任务&lt;br/&gt;处理共享挂接需求和横向反馈&lt;br/&gt;自我线程模块.impl.cpp:8345-8378"]
@@ -133,7 +133,7 @@ flowchart TD
     classDef iface fill:#fff7e6,stroke:#d99000,color:#1f2328;
     classDef self fill:#eefaf0,stroke:#2f9e44,color:#1f2328;
     classDef stop fill:#fff0f0,stroke:#d1242f,color:#1f2328;
-    classDef boundary fill:#f6f8fa,stroke:#6a737d,stroke-dasharray:5 4,color:#1f2328;
+    classDef boundary fill:#f6f8fa,stroke:#6a737d,color:#1f2328;
 
     class WT0,WT1,WT2,WT3,WT4,WT5,WT6,WT7,WT8,WT9,WT10,WT11,WT12,WT13,WT14,WT15,WT16,WT17,WT18,WT20 work;
     class IF0,IF1,IF2,IF3,IF4,IF5,IF_SKIP,IF_SAME,IF_SETTLE,IF_RECEIPT iface;
