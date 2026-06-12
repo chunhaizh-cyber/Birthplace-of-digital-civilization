@@ -1380,6 +1380,26 @@ namespace {
             && 报告项.报告类型 != 等待项.期望报告类型) {
             return false;
         }
+        if (等待项.等待项ID != 0
+            && 报告项.匹配等待项ID != 0
+            && 报告项.匹配等待项ID != 等待项.等待项ID) {
+            return false;
+        }
+        if (等待项.目标观察约束ID != 0
+            && 报告项.目标观察约束ID != 0
+            && 报告项.目标观察约束ID != 等待项.目标观察约束ID) {
+            return false;
+        }
+        if (!等待项.约束generation.empty()
+            && !报告项.约束generation.empty()
+            && 报告项.约束generation != 等待项.约束generation) {
+            return false;
+        }
+        if (!等待项.目标特征generation.empty()
+            && !报告项.目标特征generation.empty()
+            && 报告项.目标特征generation != 等待项.目标特征generation) {
+            return false;
+        }
         const bool 逐簇识别等待 =
             等待项.期望报告类型 == 枚举_外设观察报告类型::逐簇识别报告
             || (等待项.期望报告类型 == 枚举_外设观察报告类型::未指定
