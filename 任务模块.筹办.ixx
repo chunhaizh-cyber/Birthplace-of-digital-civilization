@@ -3439,6 +3439,9 @@ namespace {
         case 枚举_本能方法ID::提交_安全因果因素证据评估值:
         case 枚举_本能方法ID::提交_领取OR组结算令牌:
         case 枚举_本能方法ID::提交_确认内部世界子存在事实:
+        case 枚举_本能方法ID::服务_绑定任务权限者:
+        case 枚举_本能方法ID::服务_绑定任务服务对象:
+        case 枚举_本能方法ID::服务_绑定任务权限边界:
             return false;
         default:
             return true;
