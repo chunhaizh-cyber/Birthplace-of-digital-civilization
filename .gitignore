@@ -34,6 +34,8 @@ _d455_probe/
 *.dll
 *.exe
 *.log
+*.dmp
+*.mdmp
 *.tmp
 __panel_*.txt
 __stdin.txt
