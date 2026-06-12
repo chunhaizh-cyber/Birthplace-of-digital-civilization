@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>创建子任务相关流程图 v0.1</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
+      background: #f7f8fa;
+      color: #1f2328;
+    }
+
+    header {
+      padding: 18px 24px 12px;
+      border-bottom: 1px solid #d8dee4;
+      background: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 13px;
+      color: #57606a;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    .canvas {
+      min-width: 1280px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .mermaid {
+      min-width: 1240px;
+    }
+
+    .notes {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d8dee4;
+      background: #ffffff;
+      max-width: 1120px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .notes h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .notes h3 {
+      margin: 14px 0 6px;
+      font-size: 15px;
+    }
+
+    .notes ul {
+      margin: 6px 0 0 20px;
+      padding: 0;
+    }
+
+    .notes code {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>创建子任务相关流程图 v0.1</h1>
+    <p class="hint">更新时间：2026-06-12。Markdown 源文件：流程图/20260612_创建子任务相关流程图_v0.1.md</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    A["任务筹办 / 执行发现业务缺口<br/>只形成任务层回执或派生需求消息输入"]
+    B["任务管理工作线程<br/>规范化派生需求消息"]
+    C{"字段完整<br/>且稳定键未重复?"}
+    X["跳过上报<br/>不写需求树"]
+    D["上行派生需求消息<br/>进入自我线程治理邮箱"]
+
+    E["自我线程落账派生需求消息"]
+    F["解析关联任务与父需求"]
+    G{"父需求 / 状态 / 目标特征<br/>来源因果或动态证据是否合法?"}
+    Y["拒绝入树<br/>必要时按逻辑错误处理"]
+    H["确保派生需求节点"]
+
+    I{"候选目标<br/>与父需求目标重叠?"}
+    J["同目标停等<br/>关联任务进入等待<br/>不创建子需求"]
+    K{"同父直接子需求<br/>已存在目标重叠?"}
+    L["复用已有子需求<br/>补齐派生归因和统计"]
+    M["需求类::执行更新指令<br/>新增正式子需求"]
+    N["得到正式子需求"]
+
+    O["刷新需求及祖先结构角色"]
+    P["自我线程提交任务发起意图<br/>来源需求 = 新子需求"]
+    Q["任务管理界面线程<br/>提交任务治理请求"]
+    R{"同目标任务<br/>可复用或升级?"}
+    S["绑定新需求到既有任务<br/>新建任务=0"]
+    T["创建任务头结点"]
+    U["绑定任务与需求<br/>任务.对应需求 / 需求.对应任务"]
+    V["确保任务虚拟存在"]
+    W["用来源需求初始化任务语义<br/>发起存在 / 作用对象 / 当前状态 / 目标状态 / 权重"]
+    Z{"允许派发工作线程?"}
+    AA["登记等待工作项<br/>后台 worker 后续消费"]
+    AB["只完成任务创建<br/>等待后续巡检或调度意图"]
+
+    AC["唤醒派生需求来源任务<br/>父任务待重筹办或继续等待"]
+
+    A --> B
+    B --> C
+    C -- "否" --> X
+    C -- "是" --> D
+    D --> E
+    E --> F
+    F --> G
+    G -- "否" --> Y
+    G -- "是" --> H
+    H --> I
+    I -- "是" --> J
+    I -- "否" --> K
+    K -- "是" --> L
+    K -- "否" --> M
+    L --> N
+    M --> N
+    N --> O
+    O --> P
+    P --> Q
+    Q --> R
+    R -- "是" --> S
+    R -- "否" --> T
+    T --> U
+    S --> V
+    U --> V
+    V --> W
+    W --> Z
+    Z -- "是" --> AA
+    Z -- "否" --> AB
+    N --> AC
+      </pre>
+    </section>
+    <section class="notes">
+      <h2>流程口径</h2>
+      <p>当前代码中的“创建子任务”实际是先创建或复用子需求，再把该子需求任务化。任务父子关系从需求树推导，任务节点只绑定自己的来源需求。</p>
+
+      <h3>关键边界</h3>
+      <ul>
+        <li>任务管理工作线程不直接写需求树，只上报 <code>结构_任务管理派生需求消息</code>。</li>
+        <li>自我线程通过 <code>私有_确保派生需求节点</code> 裁决是否形成正式子需求。</li>
+        <li>子需求入树时先检查目标重叠，防止父需求自复制和同父直接子需求重复增长。</li>
+        <li>任务管理界面线程可复用或升级同目标任务，无法复用时才创建任务头结点。</li>
+        <li>子任务创建后不等于父任务完成；父任务需要等待子需求结果并重新筹办。</li>
+      </ul>
+
+      <h3>关键代码入口</h3>
+      <ul>
+        <li><code>任务模块.管理工作线程.ixx</code>：派生需求消息规范化、稳定键去重和上报。</li>
+        <li><code>自我线程模块.impl.cpp</code>：派生需求落账、子需求确保、任务发起意图提交。</li>
+        <li><code>需求类.h / 需求类.cpp</code>：目标重叠判断、子需求新增或复用、需求任务绑定。</li>
+        <li><code>任务模块.管理界面线程.impl.cpp</code>：任务治理请求承接、任务创建 / 复用、任务虚拟存在初始化。</li>
+        <li><code>任务类.cpp</code>：任务头结点和任务虚拟存在的底层创建。</li>
+      </ul>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        htmlLabels: true,
+        curve: "basis"
+      },
+      theme: "default"
+    });
+  </script>
+</body>
+</html>
