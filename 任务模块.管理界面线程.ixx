@@ -18,6 +18,7 @@ using 任务管理上行消息通知回调 = bool (*)(const 结构_任务管理�
 using 任务管理调度让步回调 = bool (*)(const char* 来源) noexcept;
 
 bool 启动任务管理界面线程() noexcept;
+void 请求停止任务管理界面循环线程() noexcept;
 void 停止任务管理界面线程() noexcept;
 
 bool 注册任务管理上行消息通知回调(

@@ -147,6 +147,16 @@ struct 结构_在途工作项记录 {
     std::string 任务主键{};
 };
 
+struct 结构_后台worker当前工作快照 {
+    std::uint64_t worker序号 = 0;
+    std::uint64_t 工作项ID = 0;
+    std::string 任务主键{};
+    std::string 工作项类型{};
+    std::string 状态{};
+    std::string 原因{};
+    时间戳 更新时间 = 0;
+};
+
 struct 结构_调度任务状态快照 {
     std::string 任务主键{};
     枚举_任务状态 任务状态 = 枚举_任务状态::未定义;
@@ -197,6 +207,7 @@ struct 结构_任务界面线程状态 {
     bool 后台worker停止请求 = false;
     自我类* 后台worker自我对象 = nullptr;
     std::vector<std::thread> 后台worker线程{};
+    std::vector<结构_后台worker当前工作快照> 后台worker当前快照{};
     bool 外设承接后台已启动 = false;
     bool 外设承接后台停止请求 = false;
     std::thread 外设承接后台线程{};
@@ -1121,6 +1132,11 @@ const 语素入口节点类* 私有_特征_可执行输入参数场景() noexcep
     return 私有_任务语义特征词("可执行输入参数场景");
 }
 
+const 语素入口节点类* 私有_特征_外设观察报告ID() noexcept
+{
+    return 私有_任务语义特征词("外设观察报告ID");
+}
+
 const 语素入口节点类* 私有_特征_选中自我能力值() noexcept
 {
     return 私有_任务语义特征词("选中自我能力值");
@@ -1328,24 +1344,37 @@ bool 私有_写任务虚拟存在I64特征(
         now);
 }
 
-bool 私有_写基础节点指针特征(
-    基础信息节点类* 宿主,
-    const 语素入口节点类* 特征类型,
-    const void* 指针,
+bool 私有_写观察事实报告ID到任务输入(
+    任务节点* 任务,
+    std::uint64_t 报告ID,
     时间戳 now) noexcept
 {
-    return 宿主 && 特征类型 && 指针
-        && 世界树.写入特征_指针(宿主, 特征类型, 指针, now);
-}
+    if (!任务 || 报告ID == 0) {
+        return false;
+    }
 
-bool 私有_写基础节点I64特征(
-    基础信息节点类* 宿主,
-    const 语素入口节点类* 特征类型,
-    I64 值,
-    时间戳 now) noexcept
-{
-    return 宿主 && 特征类型
-        && 世界树.写入特征_I64(宿主, 特征类型, 值, now);
+    auto* 承载场景 = reinterpret_cast<场景节点类*>(任务->主信息.场景.指针);
+    const auto 报告ID值 = static_cast<I64>(报告ID);
+    const bool 写任务虚拟存在 = 私有_写任务虚拟存在I64特征(
+        任务,
+        私有_特征_外设观察报告ID(),
+        报告ID值,
+        承载场景,
+        now);
+
+    std::ostringstream 日志;
+    日志 << "任务管理界面线程/观察事实报告ID写入任务输入"
+        << " | 任务=" << 任务->获取主键()
+        << " | 报告ID=" << 报告ID
+        << " | 写任务虚拟存在=" << (写任务虚拟存在 ? 1 : 0)
+        << " | 写输入场景=0"
+        << " | 写输入条件包=0"
+        << " | 输入场景=由下一轮筹办复制"
+        << " | 只写任务输入材料引用=1"
+        << " | 直接写需求满足=0"
+        << " | 直接写世界真值=0";
+    项目运行日志(日志.str());
+    return 写任务虚拟存在;
 }
 
 bool 私有_本能方法首节点匹配(
@@ -2140,6 +2169,17 @@ void 私有_记录后台worker快照_已持锁(
         私有_工作项类型文本(工作项.工作类型);
     状态.快照.最近后台worker状态 = 状态文本 ? 状态文本 : "";
     状态.快照.最近后台worker原因 = 原因;
+    if (worker序号 > 0 && 状态.后台worker当前快照.size() >= worker序号) {
+        auto& worker快照 = 状态.后台worker当前快照[worker序号 - 1];
+        worker快照.worker序号 = static_cast<std::uint64_t>(worker序号);
+        worker快照.工作项ID = 工作项.工作项ID;
+        worker快照.任务主键 =
+            私有_安全主键(reinterpret_cast<任务节点*>(工作项.任务信息节点));
+        worker快照.工作项类型 = 私有_工作项类型文本(工作项.工作类型);
+        worker快照.状态 = 状态文本 ? 状态文本 : "";
+        worker快照.原因 = 原因;
+        worker快照.更新时间 = 私有_时间(0);
+    }
     if (计入取项) {
         状态.快照.累计后台worker取项数 += 1;
     }
@@ -2147,6 +2187,25 @@ void 私有_记录后台worker快照_已持锁(
         状态.快照.累计后台worker派发数 += 1;
     }
     私有_刷新队列快照_已持锁(状态);
+}
+
+std::string 私有_后台worker当前快照文本(std::size_t worker序号) noexcept
+{
+    auto& 状态 = 私有_界面状态();
+    std::lock_guard<std::mutex> 锁(状态.锁);
+    if (worker序号 == 0 || worker序号 > 状态.后台worker当前快照.size()) {
+        return "当前快照=无";
+    }
+    const auto& 快照 = 状态.后台worker当前快照[worker序号 - 1];
+    std::ostringstream 文本;
+    文本 << "当前快照="
+        << "状态=" << (快照.状态.empty() ? "未记录" : 快照.状态)
+        << " | 工作项=" << 快照.工作项ID
+        << " | 类型=" << (快照.工作项类型.empty() ? "未记录" : 快照.工作项类型)
+        << " | 任务=" << (快照.任务主键.empty() ? "未记录" : 快照.任务主键)
+        << " | 原因=" << (快照.原因.empty() ? "未记录" : 快照.原因)
+        << " | 更新时间=" << 快照.更新时间;
+    return 文本.str();
 }
 
 struct 结构_任务推进裁决 {
@@ -4480,7 +4539,7 @@ bool 私有_触发任务管理调度让步(const char* 来源) noexcept
 
 std::size_t 私有_巡检外设观察等待项并生成上行(
     std::size_t 最大数量,
-    时间戳 now) noexcept
+    时间戳 now)
 {
     const auto 队列状态 = 读取外设观察队列状态();
     if (队列状态.等待项数量 == 0 || 队列状态.最新报告ID == 0) {
@@ -4579,6 +4638,17 @@ std::size_t 私有_巡检外设观察等待项并生成上行(
     return 上行消息集.size();
 }
 
+void 私有_记录外设承接巡检异常(
+    const char* 入口,
+    const std::exception* 异常 = nullptr) noexcept
+{
+    项目运行错误日志(
+        std::string("任务管理界面线程/外设承接后台巡检异常")
+        + " | 入口=" + (入口 ? 入口 : "")
+        + " | 异常=" + (异常 ? 异常->what() : "未知")
+        + " | 处置=停止本轮外设承接巡检");
+}
+
 void 私有_唤醒外设承接后台线程() noexcept
 {
     私有_界面状态().外设承接条件变量.notify_one();
@@ -4605,9 +4675,18 @@ void 私有_外设承接后台循环() noexcept
             }
         }
 
-        const auto 上行数 = 私有_巡检外设观察等待项并生成上行(
-            4,
-            私有_时间(0));
+        std::size_t 上行数 = 0;
+        try {
+            上行数 = 私有_巡检外设观察等待项并生成上行(
+                4,
+                私有_时间(0));
+        } catch (const std::exception& 异常) {
+            私有_记录外设承接巡检异常("外设承接后台循环", &异常);
+            break;
+        } catch (...) {
+            私有_记录外设承接巡检异常("外设承接后台循环");
+            break;
+        }
         if (上行数 > 0) {
             项目运行日志(
                 "任务管理界面线程/外设承接后台巡检完成"
@@ -5932,6 +6011,15 @@ void 私有_后台worker循环(std::size_t worker序号) noexcept
                     || 私有_等待工作项总数(状态) > 0;
             });
             if (状态.后台worker停止请求) {
+                任务管理线程协议::结构_任务工作项 空工作项{};
+                私有_记录后台worker快照_已持锁(
+                    状态,
+                    worker序号,
+                    空工作项,
+                    "停止请求已收到",
+                    "等待队列唤醒后退出",
+                    false,
+                    false);
                 break;
             }
 
@@ -6068,6 +6156,17 @@ void 私有_后台worker循环(std::size_t worker序号) noexcept
         }
         任务管理线程协议::结构_任务工作结果 工作结果{};
         bool 已派发 = false;
+        {
+            std::lock_guard<std::mutex> 锁(状态.锁);
+            私有_记录后台worker快照_已持锁(
+                状态,
+                worker序号,
+                工作项,
+                "派发调用中",
+                工作项.入队原因,
+                false,
+                false);
+        }
         已派发 = 私有_提交任务工作项并记录执行耗时(
             *自我对象,
             工作项,
@@ -6092,6 +6191,19 @@ void 私有_后台worker循环(std::size_t worker序号) noexcept
             已派发,
             派发时刻,
             完成时刻);
+    }
+
+    {
+        std::lock_guard<std::mutex> 锁(状态.锁);
+        任务管理线程协议::结构_任务工作项 空工作项{};
+        私有_记录后台worker快照_已持锁(
+            状态,
+            worker序号,
+            空工作项,
+            "已退出",
+            "任务管理后台worker循环退出",
+            false,
+            false);
     }
 
     私有_发送任务管理项目线程消息(
@@ -6159,9 +6271,18 @@ void 私有_停止任务管理工作线程池() noexcept
             "任务管理工作线程池收到停止请求");
     }
     私有_界面状态().工作项条件变量.notify_all();
-    for (auto& 线程 : 待停止线程) {
+    for (std::size_t i = 0; i < 待停止线程.size(); ++i) {
+        auto& 线程 = 待停止线程[i];
+        const auto worker序号 = i + 1;
         if (线程.joinable()) {
+            项目运行日志(
+                "任务管理界面线程/后台worker join诊断 | 阶段=开始"
+                " | worker=" + std::to_string(worker序号)
+                + " | " + 私有_后台worker当前快照文本(worker序号));
             线程.join();
+            项目运行日志(
+                "任务管理界面线程/后台worker join诊断 | 阶段=完成"
+                " | worker=" + std::to_string(worker序号));
         }
     }
 
@@ -6174,6 +6295,7 @@ void 私有_停止任务管理工作线程池() noexcept
         状态.快照.后台worker线程数 = 0;
         状态.快照.最近后台worker状态 = "已停止";
         状态.快照.最近后台worker原因 = "任务管理工作线程池已停止";
+        状态.后台worker当前快照.clear();
         私有_刷新队列快照_已持锁(状态);
     }
     if (需要发送停止消息) {
@@ -7399,6 +7521,23 @@ bool 启动任务管理界面线程() noexcept
     return 界面循环已启动 && 外设后台已启动;
 }
 
+void 请求停止任务管理界面循环线程() noexcept
+{
+    bool 已发出请求 = false;
+    {
+        auto& 状态 = 私有_界面状态();
+        std::lock_guard<std::mutex> 锁(状态.锁);
+        if (状态.界面循环已启动 || 状态.界面循环线程.joinable()) {
+            状态.界面循环停止请求 = true;
+            已发出请求 = true;
+        }
+    }
+    私有_界面状态().工作项条件变量.notify_all();
+    if (已发出请求) {
+        项目运行日志("任务管理界面线程/后台循环停止请求 | 来源=自我线程停止前置收口");
+    }
+}
+
 void 停止任务管理界面线程() noexcept
 {
     私有_停止任务管理界面循环线程();
@@ -7588,6 +7727,18 @@ bool 启动任务管理工作线程池(
         "任务管理工作线程池/创建",
         "任务管理工作线程池准备启动 worker 数=" + std::to_string(worker数量));
     try {
+        std::vector<结构_后台worker当前工作快照> 初始worker快照(worker数量);
+        for (std::size_t i = 0; i < worker数量; ++i) {
+            auto& worker快照 = 初始worker快照[i];
+            worker快照.worker序号 = static_cast<std::uint64_t>(i + 1);
+            worker快照.状态 = "启动中";
+            worker快照.原因 = "任务管理工作线程池启动";
+            worker快照.更新时间 = 私有_时间(0);
+        }
+        {
+            std::lock_guard<std::mutex> 锁(状态.锁);
+            状态.后台worker当前快照 = std::move(初始worker快照);
+        }
         std::vector<std::thread> 新线程{};
         新线程.reserve(worker数量);
         for (std::size_t i = 0; i < worker数量; ++i) {
@@ -8458,9 +8609,16 @@ bool 巡检并派发就绪任务(
             " | 本轮入队=" + std::to_string(入队数)
             + " | 本轮归并完成项=" + std::to_string(已归并完成项));
     }
-    const auto 外设承接上行数 = 私有_巡检外设观察等待项并生成上行(
-        消费上限,
-        now);
+    std::size_t 外设承接上行数 = 0;
+    try {
+        外设承接上行数 = 私有_巡检外设观察等待项并生成上行(
+            消费上限,
+            now);
+    } catch (const std::exception& 异常) {
+        私有_记录外设承接巡检异常("巡检并派发就绪任务", &异常);
+    } catch (...) {
+        私有_记录外设承接巡检异常("巡检并派发就绪任务");
+    }
 
     {
         std::lock_guard<std::mutex> 锁(状态.锁);
@@ -8496,9 +8654,16 @@ bool 巡检外设观察等待项并生成上行消息(
         状态.快照.正在处理 = true;
     }
 
-    const auto 外设承接上行数 = 私有_巡检外设观察等待项并生成上行(
-        消费上限,
-        now);
+    std::size_t 外设承接上行数 = 0;
+    try {
+        外设承接上行数 = 私有_巡检外设观察等待项并生成上行(
+            消费上限,
+            now);
+    } catch (const std::exception& 异常) {
+        私有_记录外设承接巡检异常("巡检外设观察等待项并生成上行消息", &异常);
+    } catch (...) {
+        私有_记录外设承接巡检异常("巡检外设观察等待项并生成上行消息");
+    }
 
     {
         std::lock_guard<std::mutex> 锁(状态.锁);
@@ -8690,6 +8855,9 @@ bool 提交观察事实更新任务唤醒通知(
         return false;
     }
 
+    const bool 报告ID已写入任务输入 =
+        私有_写观察事实报告ID到任务输入(任务, 通知.报告ID, 通知.当前时间);
+
     任务管理线程协议::结构_任务状态推进请求 请求{};
     请求.任务信息节点 = 通知.任务信息节点;
     请求.来源需求 = 通知.来源需求;
@@ -8709,6 +8877,7 @@ bool 提交观察事实更新任务唤醒通知(
             << " | 新状态=" << 私有_任务状态文本(任务类::读取任务状态(任务, 枚举_任务状态::未定义))
             << " | 报告ID=" << 通知.报告ID
             << " | 等待项ID=" << 通知.等待项ID
+            << " | 报告ID写入任务输入=" << (报告ID已写入任务输入 ? 1 : 0)
             << " | 安全根路径=" << (通知.安全根路径 ? 1 : 0);
         项目运行日志(日志.str());
     }
