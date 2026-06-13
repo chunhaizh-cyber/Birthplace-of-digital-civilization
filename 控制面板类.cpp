@@ -6711,7 +6711,8 @@ namespace {
         输出 << ",\"verifiedFlag\":" << 快照.自我场景已验证观察存在;
         输出 << ",\"confirmState\":" << 快照.自我场景观察存在确认状态;
         输出 << ",\"verifiedCount\":" << 快照.自我场景已验证观察存在数量;
-        输出 << ",\"knownExistenceCount\":" << 快照.自我场景已验证观察存在数量;
+        输出 << ",\"knownExistenceCount\":"
+            << std::max<I64>(快照.自我场景子树存在数量, 快照.自我场景已验证观察存在数量);
         输出 << ",\"unknownWindowPixels\":" << 未解释像素数;
         输出 << ",\"unknownWindowPixelTotal\":" << 窗口像素数量;
         输出 << ",\"unknownWindowPixelRatio\":" << 未知区域窗口占比;
@@ -8859,6 +8860,8 @@ std::string 私有_生成控制面板HTML(
         自我场景窗口像素数量 =
             快照.自我场景相机帧宽度 * 快照.自我场景相机帧高度;
     }
+    const I64 自我场景已知存在数量 =
+        std::max<I64>(快照.自我场景子树存在数量, 快照.自我场景已验证观察存在数量);
     const auto 自我场景复现摘要 = 私有_转义HTML(
         "场景=" + 私有_页面摘要(快照.自我所在场景标题)
         + " | 宿主=" + 私有_页面摘要(快照.自我场景复现宿主标题)
@@ -8869,7 +8872,7 @@ std::string 私有_生成控制面板HTML(
         + " | 质量=" + std::to_string(快照.自我场景帧质量评分)
         + " | 空间候选=" + std::to_string(快照.自我场景空间候选数量)
         + " | 已验证观察存在=" + std::to_string(快照.自我场景已验证观察存在数量)
-        + " | 已知存在=" + std::to_string(快照.自我场景已验证观察存在数量)
+        + " | 已知存在=" + std::to_string(自我场景已知存在数量)
         + " | 场景子树存在=" + std::to_string(快照.自我场景子树存在数量)
         + " | 直接存在=" + std::to_string(快照.自我场景直接存在数量)
         + " | 未知区域=" + std::to_string(std::max<I64>(0, 快照.自我场景未解释像素数))
@@ -8883,6 +8886,8 @@ std::string 私有_生成控制面板HTML(
         + " | 补观察缺口=" + std::to_string(快照.自我场景补观察缺口状态)
         + " | 待补区域=" + std::to_string(快照.自我场景待补观察区域数量)
         + " | 帧解释=" + std::to_string(快照.自我场景帧解释状态));
+    const auto 自我场景存在样例摘要 = 私有_转义HTML(
+        "存在样例=" + 私有_页面摘要(快照.自我场景存在样例摘要));
     const auto 参数设定摘要 = 私有_转义HTML(
         "任务管理工作线程池大小="
         + std::to_string(快照.任务管理工作线程池当前有效大小)
@@ -10099,6 +10104,12 @@ std::string 私有_生成控制面板HTML(
             <div>
               <div class="panel-topline">OpenGL</div>
               <h3>独立自我场景窗口</h3>
+              <div class="summary">)HTML"
+        << 自我场景复现摘要
+        << R"HTML(</div>
+              <div class="summary">)HTML"
+        << 自我场景存在样例摘要
+        << R"HTML(</div>
               <div id="self-scene-window-status" class="scene-status" role="status">点击按钮启动独立场景窗口。</div>
             </div>
             <div class="scene-actions">
@@ -10159,7 +10170,7 @@ std::string 私有_生成控制面板HTML(
                     <div id="scene-candidate-stat" class="scene-stat-value">--</div>
                   </div>
                   <div class="scene-stat">
-                    <div class="scene-stat-label">已知存在</div>
+                    <div class="scene-stat-label">场景存在</div>
                     <div id="scene-known-existence-stat" class="scene-stat-value">--</div>
                   </div>
                   <div class="scene-stat">
@@ -11540,14 +11551,15 @@ std::string 私有_生成控制面板HTML(
       const data = 自我场景复现数据 || {};
       const candidate = data.candidate || {};
       const summary = 读取自我场景图层摘要(data);
-      const knownExistenceCount = Number(data.knownExistenceCount || data.verifiedCount || 0);
+      const knownExistenceCount = Number(data.knownExistenceCount || data.sceneSubtreeExistences || data.verifiedCount || 0);
+      const verifiedExistenceCount = Number(data.verifiedCount || 0);
       const sceneLimitText = data.sceneSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
       const hostLimitText = data.hostSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
       设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
       设置自我场景文本('scene-candidate-stat', `${data.candidateCount || 0} / 有效点 ${data.candidateValidPixels || 0}`);
-      设置自我场景文本('scene-known-existence-stat', `${knownExistenceCount} 个 / 确认状态 ${data.confirmState || 0}`);
+      设置自我场景文本('scene-known-existence-stat', `${knownExistenceCount} 个 / 直接 ${data.sceneDirectExistences || 0} / 观察已验证 ${verifiedExistenceCount}`);
       设置自我场景文本('scene-unknown-region-stat', `${summary.unknownPixels || 0} / ${summary.expectedPixels || 0} 像素点 (${格式化场景比例(summary.unexplainedRatio)})`);
       设置自我场景文本('scene-center-stat', candidate.valid ? 格式化场景三元组(candidate.center) : '--');
       设置自我场景文本('scene-aabb-stat', candidate.valid ? `${格式化场景三元组(candidate.min)} -> ${格式化场景三元组(candidate.max)}` : '--');
