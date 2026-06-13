@@ -6712,7 +6712,9 @@ namespace {
         输出 << ",\"confirmState\":" << 快照.自我场景观察存在确认状态;
         输出 << ",\"verifiedCount\":" << 快照.自我场景已验证观察存在数量;
         输出 << ",\"knownExistenceCount\":"
-            << std::max<I64>(快照.自我场景子树存在数量, 快照.自我场景已验证观察存在数量);
+            << std::max<I64>(
+                快照.自我场景直接存在数量,
+                std::max<I64>(快照.自我场景子树存在数量, 快照.自我场景已验证观察存在数量));
         输出 << ",\"unknownWindowPixels\":" << 未解释像素数;
         输出 << ",\"unknownWindowPixelTotal\":" << 窗口像素数量;
         输出 << ",\"unknownWindowPixelRatio\":" << 未知区域窗口占比;
@@ -8861,7 +8863,9 @@ std::string 私有_生成控制面板HTML(
             快照.自我场景相机帧宽度 * 快照.自我场景相机帧高度;
     }
     const I64 自我场景已知存在数量 =
-        std::max<I64>(快照.自我场景子树存在数量, 快照.自我场景已验证观察存在数量);
+        std::max<I64>(
+            快照.自我场景直接存在数量,
+            std::max<I64>(快照.自我场景子树存在数量, 快照.自我场景已验证观察存在数量));
     const auto 自我场景复现摘要 = 私有_转义HTML(
         "场景=" + 私有_页面摘要(快照.自我所在场景标题)
         + " | 宿主=" + 私有_页面摘要(快照.自我场景复现宿主标题)
@@ -11551,7 +11555,7 @@ std::string 私有_生成控制面板HTML(
       const data = 自我场景复现数据 || {};
       const candidate = data.candidate || {};
       const summary = 读取自我场景图层摘要(data);
-      const knownExistenceCount = Number(data.knownExistenceCount || data.sceneSubtreeExistences || data.verifiedCount || 0);
+      const knownExistenceCount = 读取自我场景存在总量(data);
       const verifiedExistenceCount = Number(data.verifiedCount || 0);
       const sceneLimitText = data.sceneSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
       const hostLimitText = data.hostSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
@@ -11706,6 +11710,9 @@ std::string 私有_生成控制面板HTML(
       if (valid) {
         points.push(candidate.center || [0, 0, 0]);
       }
+      构建自我场景存在认知视图(data || {}).nodes.forEach((node) => {
+        points.push(node.point);
+      });
       points.forEach((p) => {
         for (let i = 0; i < 3; ++i) {
           min[i] = Math.min(min[i], Number(p[i] || 0));
@@ -11724,6 +11731,54 @@ std::string 私有_生成控制面板HTML(
       ];
       const extent = Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2], 1);
       return { min, max, center, extent, scale: 4 / extent };
+    }
+
+    function 读取自我场景存在总量(data) {
+      const known = Number(data?.knownExistenceCount || 0);
+      const direct = Number(data?.sceneDirectExistences || 0);
+      const subtree = Number(data?.sceneSubtreeExistences || 0);
+      const verified = Number(data?.verifiedCount || 0);
+      return Math.max(0, known, direct, subtree, verified);
+    }
+
+    function 解析自我场景存在样例(data) {
+      const raw = String(data?.sceneExistenceSamples || '').trim();
+      if (!raw || raw === '空') return [];
+      return raw.split('、').map((item) => item.trim()).filter(Boolean);
+    }
+
+    function 构建自我场景存在认知视图(data) {
+      const total = 读取自我场景存在总量(data);
+      const renderCount = Math.min(total, 180);
+      const directCount = Math.max(0, Number(data?.sceneDirectExistences || 0));
+      const verifiedCount = Math.max(0, Number(data?.verifiedCount || 0));
+      const sampleCount = Math.min(renderCount, 解析自我场景存在样例(data).length);
+      const nodes = [];
+      for (let i = 0; i < renderCount; ++i) {
+        const ring = Math.floor(Math.sqrt(i));
+        const angle = i * 2.399963229728653;
+        const radius = 220 + ring * 90;
+        const point = [
+          Math.cos(angle) * radius,
+          80 + (i % 6) * 32 + Math.floor(i / 36) * 22,
+          Math.sin(angle) * radius
+        ];
+        let color = [0.42, 0.66, 1.0];
+        let lineColor = [0.10, 0.22, 0.42];
+        if (i < directCount) {
+          color = [0.12, 0.80, 0.72];
+          lineColor = [0.08, 0.34, 0.32];
+        }
+        if (i < verifiedCount) {
+          color = [0.95, 0.78, 0.24];
+          lineColor = [0.42, 0.32, 0.08];
+        }
+        if (i < sampleCount) {
+          color = [1.0, 0.96, 0.68];
+        }
+        nodes.push({ point, color, lineColor });
+      }
+      return { nodes, total, rendered: renderCount, truncated: total > renderCount };
     }
 
     function 构建自我场景几何(data) {
@@ -11762,6 +11817,14 @@ std::string 私有_生成控制面板HTML(
       pushLine([0, 0, 0], [0, 0, axisLen], [0.38, 0.65, 0.98]);
       pushPoint([0, 0, 0], [1.0, 1.0, 1.0]);
 
+      const existenceView = 构建自我场景存在认知视图(data || {});
+      existenceView.nodes.forEach((node, index) => {
+        if (index < 96) {
+          pushLine([0, 0, 0], node.point, node.lineColor);
+        }
+        pushPoint(node.point, node.color);
+      });
+
       const candidate = data?.candidate || {};
       if (candidate.valid) {
         const mn = candidate.min || [0, 0, 0];
@@ -11782,7 +11845,9 @@ std::string 私有_生成控制面板HTML(
         lineData: new Float32Array(lines),
         pointData: new Float32Array(points),
         lineCount: lines.length / 6,
-        pointCount: points.length / 6
+        pointCount: points.length / 6,
+        existenceNodeCount: existenceView.rendered,
+        existenceTotalCount: existenceView.total
       };
     }
 
@@ -12000,10 +12065,13 @@ std::string 私有_生成控制面板HTML(
           rotating: true,
           frame: 0
         };
+        const existenceStatus = geometry.existenceTotalCount > 0
+          ? `已绘制 ${geometry.existenceNodeCount}/${geometry.existenceTotalCount} 个场景存在认知节点。`
+          : '';
         设置自我场景状态(
           (自我场景复现数据 && 自我场景复现数据.ok)
-            ? '已用自我所在场景快照完成 OpenGL 复现。'
-            : '自我所在场景暂无可复现快照，已显示坐标基准。',
+            ? `已用自我所在场景快照完成 OpenGL 复现。${existenceStatus}`
+            : `自我所在场景暂无可复现快照，已显示坐标基准。${existenceStatus}`,
           (自我场景复现数据 && 自我场景复现数据.ok) ? 'ok' : '');
       } catch (error) {
         设置自我场景状态(`OpenGL(WebGL) 渲染准备失败：${error.message || error}`, 'error');
