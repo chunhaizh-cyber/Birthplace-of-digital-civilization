@@ -108,7 +108,7 @@ export namespace 日志 {
     // 便捷：运行日志
     inline void 运行(std::string_view msg) { 写(枚举_日志类别::运行, 枚举_日志级别::信息, msg); }
     inline void 运行_警告(std::string_view msg) { 写(枚举_日志类别::运行, 枚举_日志级别::警告, msg); }
-    inline void 运行_错误(std::string_view msg) { 写(枚举_日志类别::运行, 枚举_日志级别::错误, msg); }
+    inline void 运行_错误(std::string_view msg) { 写(枚举_日志类别::异常, 枚举_日志级别::错误, msg); }
 
     // 便捷：异常日志
     inline void 异常(std::string_view msg) { 写(枚举_日志类别::异常, 枚举_日志级别::错误, msg); }
