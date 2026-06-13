@@ -35,6 +35,46 @@ struct 结构_控制面板诊断区域 {
     std::int64_t 掩码状态 = 0;
 };
 
+struct 结构_控制面板自我场景存在复现项 {
+    std::uintptr_t 节点指针 = 0;
+    std::string 标题{};
+    std::string 类型{};
+    std::int64_t 来源范围 = 0;
+    std::int64_t 来源空间候选编号 = -1;
+    std::int64_t 外设观察报告ID = 0;
+    std::int64_t 外设观察像素簇ID = 0;
+    std::int64_t 几何状态 = 0;
+    std::int64_t 中心X = 0;
+    std::int64_t 中心Y = 0;
+    std::int64_t 中心Z = 0;
+    std::int64_t AABB最小X = 0;
+    std::int64_t AABB最大X = 0;
+    std::int64_t AABB最小Y = 0;
+    std::int64_t AABB最大Y = 0;
+    std::int64_t AABB最小Z = 0;
+    std::int64_t AABB最大Z = 0;
+    std::int64_t 尺寸X = 0;
+    std::int64_t 尺寸Y = 0;
+    std::int64_t 尺寸Z = 0;
+    std::int64_t 投影最小X = 0;
+    std::int64_t 投影最大X = 0;
+    std::int64_t 投影最小Y = 0;
+    std::int64_t 投影最大Y = 0;
+    std::int64_t 观察存在确认状态 = 0;
+    std::int64_t 像素归属验证状态 = 0;
+    std::int64_t 可绘制状态 = 0;
+    std::int64_t 颜色RGB结构状态 = 0;
+    std::int64_t 像素颜色层状态 = 0;
+    std::int64_t 颜色缓冲状态 = 0;
+    std::int64_t 彩图轮廓数量 = 0;
+    std::int64_t 轮廓颜色支持率 = 0;
+    std::int64_t 局部轮廓材料可回查状态 = 0;
+    std::int64_t 平面轮廓状态 = 0;
+    std::int64_t 空间极值轮廓状态 = 0;
+    std::int64_t 平面轮廓点数 = 0;
+    std::int64_t 空间极值轮廓点数 = 0;
+};
+
 struct 结构_控制面板快照 {
     bool 世界树已初始化 = false;
     bool 自我已初始化 = false;
@@ -265,6 +305,12 @@ struct 结构_控制面板快照 {
     std::int64_t 自我场景诊断区域集合状态 = 0;
     std::int64_t 自我场景诊断区域掩码状态 = 0;
     std::vector<结构_控制面板诊断区域> 自我场景诊断区域列表{};
+    std::vector<结构_控制面板自我场景存在复现项> 自我场景存在复现项列表{};
+    std::int64_t 自我场景真实复现存在数量 = 0;
+    std::int64_t 自我场景真实几何存在数量 = 0;
+    std::int64_t 自我场景真实可绘制存在数量 = 0;
+    std::int64_t 自我场景真实颜色状态存在数量 = 0;
+    std::int64_t 自我场景真实彩图材料可回查存在数量 = 0;
     std::int64_t 自我场景空间候选数量 = 0;
     std::int64_t 自我场景空间候选有效点数量 = 0;
     std::int64_t 自我场景主空间候选编号 = -1;

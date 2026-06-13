@@ -1412,6 +1412,18 @@ namespace {
         return true;
     }
 
+    bool 私有_读取场景复现VecI64(
+        const 基础信息节点类* 宿主,
+        const char* 特征名,
+        VecI64& 输出值) noexcept
+    {
+        输出值.clear();
+        const auto* 特征类型 = 私有_场景复现特征词(特征名);
+        return 宿主
+            && 特征类型
+            && 世界树.读取特征VecI64(宿主, 特征类型, 输出值);
+    }
+
     int 私有_场景复现宿主评分(const 基础信息节点类* 宿主) noexcept
     {
         if (!宿主) {
@@ -1814,6 +1826,317 @@ namespace {
         }
     }
 
+    bool 私有_读取自我场景存在三元特征(
+        const 基础信息节点类* 节点,
+        const char* x名,
+        const char* y名,
+        const char* z名,
+        std::int64_t& x,
+        std::int64_t& y,
+        std::int64_t& z) noexcept
+    {
+        I64 vx = 0;
+        I64 vy = 0;
+        I64 vz = 0;
+        if (!私有_读取场景复现I64(节点, x名, vx)
+            || !私有_读取场景复现I64(节点, y名, vy)
+            || !私有_读取场景复现I64(节点, z名, vz)) {
+            return false;
+        }
+        x = static_cast<std::int64_t>(vx);
+        y = static_cast<std::int64_t>(vy);
+        z = static_cast<std::int64_t>(vz);
+        return true;
+    }
+
+    bool 私有_读取自我场景存在AABB特征(
+        const 基础信息节点类* 节点,
+        结构_控制面板自我场景存在复现项& 项) noexcept
+    {
+        I64 minX = 0;
+        I64 maxX = 0;
+        I64 minY = 0;
+        I64 maxY = 0;
+        I64 minZ = 0;
+        I64 maxZ = 0;
+        if (!私有_读取场景复现I64(节点, "范围坐标AABB最小X", minX)
+            || !私有_读取场景复现I64(节点, "范围坐标AABB最大X", maxX)
+            || !私有_读取场景复现I64(节点, "范围坐标AABB最小Y", minY)
+            || !私有_读取场景复现I64(节点, "范围坐标AABB最大Y", maxY)
+            || !私有_读取场景复现I64(节点, "范围坐标AABB最小Z", minZ)
+            || !私有_读取场景复现I64(节点, "范围坐标AABB最大Z", maxZ)) {
+            return false;
+        }
+        if (maxX < minX || maxY < minY || maxZ < minZ) {
+            return false;
+        }
+        项.AABB最小X = static_cast<std::int64_t>(minX);
+        项.AABB最大X = static_cast<std::int64_t>(maxX);
+        项.AABB最小Y = static_cast<std::int64_t>(minY);
+        项.AABB最大Y = static_cast<std::int64_t>(maxY);
+        项.AABB最小Z = static_cast<std::int64_t>(minZ);
+        项.AABB最大Z = static_cast<std::int64_t>(maxZ);
+        return true;
+    }
+
+    bool 私有_填充自我场景存在复现项(
+        const 基础信息节点类* 节点,
+        const std::int64_t 来源范围,
+        结构_控制面板自我场景存在复现项& 项) noexcept
+    {
+        if (!节点 || !dynamic_cast<const 存在节点主信息类*>(节点->主信息)) {
+            return false;
+        }
+
+        项 = {};
+        项.节点指针 = 私有_地址(节点);
+        项.来源范围 = 来源范围;
+        项.标题 = 私有_对象摘要(节点);
+        if (const auto* 存在主信息 = 世界树.存在().取存在主信息(reinterpret_cast<const 存在节点类*>(节点))) {
+            项.类型 = 存在主信息->类型 ? 存在主信息->类型->获取主键() : std::string("存在");
+        } else {
+            项.类型 = "存在";
+        }
+
+        const auto 读 = [&](const char* 特征名, std::int64_t& 字段) noexcept {
+            I64 值 = static_cast<I64>(字段);
+            if (私有_读取场景复现I64_保留默认(节点, 特征名, 值)) {
+                字段 = static_cast<std::int64_t>(值);
+                return true;
+            }
+            return false;
+        };
+
+        const bool 有中心 = 私有_读取自我场景存在三元特征(
+            节点,
+            "中心空间坐标X",
+            "中心空间坐标Y",
+            "中心空间坐标Z",
+            项.中心X,
+            项.中心Y,
+            项.中心Z);
+        I64 绝对明确 = 0;
+        const bool 有存在绝对坐标 = !有中心
+            && 私有_读取场景复现I64(节点, "存在_场景绝对坐标明确状态", 绝对明确)
+            && 绝对明确 > 0
+            && 私有_读取自我场景存在三元特征(
+                节点,
+                "存在_场景绝对坐标X",
+                "存在_场景绝对坐标Y",
+                "存在_场景绝对坐标Z",
+                项.中心X,
+                项.中心Y,
+                项.中心Z);
+        I64 自我绝对明确 = 0;
+        const bool 有自我绝对坐标 = !有中心
+            && !有存在绝对坐标
+            && 私有_读取场景复现I64(节点, "自我_场景绝对坐标明确状态", 自我绝对明确)
+            && 自我绝对明确 > 0
+            && 私有_读取自我场景存在三元特征(
+                节点,
+                "自我_场景绝对坐标X",
+                "自我_场景绝对坐标Y",
+                "自我_场景绝对坐标Z",
+                项.中心X,
+                项.中心Y,
+                项.中心Z);
+        bool 中心可用 = 有中心 || 有存在绝对坐标 || 有自我绝对坐标;
+
+        bool AABB可用 = 私有_读取自我场景存在AABB特征(节点, 项);
+        bool 尺寸可用 = 私有_读取自我场景存在三元特征(
+            节点,
+            "假设尺寸X",
+            "假设尺寸Y",
+            "假设尺寸Z",
+            项.尺寸X,
+            项.尺寸Y,
+            项.尺寸Z);
+        if (!尺寸可用 && AABB可用) {
+            项.尺寸X = std::max<std::int64_t>(1, 项.AABB最大X - 项.AABB最小X);
+            项.尺寸Y = std::max<std::int64_t>(1, 项.AABB最大Y - 项.AABB最小Y);
+            项.尺寸Z = std::max<std::int64_t>(1, 项.AABB最大Z - 项.AABB最小Z);
+            尺寸可用 = true;
+        }
+        if (!AABB可用 && 中心可用 && 尺寸可用) {
+            const auto 推导范围 = [](std::int64_t 中心, std::int64_t 尺寸, bool 最小) noexcept {
+                const auto 安全尺寸 = std::max<std::int64_t>(1, 尺寸);
+                const auto 半 = 安全尺寸 / 2;
+                return 最小 ? 中心 - 半 : 中心 + (安全尺寸 - 半);
+            };
+            项.AABB最小X = 推导范围(项.中心X, 项.尺寸X, true);
+            项.AABB最大X = 推导范围(项.中心X, 项.尺寸X, false);
+            项.AABB最小Y = 推导范围(项.中心Y, 项.尺寸Y, true);
+            项.AABB最大Y = 推导范围(项.中心Y, 项.尺寸Y, false);
+            项.AABB最小Z = 推导范围(项.中心Z, 项.尺寸Z, true);
+            项.AABB最大Z = 推导范围(项.中心Z, 项.尺寸Z, false);
+            AABB可用 = true;
+        }
+        if (!中心可用 && AABB可用) {
+            项.中心X = (项.AABB最小X + 项.AABB最大X) / 2;
+            项.中心Y = (项.AABB最小Y + 项.AABB最大Y) / 2;
+            项.中心Z = (项.AABB最小Z + 项.AABB最大Z) / 2;
+            中心可用 = true;
+        }
+
+        bool 投影可用 = true;
+        投影可用 = 读("投影范围最小X", 项.投影最小X) && 投影可用;
+        投影可用 = 读("投影范围最大X", 项.投影最大X) && 投影可用;
+        投影可用 = 读("投影范围最小Y", 项.投影最小Y) && 投影可用;
+        投影可用 = 读("投影范围最大Y", 项.投影最大Y) && 投影可用;
+        if (项.投影最大X < 项.投影最小X || 项.投影最大Y < 项.投影最小Y) {
+            投影可用 = false;
+        }
+
+        (void)读("来源空间候选编号", 项.来源空间候选编号);
+        (void)读("外设观察报告ID", 项.外设观察报告ID);
+        (void)读("外设观察像素簇ID", 项.外设观察像素簇ID);
+        (void)读("观察存在确认状态", 项.观察存在确认状态);
+        (void)读("像素归属验证状态", 项.像素归属验证状态);
+        (void)读("可绘制状态", 项.可绘制状态);
+        (void)读("颜色RGB结构状态", 项.颜色RGB结构状态);
+        (void)读("像素颜色层", 项.像素颜色层状态);
+        (void)读("颜色缓冲", 项.颜色缓冲状态);
+        (void)读("彩图轮廓数量", 项.彩图轮廓数量);
+        (void)读("轮廓颜色支持率", 项.轮廓颜色支持率);
+        (void)读("内部世界局部轮廓材料可回查状态", 项.局部轮廓材料可回查状态);
+        (void)读("平面轮廓状态", 项.平面轮廓状态);
+        (void)读("空间极值轮廓状态", 项.空间极值轮廓状态);
+
+        VecI64 轮廓{};
+        if (私有_读取场景复现VecI64(节点, "平面轮廓", 轮廓)) {
+            项.平面轮廓点数 = static_cast<std::int64_t>(轮廓.size() / 2);
+            if (项.平面轮廓点数 > 0 && 项.平面轮廓状态 <= 0) {
+                项.平面轮廓状态 = 1;
+            }
+        }
+        if (私有_读取场景复现VecI64(节点, "空间极值轮廓", 轮廓)) {
+            项.空间极值轮廓点数 = static_cast<std::int64_t>(轮廓.size() / 3);
+            if (项.空间极值轮廓点数 > 0 && 项.空间极值轮廓状态 <= 0) {
+                项.空间极值轮廓状态 = 1;
+            }
+        }
+
+        if (中心可用) 项.几何状态 |= 1;
+        if (AABB可用) 项.几何状态 |= 2;
+        if (尺寸可用) 项.几何状态 |= 4;
+        if (投影可用) 项.几何状态 |= 8;
+        if (项.颜色RGB结构状态 > 0
+            || 项.像素颜色层状态 > 0
+            || 项.颜色缓冲状态 > 0
+            || 项.彩图轮廓数量 > 0
+            || 项.轮廓颜色支持率 > 0) {
+            项.几何状态 |= 16;
+        }
+        if (项.局部轮廓材料可回查状态 > 0) 项.几何状态 |= 32;
+        if (项.平面轮廓状态 > 0 || 项.平面轮廓点数 > 0) 项.几何状态 |= 64;
+        if (项.空间极值轮廓状态 > 0 || 项.空间极值轮廓点数 > 0) 项.几何状态 |= 128;
+        return true;
+    }
+
+    void 私有_收集自我场景存在复现项(
+        const 基础信息节点类* 根,
+        const std::int64_t 来源范围,
+        结构_控制面板快照& 快照,
+        路径集合& 已访问) noexcept
+    {
+        if (!根 || 快照.自我场景存在复现项列表.size() >= 1024) {
+            return;
+        }
+
+        std::vector<const 基础信息节点类*> 栈{};
+        栈.push_back(根);
+        std::size_t 已扫描 = 0;
+        while (!栈.empty()
+            && 已扫描 < 结构_自我场景内容统计::扫描上限
+            && 快照.自我场景存在复现项列表.size() < 1024) {
+            const auto* 当前 = 栈.back();
+            栈.pop_back();
+            if (!当前) {
+                continue;
+            }
+            const auto 地址 = 私有_地址(当前);
+            if (!已访问.insert(地址).second) {
+                continue;
+            }
+            ++已扫描;
+
+            if (dynamic_cast<const 存在节点主信息类*>(当前->主信息)) {
+                结构_控制面板自我场景存在复现项 项{};
+                if (私有_填充自我场景存在复现项(当前, 来源范围, 项)) {
+                    if (项.几何状态 & 1) {
+                        ++快照.自我场景真实几何存在数量;
+                    }
+                    if (项.几何状态 & 1) {
+                        ++快照.自我场景真实可绘制存在数量;
+                    }
+                    if (项.几何状态 & 16) {
+                        ++快照.自我场景真实颜色状态存在数量;
+                    }
+                    if (项.局部轮廓材料可回查状态 > 0) {
+                        ++快照.自我场景真实彩图材料可回查存在数量;
+                    }
+                    快照.自我场景存在复现项列表.push_back(std::move(项));
+                }
+            }
+
+            for (auto* 子节点 : 私有_枚举子节点(当前, (std::numeric_limits<std::size_t>::max)())) {
+                if (子节点
+                    && (dynamic_cast<const 存在节点主信息类*>(子节点->主信息)
+                        || dynamic_cast<const 场景节点主信息类*>(子节点->主信息))) {
+                    栈.push_back(子节点);
+                }
+            }
+        }
+    }
+
+    void 私有_读取自我场景存在复现项列表(
+        场景节点类* 自我所在场景,
+        基础信息节点类* 复现宿主,
+        结构_控制面板快照& 快照) noexcept
+    {
+        快照.自我场景存在复现项列表.clear();
+        快照.自我场景真实复现存在数量 = 0;
+        快照.自我场景真实几何存在数量 = 0;
+        快照.自我场景真实可绘制存在数量 = 0;
+        快照.自我场景真实颜色状态存在数量 = 0;
+        快照.自我场景真实彩图材料可回查存在数量 = 0;
+
+        路径集合 已访问{};
+        私有_收集自我场景存在复现项(
+            reinterpret_cast<const 基础信息节点类*>(自我所在场景),
+            1,
+            快照,
+            已访问);
+        私有_收集自我场景存在复现项(
+            复现宿主,
+            2,
+            快照,
+            已访问);
+
+        std::sort(
+            快照.自我场景存在复现项列表.begin(),
+            快照.自我场景存在复现项列表.end(),
+            [](const auto& a, const auto& b) noexcept {
+                const bool a有范围 = (a.几何状态 & 1) != 0
+                    && ((a.几何状态 & 2) != 0 || (a.几何状态 & 4) != 0);
+                const bool b有范围 = (b.几何状态 & 1) != 0
+                    && ((b.几何状态 & 2) != 0 || (b.几何状态 & 4) != 0);
+                if (a有范围 != b有范围) return a有范围 > b有范围;
+                const bool a可绘制 = (a.几何状态 & 1) != 0;
+                const bool b可绘制 = (b.几何状态 & 1) != 0;
+                if (a可绘制 != b可绘制) return a可绘制 > b可绘制;
+                if (a.观察存在确认状态 != b.观察存在确认状态) {
+                    return a.观察存在确认状态 > b.观察存在确认状态;
+                }
+                if (a.来源空间候选编号 != b.来源空间候选编号) {
+                    return a.来源空间候选编号 < b.来源空间候选编号;
+                }
+                return a.节点指针 < b.节点指针;
+            });
+        快照.自我场景真实复现存在数量 =
+            static_cast<std::int64_t>(快照.自我场景存在复现项列表.size());
+    }
+
     void 私有_读取自我场景复现快照(结构_控制面板快照& 快照) noexcept
     {
         auto* 自我所在场景 = 自我.获取自我现实场景();
@@ -1833,6 +2156,7 @@ namespace {
             ? 私有_安全节点摘要(安全宿主, "安全评估宿主")
             : std::string("空");
         私有_读取自我场景内容统计(快照, 自我所在场景, 宿主);
+        私有_读取自我场景存在复现项列表(自我所在场景, 宿主, 快照);
         if (!宿主) {
             return;
         }
@@ -1991,7 +2315,8 @@ namespace {
                 || 快照.自我场景空间候选数量 > 0
                 || 快照.自我场景诊断区域数量 > 0
                 || 快照.自我场景观察存在假设 != 0
-                || 快照.自我场景已验证观察存在数量 > 0);
+                || 快照.自我场景已验证观察存在数量 > 0
+                || 快照.自我场景真实复现存在数量 > 0);
     }
 
     template<>
@@ -6546,6 +6871,60 @@ namespace {
         输出 << "]";
     }
 
+    void 私有_追加自我场景存在复现项数组JSON(
+        std::ostringstream& 输出,
+        const std::vector<结构_控制面板自我场景存在复现项>& 存在列表)
+    {
+        输出 << "[";
+        for (std::size_t 索引 = 0; 索引 < 存在列表.size(); ++索引) {
+            if (索引 > 0) {
+                输出 << ",";
+            }
+            const auto& 项 = 存在列表[索引];
+            const bool 可绘制 = (项.几何状态 & 1) != 0;
+            输出 << "{";
+            输出 << "\"ptr\":" << 项.节点指针;
+            输出 << ",\"title\":";
+            私有_追加JSON字符串(输出, 项.标题);
+            输出 << ",\"type\":";
+            私有_追加JSON字符串(输出, 项.类型);
+            输出 << ",\"sourceScope\":" << 项.来源范围;
+            输出 << ",\"sourceCandidate\":" << 项.来源空间候选编号;
+            输出 << ",\"reportId\":" << 项.外设观察报告ID;
+            输出 << ",\"clusterId\":" << 项.外设观察像素簇ID;
+            输出 << ",\"geometryState\":" << 项.几何状态;
+            输出 << ",\"renderable\":" << (可绘制 ? "true" : "false");
+            输出 << ",\"center\":";
+            私有_追加JSON_I64数组3(输出, 项.中心X, 项.中心Y, 项.中心Z);
+            输出 << ",\"min\":";
+            私有_追加JSON_I64数组3(输出, 项.AABB最小X, 项.AABB最小Y, 项.AABB最小Z);
+            输出 << ",\"max\":";
+            私有_追加JSON_I64数组3(输出, 项.AABB最大X, 项.AABB最大Y, 项.AABB最大Z);
+            输出 << ",\"size\":";
+            私有_追加JSON_I64数组3(输出, 项.尺寸X, 项.尺寸Y, 项.尺寸Z);
+            输出 << ",\"projection\":["
+                << 项.投影最小X << ","
+                << 项.投影最小Y << ","
+                << 项.投影最大X << ","
+                << 项.投影最大Y << "]";
+            输出 << ",\"confirmState\":" << 项.观察存在确认状态;
+            输出 << ",\"ownershipState\":" << 项.像素归属验证状态;
+            输出 << ",\"drawableState\":" << 项.可绘制状态;
+            输出 << ",\"rgbStructure\":" << 项.颜色RGB结构状态;
+            输出 << ",\"pixelColorLayer\":" << 项.像素颜色层状态;
+            输出 << ",\"colorBuffer\":" << 项.颜色缓冲状态;
+            输出 << ",\"colorContourCount\":" << 项.彩图轮廓数量;
+            输出 << ",\"contourColorSupport\":" << 项.轮廓颜色支持率;
+            输出 << ",\"textureReady\":" << 项.局部轮廓材料可回查状态;
+            输出 << ",\"flatContourState\":" << 项.平面轮廓状态;
+            输出 << ",\"spaceContourState\":" << 项.空间极值轮廓状态;
+            输出 << ",\"flatContourPoints\":" << 项.平面轮廓点数;
+            输出 << ",\"spaceContourPoints\":" << 项.空间极值轮廓点数;
+            输出 << "}";
+        }
+        输出 << "]";
+    }
+
     std::string 私有_自我场景复现JSON(const 结构_控制面板快照& 快照)
     {
         const bool 候选范围有效 =
@@ -6685,6 +7064,13 @@ namespace {
         输出 << ",\"diagnosticRegionMaskState\":" << 快照.自我场景诊断区域掩码状态;
         输出 << ",\"diagnosticRegions\":";
         私有_追加自我场景诊断区域数组JSON(输出, 快照.自我场景诊断区域列表);
+        输出 << ",\"realExistenceCount\":" << 快照.自我场景真实复现存在数量;
+        输出 << ",\"realGeometryExistenceCount\":" << 快照.自我场景真实几何存在数量;
+        输出 << ",\"realRenderableExistenceCount\":" << 快照.自我场景真实可绘制存在数量;
+        输出 << ",\"realColorStateExistenceCount\":" << 快照.自我场景真实颜色状态存在数量;
+        输出 << ",\"realTextureExistenceCount\":" << 快照.自我场景真实彩图材料可回查存在数量;
+        输出 << ",\"existences\":";
+        私有_追加自我场景存在复现项数组JSON(输出, 快照.自我场景存在复现项列表);
         输出 << ",\"candidateCount\":" << 快照.自我场景空间候选数量;
         输出 << ",\"candidateValidPixels\":" << 快照.自我场景空间候选有效点数量;
         输出 << ",\"hypothesisState\":" << 快照.自我场景观察存在假设;
@@ -11563,7 +11949,7 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
       设置自我场景文本('scene-candidate-stat', `${data.candidateCount || 0} / 有效点 ${data.candidateValidPixels || 0}`);
-      设置自我场景文本('scene-known-existence-stat', `${knownExistenceCount} 个 / 直接 ${data.sceneDirectExistences || 0} / 观察已验证 ${verifiedExistenceCount}`);
+      设置自我场景文本('scene-known-existence-stat', `${knownExistenceCount} 个 / 直接 ${data.sceneDirectExistences || 0} / 观察已验证 ${verifiedExistenceCount} / 特征复现 ${data.realRenderableExistenceCount || 0}/${data.realExistenceCount || 0}`);
       设置自我场景文本('scene-unknown-region-stat', `${summary.unknownPixels || 0} / ${summary.expectedPixels || 0} 像素点 (${格式化场景比例(summary.unexplainedRatio)})`);
       设置自我场景文本('scene-center-stat', candidate.valid ? 格式化场景三元组(candidate.center) : '--');
       设置自我场景文本('scene-aabb-stat', candidate.valid ? `${格式化场景三元组(candidate.min)} -> ${格式化场景三元组(candidate.max)}` : '--');
@@ -11577,7 +11963,7 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-info-subtree-summary-stat', data.sceneSubtreeSummary || '空');
       设置自我场景文本('scene-info-existence-samples-stat', data.sceneExistenceSamples || '空');
       设置自我场景文本('scene-info-host-existence-samples-stat', data.hostExistenceSamples || '空');
-      设置自我场景文本('scene-quality-structure-stat', `RGB ${data.rgbStructure || 0} / 原始 ${data.rawDepthStructure || 0} / 滤波 ${data.filteredDepthStructure || 0} / 补全 ${data.filledDepthStructure || 0} / Mask ${data.depthMaskStructure || 0} / XYZ ${data.xyzStructure || 0} / 对齐 ${data.colorDepthAligned || 0}`);
+      设置自我场景文本('scene-quality-structure-stat', `RGB ${data.rgbStructure || 0} / 原始 ${data.rawDepthStructure || 0} / 滤波 ${data.filteredDepthStructure || 0} / 补全 ${data.filledDepthStructure || 0} / Mask ${data.depthMaskStructure || 0} / XYZ ${data.xyzStructure || 0} / 对齐 ${data.colorDepthAligned || 0} / 存在颜色状态 ${data.realColorStateExistenceCount || 0} / 彩图可回查 ${data.realTextureExistenceCount || 0}`);
       设置自我场景文本('scene-quality-ratio-stat', `质量 ${data.frameQualityScore || 0} / 深度 ${格式化场景比例(data.depthValidRatio)} / 空间 ${格式化场景比例(data.spaceValidRatio)} / 候选 ${格式化场景比例(data.candidateVerifyRatio)} / 未解释 ${格式化场景比例(data.unexplainedRatio)}`);
       设置自我场景文本('scene-depth-source-stat', `原始 ${data.rawDepthSourcePixels || 0} / 滤波 ${data.filteredDepthSourcePixels || 0} / 补全 ${data.filledDepthSourcePixels || 0} / 无效 ${data.noDepthSourcePixels || 0} / 低置信 ${data.filledDepthLowConfidencePixels || 0}`);
       设置自我场景文本('scene-depth-stability-stat', `结构 ${data.depthSourceStructure || 0}:${data.depthStabilityStructure || 0}:${data.depthNeighborhoodStructure || 0} / 稳定 ${data.depthStabilityAverage || 0} / 邻域 ${data.depthNeighborhoodAverage || 0} / 边界 ${data.boundaryDepthStability || 0}`);
@@ -11701,24 +12087,64 @@ std::string 私有_生成控制面板HTML(
 
 )HTML";
     输出 << R"HTML(
-    function 取自我场景范围(data) {
-      const candidate = data?.candidate || {};
-      const valid = !!candidate.valid;
-      const min = valid ? [...candidate.min] : [-1000, -100, -1000];
-      const max = valid ? [...candidate.max] : [1000, 900, 1000];
-      const points = [[0, 0, 0]];
-      if (valid) {
-        points.push(candidate.center || [0, 0, 0]);
+    function 读取自我场景真实存在列表(data) {
+      return Array.isArray(data?.existences) ? data.existences : [];
+    }
+
+    function 自我场景数组3(value) {
+      return Array.isArray(value) && value.length >= 3
+        ? [Number(value[0] || 0), Number(value[1] || 0), Number(value[2] || 0)]
+        : [0, 0, 0];
+    }
+
+    function 自我场景存在具备状态(item, bit) {
+      return (Number(item?.geometryState || 0) & bit) !== 0;
+    }
+
+    function 自我场景存在可取中心(item) {
+      return 自我场景存在具备状态(item, 1);
+    }
+
+    function 自我场景存在可取范围(item) {
+      if (!自我场景存在具备状态(item, 2)) return false;
+      const mn = 自我场景数组3(item?.min);
+      const mx = 自我场景数组3(item?.max);
+      return mx[0] >= mn[0] && mx[1] >= mn[1] && mx[2] >= mn[2];
+    }
+
+    function 自我场景纳入范围(min, max, point) {
+      for (let i = 0; i < 3; ++i) {
+        const v = Number(point[i] || 0);
+        min[i] = Math.min(min[i], v);
+        max[i] = Math.max(max[i], v);
       }
-      构建自我场景存在认知视图(data || {}).nodes.forEach((node) => {
-        points.push(node.point);
-      });
-      points.forEach((p) => {
-        for (let i = 0; i < 3; ++i) {
-          min[i] = Math.min(min[i], Number(p[i] || 0));
-          max[i] = Math.max(max[i], Number(p[i] || 0));
+    }
+
+    function 取自我场景范围(data) {
+      const min = [Infinity, Infinity, Infinity];
+      const max = [-Infinity, -Infinity, -Infinity];
+      自我场景纳入范围(min, max, [0, 0, 0]);
+      const candidate = data?.candidate || {};
+      if (candidate.valid) {
+        自我场景纳入范围(min, max, 自我场景数组3(candidate.center));
+        自我场景纳入范围(min, max, 自我场景数组3(candidate.min));
+        自我场景纳入范围(min, max, 自我场景数组3(candidate.max));
+      }
+      读取自我场景真实存在列表(data).forEach((item) => {
+        if (自我场景存在可取中心(item)) {
+          自我场景纳入范围(min, max, 自我场景数组3(item.center));
+        }
+        if (自我场景存在可取范围(item)) {
+          自我场景纳入范围(min, max, 自我场景数组3(item.min));
+          自我场景纳入范围(min, max, 自我场景数组3(item.max));
         }
       });
+      for (let i = 0; i < 3; ++i) {
+        if (!Number.isFinite(min[i]) || !Number.isFinite(max[i])) {
+          min[i] = [-1000, -100, -1000][i];
+          max[i] = [1000, 900, 1000][i];
+        }
+      }
       const pad = Math.max(100, Math.max(max[0] - min[0], max[1] - min[1], max[2] - min[2]) * 0.18);
       for (let i = 0; i < 3; ++i) {
         min[i] -= pad;
@@ -11738,47 +12164,43 @@ std::string 私有_生成控制面板HTML(
       const direct = Number(data?.sceneDirectExistences || 0);
       const subtree = Number(data?.sceneSubtreeExistences || 0);
       const verified = Number(data?.verifiedCount || 0);
-      return Math.max(0, known, direct, subtree, verified);
+      const real = Number(data?.realExistenceCount || 0);
+      return Math.max(0, known, direct, subtree, verified, real);
     }
 
-    function 解析自我场景存在样例(data) {
-      const raw = String(data?.sceneExistenceSamples || '').trim();
-      if (!raw || raw === '空') return [];
-      return raw.split('、').map((item) => item.trim()).filter(Boolean);
+    function 自我场景存在显示颜色(item) {
+      if (Number(item?.textureReady || 0) > 0) return [0.94, 0.72, 0.22];
+      if (Number(item?.colorBuffer || 0) > 0 || Number(item?.pixelColorLayer || 0) > 0) return [0.42, 0.70, 0.96];
+      if (Number(item?.confirmState || 0) > 0) return [0.12, 0.80, 0.72];
+      return [0.74, 0.80, 0.86];
     }
 
-    function 构建自我场景存在认知视图(data) {
-      const total = 读取自我场景存在总量(data);
-      const renderCount = Math.min(total, 180);
-      const directCount = Math.max(0, Number(data?.sceneDirectExistences || 0));
-      const verifiedCount = Math.max(0, Number(data?.verifiedCount || 0));
-      const sampleCount = Math.min(renderCount, 解析自我场景存在样例(data).length);
+    function 自我场景存在盒颜色(item) {
+      if (Number(item?.textureReady || 0) > 0) return [0.78, 0.52, 0.10];
+      if (Number(item?.colorBuffer || 0) > 0 || Number(item?.pixelColorLayer || 0) > 0) return [0.18, 0.38, 0.70];
+      if (Number(item?.confirmState || 0) > 0) return [0.08, 0.34, 0.32];
+      return [0.30, 0.36, 0.42];
+    }
+
+    function 构建自我场景真实存在视图(data) {
+      const items = 读取自我场景真实存在列表(data);
       const nodes = [];
-      for (let i = 0; i < renderCount; ++i) {
-        const ring = Math.floor(Math.sqrt(i));
-        const angle = i * 2.399963229728653;
-        const radius = 220 + ring * 90;
-        const point = [
-          Math.cos(angle) * radius,
-          80 + (i % 6) * 32 + Math.floor(i / 36) * 22,
-          Math.sin(angle) * radius
-        ];
-        let color = [0.42, 0.66, 1.0];
-        let lineColor = [0.10, 0.22, 0.42];
-        if (i < directCount) {
-          color = [0.12, 0.80, 0.72];
-          lineColor = [0.08, 0.34, 0.32];
-        }
-        if (i < verifiedCount) {
-          color = [0.95, 0.78, 0.24];
-          lineColor = [0.42, 0.32, 0.08];
-        }
-        if (i < sampleCount) {
-          color = [1.0, 0.96, 0.68];
-        }
-        nodes.push({ point, color, lineColor });
-      }
-      return { nodes, total, rendered: renderCount, truncated: total > renderCount };
+      items.forEach((item) => {
+        if (!自我场景存在可取中心(item)) return;
+        nodes.push({
+          item,
+          point: 自我场景数组3(item.center),
+          color: 自我场景存在显示颜色(item),
+          lineColor: 自我场景存在盒颜色(item)
+        });
+      });
+      const renderLimit = 512;
+      return {
+        nodes: nodes.slice(0, renderLimit),
+        total: items.length,
+        rendered: Math.min(nodes.length, renderLimit),
+        truncated: nodes.length > renderLimit
+      };
     }
 
     function 构建自我场景几何(data) {
@@ -11817,10 +12239,21 @@ std::string 私有_生成控制面板HTML(
       pushLine([0, 0, 0], [0, 0, axisLen], [0.38, 0.65, 0.98]);
       pushPoint([0, 0, 0], [1.0, 1.0, 1.0]);
 
-      const existenceView = 构建自我场景存在认知视图(data || {});
-      existenceView.nodes.forEach((node, index) => {
-        if (index < 96) {
-          pushLine([0, 0, 0], node.point, node.lineColor);
+      const pushBox = (mn, mx, color) => {
+        const corners = [
+          [mn[0], mn[1], mn[2]], [mx[0], mn[1], mn[2]], [mx[0], mx[1], mn[2]], [mn[0], mx[1], mn[2]],
+          [mn[0], mn[1], mx[2]], [mx[0], mn[1], mx[2]], [mx[0], mx[1], mx[2]], [mn[0], mx[1], mx[2]]
+        ];
+        [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach((edge) => {
+          pushLine(corners[edge[0]], corners[edge[1]], color);
+        });
+      };
+
+      const existenceView = 构建自我场景真实存在视图(data || {});
+      existenceView.nodes.forEach((node) => {
+        const item = node.item || {};
+        if (自我场景存在可取范围(item)) {
+          pushBox(自我场景数组3(item.min), 自我场景数组3(item.max), node.lineColor);
         }
         pushPoint(node.point, node.color);
       });
@@ -11831,13 +12264,7 @@ std::string 私有_生成控制面板HTML(
         const mx = candidate.max || [0, 0, 0];
         const boxColor = data?.verifiedFlag ? [0.06, 0.84, 0.56] : [0.96, 0.58, 0.12];
         const pointColor = data?.verifiedFlag ? [0.78, 1.0, 0.72] : [0.06, 0.84, 0.56];
-        const corners = [
-          [mn[0], mn[1], mn[2]], [mx[0], mn[1], mn[2]], [mx[0], mx[1], mn[2]], [mn[0], mx[1], mn[2]],
-          [mn[0], mn[1], mx[2]], [mx[0], mn[1], mx[2]], [mx[0], mx[1], mx[2]], [mn[0], mx[1], mx[2]]
-        ];
-        [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach((edge) => {
-          pushLine(corners[edge[0]], corners[edge[1]], boxColor);
-        });
+        pushBox(mn, mx, boxColor);
         pushPoint(candidate.center || [0, 0, 0], pointColor);
       }
 
@@ -12066,7 +12493,7 @@ std::string 私有_生成控制面板HTML(
           frame: 0
         };
         const existenceStatus = geometry.existenceTotalCount > 0
-          ? `已绘制 ${geometry.existenceNodeCount}/${geometry.existenceTotalCount} 个场景存在认知节点。`
+          ? `已绘制 ${geometry.existenceNodeCount}/${geometry.existenceTotalCount} 个存在特征复现项。`
           : '';
         设置自我场景状态(
           (自我场景复现数据 && 自我场景复现数据.ok)
