@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>任务执行及结算流程图 v0.3</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    .canvas { min-width: 2300px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 2260px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1280px; line-height: 1.65; font-size: 14px; }
+    .notes h2 { margin: 0 0 8px; font-size: 17px; }
+    .notes ul { margin: 8px 0 0 20px; padding: 0; }
+    .legend { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 8px; margin-top: 10px; }
+    .legend span { display: block; padding: 6px 8px; border: 1px solid #d8dee4; border-radius: 6px; background: #f6f8fa; }
+    .legend .added { background: #e6f4ea; border-color: #1a7f37; }
+    .legend .changed { background: #fff8c5; border-color: #bf8700; }
+    .legend .evidence { background: #ddf4ff; border-color: #0969da; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>任务执行及结算流程图 v0.3</h1>
+    <p class="hint">轻量接口契约修订：在 v0.2 上补 VX0 任务执行闭环验证、VC0 结算闭环验证、B8 执行报告不等于实际事实；不表示代码已完成重构。</p>
+    <div class="legend">
+      <span class="added">绿色：新增接口 / 报告</span>
+      <span class="changed">黄色：调整读取规则</span>
+      <span class="evidence">蓝色：证据输入</span>
+      <span>灰色：边界规则</span>
+    </div>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    Start["任务管理界面线程派发工作项"] --> WT7["调用任务执行普通函数<br/>任务执行不是本能方法"]
+    WT7 --> WT11["WT11 执行方法<br/>执行桥.执行方法_同步等待"]
+    WT11 --> WT12["WT12 读取本能方法运行闭环视图<br/>只得到执行报告态 / 运行回执"]
+    WT12 --> VX0["新增 VX0：任务执行闭环验证<br/>读取目标态G / 预测态P / 执行报告态E / 实际回读态R<br/>生成动作验证报告V"]
+    VX0 --> VREP["动作验证报告V<br/>事务ID / 来源任务 / 来源方法<br/>目标值 / 预测值 / 实际值 / 执行报告值<br/>目标偏差 / 预测偏差 / 报告偏差<br/>回读置信度 / 验证状态 / 事实提交等级 / 纠偏建议"]
+    VREP --> WT13["WT13 验证实际结果状态与来源需求目标<br/>由闭环验证报告驱动"]
+    WT13 --> WT14["WT14 计算完成度<br/>按实际回读态R与目标态G比较"]
+    WT14 --> WT15{"WT15 目标达成?"}
+    WT15 -- "实际满足目标" --> WT16["推导任务状态=完成<br/>仍需提交任务状态变化"]
+    WT15 -- "回读不足" --> WAIT["等待 / 补观察 / 补证据"]
+    WT15 -- "实际与目标冲突" --> REPLAN["重筹办 / 纠偏 / 补条件"]
+    WT16 --> UP0["结果状态上行消息<br/>携带动作验证报告引用"]
+
+    UP0 --> UP5["私有_落任务管理结果到自我内部世界"]
+    UP5 --> CL0["CL0 读取任务结算域材料<br/>任务类型 / 来源需求 / 治理标签 / 结果域 / 完成度 / 价值增量"]
+    CL0 --> VC0["新增 VC0：结算闭环验证<br/>读取动作验证报告V、来源需求、完成度、因果证据和价值增量<br/>生成结算闭环验证报告"]
+    VC0 --> CL1{"CL1 任务结算域?"}
+
+    CL1 -- "普通价值任务 / 普通叶子任务" --> SET0["普通满足反馈<br/>按验证后的实际结果满足来源需求"]
+    SET0 --> VAL0["处理普通任务价值反馈"]
+    VAL0 --> VAL1{"VAL1 核心价值结算硬闸门<br/>必须读取 VC0 报告"}
+    VAL1 -- "闭环验证通过 + 完成度合法 + 增量合法 + 因果证据成立" --> VAL2["计算安全 / 服务增量<br/>I64_MAX 哨兵不得入账"]
+    VAL1 -- "任一条件不通过" --> VAL_STOP["阻断核心值结算<br/>记录待补证据或候选"]
+    VAL2 --> VAL3["提交任务已结算状态"]
+    VAL3 --> VAL5["调用结算叶子任务价值<br/>仅普通价值任务允许"]
+
+    CL1 -- "内部治理任务" --> GOV0["治理闭账<br/>确认治理变化已落账"]
+    GOV0 --> GOV1["提交任务已结算状态<br/>不调用结算叶子任务价值"]
+    GOV1 --> PARENT["唤醒治理父任务 / 解锁等待项"]
+
+    CL1 -- "证据搜索 / 特殊无价值任务" --> EVD0["证据闭账<br/>写证据、风险影响或缺口回执"]
+    EVD0 --> EVD1["提交任务已结算状态<br/>不写核心安全值 / 服务值"]
+    EVD1 --> PARENT
+
+    CL1 -- "仅闭账" --> CLOSE0["仅闭账<br/>完成但缺普通核心价值条件"]
+    CLOSE0 --> CLOSE1["提交任务已结算状态<br/>不进入 VAL0 / VAL5"]
+    CLOSE1 --> PARENT
+
+    IF5["任务状态动作动态"] -. "仅作为完成 / 已结算被动因证据" .-> VX0
+    IF5 -. "仅作为结算证据之一" .-> VC0
+
+    subgraph DiffNotes["v0.2 差异标记"]
+        D1["新增：WT12 -> VX0 -> WT13"]
+        D2["新增：CL0 -> VC0 -> CL1"]
+        D3["新增：B8 执行报告 != 实际事实"]
+        D4["调整：VAL1 必须读取 VC0 报告"]
+    end
+    D1 -. "接口插入" .-> VX0
+    D2 -. "接口插入" .-> VC0
+    D4 -. "硬闸门依赖" .-> VAL1
+
+    subgraph Boundaries["关键边界"]
+        B1["任务筹办 / 任务执行是生命周期普通函数<br/>不进方法候选集，不生成方法动作动态"]
+        B2["线程不是动作来源<br/>任务状态变化必须走提交任务状态变化"]
+        B3["完成 != 已结算"]
+        B7["普通价值结算 != 内部治理闭账"]
+        B8["新增 B8：执行报告 != 实际事实<br/>完成判断、结算域分类和核心价值闸门<br/>必须读取闭环验证报告"]
+    end
+    B1 --> WT7
+    B2 --> IF5
+    B3 --> CL1
+    B7 --> GOV0
+    B8 --> VX0
+    B8 --> VC0
+
+    classDef added fill:#e6f4ea,stroke:#1a7f37,color:#1f2328,stroke-width:2px;
+    classDef changed fill:#fff8c5,stroke:#bf8700,color:#1f2328,stroke-width:2px;
+    classDef evidence fill:#ddf4ff,stroke:#0969da,color:#1f2328,stroke-width:2px,stroke-dasharray:5 3;
+    classDef boundary fill:#f6f8fa,stroke:#57606a,color:#1f2328;
+
+    class VX0,VC0,B8,VREP added;
+    class WT13,WT14,WT15,CL1,VAL1 changed;
+    class IF5 evidence;
+    class B1,B2,B3,B7 boundary;
+      </pre>
+    </section>
+    <section class="notes">
+      <h2>新增接口节点</h2>
+      <ul>
+        <li><code>VX0</code>：任务执行闭环验证，插入 <code>WT12 -> WT13</code>。</li>
+        <li><code>VC0</code>：结算闭环验证，插入 <code>CL0 -> CL1</code>。</li>
+        <li><code>B8</code>：执行报告不是实际事实，完成判断和结算判断必须读取闭环验证报告。</li>
+      </ul>
+      <h2>执行顺序</h2>
+      <ul>
+        <li>先实现动作验证报告最小能力。</li>
+        <li>再接 <code>WT11-WT15</code>。</li>
+        <li>再接 <code>CL0/VC0/CL1</code>。</li>
+        <li>最后接 <code>VAL1</code>、治理闭账、证据闭账和学习。</li>
+      </ul>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      flowchart: {
+        htmlLabels: true,
+        curve: "basis"
+      },
+      theme: "default"
+    });
+  </script>
+</body>
+</html>
