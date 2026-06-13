@@ -19,6 +19,7 @@ module;
 #include "方法虚拟存在服务类.h"
 #include "语素类.h"
 #include "双目相机本能适配器.h"
+#include "预处理开关变量.h"
 
 export module 自我动作实现.外设模块;
 
@@ -78,6 +79,11 @@ namespace {
     inline constexpr I64 可观测单位存在对应事实提交状态_已提交 = 1;
     inline constexpr I64 可观测单位存在对应事实提交状态_部分提交 = 2;
     inline constexpr I64 可观测单位存在对应事实提交状态_条件不足 = 3;
+
+    inline constexpr bool 外设动作调试日志输出启用() noexcept
+    {
+        return 鱼巢_开关_启用调试日志输出 != 0;
+    }
     inline constexpr I64 当前场景特征值可读状态_未可读 = 0;
     inline constexpr I64 当前场景特征值可读状态_部分可读 = 1;
     inline constexpr I64 当前场景特征值可读状态_可读 = 2;
@@ -8386,6 +8392,10 @@ namespace {
                     std::chrono::steady_clock::now() - 开始).count());
         };
         auto 输出慢环境日志 = [&](const char* 结果) noexcept {
+            if constexpr (!外设动作调试日志输出启用()) {
+                (void)结果;
+                return;
+            }
             if (!是D455缺报告环境诊断本能方法(本能ID)) {
                 return;
             }
@@ -23026,7 +23036,7 @@ export namespace 自我动作实现模块::外设模块 {
                     << " | 输出运行=" << 基础节点日志文本(reinterpret_cast<基础信息节点类*>(输出运行));
                 项目运行日志(输出.str());
             }
-            {
+            if constexpr (外设动作调试日志输出启用()) {
                 std::ostringstream 输出;
                 输出 << "当前观察范围可观测单位存在对应事实提交/内部阶段耗时"
                     << " | 总耗时微秒=" << 阶段耗时微秒(阶段开始, 阶段_快退结束)
@@ -23552,7 +23562,8 @@ export namespace 自我动作实现模块::外设模块 {
         }
         更新方法运行账(环境.方法首节点, 输出运行, 运行闭环成功, now);
         const auto 阶段_运行账结束 = 结构体_时间戳::当前_微秒();
-        if (缺报告失败快退 || 阶段耗时微秒(阶段开始, 阶段_运行账结束) >= 100000) {
+        if constexpr (外设动作调试日志输出启用()) {
+            if (缺报告失败快退 || 阶段耗时微秒(阶段开始, 阶段_运行账结束) >= 100000) {
             std::ostringstream 输出;
             输出 << "当前观察范围可观测单位存在对应事实提交/内部阶段耗时"
                 << " | 总耗时微秒=" << 阶段耗时微秒(阶段开始, 阶段_运行账结束)
@@ -23576,6 +23587,7 @@ export namespace 自我动作实现模块::外设模块 {
                 << " | 运行闭环成功=" << (运行闭环成功 ? 1 : 0)
                 << " | 动作动态=" << 基础节点日志文本(reinterpret_cast<基础信息节点类*>(动态));
             项目运行日志(输出.str());
+            }
         }
         return 输出运行;
     }
