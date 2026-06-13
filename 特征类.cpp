@@ -2031,28 +2031,62 @@ std::vector<特征节点类*> 特征类::获取子特征(const 基础信息节�
 
 特征节点类* 特征类::查找子特征_按类型(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型) const
 {
-    if (!特征类型) return nullptr;
+    if (!基础信息_ || !特征类型) return nullptr;
 
-    for (auto* 节点 : 获取子特征(宿主)) {
-        const auto* 主信息 = 取特征主信息(节点);
+    auto lk = 基础信息_->获取读锁();
+    auto* 父 = 宿主 ? const_cast<基础信息节点类*>(宿主) : 基础信息_->世界根();
+    if (!父 || !父->子) return nullptr;
+
+    auto* 首节点 = static_cast<基础信息节点类*>(父->子);
+    auto* 当前 = 首节点;
+    do {
+        const auto* 主信息 = 基础信息_->取主信息<特征节点主信息类>(当前);
         if (主信息 && 私有_语素入口相同(主信息->类型, 特征类型)) {
-            return 节点;
+            return static_cast<特征节点类*>(当前);
         }
-    }
+        当前 = static_cast<基础信息节点类*>(当前->下);
+    } while (当前 && 当前 != 首节点);
     return nullptr;
 }
 
 特征节点类* 特征类::查找子特征_按名称(const 基础信息节点类* 宿主, const 语素入口节点类* 名称) const
 {
-    if (!名称) return nullptr;
+    if (!基础信息_ || !名称) return nullptr;
 
-    for (auto* 节点 : 获取子特征(宿主)) {
-        const auto* 主信息 = 取特征主信息(节点);
+    auto lk = 基础信息_->获取读锁();
+    auto* 父 = 宿主 ? const_cast<基础信息节点类*>(宿主) : 基础信息_->世界根();
+    if (!父 || !父->子) return nullptr;
+
+    auto* 首节点 = static_cast<基础信息节点类*>(父->子);
+    auto* 当前 = 首节点;
+    do {
+        const auto* 主信息 = 基础信息_->取主信息<特征节点主信息类>(当前);
         if (主信息 && 私有_语素入口相同(主信息->名称, 名称)) {
-            return 节点;
+            return static_cast<特征节点类*>(当前);
         }
-    }
+        当前 = static_cast<基础信息节点类*>(当前->下);
+    } while (当前 && 当前 != 首节点);
     return nullptr;
+}
+
+特征值 特征类::读取子特征值_按类型(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型) const
+{
+    if (!基础信息_ || !特征类型) return 特征值{};
+
+    auto lk = 基础信息_->获取读锁();
+    auto* 父 = 宿主 ? const_cast<基础信息节点类*>(宿主) : 基础信息_->世界根();
+    if (!父 || !父->子) return 特征值{};
+
+    auto* 首节点 = static_cast<基础信息节点类*>(父->子);
+    auto* 当前 = 首节点;
+    do {
+        const auto* 主信息 = 基础信息_->取主信息<特征节点主信息类>(当前);
+        if (主信息 && 私有_语素入口相同(主信息->类型, 特征类型)) {
+            return 主信息->当前值;
+        }
+        当前 = static_cast<基础信息节点类*>(当前->下);
+    } while (当前 && 当前 != 首节点);
+    return 特征值{};
 }
 
 bool 特征类::特征值命中值域(const 特征值& 值, const 特征值域& 值域) const
@@ -2368,6 +2402,8 @@ bool 特征类::写入特征值_指针句柄(特征节点类* 节点, 指针句�
 
 特征值 特征类::读取特征值(const 特征节点类* 节点) const
 {
+    if (!基础信息_) return 特征值{};
+    auto lk = 基础信息_->获取读锁();
     const auto* 主信息 = 取特征主信息(节点);
     return 主信息 ? 主信息->当前值 : 特征值{};
 }

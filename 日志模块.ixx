@@ -349,10 +349,12 @@ namespace 日志::detail {
                 上次刷新时间 = 当前刷新时间;
             }
 
+#if 鱼巢_开关_启用调试器输出
             if (输出到调试器) {
                 const auto 调试文本 = utf8_to_wide_lossy(行文本 + "\n");
                 ::OutputDebugStringW(调试文本.c_str());
             }
+#endif
         }
 
         void 关闭() {
@@ -413,6 +415,16 @@ namespace 日志::detail {
         return 实例;
     }
 
+    inline constexpr bool 日志输出已启用(枚举_日志类别 类别, 枚举_日志级别 级别) noexcept {
+        const bool 逻辑错误输出 =
+            类别 == 枚举_日志类别::异常
+            || static_cast<std::int8_t>(级别) >= static_cast<std::int8_t>(枚举_日志级别::错误);
+        if (逻辑错误输出) {
+            return 鱼巢_开关_启用逻辑错误日志输出 != 0;
+        }
+        return 鱼巢_开关_启用登记管理日志输出 != 0;
+    }
+
     inline void 确保初始化_已加锁() {
         if (g_inited()) return;
         g_run().配置(g_param(), "run");
@@ -446,6 +458,9 @@ namespace 日志 {
 
     inline void 写(枚举_日志类别 类别, 枚举_日志级别 级别, std::string_view msg) {
         if (detail::g_shutdown().load(std::memory_order_acquire)) {
+            return;
+        }
+        if (!detail::日志输出已启用(类别, 级别)) {
             return;
         }
 
@@ -544,7 +559,12 @@ void 项目运行错误日志(const std::string& 文本) noexcept
 void 项目弹窗错误提示(const std::string& 标题, const std::string& 文本) noexcept
 {
     try {
+        (void)标题;
+        (void)文本;
+#if 鱼巢_开关_启用逻辑错误日志输出
         日志::运行_错误("弹窗错误提示 | 标题=" + 标题 + " | 文本=" + 文本);
+#endif
+#if 鱼巢_开关_启用逻辑错误日志输出 && 鱼巢_开关_启用UI直接提示输出 && 鱼巢_开关_启用项目弹窗错误
         const auto 宽标题 = 日志::detail::utf8_to_wide_lossy(标题);
         const auto 宽文本 = 日志::detail::utf8_to_wide_lossy(文本);
         const int 返回值 = ::MessageBoxW(
@@ -554,6 +574,7 @@ void 项目弹窗错误提示(const std::string& 标题, const std::string& 文�
             MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND);
         // 弹窗是同步阻塞调用；返回后再落一条日志，便于确认用户侧是否已看到并关闭弹窗。
         日志::运行_错误("弹窗错误提示已返回 | 标题=" + 标题 + " | 返回值=" + std::to_string(返回值));
+#endif
     }
     catch (...) {
     }
@@ -567,6 +588,7 @@ void 项目提示不允许空指(
     const char* 函数) noexcept
 {
     try {
+#if 鱼巢_开关_启用逻辑错误日志输出
         std::ostringstream 输出;
         输出 << "不允许为空的指针为空"
             << " | 上下文=" << (上下文 ? 上下文 : "")
@@ -576,8 +598,15 @@ void 项目提示不允许空指(
             << " | 函数=" << (函数 ? 函数 : "");
         const auto 文本 = 输出.str();
         项目运行错误日志(文本);
-#if 鱼巢_开关_启用不允许空指弹窗
+#if 鱼巢_开关_启用不允许空指弹窗 && 鱼巢_开关_启用UI直接提示输出 && 鱼巢_开关_启用项目弹窗错误
         项目弹窗错误提示("鱼巢 - 空指逻辑错误", 文本);
+#endif
+#else
+        (void)上下文;
+        (void)表达式;
+        (void)文件;
+        (void)行;
+        (void)函数;
 #endif
     }
     catch (...) {
@@ -586,6 +615,7 @@ void 项目提示不允许空指(
 
 void 项目自检无上级需求日志(const std::string& 文本) noexcept
 {
+#if 鱼巢_开关_启用调试日志输出 && 鱼巢_开关_启用自检日志入口
     try {
         if (日志::detail::g_shutdown().load(std::memory_order_acquire)) {
             return;
@@ -606,6 +636,9 @@ void 项目自检无上级需求日志(const std::string& 文本) noexcept
     }
     catch (...) {
     }
+#else
+    (void)文本;
+#endif
 }
 
 void 项目记录异常日志(const std::exception& 异常, const std::string& 上下文) noexcept

@@ -170,6 +170,7 @@ public:
     std::vector<特征节点类*> 获取子特征(const 基础信息节点类* 宿主) const;
     特征节点类* 查找子特征_按类型(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型) const;
     特征节点类* 查找子特征_按名称(const 基础信息节点类* 宿主, const 语素入口节点类* 名称) const;
+    特征值 读取子特征值_按类型(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型) const;
     bool 特征值命中值域(const 特征值& 值, const 特征值域& 值域) const;
     bool 匹配抽象特征(const 抽象特征节点类* 抽象特征, const 特征节点类* 实例特征) const;
     特征节点类* 查找实例特征_按抽象特征(

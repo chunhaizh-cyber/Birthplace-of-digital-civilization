@@ -413,6 +413,39 @@ inline bool 本能动作语素入口是执行缺口(const 语素入口节点类*
     return 主键.rfind("执行缺口_", 0) == 0;
 }
 
+inline std::string 本能动作基础节点指针文本(const 基础信息节点类* 节点)
+{
+    return 节点
+        ? std::to_string(reinterpret_cast<std::uintptr_t>(节点))
+        : std::string("空");
+}
+
+inline bool 本能动作基础节点属于当前世界树(const 基础信息节点类* 节点) noexcept
+{
+    if (!节点) return false;
+    const auto* 根节点 = 世界树.基础信息().世界根();
+    if (节点 == 根节点) return true;
+    const auto 全部节点 = 世界树.基础信息().枚举全部节点();
+    for (const auto* 当前 : 全部节点) {
+        if (当前 == 节点) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline void 本能动作记录无效闭环宿主(
+    const char* 阶段,
+    const 基础信息节点类* 宿主) noexcept
+{
+    std::ostringstream 输出;
+    输出 << "本能动作管理/闭环视图无效基础宿主"
+        << " | 阶段=" << (阶段 ? 阶段 : "未定义")
+        << " | 宿主指针=" << 本能动作基础节点指针文本(宿主)
+        << " | 处理=拒绝读取闭环指针事实";
+    项目运行错误日志(输出.str());
+}
+
 inline bool 本能动作读指针特征(
     const 基础信息节点类* 宿主,
     const 语素入口节点类* 特征类型,
@@ -430,6 +463,10 @@ inline void 本能动作补读闭环指针事实(
     结构_本能方法运行闭环视图& 视图) noexcept
 {
     if (!宿主) return;
+    if (!本能动作基础节点属于当前世界树(宿主)) {
+        本能动作记录无效闭环宿主("补读闭环指针事实", 宿主);
+        return;
+    }
     void* 指针 = nullptr;
     if (!视图.方法执行情况
         && 本能动作读指针特征(宿主, 本能动作方法执行情况特征词(), 指针)) {

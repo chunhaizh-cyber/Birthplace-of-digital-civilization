@@ -15,10 +15,18 @@ module;
 #include <utility>
 #include <vector>
 
+#include "预处理开关变量.h"
+
 module D455相机模块;
 
 import 基础数据类型模块;
 import 相机接口模块;
+
+#if 鱼巢_开关_启用控制台输出
+#define 鱼巢_D455控制台输出(表达式) do { 表达式; } while (false)
+#else
+#define 鱼巢_D455控制台输出(表达式) do { } while (false)
+#endif
 
 #pragma pack(push, 16)
 class D455_相机实现::实现 {
@@ -62,7 +70,7 @@ public:
             return true;
         }
         catch (const rs2::error& e) {
-            std::cerr << "D455 打开失败: " << e.what() << std::endl;
+            鱼巢_D455控制台输出(std::cerr << "D455 打开失败: " << e.what() << std::endl);
             已打开 = false;
             return false;
         }
@@ -164,7 +172,7 @@ public:
             return true;
         }
         catch (const rs2::error& e) {
-            std::cerr << "采集一帧失败: " << e.what() << std::endl;
+            鱼巢_D455控制台输出(std::cerr << "采集一帧失败: " << e.what() << std::endl);
             return false;
         }
     }
@@ -208,7 +216,7 @@ public:
             return true;
         }
         catch (const rs2::error& e) {
-            std::cerr << "D455 应用配置失败: " << e.what() << std::endl;
+            鱼巢_D455控制台输出(std::cerr << "D455 应用配置失败: " << e.what() << std::endl);
             return false;
         }
     }

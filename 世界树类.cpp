@@ -883,8 +883,7 @@ bool 世界树类::写入特征_VecI64(
 
 特征值 世界树类::读取特征快照(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型) const
 {
-    auto* 特征节点 = 特征服务_.查找子特征_按类型(宿主, 特征类型);
-    return 特征节点 ? 读取特征快照(特征节点) : 特征值{};
+    return 特征服务_.读取子特征值_按类型(宿主, 特征类型);
 }
 
 bool 世界树类::读取特征_I64(const 特征节点类* 节点, I64& 输出值) const
@@ -899,8 +898,12 @@ bool 世界树类::读取特征_I64(const 特征节点类* 节点, I64& 输出�
 
 bool 世界树类::读取特征_I64(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型, I64& 输出值) const
 {
-    auto* 特征节点 = 特征服务_.查找子特征_按类型(宿主, 特征类型);
-    return 特征节点 ? 读取特征_I64(特征节点, 输出值) : false;
+    const auto 值 = 读取特征快照(宿主, 特征类型);
+    if (const auto* 标量 = std::get_if<I64>(&值)) {
+        输出值 = *标量;
+        return true;
+    }
+    return false;
 }
 
 bool 世界树类::读取特征_指针(const 特征节点类* 节点, void*& 输出指针) const
@@ -919,8 +922,13 @@ bool 世界树类::读取特征_指针(
     const 语素入口节点类* 特征类型,
     void*& 输出指针) const
 {
-    auto* 特征节点 = 特征服务_.查找子特征_按类型(宿主, 特征类型);
-    return 特征节点 ? 读取特征_指针(特征节点, 输出指针) : false;
+    输出指针 = nullptr;
+    const auto 值 = 读取特征快照(宿主, 特征类型);
+    if (const auto* 句柄 = std::get_if<指针句柄>(&值)) {
+        输出指针 = reinterpret_cast<void*>(句柄->指针);
+        return 句柄->有效();
+    }
+    return false;
 }
 
 const VecIU64* 世界树类::读取特征VecU(const 特征节点类* 节点) const
@@ -946,8 +954,14 @@ bool 世界树类::读取特征VecI64(
     const 语素入口节点类* 特征类型,
     VecI64& 输出值) const
 {
-    auto* 特征节点 = 特征服务_.查找子特征_按类型(宿主, 特征类型);
-    return 特征节点 ? 读取特征VecI64(特征节点, 输出值) : false;
+    输出值.clear();
+    const auto 值 = 读取特征快照(宿主, 特征类型);
+    const auto* 句柄 = std::get_if<VecU句柄>(&值);
+    if (!句柄) return false;
+    const auto* 原始值 = 值池_.取VecU只读指针(*句柄);
+    if (!原始值) return false;
+    输出值 = 解码VecIU64为VecI64(*原始值);
+    return true;
 }
 
 结构_轮廓比较结果 世界树类::比较轮廓特征_按特征类型(

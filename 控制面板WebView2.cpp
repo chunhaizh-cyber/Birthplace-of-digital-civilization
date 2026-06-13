@@ -23,6 +23,7 @@ module;
 #include <wrl.h>
 
 #include "WebView2导入.h"
+#include "预处理开关变量.h"
 
 module 控制面板WebView2;
 
@@ -1517,7 +1518,9 @@ namespace {
                     L"WebView2 初始化失败。\n诊断码："
                     + std::to_wstring(诊断码)
                     + L"\n详细信息已写入 ./日志。";
+#if 鱼巢_开关_启用UI直接提示输出
                 MessageBoxW(窗口, 正文.c_str(), L"鱼巢控制面板", MB_OK | MB_ICONERROR);
+#endif
             }
             return 0;
         }
