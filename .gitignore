@@ -42,5 +42,6 @@ __stdin.txt
 tmp/
 logs/
 日志/
+消息中间件/
 _run_*/
 _run_*
