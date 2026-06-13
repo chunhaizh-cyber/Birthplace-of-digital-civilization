@@ -42,6 +42,11 @@ namespace {
     inline constexpr I64 OR组令牌提交状态_首次领取 = 1;
     inline constexpr I64 OR组令牌提交状态_重复领取 = 2;
 
+    inline constexpr bool 自我动作调试日志输出启用() noexcept
+    {
+        return 鱼巢_开关_启用调试日志输出 != 0;
+    }
+
     inline const 语素入口节点类* 词_被动动作() noexcept
     {
         static const 语素入口节点类* s_词 =
@@ -4058,6 +4063,10 @@ namespace {
                     std::chrono::steady_clock::now() - 开始).count());
         };
         auto 输出慢环境日志 = [&](const char* 结果) noexcept {
+            if constexpr (!自我动作调试日志输出启用()) {
+                (void)结果;
+                return;
+            }
             if (!任务状态提交诊断日志启用()) {
                 return;
             }
@@ -10700,6 +10709,11 @@ export namespace 自我动作实现模块 {
         auto 输出动作动态创建阶段耗时 = [&](
             const char* 创建结果文本,
             bool 成功) {
+            if constexpr (!自我动作调试日志输出启用()) {
+                (void)创建结果文本;
+                (void)成功;
+                return;
+            }
             const auto 总耗时微秒 = 任务状态被动提交内部阶段耗时微秒(
                 动作动态创建阶段开始,
                 任务状态被动提交内部阶段时间点());
@@ -11100,6 +11114,11 @@ export namespace 自我动作实现模块 {
         auto 输出内部阶段耗时 = [&](
             const char* 提交结果文本,
             bool 成功) {
+            if constexpr (!自我动作调试日志输出启用()) {
+                (void)提交结果文本;
+                (void)成功;
+                return;
+            }
             const auto 总耗时微秒 = 任务状态被动提交内部阶段耗时微秒(
                 内部阶段开始,
                 任务状态被动提交内部阶段时间点());
