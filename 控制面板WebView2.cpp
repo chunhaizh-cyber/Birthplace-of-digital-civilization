@@ -32,8 +32,8 @@ import 日志模块;
 import 任务模块.管理界面线程;
 import 自我类;
 import 自我线程模块;
-import D455相机模块;
-import 基础数据类型模块;
+import 外设观察报告队列;
+import 外设线程_D455深度相机;
 
 using Microsoft::WRL::ComPtr;
 
@@ -69,12 +69,9 @@ namespace {
     std::atomic_bool 私有_相机播放窗口启动中{ false };
     std::atomic_bool 私有_自我场景窗口启动中{ false };
     std::atomic<int> 私有_启动诊断码{ 0 };
-    std::mutex 私有_相机互斥{};
-    std::unique_ptr<D455_相机实现> 私有_相机{};
-    bool 私有_相机已打开 = false;
-    HMODULE 私有_RealSense运行时模块 = nullptr;
+    std::atomic_bool 私有_相机窗口启动过外设线程{ false };
 
-    struct 结构_相机轮廓框 {
+    struct 结构_相机分割框 {
         int x = 0;
         int y = 0;
         int w = 0;
@@ -91,11 +88,13 @@ namespace {
         std::uint32_t 深度帧号 = 0;
         std::uint32_t 彩色帧号 = 0;
         std::uint64_t 设备时间_us = 0;
-        std::size_t 轮廓数 = 0;
+        std::size_t 分割簇数 = 0;
+        std::int64_t 分割像素数 = 0;
         std::string 彩色RGB_Base64{};
-        std::string 轮廓掩膜_Base64{};
-        std::vector<结构_相机轮廓框> 轮廓框{};
+        std::string 分割RGB_Base64{};
+        std::vector<结构_相机分割框> 分割框{};
         std::string 消息{};
+        bool 等待中 = false;
     };
 
     std::string 私有_HRESULT文本(HRESULT 值)
@@ -308,52 +307,6 @@ namespace {
         return std::filesystem::path(缓冲区).parent_path();
     }
 
-    bool 私有_确保RealSense运行时(std::string& 错误消息) noexcept
-    {
-        if (私有_RealSense运行时模块) {
-            return true;
-        }
-
-        try {
-            const auto 模块目录 = 私有_模块目录();
-            const auto 主DLL = (模块目录 / L"realsense2.dll").lexically_normal();
-            const auto LZ4DLL = (模块目录 / L"lz4.dll").lexically_normal();
-
-            if (!std::filesystem::exists(主DLL)) {
-                错误消息 = "RealSense 运行时缺失: " + 私有_路径UTF8(主DLL);
-                return false;
-            }
-            if (!std::filesystem::exists(LZ4DLL)) {
-                错误消息 = "RealSense 依赖缺失: " + 私有_路径UTF8(LZ4DLL);
-                return false;
-            }
-
-            私有_RealSense运行时模块 = LoadLibraryExW(
-                主DLL.c_str(),
-                nullptr,
-                LOAD_WITH_ALTERED_SEARCH_PATH);
-            if (!私有_RealSense运行时模块) {
-                const DWORD 错误 = GetLastError();
-                std::ostringstream 输出;
-                输出 << "RealSense 运行时加载失败"
-                    << " | Win32=" << 错误
-                    << " | 路径=" << 私有_路径UTF8(主DLL);
-                错误消息 = 输出.str();
-                return false;
-            }
-
-            return true;
-        }
-        catch (const std::exception& e) {
-            错误消息 = std::string("RealSense 运行时检查异常: ") + e.what();
-            return false;
-        }
-        catch (...) {
-            错误消息 = "RealSense 运行时检查发生未知异常";
-            return false;
-        }
-    }
-
     std::vector<std::filesystem::path> 私有_加载器候选路径()
     {
         std::vector<std::filesystem::path> 路径集{};
@@ -511,88 +464,20 @@ namespace {
             (static_cast<long long>(源高) * 最大宽) / 源宽));
     }
 
-    std::vector<std::uint8_t> 私有_构建相机RGB(
-        const 结构体_原始场景帧& 帧,
-        int 宽,
-        int 高)
-    {
-        std::vector<std::uint8_t> 输出(static_cast<std::size_t>(宽) * static_cast<std::size_t>(高) * 3, 0);
-        if (宽 <= 0 || 高 <= 0 || 帧.宽度 <= 0 || 帧.高度 <= 0) {
-            return 输出;
-        }
-
-        const bool 有颜色 = 帧.有效颜色();
-        for (int y = 0; y < 高; ++y) {
-            const int sy = std::min(帧.高度 - 1, static_cast<int>(
-                (static_cast<long long>(y) * 帧.高度) / 高));
-            for (int x = 0; x < 宽; ++x) {
-                const int sx = std::min(帧.宽度 - 1, static_cast<int>(
-                    (static_cast<long long>(x) * 帧.宽度) / 宽));
-                const auto 源索引 = static_cast<std::size_t>(sy) * static_cast<std::size_t>(帧.宽度)
-                    + static_cast<std::size_t>(sx);
-                const auto 目标索引 = (static_cast<std::size_t>(y) * static_cast<std::size_t>(宽)
-                    + static_cast<std::size_t>(x)) * 3;
-                const Color 颜色 = 有颜色 ? 帧.颜色[源索引] : Color{ 0, 0, 0 };
-                输出[目标索引] = 颜色.r;
-                输出[目标索引 + 1] = 颜色.g;
-                输出[目标索引 + 2] = 颜色.b;
-            }
-        }
-        return 输出;
-    }
-
-    std::vector<std::uint8_t> 私有_构建源轮廓掩膜(const 结构体_原始场景帧& 帧)
-    {
-        const auto 像素数 = static_cast<std::size_t>(帧.宽度) * static_cast<std::size_t>(帧.高度);
-        std::vector<std::uint8_t> 输出(像素数, 0);
-        if (像素数 == 0) {
-            return 输出;
-        }
-
-        if (帧.有效前景提示()) {
-            for (std::size_t i = 0; i < 像素数; ++i) {
-                输出[i] = 帧.前景提示[i] ? 128 : 0;
-            }
-        }
-
-        for (const auto& 轮廓 : 帧.轮廓观测列表) {
-            if (轮廓.w <= 0 || 轮廓.h <= 0) {
-                continue;
-            }
-            if (!轮廓.掩膜.empty()
-                && 轮廓.掩膜.size() == static_cast<std::size_t>(轮廓.w) * static_cast<std::size_t>(轮廓.h)) {
-                for (int rv = 0; rv < 轮廓.h; ++rv) {
-                    const int y = 轮廓.y + rv;
-                    if (y < 0 || y >= 帧.高度) {
-                        continue;
-                    }
-                    for (int ru = 0; ru < 轮廓.w; ++ru) {
-                        const int x = 轮廓.x + ru;
-                        if (x < 0 || x >= 帧.宽度) {
-                            continue;
-                        }
-                        const auto 掩膜索引 = static_cast<std::size_t>(rv) * static_cast<std::size_t>(轮廓.w)
-                            + static_cast<std::size_t>(ru);
-                        if (轮廓.掩膜[掩膜索引]) {
-                            输出[static_cast<std::size_t>(y) * static_cast<std::size_t>(帧.宽度)
-                                + static_cast<std::size_t>(x)] = 255;
-                        }
-                    }
-                }
-            }
-        }
-        return 输出;
-    }
-
-    std::vector<std::uint8_t> 私有_缩放掩膜(
+    std::vector<std::uint8_t> 私有_缩放RGB(
         const std::vector<std::uint8_t>& 源,
         int 源宽,
         int 源高,
         int 宽,
         int 高)
     {
-        std::vector<std::uint8_t> 输出(static_cast<std::size_t>(宽) * static_cast<std::size_t>(高), 0);
-        if (源.empty() || 源宽 <= 0 || 源高 <= 0 || 宽 <= 0 || 高 <= 0) {
+        std::vector<std::uint8_t> 输出(static_cast<std::size_t>(宽) * static_cast<std::size_t>(高) * 3, 0);
+        const auto 源像素数 = static_cast<std::size_t>(源宽) * static_cast<std::size_t>(源高);
+        if (源宽 <= 0
+            || 源高 <= 0
+            || 宽 <= 0
+            || 高 <= 0
+            || 源.size() != 源像素数 * 3) {
             return 输出;
         }
         for (int y = 0; y < 高; ++y) {
@@ -601,23 +486,33 @@ namespace {
             for (int x = 0; x < 宽; ++x) {
                 const int sx = std::min(源宽 - 1, static_cast<int>(
                     (static_cast<long long>(x) * 源宽) / 宽));
-                输出[static_cast<std::size_t>(y) * static_cast<std::size_t>(宽) + static_cast<std::size_t>(x)] =
-                    源[static_cast<std::size_t>(sy) * static_cast<std::size_t>(源宽) + static_cast<std::size_t>(sx)];
+                const auto 源索引 = (static_cast<std::size_t>(sy) * static_cast<std::size_t>(源宽)
+                    + static_cast<std::size_t>(sx)) * 3;
+                const auto 目标索引 = (static_cast<std::size_t>(y) * static_cast<std::size_t>(宽)
+                    + static_cast<std::size_t>(x)) * 3;
+                输出[目标索引] = 源[源索引];
+                输出[目标索引 + 1] = 源[源索引 + 1];
+                输出[目标索引 + 2] = 源[源索引 + 2];
             }
         }
         return 输出;
     }
 
-    结构_相机轮廓框 私有_缩放轮廓框(const 结构体_轮廓观测& 轮廓, int 源宽, int 源高, int 宽, int 高) noexcept
+    结构_相机分割框 私有_缩放分割框(
+        const 结构_D455控制面板视频分割框& 框,
+        int 源宽,
+        int 源高,
+        int 宽,
+        int 高) noexcept
     {
-        结构_相机轮廓框 输出{};
+        结构_相机分割框 输出{};
         if (源宽 <= 0 || 源高 <= 0 || 宽 <= 0 || 高 <= 0) {
             return 输出;
         }
-        const int x0 = std::clamp(static_cast<int>((static_cast<long long>(轮廓.x) * 宽) / 源宽), 0, 宽 - 1);
-        const int y0 = std::clamp(static_cast<int>((static_cast<long long>(轮廓.y) * 高) / 源高), 0, 高 - 1);
-        const int x1 = std::clamp(static_cast<int>((static_cast<long long>(轮廓.x + 轮廓.w) * 宽) / 源宽), x0 + 1, 宽);
-        const int y1 = std::clamp(static_cast<int>((static_cast<long long>(轮廓.y + 轮廓.h) * 高) / 源高), y0 + 1, 高);
+        const int x0 = std::clamp(static_cast<int>((static_cast<long long>(框.x) * 宽) / 源宽), 0, 宽 - 1);
+        const int y0 = std::clamp(static_cast<int>((static_cast<long long>(框.y) * 高) / 源高), 0, 高 - 1);
+        const int x1 = std::clamp(static_cast<int>((static_cast<long long>(框.x + 框.w) * 宽) / 源宽), x0 + 1, 宽);
+        const int y1 = std::clamp(static_cast<int>((static_cast<long long>(框.y + 框.h) * 高) / 源高), y0 + 1, 高);
         输出.x = x0;
         输出.y = y0;
         输出.w = x1 - x0;
@@ -625,104 +520,119 @@ namespace {
         return 输出;
     }
 
-    结构_相机帧JSON 私有_构建相机帧JSON数据(const 结构体_原始场景帧& 帧)
+    bool 私有_确保相机播放外设线程(std::string& 消息) noexcept
+    {
+        try {
+            auto& 线程 = 获取全局外设线程_D455深度相机();
+            if (线程.是否运行中()) {
+                消息 = "正在读取外设线程视频材料";
+                return true;
+            }
+
+            线程.等待停止();
+            结构_D455深度相机线程配置 配置{};
+            const bool 已启动 = 启动外设线程_D455深度相机(配置);
+            if (已启动) {
+                私有_相机窗口启动过外设线程.store(true);
+                消息 = "D455外设线程已启动，等待视频材料";
+                return true;
+            }
+
+            消息 = "D455外设线程启动失败";
+            return false;
+        }
+        catch (const std::exception& e) {
+            消息 = std::string("D455外设线程启动异常: ") + e.what();
+            return false;
+        }
+        catch (...) {
+            消息 = "D455外设线程启动发生未知异常";
+            return false;
+        }
+    }
+
+    结构_相机帧JSON 私有_构建相机帧JSON数据(const 结构_D455控制面板视频快照& 快照)
     {
         结构_相机帧JSON 输出{};
-        if (!帧.有效深度()) {
-            输出.消息 = "相机帧无有效深度数据";
+        if (!快照.成功) {
+            输出.消息 = 快照.失败原因.empty()
+                ? "D455外设线程视频材料不可用"
+                : 快照.失败原因;
             return 输出;
         }
 
         输出.成功 = true;
-        输出.源宽 = 帧.宽度;
-        输出.源高 = 帧.高度;
-        输出.深度帧号 = 帧.时间戳.深度帧号;
-        输出.彩色帧号 = 帧.时间戳.彩色帧号;
-        输出.设备时间_us = 帧.时间戳.设备时间_us;
-        输出.轮廓数 = 帧.轮廓观测列表.size();
+        输出.源宽 = static_cast<int>(快照.帧宽度);
+        输出.源高 = static_cast<int>(快照.帧高度);
+        输出.深度帧号 = static_cast<std::uint32_t>(快照.深度帧号);
+        输出.彩色帧号 = static_cast<std::uint32_t>(快照.彩色帧号);
+        输出.分割簇数 = 快照.分割簇数量;
+        输出.分割像素数 = 快照.分割像素数量;
         输出.消息 = "已更新";
 
         私有_计算相机显示尺寸(输出.源宽, 输出.源高, 输出.宽, 输出.高);
-        const auto RGB = 私有_构建相机RGB(帧, 输出.宽, 输出.高);
-        const auto 源掩膜 = 私有_构建源轮廓掩膜(帧);
-        const auto 掩膜 = 私有_缩放掩膜(源掩膜, 输出.源宽, 输出.源高, 输出.宽, 输出.高);
+        const auto RGB = 私有_缩放RGB(快照.颜色RGB, 输出.源宽, 输出.源高, 输出.宽, 输出.高);
+        const auto 分割RGB = 私有_缩放RGB(快照.分割RGB, 输出.源宽, 输出.源高, 输出.宽, 输出.高);
         输出.彩色RGB_Base64 = 私有_Base64编码(RGB);
-        输出.轮廓掩膜_Base64 = 私有_Base64编码(掩膜);
+        输出.分割RGB_Base64 = 私有_Base64编码(分割RGB);
 
-        输出.轮廓框.reserve(帧.轮廓观测列表.size());
-        for (const auto& 轮廓 : 帧.轮廓观测列表) {
-            if (轮廓.w > 0 && 轮廓.h > 0) {
-                输出.轮廓框.push_back(私有_缩放轮廓框(轮廓, 输出.源宽, 输出.源高, 输出.宽, 输出.高));
+        输出.分割框.reserve(快照.分割框.size());
+        for (const auto& 框 : 快照.分割框) {
+            if (框.w > 0 && 框.h > 0) {
+                输出.分割框.push_back(私有_缩放分割框(框, 输出.源宽, 输出.源高, 输出.宽, 输出.高));
             }
         }
         return 输出;
     }
 
-    结构_相机帧JSON 私有_读取相机帧()
+    结构_相机帧JSON 私有_读取相机帧(bool 确保启动)
     {
-        std::lock_guard<std::mutex> 锁(私有_相机互斥);
         try {
-            if (!私有_相机) {
-                std::string 运行时错误;
-                if (!私有_确保RealSense运行时(运行时错误)) {
-                    项目运行错误日志("控制面板相机画面/" + 运行时错误);
-                    结构_相机帧JSON 输出{};
-                    输出.消息 = 运行时错误;
-                    return 输出;
-                }
-
-                D455_相机实现::配置项 配置{};
-                配置.启用轮廓提取 = true;
-                配置.轮廓_输出原始掩膜 = true;
-                私有_相机 = std::make_unique<D455_相机实现>(配置);
-                私有_相机已打开 = false;
-            }
-
-            if (!私有_相机已打开) {
-                if (!私有_相机->打开()) {
-                    私有_相机.reset();
-                    私有_相机已打开 = false;
-                    项目运行错误日志("控制面板相机画面/D455打开失败");
-                    结构_相机帧JSON 输出{};
-                    输出.消息 = "D455 打开失败";
-                    return 输出;
-                }
-                私有_相机已打开 = true;
-            }
-
-            结构体_原始场景帧 帧{};
-            if (!私有_相机->采集一帧(帧)) {
-                项目运行错误日志("控制面板相机画面/D455采集一帧失败");
+            std::string 外设线程消息;
+            if (确保启动 && !私有_确保相机播放外设线程(外设线程消息)) {
                 结构_相机帧JSON 输出{};
-                输出.消息 = "D455 采集一帧失败";
+                输出.消息 = 外设线程消息;
                 return 输出;
             }
-            return 私有_构建相机帧JSON数据(帧);
+
+            auto 输出 = 私有_构建相机帧JSON数据(读取最新D455控制面板视频快照());
+            if (!输出.成功 && !输出.已停止) {
+                输出.等待中 = 确保启动;
+                if (!外设线程消息.empty()) {
+                    输出.消息 = 外设线程消息 + "；" + 输出.消息;
+                }
+            }
+            return 输出;
+        }
+        catch (const std::exception& e) {
+            项目运行错误日志(std::string("控制面板相机画面/读取外设线程视频异常 | 原因=") + e.what());
+            结构_相机帧JSON 输出{};
+            输出.消息 = "相机视频材料读取异常";
+            return 输出;
         }
         catch (...) {
-            项目运行错误日志("控制面板相机画面/采集过程发生异常");
+            项目运行错误日志("控制面板相机画面/读取外设线程视频未知异常");
             结构_相机帧JSON 输出{};
-            输出.消息 = "相机采集异常";
+            输出.消息 = "相机视频材料读取未知异常";
             return 输出;
         }
     }
 
-    结构_相机帧JSON 私有_停止相机()
+    结构_相机帧JSON 私有_停止相机播放()
     {
-        std::lock_guard<std::mutex> 锁(私有_相机互斥);
-        try {
-            if (私有_相机) {
-                私有_相机->关闭();
-            }
-        }
-        catch (...) {
-        }
-        私有_相机.reset();
-        私有_相机已打开 = false;
-
         结构_相机帧JSON 输出{};
         输出.已停止 = true;
-        输出.消息 = "已停止";
+        输出.消息 = "已停止播放";
+        if (私有_相机窗口启动过外设线程.exchange(false)) {
+            const auto 队列状态 = 读取外设观察队列状态();
+            if (队列状态.等待项数量 == 0) {
+                停止外设线程_D455深度相机();
+                输出.消息 = "已停止播放，并停止控制面板启动的D455外设线程";
+            }
+            else {
+                输出.消息 = "已停止播放；D455外设线程仍有等待项，未停止";
+            }
+        }
         return 输出;
     }
 
@@ -732,6 +642,7 @@ namespace {
         输出 << "{";
         输出 << "\"ok\":" << (帧.成功 ? "true" : "false") << ",";
         输出 << "\"stopped\":" << (帧.已停止 ? "true" : "false") << ",";
+        输出 << "\"waiting\":" << (帧.等待中 ? "true" : "false") << ",";
         输出 << "\"sourceWidth\":" << 帧.源宽 << ",";
         输出 << "\"sourceHeight\":" << 帧.源高 << ",";
         输出 << "\"width\":" << 帧.宽 << ",";
@@ -739,24 +650,25 @@ namespace {
         输出 << "\"depthFrame\":" << 帧.深度帧号 << ",";
         输出 << "\"colorFrame\":" << 帧.彩色帧号 << ",";
         输出 << "\"deviceTimeUs\":" << 帧.设备时间_us << ",";
-        输出 << "\"contourCount\":" << 帧.轮廓数 << ",";
+        输出 << "\"segmentCount\":" << 帧.分割簇数 << ",";
+        输出 << "\"segmentPixels\":" << 帧.分割像素数 << ",";
         输出 << "\"message\":";
         私有_追加JSON字符串(输出, 帧.消息);
         输出 << ",";
         输出 << "\"error\":";
-        私有_追加JSON字符串(输出, 帧.成功 || 帧.已停止 ? std::string_view{} : std::string_view(帧.消息));
+        私有_追加JSON字符串(输出, 帧.成功 || 帧.已停止 || 帧.等待中 ? std::string_view{} : std::string_view(帧.消息));
         输出 << ",";
         输出 << "\"colorRGB\":";
         私有_追加JSON字符串(输出, 帧.彩色RGB_Base64);
         输出 << ",";
-        输出 << "\"contourMask\":";
-        私有_追加JSON字符串(输出, 帧.轮廓掩膜_Base64);
-        输出 << ",\"boxes\":[";
-        for (std::size_t i = 0; i < 帧.轮廓框.size(); ++i) {
+        输出 << "\"segmentationRGB\":";
+        私有_追加JSON字符串(输出, 帧.分割RGB_Base64);
+        输出 << ",\"segmentBoxes\":[";
+        for (std::size_t i = 0; i < 帧.分割框.size(); ++i) {
             if (i > 0) {
                 输出 << ",";
             }
-            const auto& 框 = 帧.轮廓框[i];
+            const auto& 框 = 帧.分割框[i];
             输出 << "{\"x\":" << 框.x
                 << ",\"y\":" << 框.y
                 << ",\"w\":" << 框.w
@@ -778,7 +690,7 @@ namespace {
         if (宽JSON.empty()) {
             return;
         }
-        const std::wstring 脚本 = L"window.__panelApplyCameraFrame(" + 宽JSON + L");";
+        const std::wstring 脚本 = L"window.__panelApplyCameraVideoFrame(" + 宽JSON + L");";
         (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
     }
 
@@ -1070,7 +982,7 @@ namespace {
         <div id="camera-frame-stat" class="stat-value">--</div>
       </div>
       <div class="stat">
-        <div class="stat-label">轮廓数</div>
+        <div class="stat-label">分割簇数</div>
         <div id="camera-contour-stat" class="stat-value">--</div>
       </div>
     </section>
@@ -1126,44 +1038,27 @@ namespace {
 
     function 绘制分割完成画面(data) {
       const canvas = document.getElementById('camera-contour-canvas');
-      if (!canvas || !data || !data.contourMask || !data.colorRGB) return;
+      if (!canvas || !data || !data.segmentationRGB) return;
       const w = Number(data.width || 0);
       const h = Number(data.height || 0);
       if (w <= 0 || h <= 0) return;
       canvas.width = w;
       canvas.height = h;
-      const mask = 解码Base64字节(data.contourMask);
-      const rgb = 解码Base64字节(data.colorRGB);
+      const rgb = 解码Base64字节(data.segmentationRGB);
       const ctx = canvas.getContext('2d');
       const image = ctx.createImageData(w, h);
-      const pixelCount = Math.min(w * h, mask.length, Math.floor(rgb.length / 3));
+      const pixelCount = Math.min(w * h, Math.floor(rgb.length / 3));
       for (let i = 0, j = 0; i < pixelCount && j < image.data.length; ++i, j += 4) {
-        const v = mask[i] || 0;
         const k = i * 3;
-        const r = rgb[k] || 0;
-        const g = rgb[k + 1] || 0;
-        const b = rgb[k + 2] || 0;
-        if (v >= 220) {
-          image.data[j] = Math.min(255, Math.round(r * 0.78 + 22 * 0.22));
-          image.data[j + 1] = Math.min(255, Math.round(g * 0.78 + 214 * 0.22));
-          image.data[j + 2] = Math.min(255, Math.round(b * 0.78 + 143 * 0.22));
-          image.data[j + 3] = 255;
-        } else if (v > 0) {
-          image.data[j] = Math.round(r * 0.45 + 54 * 0.25);
-          image.data[j + 1] = Math.round(g * 0.45 + 93 * 0.25);
-          image.data[j + 2] = Math.round(b * 0.45 + 105 * 0.25);
-          image.data[j + 3] = 255;
-        } else {
-          image.data[j] = Math.round(r * 0.28);
-          image.data[j + 1] = Math.round(g * 0.28);
-          image.data[j + 2] = Math.round(b * 0.28);
-          image.data[j + 3] = 255;
-        }
+        image.data[j] = rgb[k] || 0;
+        image.data[j + 1] = rgb[k + 1] || 0;
+        image.data[j + 2] = rgb[k + 2] || 0;
+        image.data[j + 3] = 255;
       }
       ctx.putImageData(image, 0, 0);
       ctx.lineWidth = Math.max(1, Math.round(Math.min(w, h) / 240));
       ctx.strokeStyle = '#fb7185';
-      (Array.isArray(data.boxes) ? data.boxes : []).forEach((box) => {
+      (Array.isArray(data.segmentBoxes) ? data.segmentBoxes : []).forEach((box) => {
         const x = Number(box.x || 0);
         const y = Number(box.y || 0);
         const bw = Number(box.w || 0);
@@ -1182,9 +1077,9 @@ namespace {
       setText('camera-size-stat', `${data.width || 0} x ${data.height || 0}`);
       setText('camera-source-stat', `${data.sourceWidth || 0} x ${data.sourceHeight || 0}`);
       setText('camera-frame-stat', `D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
-      setText('camera-contour-stat', String(data.contourCount || 0));
+      setText('camera-contour-stat', String(data.segmentCount || 0));
       setText('camera-rgb-meta', `${data.width || 0} x ${data.height || 0}`);
-      setText('camera-contour-meta', `${data.contourCount || 0} 个轮廓`);
+      setText('camera-contour-meta', `${data.segmentCount || 0} 个分割簇 / ${data.segmentPixels || 0} 像素`);
     }
 
     function 发送相机消息(message) {
@@ -1222,7 +1117,7 @@ namespace {
       发送相机消息('camera:stop');
     }
 
-    window.__panelApplyCameraFrame = function(data) {
+    window.__panelApplyCameraVideoFrame = function(data) {
       相机请求中 = false;
       if (!data || typeof data !== 'object') {
         设置相机状态('相机返回数据无效。', 'error');
@@ -1230,6 +1125,10 @@ namespace {
       }
       if (data.stopped) {
         设置相机状态(data.message || '已停止。');
+        return;
+      }
+      if (data.waiting) {
+        设置相机状态(data.message || '正在等待外设线程视频材料。');
         return;
       }
       if (!data.ok) {
@@ -1405,11 +1304,11 @@ namespace {
                                                 return S_OK;
                                             }
                                             if (消息 == L"camera:start" || 消息 == L"camera:capture") {
-                                                私有_发送相机帧到页面(窗口, 私有_读取相机帧());
+                                                私有_发送相机帧到页面(窗口, 私有_读取相机帧(true));
                                                 return S_OK;
                                             }
                                             if (消息 == L"camera:stop") {
-                                                私有_发送相机帧到页面(窗口, 私有_停止相机());
+                                                私有_发送相机帧到页面(窗口, 私有_停止相机播放());
                                                 return S_OK;
                                             }
 
@@ -1543,7 +1442,7 @@ namespace {
             auto* 上下文 = 私有_取窗口上下文(窗口);
             const auto 用途 = 上下文 ? 上下文->用途 : 枚举_WebView2窗口用途::控制面板;
             if (用途 == 枚举_WebView2窗口用途::相机播放) {
-                (void)私有_停止相机();
+                (void)私有_停止相机播放();
             }
             if (上下文) {
                 上下文->WebView.Reset();

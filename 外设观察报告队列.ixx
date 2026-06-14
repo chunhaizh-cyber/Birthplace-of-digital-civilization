@@ -705,6 +705,29 @@ export struct 结构_D455观察材料句柄摘要 {
     std::int64_t 数据元素数量 = 0;
 };
 
+export struct 结构_D455控制面板视频分割框 {
+    int x = 0;
+    int y = 0;
+    int w = 0;
+    int h = 0;
+    std::int64_t 候选编号 = 0;
+};
+
+export struct 结构_D455控制面板视频快照 {
+    bool 成功 = false;
+    std::string 失败原因{};
+    std::uint64_t 报告ID = 0;
+    std::int64_t 帧宽度 = 0;
+    std::int64_t 帧高度 = 0;
+    std::int64_t 深度帧号 = 0;
+    std::int64_t 彩色帧号 = 0;
+    std::size_t 分割簇数量 = 0;
+    std::int64_t 分割像素数量 = 0;
+    std::vector<std::uint8_t> 颜色RGB{};
+    std::vector<std::uint8_t> 分割RGB{};
+    std::vector<结构_D455控制面板视频分割框> 分割框{};
+};
+
 export const char* 外设观察运行模式文本(枚举_外设观察运行模式 类型) noexcept;
 export const char* 外设分割处理模式文本(枚举_外设分割处理模式 类型) noexcept;
 export const char* 外设Tracker轨迹状态文本(枚举_外设Tracker轨迹状态 类型) noexcept;
@@ -724,6 +747,7 @@ export bool 提交D455短期观察材料页(
     const 双目相机本能适配器::调用结果& 来源,
     const 结构_外设观察报告队列项& 报告项);
 export 结构_D455观察材料句柄摘要 解析D455观察材料句柄(const std::string& 句柄);
+export 结构_D455控制面板视频快照 读取最新D455控制面板视频快照();
 export std::uint64_t 提交外设观察等待项(结构_外设观察等待项 等待项);
 export bool 完成外设观察等待项(std::uint64_t 等待项ID);
 export const char* 观察材料等级文本(枚举_观察材料等级 类型) noexcept;
@@ -1477,6 +1501,99 @@ namespace {
             return true;
         }
         return false;
+    }
+
+    void D455_控制面板分割颜色(
+        std::size_t 顺序,
+        std::uint8_t& R,
+        std::uint8_t& G,
+        std::uint8_t& B) noexcept
+    {
+        switch (顺序 % 8) {
+        case 0: R = 34; G = 211; B = 238; return;
+        case 1: R = 251; G = 113; B = 133; return;
+        case 2: R = 132; G = 204; B = 22; return;
+        case 3: R = 250; G = 204; B = 21; return;
+        case 4: R = 96; G = 165; B = 250; return;
+        case 5: R = 244; G = 114; B = 182; return;
+        case 6: R = 45; G = 212; B = 191; return;
+        default: R = 167; G = 139; B = 250; return;
+        }
+    }
+
+    结构_D455控制面板视频快照 D455_构造控制面板视频快照_已加锁(
+        const 结构_D455短期观察材料页& 页)
+    {
+        结构_D455控制面板视频快照 输出{};
+        输出.报告ID = 页.报告ID;
+        输出.帧宽度 = 页.来源.宽度;
+        输出.帧高度 = 页.来源.高度;
+        输出.深度帧号 = 页.来源.深度帧号;
+        输出.彩色帧号 = 页.来源.彩色帧号;
+        if (!D455_颜色帧材料有效(页.来源)) {
+            输出.失败原因 = "D455外设线程最新材料缺少可绘制彩色帧";
+            return 输出;
+        }
+
+        const auto 像素数 = static_cast<std::size_t>(页.来源.预期像素数量);
+        输出.成功 = true;
+        输出.颜色RGB.reserve(像素数 * 3);
+        输出.分割RGB.resize(像素数 * 3, 0);
+        for (std::size_t i = 0; i < 像素数; ++i) {
+            const auto& 像素 = 页.来源.颜色RGB[i];
+            输出.颜色RGB.push_back(像素.R);
+            输出.颜色RGB.push_back(像素.G);
+            输出.颜色RGB.push_back(像素.B);
+            const auto 目标 = i * 3;
+            输出.分割RGB[目标] = static_cast<std::uint8_t>(像素.R / 4);
+            输出.分割RGB[目标 + 1] = static_cast<std::uint8_t>(像素.G / 4);
+            输出.分割RGB[目标 + 2] = static_cast<std::uint8_t>(像素.B / 4);
+        }
+
+        std::size_t 候选顺序 = 0;
+        for (const auto& 候选 : 页.来源.空间候选列表) {
+            if (候选.像素索引集合.empty()) {
+                continue;
+            }
+            std::uint8_t 标记R = 0;
+            std::uint8_t 标记G = 0;
+            std::uint8_t 标记B = 0;
+            D455_控制面板分割颜色(候选顺序++, 标记R, 标记G, 标记B);
+            bool 候选有有效像素 = false;
+            for (const auto 像素索引 : 候选.像素索引集合) {
+                const auto 索引 = static_cast<std::size_t>(像素索引);
+                if (像素索引 >= 像素数) {
+                    continue;
+                }
+                const auto 目标 = 索引 * 3;
+                const auto 原R = 输出.颜色RGB[目标];
+                const auto 原G = 输出.颜色RGB[目标 + 1];
+                const auto 原B = 输出.颜色RGB[目标 + 2];
+                输出.分割RGB[目标] = static_cast<std::uint8_t>((原R * 35 + 标记R * 65) / 100);
+                输出.分割RGB[目标 + 1] = static_cast<std::uint8_t>((原G * 35 + 标记G * 65) / 100);
+                输出.分割RGB[目标 + 2] = static_cast<std::uint8_t>((原B * 35 + 标记B * 65) / 100);
+                ++输出.分割像素数量;
+                候选有有效像素 = true;
+            }
+            if (候选有有效像素) {
+                ++输出.分割簇数量;
+            }
+        }
+
+        输出.分割框.reserve(页.报告.观察像素簇集合.size());
+        for (const auto& 簇 : 页.报告.观察像素簇集合) {
+            if (!D455_候选投影有效(簇, 页)) {
+                continue;
+            }
+            结构_D455控制面板视频分割框 框{};
+            框.x = static_cast<int>(簇.投影最小X);
+            框.y = static_cast<int>(簇.投影最小Y);
+            框.w = static_cast<int>(簇.投影最大X - 簇.投影最小X + 1);
+            框.h = static_cast<int>(簇.投影最大Y - 簇.投影最小Y + 1);
+            框.候选编号 = 簇.来源空间候选ID;
+            输出.分割框.push_back(框);
+        }
+        return 输出;
     }
 
     bool 外设观察_报告满足等待项(
@@ -2523,6 +2640,26 @@ bool 提交D455短期观察材料页(
     摘要.资源类型 = 资源类型;
     摘要.失败原因 = "未找到D455短期观察材料句柄";
     return 摘要;
+}
+
+结构_D455控制面板视频快照 读取最新D455控制面板视频快照()
+{
+    auto& 状态 = 外设观察队列状态();
+    const auto 当前时间 = 外设观察当前时间毫秒();
+    std::lock_guard<std::mutex> 锁(状态.互斥);
+    D455_清理短期材料页_已加锁(状态, 当前时间);
+    for (auto 迭代器 = 状态.D455材料页队列.rbegin();
+        迭代器 != 状态.D455材料页队列.rend();
+        ++迭代器) {
+        if (!D455_颜色帧材料有效(迭代器->来源)) {
+            continue;
+        }
+        return D455_构造控制面板视频快照_已加锁(*迭代器);
+    }
+
+    结构_D455控制面板视频快照 输出{};
+    输出.失败原因 = "未找到D455外设线程短期视频材料";
+    return 输出;
 }
 
 std::uint64_t 提交外设观察等待项(结构_外设观察等待项 等待项)
