@@ -1048,7 +1048,7 @@ namespace {
       </section>
       <section class="viewer">
         <div class="viewer-head">
-          <div class="viewer-title">轮廓图</div>
+          <div class="viewer-title">分割完成</div>
           <div id="camera-contour-meta" class="viewer-meta">--</div>
         </div>
         <div class="canvas-shell">
@@ -1124,33 +1124,39 @@ namespace {
       ctx.putImageData(image, 0, 0);
     }
 
-    function 绘制轮廓画面(data) {
+    function 绘制分割完成画面(data) {
       const canvas = document.getElementById('camera-contour-canvas');
-      if (!canvas || !data || !data.contourMask) return;
+      if (!canvas || !data || !data.contourMask || !data.colorRGB) return;
       const w = Number(data.width || 0);
       const h = Number(data.height || 0);
       if (w <= 0 || h <= 0) return;
       canvas.width = w;
       canvas.height = h;
       const mask = 解码Base64字节(data.contourMask);
+      const rgb = 解码Base64字节(data.colorRGB);
       const ctx = canvas.getContext('2d');
       const image = ctx.createImageData(w, h);
-      for (let i = 0, j = 0; i < mask.length && j < image.data.length; ++i, j += 4) {
+      const pixelCount = Math.min(w * h, mask.length, Math.floor(rgb.length / 3));
+      for (let i = 0, j = 0; i < pixelCount && j < image.data.length; ++i, j += 4) {
         const v = mask[i] || 0;
+        const k = i * 3;
+        const r = rgb[k] || 0;
+        const g = rgb[k + 1] || 0;
+        const b = rgb[k + 2] || 0;
         if (v >= 220) {
-          image.data[j] = 22;
-          image.data[j + 1] = 214;
-          image.data[j + 2] = 143;
+          image.data[j] = Math.min(255, Math.round(r * 0.78 + 22 * 0.22));
+          image.data[j + 1] = Math.min(255, Math.round(g * 0.78 + 214 * 0.22));
+          image.data[j + 2] = Math.min(255, Math.round(b * 0.78 + 143 * 0.22));
           image.data[j + 3] = 255;
         } else if (v > 0) {
-          image.data[j] = 54;
-          image.data[j + 1] = 93;
-          image.data[j + 2] = 105;
+          image.data[j] = Math.round(r * 0.45 + 54 * 0.25);
+          image.data[j + 1] = Math.round(g * 0.45 + 93 * 0.25);
+          image.data[j + 2] = Math.round(b * 0.45 + 105 * 0.25);
           image.data[j + 3] = 255;
         } else {
-          image.data[j] = 5;
-          image.data[j + 1] = 8;
-          image.data[j + 2] = 12;
+          image.data[j] = Math.round(r * 0.28);
+          image.data[j + 1] = Math.round(g * 0.28);
+          image.data[j + 2] = Math.round(b * 0.28);
           image.data[j + 3] = 255;
         }
       }
@@ -1231,7 +1237,7 @@ namespace {
         return;
       }
       绘制RGB画面(data);
-      绘制轮廓画面(data);
+      绘制分割完成画面(data);
       更新相机统计(data);
       设置相机状态(data.message || '已更新。', 'ok');
     };
