@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>D455 稳定轮廓项目适配流程图与说明 v0.2</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    h2 { margin: 0 0 12px; font-size: 17px; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    .canvas { min-width: 2100px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; margin-bottom: 18px; }
+    .mermaid { min-width: 2040px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    .notes pre { white-space: pre-wrap; word-break: break-word; background: #f6f8fa; border: 1px solid #d8dee4; padding: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>D455 稳定轮廓项目适配流程图与说明 v0.2</h1>
+    <p class="hint">v0.2 保留 D455 L0-L3 外设供料边界，新增材料能力等级、约束优先级调度、观察承接闸门和观察结果分流；外设侧只写可承接/可交付，自我提交入口才负责正式裁决。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <h2>项目适配流程图</h2>
+      <pre class="mermaid">
+flowchart TD
+    A["D455 外设线程启动"] --> B["读取目标观察约束特征组<br/>ROI / 掩码 / 目标特征 / generation / TTL"]
+    B --> C["读取外设分割约束图<br/>待识别 / 扫描候选 / 跟踪目标 / 静止存在低频维护 / 不可观测"]
+    C --> C1["外设分割约束优先级合成<br/>P0安全相关跟踪 > P1任务指定跟踪 > P2高价值待识别 > P3扫描候选 > P4静止存在低频维护 > P5低价值"]
+    C1 --> C2["输出本帧处理掩码 / 处理模式 / 处理优先级"]
+    C2 --> D["采集 Color / Depth / Left IR<br/>保留来源帧ID与采集时间"]
+    D --> E["确定主分割坐标系<br/>写入主分割坐标系ID"]
+    E --> F["坐标系一致性检查<br/>Depth / IR / Color / Mask 分源记录坐标系ID"]
+    F --> F1{"参与同一候选的坐标系是否一致"}
+    F1 -- "一致" --> G["允许生成深度锚定或空间可用材料"]
+    F1 -- "降级" --> G1["只允许平面轮廓稳定材料<br/>不得生成空间可用材料"]
+    F1 -- "不一致" --> G2["输出坐标系质量缺口<br/>不得生成空间可用材料"]
+    G --> H["深度后处理<br/>rawDepth / filteredDepth / validity 分开保留"]
+    G1 --> H
+    G2 --> H
+    H --> I["稳定锚点生成<br/>数量 + 密度 + 覆盖率"]
+    I --> I1{"锚点是否支持空间材料"}
+    I1 -- "否" --> I2["保留平面轮廓稳定判断<br/>深度锚定/空间可用降级为不足"]
+    I1 -- "是" --> I3["允许深度锚定能力判定"]
+    I2 --> J["边界分析<br/>深度边 / 空洞边 / IR边 / 深度确认边"]
+    I3 --> J
+    J --> K["按约束图生成本帧处理掩码<br/>优先跟踪目标 / 高价值待识别 / 扫描候选"]
+    K --> L["候选材料提取<br/>形态学 / 连通域 / 轮廓简化 / 面积过滤"]
+    L --> M["PCL 空间辅助二次特征<br/>空间一致性评分 / 深度分层状态 / 粘连拆分候选 / 空间质量等级"]
+    M --> N["Cue Selection<br/>拒绝纯纹理主导弱候选"]
+    N --> O["跨帧 Tracker<br/>轨迹状态: 新建 / 候选 / 稳定 / 短时丢失 / 已丢失 / 遮挡 / 冲突"]
+    O --> P{"材料能力判定"}
+    P --> P1["平面轮廓稳定材料<br/>轮廓 / 掩码 / 中心跨帧稳定"]
+    P --> P2["深度锚定稳定材料<br/>平面稳定 + 深度有效率/稳定性达标"]
+    P --> P3["空间可用稳定材料<br/>平面稳定 + 深度锚定 + 空间坐标/摘要可用"]
+    P --> P4["候选 / 缺口 / 丢失 / 遮挡 / 冲突材料<br/>只供诊断、补观察或复验"]
+    P1 --> Q["观察承接闸门<br/>单帧质量 + 跨帧稳定 + 外设材料可承接状态"]
+    P2 --> Q
+    P3 --> Q
+    P4 --> Q
+    Q --> Q1{"是否为可交付观察方法材料"}
+    Q1 -- "否" --> Q2["任务管理缓存或生成质量缺口<br/>不得直连识别/扫描/跟踪"]
+    Q1 -- "是" --> R["任务管理工作线程承接<br/>缓存 / 匹配等待项 / 生成回执或观察事实承接请求"]
+    R --> S["观察方法写入外设观察存在及特征<br/>主分割平面轮廓 / 掩码 / 深度摘要 / 稳定复现状态"]
+    S --> S0["观察结果分流<br/>按归属状态 / 目标约束 / 质量状态 / 轨迹状态分路"]
+    S0 --> S1["识别<br/>新外设观察存在 / 未归属 / 冲突"]
+    S0 --> S2["扫描<br/>已归属可比较区域 / 扫描候选"]
+    S0 --> S3["跟踪<br/>目标约束命中的稳定轨迹"]
+    S0 --> S4["补观察 / 复验<br/>质量不足 / 遮挡 / 证据不足 / 坐标降级"]
+    S0 --> S5["低频维护<br/>已归属静止存在低优先级区域"]
+    S1 --> T["提交入口裁决<br/>通过后才进入正式世界树事实 / 二次特征 / 状态动态"]
+    S2 --> T
+    S3 --> T
+    S4 -. "只生成缺口或复验线索" .-> T0["不直接入账"]
+    S5 -. "降频观察，不等于删除存在" .-> T0
+
+    P1 -. "可不具备深度锚定" .-> B1["边界: 平面轮廓是第一阶段主特征"]
+    Q -. "外设侧只写可承接/可交付" .-> B2["边界: 提交属于自我提交入口"]
+    S -. "显示补边单独存储" .-> B3["边界: RGB 显示补边不得覆盖主分割轮廓"]
+    M -. "只输出辅助二次特征" .-> B4["边界: PCL 不输出外设观察存在或正式世界事实"]
+    Q2 -. "禁止" .-> B5["稳定外设观察材料不得直接进入识别/扫描/跟踪正式逻辑"]
+      </pre>
+    </section>
+    <section class="canvas">
+      <h2>实施路线图</h2>
+      <pre class="mermaid">
+flowchart LR
+    P0["P0 命名与字段修正<br/>提交状态 -> 可承接状态<br/>可提交观察材料 -> 可交付观察方法材料"] --> P1["P1 材料能力等级<br/>平面轮廓稳定 / 深度锚定 / 空间可用"]
+    P1 --> P2["P2 坐标系字段<br/>主分割坐标系ID / Depth-IR-Color-Mask坐标系ID / 一致性状态"]
+    P2 --> P3["P3 anchor 三指标<br/>数量 / 密度 / 覆盖率 / 可选边界覆盖率"]
+    P3 --> P4["P4 约束图调度<br/>处理掩码 / 处理模式 / 优先级"]
+    P4 --> P5["P5 Tracker 状态扩展<br/>轨迹状态 / 连续帧数 / 状态变化原因"]
+    P5 --> P6["P6 观察结果分流<br/>识别 / 扫描 / 跟踪 / 补观察复验 / 低频维护"]
+    P6 --> P7["P7 验收收口<br/>不得直连识别扫描跟踪 / RGB轮廓隔离 / PCL边界 / 静止候选分级"]
+      </pre>
+    </section>
+    <section class="notes">
+      <h2>关键说明</h2>
+      <p>v0.2 的核心是补清“材料有什么能力、能交给谁、交到哪一步为止”。D455 稳定材料只能先成为可交付观察方法材料，经过任务管理和观察方法后，才分流到识别、扫描、跟踪或补观察 / 复验。</p>
+      <pre>禁止路径：
+1. D455 外设侧字段叫“提交状态”并被误解为可入世界树。
+2. anchor 不达标时直接否定平面轮廓稳定材料。
+3. RGB 显示补边覆盖主分割轮廓。
+4. PCL 聚类替换二维主平面轮廓或输出世界事实。
+5. 稳定外设观察材料绕过观察方法，直连识别、扫描、跟踪正式逻辑。
+6. 静止环境存在候选直接等于已归属静止存在。</pre>
+      <pre>材料能力等级：
+平面轮廓稳定材料 = 轮廓 / 掩码 / 中心跨帧稳定，深度可以不足。
+深度锚定稳定材料 = 平面稳定 + 深度有效率和稳定性达标。
+空间可用稳定材料 = 平面稳定 + 深度锚定 + 空间坐标可用 + 坐标系一致。</pre>
+      <p>本文档只做路线和说明整理，不代表相关代码已经完成，也不替代构建、真实运行或 D455 自然业务样本验证。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
