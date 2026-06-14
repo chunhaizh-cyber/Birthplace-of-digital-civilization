@@ -1727,8 +1727,8 @@ namespace {
         const 结构_目标观察约束特征组& 约束,
         const 结构_外设观察等待项& 等待项) noexcept
     {
-        if (等待项.目标观察约束ID != 0 && 约束.约束ID == 等待项.目标观察约束ID) {
-            return true;
+        if (等待项.目标观察约束ID != 0) {
+            return 约束.约束ID == 等待项.目标观察约束ID;
         }
         if (等待项.等待项ID != 0 && 约束.来源等待项ID == 等待项.等待项ID) {
             return true;
