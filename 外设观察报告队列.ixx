@@ -165,6 +165,17 @@ export enum class 枚举_跟踪状态 : std::uint8_t {
     证据不足 = 5,
 };
 
+export enum class 枚举_外设Tracker轨迹状态 : std::uint8_t {
+    未指定 = 0,
+    新建 = 1,
+    候选 = 2,
+    稳定 = 3,
+    短时丢失 = 4,
+    已丢失 = 5,
+    遮挡 = 6,
+    冲突 = 7,
+};
+
 export enum class 枚举_外设提交缺口码 : std::int64_t {
     无 = 0,
     缺报告 = 1,
@@ -234,6 +245,11 @@ export struct 结构_外设观察像素簇摘要 {
     std::int64_t 跨帧轨迹稳定状态 = 0;
     std::int64_t 跨帧轨迹待发布状态 = 0;
     std::int64_t 跨帧丢失宽限状态 = 0;
+    枚举_外设Tracker轨迹状态 轨迹状态 = 枚举_外设Tracker轨迹状态::未指定;
+    std::string 轨迹状态generation{};
+    std::int64_t 轨迹状态连续帧数 = 0;
+    std::string 轨迹状态变化原因{};
+    std::string 轨迹状态变化动态候选{};
     std::int64_t 平滑中心X = 0;
     std::int64_t 平滑中心Y = 0;
     std::int64_t 平滑中心Z = 0;
@@ -502,6 +518,11 @@ export struct 结构_外设观察报告队列项 {
     std::int64_t 失败次数 = 0;
     std::int64_t 重捕获候选数量 = 0;
     std::int64_t 稳定特征样本数量 = 0;
+    枚举_外设Tracker轨迹状态 轨迹状态 = 枚举_外设Tracker轨迹状态::未指定;
+    std::string 轨迹状态generation{};
+    std::int64_t 轨迹状态连续帧数 = 0;
+    std::string 轨迹状态变化原因{};
+    std::string 轨迹状态变化动态候选{};
 
     std::uint64_t 目标观察约束ID = 0;
     std::string 约束generation{};
@@ -686,6 +707,7 @@ export struct 结构_D455观察材料句柄摘要 {
 
 export const char* 外设观察运行模式文本(枚举_外设观察运行模式 类型) noexcept;
 export const char* 外设分割处理模式文本(枚举_外设分割处理模式 类型) noexcept;
+export const char* 外设Tracker轨迹状态文本(枚举_外设Tracker轨迹状态 类型) noexcept;
 export const char* 外设观察报告类型文本(枚举_外设观察报告类型 类型) noexcept;
 export const char* 外设提交包类型文本(枚举_外设提交包类型 类型) noexcept;
 export 枚举_外设提交包类型 外设提交包类型_由报告类型(枚举_外设观察报告类型 类型) noexcept;
@@ -1096,6 +1118,23 @@ namespace {
     枚举_跟踪状态 外设提交_跟踪状态_由报告(
         const 结构_外设观察报告队列项& 报告项) noexcept
     {
+        switch (报告项.轨迹状态) {
+        case 枚举_外设Tracker轨迹状态::稳定:
+            return 枚举_跟踪状态::稳定;
+        case 枚举_外设Tracker轨迹状态::短时丢失:
+        case 枚举_外设Tracker轨迹状态::已丢失:
+            return 枚举_跟踪状态::丢失;
+        case 枚举_外设Tracker轨迹状态::遮挡:
+            return 枚举_跟踪状态::遮挡;
+        case 枚举_外设Tracker轨迹状态::冲突:
+            return 枚举_跟踪状态::冲突;
+        case 枚举_外设Tracker轨迹状态::新建:
+        case 枚举_外设Tracker轨迹状态::候选:
+            return 枚举_跟踪状态::证据不足;
+        case 枚举_外设Tracker轨迹状态::未指定:
+        default:
+            break;
+        }
         if (报告项.丢失状态值 > 0) {
             return 枚举_跟踪状态::丢失;
         }
@@ -1648,6 +1687,21 @@ const char* 外设分割处理模式文本(枚举_外设分割处理模式 类�
     case 枚举_外设分割处理模式::静止低频维护: return "静止低频维护";
     case 枚举_外设分割处理模式::低价值: return "低价值";
     case 枚举_外设分割处理模式::未指定: return "未指定";
+    default: return "未知";
+    }
+}
+
+const char* 外设Tracker轨迹状态文本(枚举_外设Tracker轨迹状态 类型) noexcept
+{
+    switch (类型) {
+    case 枚举_外设Tracker轨迹状态::新建: return "新建";
+    case 枚举_外设Tracker轨迹状态::候选: return "候选";
+    case 枚举_外设Tracker轨迹状态::稳定: return "稳定";
+    case 枚举_外设Tracker轨迹状态::短时丢失: return "短时丢失";
+    case 枚举_外设Tracker轨迹状态::已丢失: return "已丢失";
+    case 枚举_外设Tracker轨迹状态::遮挡: return "遮挡";
+    case 枚举_外设Tracker轨迹状态::冲突: return "冲突";
+    case 枚举_外设Tracker轨迹状态::未指定: return "未指定";
     default: return "未知";
     }
 }
@@ -3061,6 +3115,8 @@ std::string 构造外设观察报告摘要(const 结构_外设观察报告队列
             << " | 跨帧新建簇=" << 报告项.跨帧新建观察像素簇数量
             << " | 跨帧稳定簇=" << 报告项.跨帧稳定观察像素簇数量
             << " | 跨帧丢失簇=" << 报告项.跨帧丢失观察像素簇数量
+            << " | 轨迹状态=" << 外设Tracker轨迹状态文本(报告项.轨迹状态)
+            << " | 轨迹连续帧数=" << 报告项.轨迹状态连续帧数
             << " | 轨迹稳定簇=" << 轨迹稳定簇数量
             << " | 待发布簇=" << 待发布簇数量
             << " | 丢失宽限簇=" << 丢失宽限簇数量;
@@ -3081,6 +3137,11 @@ std::string 构造外设观察报告摘要(const 结构_外设观察报告队列
         输出 << " | 跟踪ID=" << 报告项.跟踪ID
             << " | 跟踪种子=" << (报告项.跟踪种子.empty() ? "空" : 报告项.跟踪种子)
             << " | 跟踪状态=" << 报告项.跟踪状态值
+            << " | 轨迹状态=" << 外设Tracker轨迹状态文本(报告项.轨迹状态)
+            << " | 轨迹连续帧数=" << 报告项.轨迹状态连续帧数
+            << " | 轨迹状态generation=" << (报告项.轨迹状态generation.empty() ? "空" : 报告项.轨迹状态generation)
+            << " | 轨迹变化原因=" << (报告项.轨迹状态变化原因.empty() ? "空" : 报告项.轨迹状态变化原因)
+            << " | 轨迹动态候选=" << (报告项.轨迹状态变化动态候选.empty() ? "空" : 报告项.轨迹状态变化动态候选)
             << " | 丢失状态=" << 报告项.丢失状态值
             << " | 连续成功=" << 报告项.连续成功次数
             << " | 失败次数=" << 报告项.失败次数
