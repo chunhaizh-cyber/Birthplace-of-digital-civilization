@@ -71,13 +71,6 @@ namespace {
     std::atomic<int> 私有_启动诊断码{ 0 };
     std::atomic_bool 私有_相机窗口启动过外设线程{ false };
 
-    struct 结构_相机分割框 {
-        int x = 0;
-        int y = 0;
-        int w = 0;
-        int h = 0;
-    };
-
     struct 结构_相机帧JSON {
         bool 成功 = false;
         bool 已停止 = false;
@@ -90,9 +83,9 @@ namespace {
         std::uint64_t 设备时间_us = 0;
         std::size_t 分割簇数 = 0;
         std::int64_t 分割像素数 = 0;
+        std::int64_t 轮廓线像素数 = 0;
         std::string 彩色RGB_Base64{};
         std::string 分割RGB_Base64{};
-        std::vector<结构_相机分割框> 分割框{};
         std::string 消息{};
         bool 等待中 = false;
     };
@@ -498,28 +491,6 @@ namespace {
         return 输出;
     }
 
-    结构_相机分割框 私有_缩放分割框(
-        const 结构_D455控制面板视频分割框& 框,
-        int 源宽,
-        int 源高,
-        int 宽,
-        int 高) noexcept
-    {
-        结构_相机分割框 输出{};
-        if (源宽 <= 0 || 源高 <= 0 || 宽 <= 0 || 高 <= 0) {
-            return 输出;
-        }
-        const int x0 = std::clamp(static_cast<int>((static_cast<long long>(框.x) * 宽) / 源宽), 0, 宽 - 1);
-        const int y0 = std::clamp(static_cast<int>((static_cast<long long>(框.y) * 高) / 源高), 0, 高 - 1);
-        const int x1 = std::clamp(static_cast<int>((static_cast<long long>(框.x + 框.w) * 宽) / 源宽), x0 + 1, 宽);
-        const int y1 = std::clamp(static_cast<int>((static_cast<long long>(框.y + 框.h) * 高) / 源高), y0 + 1, 高);
-        输出.x = x0;
-        输出.y = y0;
-        输出.w = x1 - x0;
-        输出.h = y1 - y0;
-        return 输出;
-    }
-
     bool 私有_确保相机播放外设线程(std::string& 消息) noexcept
     {
         try {
@@ -568,6 +539,7 @@ namespace {
         输出.彩色帧号 = static_cast<std::uint32_t>(快照.彩色帧号);
         输出.分割簇数 = 快照.分割簇数量;
         输出.分割像素数 = 快照.分割像素数量;
+        输出.轮廓线像素数 = 快照.轮廓线像素数量;
         输出.消息 = "已更新";
 
         私有_计算相机显示尺寸(输出.源宽, 输出.源高, 输出.宽, 输出.高);
@@ -575,13 +547,6 @@ namespace {
         const auto 分割RGB = 私有_缩放RGB(快照.分割RGB, 输出.源宽, 输出.源高, 输出.宽, 输出.高);
         输出.彩色RGB_Base64 = 私有_Base64编码(RGB);
         输出.分割RGB_Base64 = 私有_Base64编码(分割RGB);
-
-        输出.分割框.reserve(快照.分割框.size());
-        for (const auto& 框 : 快照.分割框) {
-            if (框.w > 0 && 框.h > 0) {
-                输出.分割框.push_back(私有_缩放分割框(框, 输出.源宽, 输出.源高, 输出.宽, 输出.高));
-            }
-        }
         return 输出;
     }
 
@@ -652,6 +617,7 @@ namespace {
         输出 << "\"deviceTimeUs\":" << 帧.设备时间_us << ",";
         输出 << "\"segmentCount\":" << 帧.分割簇数 << ",";
         输出 << "\"segmentPixels\":" << 帧.分割像素数 << ",";
+        输出 << "\"contourPixels\":" << 帧.轮廓线像素数 << ",";
         输出 << "\"message\":";
         私有_追加JSON字符串(输出, 帧.消息);
         输出 << ",";
@@ -663,19 +629,7 @@ namespace {
         输出 << ",";
         输出 << "\"segmentationRGB\":";
         私有_追加JSON字符串(输出, 帧.分割RGB_Base64);
-        输出 << ",\"segmentBoxes\":[";
-        for (std::size_t i = 0; i < 帧.分割框.size(); ++i) {
-            if (i > 0) {
-                输出 << ",";
-            }
-            const auto& 框 = 帧.分割框[i];
-            输出 << "{\"x\":" << 框.x
-                << ",\"y\":" << 框.y
-                << ",\"w\":" << 框.w
-                << ",\"h\":" << 框.h
-                << "}";
-        }
-        输出 << "]}";
+        输出 << "}";
         return 输出.str();
     }
 
@@ -1056,17 +1010,6 @@ namespace {
         image.data[j + 3] = 255;
       }
       ctx.putImageData(image, 0, 0);
-      ctx.lineWidth = Math.max(1, Math.round(Math.min(w, h) / 240));
-      ctx.strokeStyle = '#fb7185';
-      (Array.isArray(data.segmentBoxes) ? data.segmentBoxes : []).forEach((box) => {
-        const x = Number(box.x || 0);
-        const y = Number(box.y || 0);
-        const bw = Number(box.w || 0);
-        const bh = Number(box.h || 0);
-        if (bw > 0 && bh > 0) {
-          ctx.strokeRect(x + 0.5, y + 0.5, Math.max(1, bw - 1), Math.max(1, bh - 1));
-        }
-      });
     }
 
     function 更新相机统计(data) {
@@ -1079,7 +1022,7 @@ namespace {
       setText('camera-frame-stat', `D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       setText('camera-contour-stat', String(data.segmentCount || 0));
       setText('camera-rgb-meta', `${data.width || 0} x ${data.height || 0}`);
-      setText('camera-contour-meta', `${data.segmentCount || 0} 个分割簇 / ${data.segmentPixels || 0} 像素`);
+      setText('camera-contour-meta', `${data.segmentCount || 0} 个分割簇 / 轮廓线 ${data.contourPixels || 0} 像素`);
     }
 
     function 发送相机消息(message) {

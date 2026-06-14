@@ -705,14 +705,6 @@ export struct 结构_D455观察材料句柄摘要 {
     std::int64_t 数据元素数量 = 0;
 };
 
-export struct 结构_D455控制面板视频分割框 {
-    int x = 0;
-    int y = 0;
-    int w = 0;
-    int h = 0;
-    std::int64_t 候选编号 = 0;
-};
-
 export struct 结构_D455控制面板视频快照 {
     bool 成功 = false;
     std::string 失败原因{};
@@ -723,9 +715,9 @@ export struct 结构_D455控制面板视频快照 {
     std::int64_t 彩色帧号 = 0;
     std::size_t 分割簇数量 = 0;
     std::int64_t 分割像素数量 = 0;
+    std::int64_t 轮廓线像素数量 = 0;
     std::vector<std::uint8_t> 颜色RGB{};
     std::vector<std::uint8_t> 分割RGB{};
-    std::vector<结构_D455控制面板视频分割框> 分割框{};
 };
 
 export const char* 外设观察运行模式文本(枚举_外设观察运行模式 类型) noexcept;
@@ -1539,6 +1531,7 @@ namespace {
         输出.成功 = true;
         输出.颜色RGB.reserve(像素数 * 3);
         输出.分割RGB.resize(像素数 * 3, 0);
+        std::vector<std::int32_t> 分割归属(像素数, -1);
         for (std::size_t i = 0; i < 像素数; ++i) {
             const auto& 像素 = 页.来源.颜色RGB[i];
             输出.颜色RGB.push_back(像素.R);
@@ -1555,6 +1548,7 @@ namespace {
             if (候选.像素索引集合.empty()) {
                 continue;
             }
+            const auto 候选标签 = static_cast<std::int32_t>(候选顺序);
             std::uint8_t 标记R = 0;
             std::uint8_t 标记G = 0;
             std::uint8_t 标记B = 0;
@@ -1572,6 +1566,7 @@ namespace {
                 输出.分割RGB[目标] = static_cast<std::uint8_t>((原R * 35 + 标记R * 65) / 100);
                 输出.分割RGB[目标 + 1] = static_cast<std::uint8_t>((原G * 35 + 标记G * 65) / 100);
                 输出.分割RGB[目标 + 2] = static_cast<std::uint8_t>((原B * 35 + 标记B * 65) / 100);
+                分割归属[索引] = 候选标签;
                 ++输出.分割像素数量;
                 候选有有效像素 = true;
             }
@@ -1580,18 +1575,53 @@ namespace {
             }
         }
 
-        输出.分割框.reserve(页.报告.观察像素簇集合.size());
-        for (const auto& 簇 : 页.报告.观察像素簇集合) {
-            if (!D455_候选投影有效(簇, 页)) {
+        std::vector<std::uint8_t> 轮廓线Mask(像素数, 0);
+        auto 标记轮廓线像素 = [&](int x, int y) noexcept {
+            if (x < 0 || y < 0 || x >= 页.来源.宽度 || y >= 页.来源.高度) {
+                return;
+            }
+            const auto 索引 = static_cast<std::size_t>(y) * static_cast<std::size_t>(页.来源.宽度)
+                + static_cast<std::size_t>(x);
+            if (索引 >= 轮廓线Mask.size() || 轮廓线Mask[索引]) {
+                return;
+            }
+            轮廓线Mask[索引] = 1;
+            ++输出.轮廓线像素数量;
+        };
+
+        for (int y = 0; y < 页.来源.高度; ++y) {
+            for (int x = 0; x < 页.来源.宽度; ++x) {
+                const auto 索引 = static_cast<std::size_t>(y) * static_cast<std::size_t>(页.来源.宽度)
+                    + static_cast<std::size_t>(x);
+                const auto 当前归属 = 分割归属[索引];
+                if (当前归属 < 0) {
+                    continue;
+                }
+                const bool 是边界 =
+                    x == 0
+                    || y == 0
+                    || x + 1 >= 页.来源.宽度
+                    || y + 1 >= 页.来源.高度
+                    || 分割归属[索引 - 1] != 当前归属
+                    || 分割归属[索引 + 1] != 当前归属
+                    || 分割归属[索引 - static_cast<std::size_t>(页.来源.宽度)] != 当前归属
+                    || 分割归属[索引 + static_cast<std::size_t>(页.来源.宽度)] != 当前归属;
+                if (是边界) {
+                    标记轮廓线像素(x, y);
+                    标记轮廓线像素(x + 1, y);
+                    标记轮廓线像素(x, y + 1);
+                }
+            }
+        }
+
+        for (std::size_t i = 0; i < 轮廓线Mask.size(); ++i) {
+            if (!轮廓线Mask[i]) {
                 continue;
             }
-            结构_D455控制面板视频分割框 框{};
-            框.x = static_cast<int>(簇.投影最小X);
-            框.y = static_cast<int>(簇.投影最小Y);
-            框.w = static_cast<int>(簇.投影最大X - 簇.投影最小X + 1);
-            框.h = static_cast<int>(簇.投影最大Y - 簇.投影最小Y + 1);
-            框.候选编号 = 簇.来源空间候选ID;
-            输出.分割框.push_back(框);
+            const auto 目标 = i * 3;
+            输出.分割RGB[目标] = 255;
+            输出.分割RGB[目标 + 1] = 255;
+            输出.分割RGB[目标 + 2] = 255;
         }
         return 输出;
     }
