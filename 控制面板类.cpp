@@ -931,7 +931,7 @@ namespace {
         bool 已写 = false;
         私有_追加非零计数(输出, 已写, "未定义", 快照.任务状态未定义数);
         私有_追加非零计数(输出, 已写, "未启动", 快照.任务状态未启动数);
-        私有_追加非零计数(输出, 已写, "运行中", 快照.任务状态运行中数);
+        私有_追加计数(输出, 已写, "运行中", 快照.任务状态运行中数);
         私有_追加非零计数(输出, 已写, "挂起", 快照.任务状态挂起数);
         if (快照.任务数 > 0) {
             私有_追加计数(输出, 已写, "完成", 快照.任务状态完成数);
@@ -9113,6 +9113,7 @@ std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
         << "  - 任务承接: 任务数=" << 快照.任务数
         << " | 任务头=" << 快照.任务头节点数
         << " | 未启动=" << 快照.任务状态未启动数
+        << " | 运行中=" << 快照.任务状态运行中数
         << " | 就绪=" << 快照.任务状态就绪数
         << " | 等待=" << 快照.任务状态等待中数
         << " | 待重筹办=" << 快照.任务状态待重筹办数
@@ -9917,6 +9918,9 @@ std::string 私有_生成控制面板HTML(
     .tree-root{padding-left:0}
     .tree-row{
       position:relative;
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
       margin:4px 0;
       padding:8px 10px 8px 26px;
       border-radius:8px;
@@ -9941,6 +9945,31 @@ std::string 私有_生成控制面板HTML(
     }
     .tree-row.branch.open::before{transform:rotate(90deg)}
     .tree-row.loading{opacity:.65}
+    .tree-row-text{min-width:0;overflow-wrap:anywhere}
+    .task-state-pill{
+      flex:0 0 auto;
+      padding:2px 8px;
+      border-radius:8px;
+      font-size:12px;
+      line-height:1.5;
+      font-weight:700;
+      background:#eef3f7;
+      color:var(--ink);
+      border:1px solid rgba(15,23,42,.08);
+    }
+    .task-state-pill.running{
+      background:#e8f7ef;
+      color:#166534;
+      border-color:rgba(22,101,52,.18);
+    }
+    .tree-row.task-state-running{
+      background:rgba(22,101,52,.06);
+      box-shadow:inset 3px 0 0 rgba(22,101,52,.72);
+    }
+    .tree-row.task-state-running.selected{
+      background:rgba(22,101,52,.12);
+      box-shadow:inset 3px 0 0 rgba(22,101,52,.82), inset 0 0 0 1px rgba(22,101,52,.16);
+    }
     .tree-children[hidden]{display:none}
     .detail-panel{
       position:sticky;
@@ -11444,12 +11473,47 @@ std::string 私有_生成控制面板HTML(
       }
     }
 
+    function 提取任务状态文本(node) {
+      const 文本 = String(node?.text || '');
+      const 命中 = 文本.match(/(?:^|\s\|\s)状态=([^|]+)/);
+      return 命中 ? 命中[1].trim() : '';
+    }
+
+    function 任务状态样式名(状态文本) {
+      if (状态文本 === '运行中') return 'running';
+      return '';
+    }
+
+    function 填充树行文本(page, row, node) {
+      const 文本 = node?.text || '';
+      if (page !== 'task-tree') {
+        row.textContent = 文本;
+        return;
+      }
+
+      const 状态文本 = 提取任务状态文本(node);
+      const 状态样式 = 任务状态样式名(状态文本);
+      const 正文 = document.createElement('span');
+      正文.className = 'tree-row-text';
+      正文.textContent = 文本;
+      row.appendChild(正文);
+
+      if (!状态样式) {
+        return;
+      }
+      row.classList.add(`task-state-${状态样式}`);
+      const 状态徽标 = document.createElement('span');
+      状态徽标.className = `task-state-pill ${状态样式}`;
+      状态徽标.textContent = 状态文本;
+      row.appendChild(状态徽标);
+    }
+
     function 创建树节点(page, node) {
       const li = document.createElement('li');
       const row = document.createElement('div');
       row.className = 'tree-row';
       row.dataset.nodeId = node.__id;
-      row.textContent = node.text || '';
+      填充树行文本(page, row, node);
       if (页面选中节点.get(page) === node.__id) {
         row.classList.add('selected');
       }
