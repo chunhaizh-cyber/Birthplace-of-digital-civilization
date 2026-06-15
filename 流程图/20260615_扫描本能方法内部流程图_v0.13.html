@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>扫描本能方法内部流程图 v0.13</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1180px; }
+    main { padding: 20px; }
+    h2 { margin: 22px 0 10px; font-size: 16px; }
+    .canvas { max-width: 1280px; min-width: 960px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 920px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>扫描本能方法内部流程图 v0.13</h1>
+    <p class="hint">扫描正式核对外设数据前，先生成本轮扫描关注集合；只有本轮应覆盖存在未被外设覆盖时，才进入异常未覆盖解释。</p>
+  </header>
+  <main>
+    <h2>0. 定位与返回信息</h2>
+    <section class="canvas">
+      <pre class="mermaid">flowchart TD
+    A["上级治理需求"] --> B["需要当前场景事实可用性"]
+    B --> C["扫描目标<br/>维护本轮应覆盖存在的当前状态"]
+    C --> D["输入<br/>自我内部场景指针<br/>当前扫描范围 / ROI / 外设视野<br/>已合法外设当前数据集"]
+    D --> E["前置筛选<br/>生成本轮扫描关注集合"]
+    E --> F["执行中写场景<br/>当前状态值 / 当前基准 / 状态动态"]
+    F --> G["输出结果场景<br/>状态信息 / 信息缺口 / 空信息<br/>写入摘要 / 处理闭合证据"]
+    G --> H["函数返回<br/>扫描方法运行虚拟存在指针"]</pre>
+    </section>
+
+    <h2>1. 本轮扫描关注集合生成</h2>
+    <section class="canvas">
+      <pre class="mermaid">flowchart TD
+    A["当前场景存在集合"] --> B["读取扫描目的<br/>来源需求 / 来源任务 / 当前扫描范围"]
+    B --> C{"属于当前扫描范围<br/>或当前任务目标范围？"}
+    C -- "否" --> J["本轮可忽略存在集合<br/>范围外"]
+    C -- "是" --> D{"空间位置或预测投影<br/>可判断？"}
+    D -- "否" --> K["本轮需补条件存在集合<br/>缺空间位置 / 预测依据"]
+    D -- "是" --> E{"与当前外设视野<br/>重合率达标？"}
+    E -- "否" --> J
+    E -- "是" --> F{"低频维护<br/>本轮是否到期？"}
+    F -- "否" --> J
+    F -- "是" --> G{"已被高优先级<br/>跟踪任务接管？"}
+    G -- "是" --> J
+    G -- "否" --> H["计算扫描优先级<br/>安全 / 服务 / 动态 / ROI / 最近扫描年龄"]
+    H --> I{"扫描优先级达标？"}
+    I -- "否" --> J
+    I -- "是" --> L["本轮应覆盖存在集合"]</pre>
+    </section>
+
+    <h2>2. 主链与覆盖索引</h2>
+    <section class="canvas">
+      <pre class="mermaid">flowchart TD
+    A["扫描方法启动"] --> B["建立扫描方法运行虚拟存在"]
+    B --> C["读取输入参数场景"]
+    C --> D["生成本轮扫描关注集合"]
+    D --> E["展开已合法外设数据项队列"]
+    E --> F{"还有外设数据项？"}
+    F -- "有" --> G["取出并解析数据项"]
+    G --> H["判断对应关系<br/>只对本轮应覆盖集合和可归属数据项建索引"]
+    H --> I["更新本轮外设覆盖索引"]
+    I --> J["处理已覆盖存在的可比较特征"]
+    J --> K["闭合该数据项"]
+    K --> F
+    F -- "无" --> L["计算本轮异常未覆盖存在集合<br/>应覆盖集合 - 外设覆盖索引"]
+    L --> M["处理异常未覆盖存在"]
+    M --> N["构造输出结果场景<br/>同步运行虚拟存在"]
+
+    A -. "仅诊断构建" .-> P["预编译上游契约诊断"]
+    P -. "发现上游错误" .-> Q["逻辑错误日志 / 弹窗<br/>不进入普通需求分支"]</pre>
+    </section>
+
+    <h2>3. 对应关系与可编程闸门</h2>
+    <section class="canvas">
+      <pre class="mermaid">flowchart TD
+    A["外设数据项"] --> B["闸门1<br/>判断空间位置一致"]
+    B --> C{"空间位置一致？"}
+    C -- "是" --> D["闸门2<br/>判断空间尺寸和轮廓一致"]
+    D --> E{"尺寸轮廓一致？"}
+    E -- "是" --> F["锁定同一存在<br/>写入覆盖索引"]
+    E -- "证据不足" --> G["记录信息缺口<br/>子层特征或观察补足来源"]
+    E -- "否" --> H["记录对应关系缺口"]
+    C -- "否" --> I["闸门3<br/>用尺寸 / 轮廓 / 极值唯一找回"]
+    I --> J{"唯一找回？"}
+    J -- "是" --> K["写入当前空间位置<br/>记录位置变化状态"]
+    K --> F
+    J -- "否" --> H
+    B -.-> M["闸门输出<br/>枚举状态 / 量化指标 / 证据引用 / 缺口原因"]
+    D -.-> M
+    I -.-> M</pre>
+    </section>
+
+    <h2>4. 特征处理与写入边界</h2>
+    <section class="canvas">
+      <pre class="mermaid">flowchart TD
+    A["已锁定同一存在"] --> B["展开允许特征材料<br/>位置 / 尺寸 / 轮廓 / 彩图 / 深度图 / 轮廓极值"]
+    B --> C{"材料是否来自<br/>已合法外设数据项？"}
+    C -- "否" --> D["记录信息完备性缺口<br/>需要观察补特征"]
+    C -- "是" --> E{"已有当前状态基准？"}
+    E -- "否" --> F["首次扫描该特征<br/>建立当前状态基准"]
+    F --> G["写场景当前状态值<br/>记录写入摘要"]
+    E -- "是" --> H["闸门4<br/>判断可记录变化"]
+    H --> I{"变化成立？"}
+    I -- "否" --> J["刷新必要当前值和下一轮基准"]
+    I -- "是" --> K["写当前状态值<br/>记录状态变化信息"]
+    I -- "值域冲突" --> L["记录值域冲突缺口<br/>不写正常变化"]
+    G --> Z["特征处理闭合"]
+    J --> Z
+    K --> Z
+    L --> Z
+    D --> Z</pre>
+    </section>
+
+    <h2>5. 异常未覆盖解释</h2>
+    <section class="canvas">
+      <pre class="mermaid">flowchart TD
+    A["本轮异常未覆盖存在集合"] --> B["读取当前场景既有状态 / 动态"]
+    B --> C["预测当前应在空间坐标"]
+    C --> D{"预测位置有对应数据项？"}
+    D -- "有" --> E["回到数据项处理链"]
+    D -- "无" --> F{"存在正在移动？"}
+    F -- "是" --> G["闸门5<br/>预测坐标是否在视野外"]
+    G -- "视野外" --> H["写空间位置当前值=预测坐标<br/>来源不写入空间位置值"]
+    H --> I["记录移动出视野状态 / 动态证据"]
+    G -- "仍在视野内" --> J["进入遮蔽覆盖判断"]
+    F -- "否" --> K{"自我移动或中间存在移动<br/>有证据？"}
+    K -- "有" --> J
+    K -- "无" --> L["写消失状态<br/>消失=突然不见了"]
+    J --> M["闸门6<br/>遮蔽 / 覆盖证据"]
+    M -- "成立" --> N["闸门7<br/>子层特征证据足够？"]
+    N -- "足够" --> O["写遮蔽 / 覆盖状态"]
+    N -- "不足" --> P["记录信息缺口<br/>需要子层特征"]
+    M -- "不成立" --> L
+    M -- "证据不足" --> P</pre>
+    </section>
+
+    <h2>6. 运行虚拟存在与治理输出</h2>
+    <section class="canvas">
+      <pre class="mermaid">flowchart TD
+    A["扫描处理完成"] --> B["同步扫描方法运行虚拟存在"]
+    B --> B1["身份来源特征<br/>运行ID / 来源需求 / 来源任务 / 当前场景"]
+    B --> B2["筛选集合特征<br/>应覆盖 / 可忽略 / 需补条件 / 异常未覆盖"]
+    B --> B3["进度特征<br/>数据项总数 / 取出计数 / 解析计数 / 闭合计数"]
+    B --> B4["覆盖与写入特征<br/>覆盖索引 / 冲突数量 / 写入摘要 / 批次状态"]
+    B --> B5["缺口与证据特征<br/>信息缺口 / 临时证据 / 值域冲突 / 视野外证据"]
+    B --> C["构造输出结果场景"]
+    C --> D{"治理状态信息集合为空？"}
+    D -- "否" --> E["语义输出=状态信息<br/>附写入摘要和证据引用"]
+    D -- "是" --> F["语义输出=空信息<br/>仍保留缺口集合 / 写入摘要 / 处理证据"]
+    C --> G["信息缺口集合<br/>作为需求来源进入需求生成"]
+    E --> H["内部治理接收"]
+    F --> H
+    G -. "只能经任务链" .-> I["需求生成 -> 任务创建 -> 任务筹办 -> 方法选择"]</pre>
+    </section>
+
+    <section class="notes">
+      <strong>关键边界：</strong>
+      筛选结果只写入扫描方法运行虚拟存在；未覆盖解释输入必须是本轮应覆盖存在集合减去本轮外设覆盖存在集合。
+      本轮可忽略和需补条件的存在不写消失、不写遮蔽。
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: true, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
