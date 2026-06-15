@@ -190,6 +190,7 @@
     <ClCompile Include="本能方法类.cpp" />
     <ClCompile Include="任务类.cpp" />
     <ClCompile Include="自我动作实现.外设模块.ixx" />
+    <ClCompile Include="自我动作实现.扫描.ixx" />
     <ClCompile Include="自我动作实现.外部模块.ixx" />
     <ClCompile Include="自我动作实现.内部模块.ixx" />
     <ClCompile Include="自我动作实现.服务模块.ixx" />
