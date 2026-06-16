@@ -6,6 +6,8 @@
 #include "任务类.h"
 #include "方法类.h"
 
+import 全局共享函数类;
+
 namespace {
 
     // 功能：计算权重、状态、差值或派生结果。
@@ -15,14 +17,6 @@ namespace {
         const long double dy = static_cast<long double>(左位置.y) - static_cast<long double>(右位置.y);
         const long double dz = static_cast<long double>(左位置.z) - static_cast<long double>(右位置.z);
         return static_cast<std::int64_t>(std::llround(std::sqrt(dx * dx + dy * dy + dz * dz)));
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    bool 私有_语素入口相同(const 语素入口节点类* a, const 语素入口节点类* b) noexcept
-    {
-        if (a == b) return true;
-        if (!a || !b) return false;
-        return a->获取主键() == b->获取主键();
     }
 
     template<class T节点>
@@ -266,8 +260,8 @@ const 方法类::节点类* 存在类::获取方法根节点(const 存在节点�
         const auto* 主信息 = 取存在主信息(节点);
         if (!主信息) continue;
 
-        const bool 名称匹配 = !名称 || 私有_语素入口相同(主信息->名称, 名称);
-        const bool 类型匹配 = !类型 || 私有_语素入口相同(主信息->类型, 类型);
+        const bool 名称匹配 = !名称 || 全局_语素入口同一(主信息->名称, 名称);
+        const bool 类型匹配 = !类型 || 全局_语素入口同一(主信息->类型, 类型);
         if (名称匹配 && 类型匹配) {
             return 节点;
         }
@@ -299,7 +293,7 @@ const 方法类::节点类* 存在类::获取方法根节点(const 存在节点�
 
     for (auto* 存在节点 : 获取子存在(父节点)) {
         const auto* 主信息 = 取存在主信息(存在节点);
-        if (!主信息 || !私有_语素入口相同(主信息->类型, 类型)) {
+        if (!主信息 || !全局_语素入口同一(主信息->类型, 类型)) {
             continue;
         }
 
@@ -396,7 +390,7 @@ std::vector<存在节点类*> 存在类::获取子存在(const 基础信息节�
 
     for (auto* 节点 : 获取子存在(父节点)) {
         const auto* 主信息 = 取存在主信息(节点);
-        if (主信息 && 私有_语素入口相同(主信息->名称, 名称)) {
+        if (主信息 && 全局_语素入口同一(主信息->名称, 名称)) {
             return 节点;
         }
     }
@@ -410,7 +404,7 @@ std::vector<存在节点类*> 存在类::获取子存在(const 基础信息节�
 
     for (auto* 节点 : 获取子存在(父节点)) {
         const auto* 主信息 = 取存在主信息(节点);
-        if (主信息 && 私有_语素入口相同(主信息->类型, 类型)) {
+        if (主信息 && 全局_语素入口同一(主信息->类型, 类型)) {
             return 节点;
         }
     }
@@ -506,7 +500,7 @@ std::vector<特征节点类*> 存在类::获取子特征(const 基础信息节�
 
     for (auto* 节点 : 获取子特征(宿主)) {
         const auto* 主信息 = 基础信息_->取主信息<特征节点主信息类>(节点);
-        if (主信息 && 私有_语素入口相同(主信息->类型, 特征类型)) {
+        if (主信息 && 全局_语素入口同一(主信息->类型, 特征类型)) {
             return 节点;
         }
     }
