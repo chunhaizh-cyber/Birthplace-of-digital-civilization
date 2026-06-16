@@ -616,7 +616,7 @@ def render(records: list[FunctionRecord], files: list[Path]) -> str:
     out.append("")
     out.append("1. 新建函数前，先搜索函数名、关键动词和目标对象。")
     out.append("2. 查到同名或同功能函数时，按 `位置` 直接调用或复用。")
-    out.append("3. 没有自定义主信息类参与的新函数放入 `全局共享函数类.ixx`；有自定义主信息类参与的新函数放入对应功能函数类。")
+    out.append("3. `全局共享函数类.ixx` 只放不依赖项目自定义数据类型头文件的通用函数；涉及语素、基础信息、主信息类等自定义类型的共享函数放入对应功能类或对应功能头文件。")
     out.append("4. 本文档只登记项目自有源码函数，排除 `third_party`、构建目录、日志目录和运行输出目录。")
     out.append("")
     out.append("## 统计")

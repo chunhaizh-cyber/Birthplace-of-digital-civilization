@@ -743,19 +743,6 @@ namespace {
     }
 
     // 功能：按函数名执行对应处理。
-    bool 语素入口同一(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept
-    {
-        if (!左 || !右) {
-            return false;
-        }
-        if (左 == 右) {
-            return true;
-        }
-        const auto 左主键 = 左->获取主键();
-        return !左主键.empty() && 左主键 == 右->获取主键();
-    }
-
-    // 功能：按函数名执行对应处理。
     const 语素入口节点类* 需求目标特征类型(const 需求节点* 需求) noexcept
     {
         return 需求 ? 状态节点目标特征类型(需求->主信息.需求状态.指针) : nullptr;

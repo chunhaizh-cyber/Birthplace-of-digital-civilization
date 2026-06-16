@@ -8,7 +8,6 @@
 #include "语素类.h"
 
 import 自我类;
-import 全局共享函数类;
 
 namespace {
     using 方法节点 = 方法类::节点类;
@@ -299,7 +298,7 @@ namespace {
                 && 主信息.首节点信息().动作句柄.本能ID == static_cast<I64>(本能ID)) {
                 return true;
             }
-            return 动作名称 && 全局_语素入口同一(主信息.首节点信息().动作名, 动作名称);
+            return 动作名称 && 语素入口同一(主信息.首节点信息().动作名, 动作名称);
         });
     }
 

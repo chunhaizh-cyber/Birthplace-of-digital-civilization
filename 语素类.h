@@ -6,6 +6,19 @@
 
 class 基础信息类;
 
+// 功能：比较两个语素入口节点是否指向同一入口；先比较指针，指针不同再比较非空主键。
+inline bool 语素入口同一(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept
+{
+    if (左 == 右) {
+        return true;
+    }
+    if (!左 || !右) {
+        return false;
+    }
+    const auto 左主键 = 左->获取主键();
+    return !左主键.empty() && 左主键 == 右->获取主键();
+}
+
 class 语素类 : public 链表模板<语素基类*> {
 public:
     using 基类 = 链表模板<语素基类*>;
