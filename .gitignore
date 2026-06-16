@@ -43,5 +43,6 @@ tmp/
 logs/
 日志/
 消息中间件/
+运行输出/sql_projection/
 _run_*/
 _run_*

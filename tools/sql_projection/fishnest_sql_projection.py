@@ -1,0 +1,829 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Build a SQL Server query projection for Fishnest facts and runtime evidence."""
+
+from __future__ import annotations
+
+import argparse
+import datetime as _dt
+import html
+import json
+import os
+import re
+import subprocess
+import sys
+import uuid
+from pathlib import Path
+from typing import Any
+
+
+FEATURE_FUNC_RE = re.compile(r"\b((?:私有_)?特征_[\w\u3400-\u9fff]+)\s*\(")
+LOG_RE = re.compile(
+    r"^(?P<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}) "
+    r"\[(?P<level>[A-Z]+)\] \[T(?P<thread>\d+)\] (?P<body>.*)$"
+)
+INTERESTING_LOG_TOKENS = (
+    "动作动态",
+    "来源动作动态",
+    "因果",
+    "派生需求",
+    "提交_生成缺口子需求",
+    "事实提交",
+    "正式结果",
+    "扫描",
+    "发现事实",
+    "变化事实",
+)
+EXCLUDED_DIRS = {".git", "x64", "Debug", "Release", "logs", "日志"}
+
+
+def read_text(path: Path) -> str:
+    for encoding in ("utf-8-sig", "utf-8", "gb18030"):
+        try:
+            return path.read_text(encoding=encoding)
+        except UnicodeDecodeError:
+            continue
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def iter_project_files(root: Path, suffixes: tuple[str, ...]) -> list[Path]:
+    files: list[Path] = []
+    for path in root.rglob("*"):
+        if not path.is_file() or path.suffix not in suffixes:
+            continue
+        parts = set(path.relative_to(root).parts)
+        if parts & EXCLUDED_DIRS:
+            continue
+        files.append(path)
+    return files
+
+
+def rel(path: Path, root: Path) -> str:
+    try:
+        return str(path.relative_to(root)).replace("\\", "/")
+    except ValueError:
+        return str(path).replace("\\", "/")
+
+
+def clean_feature_name(value: str) -> str:
+    name = value.strip().strip("`").strip()
+    name = re.sub(r"^(私有_)?特征_", "", name)
+    name = re.sub(r"_筹办(?:查询)?$", "", name)
+    return name
+
+
+def add_feature(features: list[dict[str, Any]], seen: set[tuple[str, str, str, int, str]], row: dict[str, Any]) -> None:
+    key = (
+        row.get("source_kind") or "",
+        row.get("feature_name") or "",
+        row.get("source_path") or "",
+        int(row.get("source_line") or 0),
+        row.get("symbol_name") or "",
+    )
+    if key in seen:
+        return
+    seen.add(key)
+    features.append(row)
+
+
+def extract_feature_accessors(root: Path, features: list[dict[str, Any]], seen: set[tuple[str, str, str, int, str]]) -> None:
+    for path in iter_project_files(root, (".h", ".cpp", ".ixx")):
+        text = read_text(path)
+        for line_no, line in enumerate(text.splitlines(), 1):
+            if "特征_" not in line:
+                continue
+            if "语素入口节点类" not in line and "noexcept" not in line:
+                continue
+            for match in FEATURE_FUNC_RE.finditer(line):
+                symbol = match.group(1)
+                literal = ""
+                literal_match = re.search(r'["“]([^"”]+)["”]', line)
+                if literal_match:
+                    literal = literal_match.group(1).strip()
+                feature_name = literal or clean_feature_name(symbol)
+                add_feature(
+                    features,
+                    seen,
+                    {
+                        "feature_name": feature_name,
+                        "source_kind": "source_accessor",
+                        "source_path": rel(path, root),
+                        "source_line": line_no,
+                        "symbol_name": symbol,
+                        "raw_text": line.strip(),
+                    },
+                )
+
+
+def split_backtick_features(text: str) -> list[str]:
+    names = [clean_feature_name(item) for item in re.findall(r"`([^`]+)`", text)]
+    return [name for name in names if name and name not in {"无", "空"}]
+
+
+def extract_feature_dictionary(root: Path, features: list[dict[str, Any]], seen: set[tuple[str, str, str, int, str]]) -> list[dict[str, Any]]:
+    relations: list[dict[str, Any]] = []
+    path = root / "详细设计" / "特征类型串联字典.md"
+    if not path.exists():
+        return relations
+    for line_no, line in enumerate(read_text(path).splitlines(), 1):
+        if not line.startswith("|") or "---" in line or "特征类型" in line:
+            continue
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if len(cells) < 3:
+            continue
+        name = clean_feature_name(cells[0])
+        if not name:
+            continue
+        add_feature(
+            features,
+            seen,
+            {
+                "feature_name": name,
+                "source_kind": "design_dictionary",
+                "source_path": rel(path, root),
+                "source_line": line_no,
+                "symbol_name": "",
+                "raw_text": line.strip(),
+            },
+        )
+        for upstream in split_backtick_features(cells[1]):
+            relations.append(
+                {
+                    "parent_feature": upstream,
+                    "child_feature": name,
+                    "relation_type": "直接上游",
+                    "source_path": rel(path, root),
+                    "source_line": line_no,
+                    "raw_text": line.strip(),
+                }
+            )
+        for downstream in split_backtick_features(cells[2]):
+            relations.append(
+                {
+                    "parent_feature": name,
+                    "child_feature": downstream,
+                    "relation_type": "直接下游",
+                    "source_path": rel(path, root),
+                    "source_line": line_no,
+                    "raw_text": line.strip(),
+                }
+            )
+    return relations
+
+
+def tree_node_name(text: str) -> str:
+    text = text.strip()
+    text = re.sub(r"\s+[|，,;；].*$", "", text)
+    return clean_feature_name(text)
+
+
+def extract_feature_tree(root: Path, features: list[dict[str, Any]], seen: set[tuple[str, str, str, int, str]]) -> list[dict[str, Any]]:
+    relations: list[dict[str, Any]] = []
+    path = root / "详细设计" / "特征双根树.md"
+    if not path.exists():
+        return relations
+    in_tree = False
+    stack: dict[int, str] = {}
+    for line_no, line in enumerate(read_text(path).splitlines(), 1):
+        if line.strip() == "```text":
+            in_tree = True
+            continue
+        if in_tree and line.strip() == "```":
+            in_tree = False
+            continue
+        if not in_tree:
+            if line.startswith("- ") and "->" in line:
+                left, right = line[2:].split("->", 1)
+                left_name = tree_node_name(left)
+                right_name = tree_node_name(right)
+                if left_name and right_name:
+                    relations.append(
+                        {
+                            "parent_feature": left_name,
+                            "child_feature": right_name,
+                            "relation_type": "非树反馈边",
+                            "source_path": rel(path, root),
+                            "source_line": line_no,
+                            "raw_text": line.strip(),
+                        }
+                    )
+            continue
+        if line.strip() == "双根树":
+            stack = {0: "双根树"}
+            continue
+        match = re.match(r"^(?P<prefix>[ │]*)(?:├─|└─)\s*(?P<name>.+)$", line)
+        if not match:
+            continue
+        prefix = match.group("prefix")
+        level = (len(prefix.replace("│", " ")) // 3) + 1
+        name = tree_node_name(match.group("name"))
+        if not name:
+            continue
+        add_feature(
+            features,
+            seen,
+            {
+                "feature_name": name,
+                "source_kind": "dual_root_tree",
+                "source_path": rel(path, root),
+                "source_line": line_no,
+                "symbol_name": "",
+                "raw_text": line.strip(),
+            },
+        )
+        parent = stack.get(level - 1)
+        if parent:
+            relations.append(
+                {
+                    "parent_feature": parent,
+                    "child_feature": name,
+                    "relation_type": "双根树主父子",
+                    "source_path": rel(path, root),
+                    "source_line": line_no,
+                    "raw_text": line.strip(),
+                }
+            )
+        stack[level] = name
+        for old_level in list(stack.keys()):
+            if old_level > level:
+                stack.pop(old_level, None)
+    return relations
+
+
+def parse_log_fields(body: str) -> tuple[str, dict[str, str]]:
+    parts = [part.strip() for part in body.split(" | ")]
+    event_name = parts[0] if parts else body.strip()
+    fields: dict[str, str] = {}
+    for part in parts[1:]:
+        if "=" not in part:
+            continue
+        key, value = part.split("=", 1)
+        fields[key.strip()] = value.strip()
+    return event_name, fields
+
+
+def classify_event(event_name: str, fields: dict[str, str]) -> str:
+    if fields.get("动作动态"):
+        return "动作动态"
+    if "提交_生成缺口子需求" in event_name:
+        return "派生需求入树"
+    if "任务筹办跟踪" in event_name:
+        return "方法候选"
+    if "因果" in event_name or any("因果" in key for key in fields):
+        return "因果"
+    if "动态" in event_name or any("动态" in key for key in fields):
+        return "动态"
+    if "扫描" in event_name:
+        return "扫描"
+    if "提交" in event_name:
+        return "提交"
+    return "运行事件"
+
+
+def is_interesting_log(body: str) -> bool:
+    return any(token in body for token in INTERESTING_LOG_TOKENS)
+
+
+def latest_run_logs(root: Path, count: int) -> list[Path]:
+    log_dir = root / "日志"
+    if not log_dir.exists():
+        return []
+    logs = sorted(log_dir.glob("鱼巢_run_*.低值g"), key=lambda item: item.stat().st_mtime, reverse=True)
+    return logs[:count]
+
+
+def extract_runtime_events(root: Path, logs: list[Path], max_events: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    events: list[dict[str, Any]] = []
+    edges: list[dict[str, Any]] = []
+    for log_path in logs:
+        with log_path.open("r", encoding="utf-8", errors="replace") as handle:
+            for line_no, line in enumerate(handle, 1):
+                if max_events and len(events) >= max_events:
+                    return events, edges
+                line = line.rstrip("\n")
+                if not is_interesting_log(line):
+                    continue
+                match = LOG_RE.match(line)
+                if not match:
+                    continue
+                event_name, fields = parse_log_fields(match.group("body"))
+                event_id = len(events) + 1
+                action_dynamic = fields.get("动作动态") or ""
+                source_action_dynamic = fields.get("来源动作动态") or ""
+                source_causal_key = fields.get("来源因果键") or fields.get("入树来源因果键") or fields.get("来源因果") or ""
+                causal_key = fields.get("因果") or fields.get("根因果") or fields.get("来源因果信息ID") or ""
+                row = {
+                    "event_seq": event_id,
+                    "log_file": rel(log_path, root),
+                    "line_no": line_no,
+                    "log_time": match.group("time"),
+                    "level": match.group("level"),
+                    "thread_id": match.group("thread"),
+                    "event_name": event_name,
+                    "event_class": classify_event(event_name, fields),
+                    "method_name": fields.get("方法") or fields.get("本能动作") or fields.get("当前方法") or "",
+                    "task_key": fields.get("任务") or fields.get("关联任务") or "",
+                    "demand_key": fields.get("需求") or fields.get("来源需求") or fields.get("父需求") or "",
+                    "host_key": fields.get("目标主体") or fields.get("当前存在") or fields.get("目标宿主") or "",
+                    "feature_key": fields.get("目标特征") or fields.get("需求特征") or fields.get("特征类型") or fields.get("主果") or "",
+                    "current_state": fields.get("当前状态") or "",
+                    "target_state": fields.get("目标状态") or "",
+                    "result_state": fields.get("实际结果状态") or fields.get("方法运行结果") or fields.get("处理结果") or "",
+                    "action_dynamic": action_dynamic,
+                    "source_action_dynamic": source_action_dynamic,
+                    "causal_key": causal_key,
+                    "source_causal_key": source_causal_key,
+                    "source_report_id": fields.get("来源报告ID") or fields.get("扫描报告ID") or "",
+                    "fields_json": json.dumps(fields, ensure_ascii=False, separators=(",", ":")),
+                    "raw_text": line,
+                }
+                events.append(row)
+                if source_action_dynamic and action_dynamic:
+                    edges.append(
+                        {
+                            "source_kind": "动作动态",
+                            "source_key": source_action_dynamic,
+                            "target_kind": "动作动态",
+                            "target_key": action_dynamic,
+                            "relation_type": "来源动作动态",
+                            "event_seq": event_id,
+                            "log_file": row["log_file"],
+                            "line_no": line_no,
+                        }
+                    )
+                if source_causal_key:
+                    edges.append(
+                        {
+                            "source_kind": "因果",
+                            "source_key": source_causal_key,
+                            "target_kind": "运行事件",
+                            "target_key": str(event_id),
+                            "relation_type": "来源因果",
+                            "event_seq": event_id,
+                            "log_file": row["log_file"],
+                            "line_no": line_no,
+                        }
+                    )
+                if causal_key:
+                    edges.append(
+                        {
+                            "source_kind": "运行事件",
+                            "source_key": str(event_id),
+                            "target_kind": "因果",
+                            "target_key": causal_key,
+                            "relation_type": "事件引用因果",
+                            "event_seq": event_id,
+                            "log_file": row["log_file"],
+                            "line_no": line_no,
+                        }
+                    )
+    return events, edges
+
+
+def sql_string(value: Any, null_empty: bool = True) -> str:
+    if value is None:
+        return "NULL"
+    text = str(value)
+    if null_empty and text == "":
+        return "NULL"
+    text = text.replace("'", "''")
+    return "N'" + text + "'"
+
+
+def sql_int(value: Any) -> str:
+    try:
+        return str(int(value))
+    except (TypeError, ValueError):
+        return "NULL"
+
+
+def validate_database_name(name: str) -> str:
+    if not re.match(r"^[A-Za-z0-9_]+$", name):
+        raise ValueError("Database name must contain only letters, digits and underscore.")
+    return name
+
+
+def write_insert_lines(out: list[str], table: str, columns: list[str], rows: list[dict[str, Any]], run_id: str) -> None:
+    for index, row in enumerate(rows, 1):
+        values = []
+        for column in columns:
+            if column == "run_id":
+                values.append("'" + run_id + "'")
+            elif column in {"source_line", "line_no", "event_seq"}:
+                values.append(sql_int(row.get(column)))
+            elif column == "log_time":
+                value = row.get(column)
+                values.append("CONVERT(datetime2(3), " + sql_string(value) + ", 121)" if value else "NULL")
+            else:
+                values.append(sql_string(row.get(column)))
+        out.append(f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(values)});")
+        if index % 400 == 0:
+            out.append("GO")
+
+
+def build_sql(database: str, run_id: str, root: Path, payload: dict[str, Any]) -> str:
+    database = validate_database_name(database)
+    now = _dt.datetime.now().isoformat(timespec="seconds")
+    lines: list[str] = [
+        "SET NOCOUNT ON;",
+        "SET ANSI_NULLS ON;",
+        "SET QUOTED_IDENTIFIER ON;",
+        f"IF DB_ID(N'{database}') IS NULL CREATE DATABASE [{database}];",
+        "GO",
+        f"USE [{database}];",
+        "GO",
+        "SET ANSI_NULLS ON;",
+        "SET QUOTED_IDENTIFIER ON;",
+        "GO",
+        "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');",
+        "GO",
+        """
+IF OBJECT_ID(N'fishnest.projection_run', N'U') IS NULL
+CREATE TABLE fishnest.projection_run (
+    run_id uniqueidentifier NOT NULL PRIMARY KEY,
+    created_at datetime2(0) NOT NULL,
+    workspace nvarchar(500) NOT NULL,
+    source_note nvarchar(max) NULL
+);
+IF OBJECT_ID(N'fishnest.feature_type', N'U') IS NULL
+CREATE TABLE fishnest.feature_type (
+    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    run_id uniqueidentifier NOT NULL,
+    feature_name nvarchar(300) NOT NULL,
+    source_kind nvarchar(80) NOT NULL,
+    source_path nvarchar(500) NULL,
+    source_line int NULL,
+    symbol_name nvarchar(300) NULL,
+    raw_text nvarchar(max) NULL
+);
+IF OBJECT_ID(N'fishnest.feature_relation', N'U') IS NULL
+CREATE TABLE fishnest.feature_relation (
+    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    run_id uniqueidentifier NOT NULL,
+    parent_feature nvarchar(300) NOT NULL,
+    child_feature nvarchar(300) NOT NULL,
+    relation_type nvarchar(80) NOT NULL,
+    source_path nvarchar(500) NULL,
+    source_line int NULL,
+    raw_text nvarchar(max) NULL
+);
+IF OBJECT_ID(N'fishnest.runtime_event', N'U') IS NULL
+CREATE TABLE fishnest.runtime_event (
+    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    run_id uniqueidentifier NOT NULL,
+    event_seq int NOT NULL,
+    log_file nvarchar(500) NOT NULL,
+    line_no int NOT NULL,
+    log_time datetime2(3) NULL,
+    level nvarchar(20) NULL,
+    thread_id nvarchar(40) NULL,
+    event_name nvarchar(300) NOT NULL,
+    event_class nvarchar(80) NOT NULL,
+    method_name nvarchar(300) NULL,
+    task_key nvarchar(80) NULL,
+    demand_key nvarchar(80) NULL,
+    host_key nvarchar(80) NULL,
+    feature_key nvarchar(300) NULL,
+    current_state nvarchar(120) NULL,
+    target_state nvarchar(120) NULL,
+    result_state nvarchar(120) NULL,
+    action_dynamic nvarchar(120) NULL,
+    source_action_dynamic nvarchar(120) NULL,
+    causal_key nvarchar(120) NULL,
+    source_causal_key nvarchar(120) NULL,
+    source_report_id nvarchar(120) NULL,
+    fields_json nvarchar(max) NULL,
+    raw_text nvarchar(max) NULL
+);
+IF OBJECT_ID(N'fishnest.causal_edge', N'U') IS NULL
+CREATE TABLE fishnest.causal_edge (
+    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    run_id uniqueidentifier NOT NULL,
+    source_kind nvarchar(80) NOT NULL,
+    source_key nvarchar(120) NOT NULL,
+    target_kind nvarchar(80) NOT NULL,
+    target_key nvarchar(120) NOT NULL,
+    relation_type nvarchar(80) NOT NULL,
+    event_seq int NULL,
+    log_file nvarchar(500) NULL,
+    line_no int NULL
+);
+""",
+        "GO",
+        """
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_feature_type_run_name' AND object_id = OBJECT_ID(N'fishnest.feature_type'))
+    CREATE INDEX IX_feature_type_run_name ON fishnest.feature_type(run_id, feature_name);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_feature_relation_run_parent' AND object_id = OBJECT_ID(N'fishnest.feature_relation'))
+    CREATE INDEX IX_feature_relation_run_parent ON fishnest.feature_relation(run_id, parent_feature, child_feature);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_run_class' AND object_id = OBJECT_ID(N'fishnest.runtime_event'))
+    CREATE INDEX IX_runtime_event_run_class ON fishnest.runtime_event(run_id, event_class, log_time);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_action_dynamic' AND object_id = OBJECT_ID(N'fishnest.runtime_event'))
+    CREATE INDEX IX_runtime_event_action_dynamic ON fishnest.runtime_event(run_id, action_dynamic) WHERE action_dynamic IS NOT NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_causal_edge_run_source' AND object_id = OBJECT_ID(N'fishnest.causal_edge'))
+    CREATE INDEX IX_causal_edge_run_source ON fishnest.causal_edge(run_id, source_kind, source_key);
+""",
+        "GO",
+        f"INSERT INTO fishnest.projection_run (run_id, created_at, workspace, source_note) VALUES ('{run_id}', CONVERT(datetime2(0), N'{now}', 126), {sql_string(str(root))}, {sql_string(payload['source_note'])});",
+    ]
+
+    write_insert_lines(
+        lines,
+        "fishnest.feature_type",
+        ["run_id", "feature_name", "source_kind", "source_path", "source_line", "symbol_name", "raw_text"],
+        payload["features"],
+        run_id,
+    )
+    write_insert_lines(
+        lines,
+        "fishnest.feature_relation",
+        ["run_id", "parent_feature", "child_feature", "relation_type", "source_path", "source_line", "raw_text"],
+        payload["feature_relations"],
+        run_id,
+    )
+    write_insert_lines(
+        lines,
+        "fishnest.runtime_event",
+        [
+            "run_id",
+            "event_seq",
+            "log_file",
+            "line_no",
+            "log_time",
+            "level",
+            "thread_id",
+            "event_name",
+            "event_class",
+            "method_name",
+            "task_key",
+            "demand_key",
+            "host_key",
+            "feature_key",
+            "current_state",
+            "target_state",
+            "result_state",
+            "action_dynamic",
+            "source_action_dynamic",
+            "causal_key",
+            "source_causal_key",
+            "source_report_id",
+            "fields_json",
+            "raw_text",
+        ],
+        payload["events"],
+        run_id,
+    )
+    write_insert_lines(
+        lines,
+        "fishnest.causal_edge",
+        ["run_id", "source_kind", "source_key", "target_kind", "target_key", "relation_type", "event_seq", "log_file", "line_no"],
+        payload["causal_edges"],
+        run_id,
+    )
+    lines.extend(
+        [
+            "GO",
+            """
+CREATE OR ALTER VIEW fishnest.v_latest_run AS
+SELECT TOP (1) *
+FROM fishnest.projection_run
+ORDER BY created_at DESC;
+""",
+            "GO",
+            """
+CREATE OR ALTER VIEW fishnest.v_latest_action_dynamics AS
+SELECT e.*
+FROM fishnest.runtime_event e
+WHERE e.run_id = (SELECT run_id FROM fishnest.v_latest_run)
+  AND e.action_dynamic IS NOT NULL;
+""",
+            "GO",
+            """
+CREATE OR ALTER VIEW fishnest.v_latest_causal_edges AS
+SELECT c.*
+FROM fishnest.causal_edge c
+WHERE c.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+""",
+            "GO",
+            """
+CREATE OR ALTER VIEW fishnest.v_latest_features AS
+SELECT f.*
+FROM fishnest.feature_type f
+WHERE f.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+""",
+            "GO",
+            """
+CREATE OR ALTER VIEW fishnest.v_latest_feature_relations AS
+SELECT r.*
+FROM fishnest.feature_relation r
+WHERE r.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+""",
+            "GO",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def html_table_rows(rows: list[dict[str, Any]], columns: list[str]) -> str:
+    body = []
+    for row in rows:
+        cells = "".join(f"<td>{html.escape(str(row.get(col, '') or ''))}</td>" for col in columns)
+        body.append(f"<tr>{cells}</tr>")
+    return "\n".join(body)
+
+
+def write_html(path: Path, payload: dict[str, Any], run_id: str, database: str, server: str) -> None:
+    features = payload["features"][:1500]
+    relations = payload["feature_relations"][:1500]
+    events = payload["events"][-2500:]
+    edges = payload["causal_edges"][:1500]
+    summary = payload["summary"]
+    html_text = f"""<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>鱼巢 SQL 投影视图</title>
+  <style>
+    :root {{ color-scheme: light; font-family: "Microsoft YaHei", "Segoe UI", sans-serif; }}
+    body {{ margin: 0; background: #f4f6f8; color: #1d2733; }}
+    header {{ padding: 22px 28px; background: #1f2937; color: #fff; }}
+    h1 {{ margin: 0 0 8px; font-size: 24px; font-weight: 650; letter-spacing: 0; }}
+    header p {{ margin: 4px 0; color: #d6dde8; }}
+    main {{ padding: 22px 28px 40px; }}
+    .metrics {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px; }}
+    .metric {{ background: #fff; border: 1px solid #d8dee8; border-radius: 8px; padding: 14px; }}
+    .metric b {{ display: block; font-size: 24px; margin-bottom: 4px; }}
+    .tabs {{ display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }}
+    button {{ border: 1px solid #cbd5e1; background: #fff; padding: 8px 12px; border-radius: 6px; cursor: pointer; }}
+    button.active {{ background: #2563eb; color: #fff; border-color: #2563eb; }}
+    input {{ width: min(720px, 100%); padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 12px; }}
+    section {{ display: none; background: #fff; border: 1px solid #d8dee8; border-radius: 8px; padding: 14px; }}
+    section.active {{ display: block; }}
+    .table-wrap {{ overflow: auto; max-height: 70vh; border: 1px solid #e5e7eb; }}
+    table {{ border-collapse: collapse; width: 100%; font-size: 13px; }}
+    th, td {{ border-bottom: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; vertical-align: top; white-space: nowrap; }}
+    th {{ position: sticky; top: 0; background: #f8fafc; z-index: 1; }}
+    .note {{ color: #526173; font-size: 13px; line-height: 1.6; }}
+    code {{ background: #eef2f7; padding: 1px 4px; border-radius: 4px; }}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>鱼巢 SQL 投影视图</h1>
+    <p>数据库：<code>{html.escape(database)}</code>；实例：<code>{html.escape(server)}</code>；批次：<code>{html.escape(run_id)}</code></p>
+    <p>此页面是 SQL 投影批次的静态快照，不是权威世界树写入入口。</p>
+  </header>
+  <main>
+    <div class="metrics">
+      <div class="metric"><b>{summary['feature_count']}</b><span>特征类型记录</span></div>
+      <div class="metric"><b>{summary['feature_relation_count']}</b><span>特征关系记录</span></div>
+      <div class="metric"><b>{summary['event_count']}</b><span>运行事件记录</span></div>
+      <div class="metric"><b>{summary['action_dynamic_count']}</b><span>动作动态事件</span></div>
+      <div class="metric"><b>{summary['causal_edge_count']}</b><span>因果边记录</span></div>
+    </div>
+    <p class="note">常用 SQL 视图：<code>fishnest.v_latest_features</code>、<code>fishnest.v_latest_feature_relations</code>、<code>fishnest.v_latest_action_dynamics</code>、<code>fishnest.v_latest_causal_edges</code>。</p>
+    <input id="filter" type="search" placeholder="过滤当前页表格文本">
+    <div class="tabs">
+      <button class="active" data-target="events">运行事件</button>
+      <button data-target="edges">因果边</button>
+      <button data-target="features">特征类型</button>
+      <button data-target="relations">特征关系</button>
+    </div>
+    <section id="events" class="active">
+      <div class="table-wrap"><table data-filterable><thead><tr><th>时间</th><th>类</th><th>事件</th><th>方法</th><th>任务</th><th>需求</th><th>特征</th><th>动作动态</th><th>来源动态</th><th>日志</th><th>行</th></tr></thead><tbody>
+      {html_table_rows(events, ['log_time','event_class','event_name','method_name','task_key','demand_key','feature_key','action_dynamic','source_action_dynamic','log_file','line_no'])}
+      </tbody></table></div>
+    </section>
+    <section id="edges">
+      <div class="table-wrap"><table data-filterable><thead><tr><th>来源类</th><th>来源键</th><th>目标类</th><th>目标键</th><th>关系</th><th>事件序号</th><th>日志</th><th>行</th></tr></thead><tbody>
+      {html_table_rows(edges, ['source_kind','source_key','target_kind','target_key','relation_type','event_seq','log_file','line_no'])}
+      </tbody></table></div>
+    </section>
+    <section id="features">
+      <div class="table-wrap"><table data-filterable><thead><tr><th>特征</th><th>来源</th><th>符号</th><th>文件</th><th>行</th></tr></thead><tbody>
+      {html_table_rows(features, ['feature_name','source_kind','symbol_name','source_path','source_line'])}
+      </tbody></table></div>
+    </section>
+    <section id="relations">
+      <div class="table-wrap"><table data-filterable><thead><tr><th>父/上游</th><th>子/下游</th><th>关系</th><th>文件</th><th>行</th></tr></thead><tbody>
+      {html_table_rows(relations, ['parent_feature','child_feature','relation_type','source_path','source_line'])}
+      </tbody></table></div>
+    </section>
+  </main>
+  <script>
+    const buttons = Array.from(document.querySelectorAll('button[data-target]'));
+    const sections = Array.from(document.querySelectorAll('section'));
+    const filter = document.getElementById('filter');
+    function applyFilter() {{
+      const query = filter.value.trim().toLowerCase();
+      const active = document.querySelector('section.active table[data-filterable]');
+      if (!active) return;
+      for (const row of active.tBodies[0].rows) {{
+        row.style.display = !query || row.textContent.toLowerCase().includes(query) ? '' : 'none';
+      }}
+    }}
+    buttons.forEach(button => button.addEventListener('click', () => {{
+      buttons.forEach(item => item.classList.toggle('active', item === button));
+      sections.forEach(section => section.classList.toggle('active', section.id === button.dataset.target));
+      applyFilter();
+    }}));
+    filter.addEventListener('input', applyFilter);
+  </script>
+</body>
+</html>
+"""
+    path.write_text(html_text, encoding="utf-8")
+
+
+def build_payload(root: Path, logs: list[Path], max_events: int) -> dict[str, Any]:
+    features: list[dict[str, Any]] = []
+    feature_seen: set[tuple[str, str, str, int, str]] = set()
+    extract_feature_accessors(root, features, feature_seen)
+    feature_relations = extract_feature_dictionary(root, features, feature_seen)
+    feature_relations.extend(extract_feature_tree(root, features, feature_seen))
+    events, causal_edges = extract_runtime_events(root, logs, max_events)
+    source_note = "SQL projection only; authoritative state remains in Fishnest world tree and action dynamic chain. Logs: " + ", ".join(rel(log, root) for log in logs)
+    summary = {
+        "feature_count": len(features),
+        "feature_relation_count": len(feature_relations),
+        "event_count": len(events),
+        "action_dynamic_count": sum(1 for row in events if row.get("action_dynamic")),
+        "causal_edge_count": len(causal_edges),
+        "logs": [rel(log, root) for log in logs],
+    }
+    return {
+        "source_note": source_note,
+        "summary": summary,
+        "features": features,
+        "feature_relations": feature_relations,
+        "events": events,
+        "causal_edges": causal_edges,
+    }
+
+
+def apply_sql(server: str, sql_path: Path, root: Path) -> dict[str, Any]:
+    command = ["sqlcmd", "-S", server, "-E", "-b", "-f", "65001", "-i", str(sql_path)]
+    result = subprocess.run(command, cwd=str(root), text=True, capture_output=True)
+    return {
+        "command": " ".join(command),
+        "returncode": result.returncode,
+        "stdout": result.stdout[-4000:],
+        "stderr": result.stderr[-4000:],
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Create SQL Server projection and HTML view for Fishnest data.")
+    parser.add_argument("--workspace", default=".", help="Project root, default current directory.")
+    parser.add_argument("--server", default=r"(localdb)\MSSQLLocalDB", help="SQL Server instance.")
+    parser.add_argument("--database", default="FishnestProjection", help="Target database name.")
+    parser.add_argument("--latest-runs", type=int, default=2, help="Number of latest 鱼巢_run logs to read.")
+    parser.add_argument("--log", action="append", default=[], help="Additional or explicit log path. Can be repeated.")
+    parser.add_argument("--max-events", type=int, default=60000, help="Maximum runtime events to import; 0 means no cap.")
+    parser.add_argument("--out-dir", default="运行输出/sql_projection", help="Output directory.")
+    parser.add_argument("--no-apply", action="store_true", help="Only generate SQL/JSON/HTML, do not call sqlcmd.")
+    args = parser.parse_args()
+
+    root = Path(args.workspace).resolve()
+    out_dir = (root / args.out_dir).resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    explicit_logs = [(root / item).resolve() for item in args.log]
+    logs = explicit_logs or latest_run_logs(root, args.latest_runs)
+    logs = [log for log in logs if log.exists()]
+    run_id = str(uuid.uuid4())
+    payload = build_payload(root, logs, args.max_events)
+    sql_text = build_sql(args.database, run_id, root, payload)
+
+    payload_path = out_dir / "fishnest_projection_data.json"
+    sql_path = out_dir / "fishnest_projection_import.sql"
+    html_path = out_dir / "fishnest_projection_view.html"
+    report_path = out_dir / "fishnest_projection_report.json"
+    payload_path.write_text(json.dumps({"run_id": run_id, **payload}, ensure_ascii=False, indent=2), encoding="utf-8")
+    sql_path.write_text(sql_text, encoding="utf-8-sig")
+    write_html(html_path, payload, run_id, args.database, args.server)
+
+    sql_result: dict[str, Any] | None = None
+    if not args.no_apply:
+        sql_result = apply_sql(args.server, sql_path, root)
+    report = {
+        "run_id": run_id,
+        "server": args.server,
+        "database": args.database,
+        "workspace": str(root),
+        "outputs": {
+            "json": str(payload_path),
+            "sql": str(sql_path),
+            "html": str(html_path),
+        },
+        "summary": payload["summary"],
+        "sqlcmd": sql_result,
+    }
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    if sql_result and sql_result["returncode"] != 0:
+        return sql_result["returncode"]
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
