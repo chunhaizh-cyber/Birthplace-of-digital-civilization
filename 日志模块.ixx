@@ -106,12 +106,22 @@ export namespace 日志 {
     void 写(枚举_日志类别 类别, 枚举_日志级别 级别, std::string_view msg);
 
     // 便捷：运行日志
+
+    // 功能：便捷：运行日志
     inline void 运行(std::string_view msg) { 写(枚举_日志类别::运行, 枚举_日志级别::信息, msg); }
+
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     inline void 运行_警告(std::string_view msg) { 写(枚举_日志类别::运行, 枚举_日志级别::警告, msg); }
+
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     inline void 运行_错误(std::string_view msg) { 写(枚举_日志类别::异常, 枚举_日志级别::错误, msg); }
 
     // 便捷：异常日志
+
+    // 功能：便捷：异常日志
     inline void 异常(std::string_view msg) { 写(枚举_日志类别::异常, 枚举_日志级别::错误, msg); }
+
+    // 功能：按函数名执行对应处理。
     inline void 异常_致命(std::string_view msg) { 写(枚举_日志类别::异常, 枚举_日志级别::致命, msg); }
 
     // format 版本（C++20 std::format）
@@ -151,6 +161,8 @@ export void 项目致命日志(const std::string& 文本) noexcept;
 // =========================
 
 namespace 日志::detail {
+
+    // 功能：按函数名执行对应处理。
     inline std::wstring utf8_to_wide_lossy(std::string_view text) {
         if (text.empty()) return {};
         const int needed = ::MultiByteToWideChar(CP_UTF8, 0, text.data(), static_cast<int>(text.size()), nullptr, 0);
@@ -165,10 +177,12 @@ namespace 日志::detail {
         return out;
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::filesystem::path utf8_path(std::string_view text) {
         return std::filesystem::path(utf8_to_wide_lossy(text));
     }
 
+    // 功能：按函数名执行对应处理。
     [[noreturn]] inline void 报告低级错误并终止_(
         std::string_view 模块,
         std::string_view 函数,
@@ -219,6 +233,7 @@ namespace 日志::detail {
         bool 输出到调试器 = false;
         std::chrono::steady_clock::time_point 上次刷新时间{};
 
+        // 功能：按函数名执行对应处理。
         static std::string 取日期_YYYYMMDD() {
             using namespace std::chrono;
             auto now = system_clock::now();
@@ -234,6 +249,7 @@ namespace 日志::detail {
             return std::string(buf);
         }
 
+        // 功能：按函数名执行对应处理。
         static std::string 取时间戳_YYYYMMDD_hhmmss_mmm() {
             using namespace std::chrono;
             auto now = system_clock::now();
@@ -254,6 +270,7 @@ namespace 日志::detail {
             return std::string(buf);
         }
 
+        // 功能：按函数名执行对应处理。
         static const char* 级别字符串(枚举_日志级别 lv) {
             switch (lv) {
             case 枚举_日志级别::调试: return "DBG";
@@ -265,6 +282,7 @@ namespace 日志::detail {
             }
         }
 
+        // 功能：按函数名执行对应处理。
         void 配置(const 日志参数& p, std::string 标识) {
             根目录 = p.根目录;
             文件前缀 = p.文件前缀;
@@ -276,12 +294,14 @@ namespace 日志::detail {
             上次刷新时间 = {};
         }
 
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         std::filesystem::path 生成文件路径(const std::string& yyyymmdd) const {
             // logs/海鱼_run_20260118.低值g
             std::string name = std::format("{}_{}_{}.低值g", 文件前缀, 文件标识, yyyymmdd);
             return 根目录 / utf8_path(name);
         }
 
+        // 功能：确保目标结构、状态或前置条件存在并可用。
         void 确保打开_已加锁() {
             const std::string today = 取日期_YYYYMMDD();
             if (ofs.is_open() && today == 当前日期) return;
@@ -312,6 +332,7 @@ namespace 日志::detail {
             }
         }
 
+        // 功能：按函数名执行对应处理。
         void 写一行(枚举_日志级别 lv, std::string_view msg) {
             std::scoped_lock lk(mtx);
             确保打开_已加锁();
@@ -357,6 +378,7 @@ namespace 日志::detail {
 #endif
         }
 
+        // 功能：按函数名执行对应处理。
         void 关闭() {
             std::scoped_lock lk(mtx);
             try {
@@ -380,41 +402,49 @@ namespace 日志::detail {
         }
     };
 
+    // 功能：按函数名执行对应处理。
     inline 单文件日志器& g_run() {
         static 单文件日志器 实例{};
         return 实例;
     }
 
+    // 功能：按函数名执行对应处理。
     inline 单文件日志器& g_ex() {
         static 单文件日志器 实例{};
         return 实例;
     }
 
+    // 功能：按函数名执行对应处理。
     inline 单文件日志器& g_selfcheck_orphan() {
         static 单文件日志器 实例{};
         return 实例;
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::mutex& g_init_mtx() {
         static std::mutex 实例{};
         return 实例;
     }
 
+    // 功能：按函数名执行对应处理。
     inline bool& g_inited() {
         static bool 实例 = false;
         return 实例;
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::atomic_bool& g_shutdown() {
         static std::atomic_bool 实例 = false;
         return 实例;
     }
 
+    // 功能：按函数名执行对应处理。
     inline 日志参数& g_param() {
         static 日志参数 实例{};
         return 实例;
     }
 
+    // 功能：按函数名执行对应处理。
     inline constexpr bool 日志输出已启用(枚举_日志类别 类别, 枚举_日志级别 级别) noexcept {
         const bool 逻辑错误输出 =
             类别 == 枚举_日志类别::异常
@@ -425,6 +455,7 @@ namespace 日志::detail {
         return 鱼巢_开关_启用登记管理日志输出 != 0;
     }
 
+    // 功能：初始化相关对象、状态或运行上下文。
     inline void 确保初始化_已加锁() {
         if (g_inited()) return;
         g_run().配置(g_param(), "run");
@@ -435,6 +466,8 @@ namespace 日志::detail {
 }
 
 namespace 日志 {
+
+    // 功能：初始化相关对象、状态或运行上下文。
     inline void 初始化(const 日志参数& p) {
         std::scoped_lock lk(detail::g_init_mtx());
         detail::g_param() = p;
@@ -443,6 +476,7 @@ namespace 日志 {
         detail::确保初始化_已加锁();
     }
 
+    // 功能：按函数名执行对应处理。
     inline void 关闭() {
         std::scoped_lock lk(detail::g_init_mtx());
         detail::g_shutdown().store(true, std::memory_order_release);
@@ -456,6 +490,7 @@ namespace 日志 {
         detail::g_inited() = false;
     }
 
+    // 功能：按函数名执行对应处理。
     inline void 写(枚举_日志类别 类别, 枚举_日志级别 级别, std::string_view msg) {
         if (detail::g_shutdown().load(std::memory_order_acquire)) {
             return;
@@ -494,6 +529,7 @@ namespace 日志 {
         }
     }
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     inline void 记录异常(const std::exception& e, std::string_view 上下文) {
         if (上下文.empty()) {
             写(枚举_日志类别::异常, 枚举_日志级别::错误, std::string_view(e.what()));
@@ -504,6 +540,7 @@ namespace 日志 {
     }
 }
 
+// 功能：初始化相关对象、状态或运行上下文。
 void 初始化项目日志() noexcept
 {
     try {
@@ -520,6 +557,7 @@ void 初始化项目日志() noexcept
     }
 }
 
+// 功能：按函数名执行对应处理。
 void 关闭项目日志() noexcept
 {
     try {
@@ -529,6 +567,7 @@ void 关闭项目日志() noexcept
     }
 }
 
+// 功能：执行对应模块、线程或方法的运行逻辑。
 void 项目运行日志(const std::string& 文本) noexcept
 {
     try {
@@ -538,6 +577,7 @@ void 项目运行日志(const std::string& 文本) noexcept
     }
 }
 
+// 功能：执行对应模块、线程或方法的运行逻辑。
 void 项目运行警告日志(const std::string& 文本) noexcept
 {
     try {
@@ -547,6 +587,7 @@ void 项目运行警告日志(const std::string& 文本) noexcept
     }
 }
 
+// 功能：执行对应模块、线程或方法的运行逻辑。
 void 项目运行错误日志(const std::string& 文本) noexcept
 {
     try {
@@ -556,6 +597,7 @@ void 项目运行错误日志(const std::string& 文本) noexcept
     }
 }
 
+// 功能：按函数名执行对应处理。
 void 项目弹窗错误提示(const std::string& 标题, const std::string& 文本) noexcept
 {
     try {
@@ -580,6 +622,7 @@ void 项目弹窗错误提示(const std::string& 标题, const std::string& 文�
     }
 }
 
+// 功能：按函数名执行对应处理。
 void 项目提示不允许空指(
     const char* 上下文,
     const char* 表达式,
@@ -613,6 +656,7 @@ void 项目提示不允许空指(
     }
 }
 
+// 功能：按函数名执行对应处理。
 void 项目自检无上级需求日志(const std::string& 文本) noexcept
 {
 #if 鱼巢_开关_启用调试日志输出 && 鱼巢_开关_启用自检日志入口
@@ -641,6 +685,7 @@ void 项目自检无上级需求日志(const std::string& 文本) noexcept
 #endif
 }
 
+// 功能：记录日志、动态、证据或运行痕迹。
 void 项目记录异常日志(const std::exception& 异常, const std::string& 上下文) noexcept
 {
     try {
@@ -650,6 +695,7 @@ void 项目记录异常日志(const std::exception& 异常, const std::string& �
     }
 }
 
+// 功能：按函数名执行对应处理。
 void 项目致命日志(const std::string& 文本) noexcept
 {
     try {

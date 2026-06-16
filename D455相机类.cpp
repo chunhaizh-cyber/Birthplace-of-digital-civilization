@@ -40,10 +40,12 @@ public:
         视差到深度(false) {
     }
 
+    // 功能：释放或收束对象资源。
     ~实现() {
         关闭();
     }
 
+    // 功能：按函数名执行对应处理。
     bool 打开() {
         try {
             rs2::config c;
@@ -76,6 +78,7 @@ public:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     void 关闭() {
         if (!已打开) return;
 
@@ -88,6 +91,7 @@ public:
         已打开 = false;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 采集一帧(结构体_原始场景帧& 输出) {
         if (!已打开) return false;
 
@@ -177,16 +181,19 @@ public:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     bool 采集一帧并提取轮廓(结构体_原始场景帧& 输出, std::vector<结构体_轮廓观测>& out轮廓) {
         if (!采集一帧(输出)) return false;
         out轮廓 = 最近轮廓;
         return true;
     }
 
+    // 功能：读取并返回指定对象、状态或运行材料。
     const 配置项& 获取配置() const {
         return cfg;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 应用配置(const 配置项& 新配置) {
         const bool 需要重启 =
             cfg.深度宽 != 新配置.深度宽 ||
@@ -221,6 +228,7 @@ public:
         }
     }
 
+    // 功能：读取并返回指定对象、状态或运行材料。
     const std::vector<结构体_轮廓观测>& 获取最近轮廓观测() const {
         return 最近轮廓;
     }
@@ -252,14 +260,17 @@ private:
     std::vector<结构体_轮廓观测> 最近轮廓;
 
 private:
+    // 功能：按函数名执行对应处理。
     static inline std::size_t 索引(int u, int v, int w) {
         return static_cast<std::size_t>(v) * static_cast<std::size_t>(w) + static_cast<std::size_t>(u);
     }
 
+    // 功能：按函数名执行对应处理。
     static inline bool 在范围内(int x, int a, int b) {
         return x >= a && x <= b;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 复制深度帧毫米(
         const rs2::depth_frame& depth,
         int expectedW,
@@ -288,12 +299,14 @@ private:
         return true;
     }
 
+    // 功能：按函数名执行对应处理。
     static inline std::uint8_t clamp_u8(int x) {
         if (x < 0) return 0;
         if (x > 255) return 255;
         return static_cast<std::uint8_t>(x);
     }
 
+    // 功能：把输入数据转换为目标类型、语义或结构。
     static 枚举_时间域 转换时间域(rs2_timestamp_domain domain) {
         switch (domain) {
         case RS2_TIMESTAMP_DOMAIN_HARDWARE_CLOCK:
@@ -307,6 +320,7 @@ private:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     static inline void yuv_to_rgb(std::uint8_t Y, std::uint8_t U, std::uint8_t V, std::uint8_t& R, std::uint8_t& G, std::uint8_t& B) {
         const int C = static_cast<int>(Y) - 16;
         const int D = static_cast<int>(U) - 128;
@@ -321,6 +335,7 @@ private:
         B = clamp_u8(b);
     }
 
+    // 功能：按函数名执行对应处理。
     void 配置传感器(rs2::device dev) {
         try {
             for (auto&& s : dev.query_sensors()) {
@@ -365,6 +380,7 @@ private:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     void 配置滤波链() {
         auto try_set = [](auto& f, rs2_option opt, double val) {
             try {
@@ -384,6 +400,7 @@ private:
         try_set(填洞滤波, RS2_OPTION_HOLES_FILL, cfg.填洞_模式);
     }
 
+    // 功能：从指定来源读取数据或状态。
     void 读取对齐彩色(const rs2::video_frame& color, 结构体_原始场景帧& out) {
         const int w = out.宽度;
         const int h = out.高度;
@@ -454,6 +471,7 @@ private:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     static void 复制红外Y8(const rs2::video_frame& ir, std::vector<std::uint8_t>& out, int expectedW, int expectedH) {
         out.clear();
         if (ir.get_width() != expectedW || ir.get_height() != expectedH) return;
@@ -472,6 +490,7 @@ private:
         }
     }
 
+    // 功能：从指定来源读取数据或状态。
     void 读取双目红外(const rs2::frameset& frames, 结构体_原始场景帧& out) {
         out.红外1.clear();
         out.红外2.clear();
@@ -493,6 +512,7 @@ private:
         }
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     void 生成点云(结构体_原始场景帧& 帧) {
         const double fx = 深度内参.fx;
         const double fy = 深度内参.fy;
@@ -519,6 +539,7 @@ private:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     static void 形态学_闭运算(std::vector<std::uint8_t>& m, int w, int h, int r) {
         if (r <= 0) return;
 
@@ -568,6 +589,7 @@ private:
         }
     }
 
+    // 功能：更新已有对象、状态、索引或缓存。
     void 更新背景模型(const 结构体_原始场景帧& 帧, const std::vector<std::uint8_t>* 前景掩膜) {
         const int w = 帧.宽度;
         const int h = 帧.高度;
@@ -609,6 +631,7 @@ private:
         }
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     void 生成前景掩膜(const 结构体_原始场景帧& 帧, std::vector<std::uint8_t>& outMask) {
         const int w = 帧.宽度;
         const int h = 帧.高度;
@@ -653,6 +676,7 @@ private:
         上一帧深度 = 帧.深度;
     }
 
+    // 功能：按函数名执行对应处理。
     void 提取轮廓(结构体_原始场景帧& 帧, std::vector<结构体_轮廓观测>& out) {
         out.clear();
 
@@ -833,6 +857,7 @@ private:
 };
 #pragma pack(pop)
 
+// 功能：初始化对象实例。
 D455_相机实现::D455_相机实现(配置项 cfg)
     : 实现指针(std::make_unique<实现>(cfg)) {
 }
@@ -841,33 +866,40 @@ D455_相机实现::~D455_相机实现() = default;
 D455_相机实现::D455_相机实现(D455_相机实现&&) noexcept = default;
 D455_相机实现& D455_相机实现::operator=(D455_相机实现&&) noexcept = default;
 
+// 功能：按函数名执行对应处理。
 bool D455_相机实现::打开() {
     return 实现指针 && 实现指针->打开();
 }
 
+// 功能：按函数名执行对应处理。
 void D455_相机实现::关闭() {
     if (实现指针) {
         实现指针->关闭();
     }
 }
 
+// 功能：按函数名执行对应处理。
 bool D455_相机实现::采集一帧(结构体_原始场景帧& 输出) {
     return 实现指针 && 实现指针->采集一帧(输出);
 }
 
+// 功能：读取并返回指定对象、状态或运行材料。
 const D455_相机实现::配置项& D455_相机实现::获取配置() const {
     static const 配置项 默认配置{};
     return 实现指针 ? 实现指针->获取配置() : 默认配置;
 }
 
+// 功能：按函数名执行对应处理。
 bool D455_相机实现::应用配置(const 配置项& 新配置) {
     return 实现指针 && 实现指针->应用配置(新配置);
 }
 
+// 功能：按函数名执行对应处理。
 bool D455_相机实现::采集一帧并提取轮廓(结构体_原始场景帧& 输出, std::vector<结构体_轮廓观测>& out轮廓) {
     return 实现指针 && 实现指针->采集一帧并提取轮廓(输出, out轮廓);
 }
 
+// 功能：读取并返回指定对象、状态或运行材料。
 const std::vector<结构体_轮廓观测>& D455_相机实现::获取最近轮廓观测() const {
     static const std::vector<结构体_轮廓观测> 空轮廓;
     return 实现指针 ? 实现指针->获取最近轮廓观测() : 空轮廓;

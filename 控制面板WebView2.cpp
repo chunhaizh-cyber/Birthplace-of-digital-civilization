@@ -90,6 +90,7 @@ namespace {
         bool 等待中 = false;
     };
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_HRESULT文本(HRESULT 值)
     {
         std::ostringstream 输出;
@@ -102,6 +103,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_路径UTF8(const std::filesystem::path& 路径)
     {
         const auto 文本 = 路径.u8string();
@@ -136,6 +138,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::wstring 私有_UTF8转宽字串(const std::string& 输入)
     {
         if (输入.empty()) {
@@ -155,6 +158,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_宽字串转UTF8(const std::wstring& 输入)
     {
         if (输入.empty()) {
@@ -174,6 +178,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     bool 私有_解析U64(std::wstring_view 文本, std::uint64_t& 输出值) noexcept
     {
         if (文本.empty()) {
@@ -262,6 +267,7 @@ namespace {
         return 私有_解析节点消息(消息, L"expand:", 请求号, 展开类型, 节点指针, 附加参数);
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     bool 私有_解析详情消息(
         const std::wstring& 消息,
         std::uint64_t* 请求号,
@@ -271,6 +277,7 @@ namespace {
         return 私有_解析节点消息(消息, L"detail:", 请求号, 展开类型, 节点指针);
     }
 
+    // 功能：设置对象字段、状态或运行参数。
     bool 私有_解析线程池大小设置消息(
         const std::wstring& 消息,
         std::uint64_t* worker数量) noexcept
@@ -290,6 +297,7 @@ namespace {
         return true;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::filesystem::path 私有_模块目录() noexcept
     {
         wchar_t 缓冲区[MAX_PATH]{};
@@ -300,6 +308,7 @@ namespace {
         return std::filesystem::path(缓冲区).parent_path();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::vector<std::filesystem::path> 私有_加载器候选路径()
     {
         std::vector<std::filesystem::path> 路径集{};
@@ -332,6 +341,7 @@ namespace {
         return 路径集;
     }
 
+    // 功能：创建并返回或登记对应对象。
     CreateCoreWebView2EnvironmentWithOptionsFn 私有_加载创建函数(HMODULE* 加载器模块) noexcept
     {
         DWORD 最近加载错误 = ERROR_SUCCESS;
@@ -375,6 +385,7 @@ namespace {
         return nullptr;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     结构_WebView2窗口上下文* 私有_取窗口上下文(HWND 窗口) noexcept
     {
         return reinterpret_cast<结构_WebView2窗口上下文*>(GetWindowLongPtrW(窗口, GWLP_USERDATA));
@@ -384,6 +395,7 @@ namespace {
     bool 私有_打开相机播放窗口(HWND 来源窗口) noexcept;
     bool 私有_打开自我场景窗口(HWND 来源窗口) noexcept;
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_Base64编码(const std::vector<std::uint8_t>& 数据)
     {
         static constexpr char 字典[] =
@@ -410,6 +422,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加JSON字符串(std::ostringstream& 输出, std::string_view 文本)
     {
         输出 << '"';
@@ -439,6 +452,7 @@ namespace {
         输出 << '"';
     }
 
+    // 功能：计算权重、状态、差值或派生结果。
     void 私有_计算相机显示尺寸(int 源宽, int 源高, int& 宽, int& 高) noexcept
     {
         constexpr int 最大宽 = 640;
@@ -457,6 +471,7 @@ namespace {
             (static_cast<long long>(源高) * 最大宽) / 源宽));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::vector<std::uint8_t> 私有_缩放RGB(
         const std::vector<std::uint8_t>& 源,
         int 源宽,
@@ -491,6 +506,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：确保目标结构、状态或前置条件存在并可用。
     bool 私有_确保相机播放外设线程(std::string& 消息) noexcept
     {
         try {
@@ -522,6 +538,7 @@ namespace {
         }
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_相机帧JSON 私有_构建相机帧JSON数据(const 结构_D455控制面板视频快照& 快照)
     {
         结构_相机帧JSON 输出{};
@@ -550,6 +567,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：从指定来源读取数据或状态。
     结构_相机帧JSON 私有_读取相机帧(bool 确保启动)
     {
         try {
@@ -583,6 +601,7 @@ namespace {
         }
     }
 
+    // 功能：停止线程、模块或运行流程。
     结构_相机帧JSON 私有_停止相机播放()
     {
         结构_相机帧JSON 输出{};
@@ -601,6 +620,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_相机帧JSON文本(const 结构_相机帧JSON& 帧)
     {
         std::ostringstream 输出;
@@ -633,6 +653,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_发送相机帧到页面(HWND 窗口, const 结构_相机帧JSON& 帧) noexcept
     {
         auto* 上下文 = 私有_取窗口上下文(窗口);
@@ -648,6 +669,7 @@ namespace {
         (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_发送相机窗口状态到页面(HWND 窗口, bool 成功, std::string_view 消息) noexcept
     {
         auto* 上下文 = 私有_取窗口上下文(窗口);
@@ -668,6 +690,7 @@ namespace {
         (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_发送自我场景窗口状态到页面(HWND 窗口, bool 成功, std::string_view 消息) noexcept
     {
         auto* 上下文 = 私有_取窗口上下文(窗口);
@@ -688,6 +711,7 @@ namespace {
         (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_发送页面刷新到页面(HWND 窗口, std::string_view 页面) noexcept
     {
         auto* 上下文 = 私有_取窗口上下文(窗口);
@@ -705,6 +729,7 @@ namespace {
         (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_调整WebView尺寸(HWND 窗口) noexcept
     {
         auto* 上下文 = 私有_取窗口上下文(窗口);
@@ -717,6 +742,7 @@ namespace {
         上下文->控制器->put_Bounds(区域);
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     std::string 私有_生成相机播放HTML()
     {
         return R"CAMERA(<!DOCTYPE html>
@@ -1110,6 +1136,7 @@ namespace {
 </html>)CAMERA";
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     std::string 私有_生成页面HTML(枚举_WebView2窗口用途 用途)
     {
         if (用途 == 枚举_WebView2窗口用途::相机播放) {
@@ -1128,6 +1155,7 @@ namespace {
         return 生成控制面板HTML(快照, 24);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_刷新页面(HWND 窗口) noexcept
     {
         auto* 上下文 = 私有_取窗口上下文(窗口);
@@ -1142,6 +1170,7 @@ namespace {
         }
     }
 
+    // 功能：初始化相关对象、状态或运行上下文。
     bool 私有_初始化WebView2(HWND 窗口) noexcept
     {
         auto* 上下文 = 私有_取窗口上下文(窗口);
@@ -1334,6 +1363,7 @@ namespace {
         return true;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     LRESULT CALLBACK 私有_窗口过程(HWND 窗口, UINT 消息, WPARAM wParam, LPARAM lParam)
     {
         switch (消息) {
@@ -1417,6 +1447,7 @@ namespace {
         return DefWindowProcW(窗口, 消息, wParam, lParam);
     }
 
+    // 功能：注册方法、模板、对象或运行入口。
     bool 私有_确保窗口类已注册() noexcept
     {
         static std::once_flag 一次{};
@@ -1444,6 +1475,7 @@ namespace {
         return 已注册;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::atomic<HWND>& 私有_窗口句柄槽(枚举_WebView2窗口用途 用途) noexcept
     {
         if (用途 == 枚举_WebView2窗口用途::相机播放) {
@@ -1455,6 +1487,7 @@ namespace {
         return 私有_窗口句柄;
     }
 
+    // 功能：启动线程、模块或运行流程。
     std::atomic_bool& 私有_窗口启动中槽(枚举_WebView2窗口用途 用途) noexcept
     {
         if (用途 == 枚举_WebView2窗口用途::相机播放) {
@@ -1463,6 +1496,7 @@ namespace {
         return 私有_自我场景窗口启动中;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const wchar_t* 私有_窗口标题(枚举_WebView2窗口用途 用途) noexcept
     {
         if (用途 == 枚举_WebView2窗口用途::相机播放) {
@@ -1474,6 +1508,7 @@ namespace {
         return L"鱼巢控制面板";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_窗口尺寸(
         枚举_WebView2窗口用途 用途,
         int& 宽,
@@ -1493,6 +1528,7 @@ namespace {
         高 = 900;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     int 私有_独立窗口诊断码(枚举_WebView2窗口用途 用途) noexcept
     {
         if (用途 == 枚举_WebView2窗口用途::相机播放) {
@@ -1504,6 +1540,7 @@ namespace {
         return 2;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_窗口用途文本(枚举_WebView2窗口用途 用途)
     {
         if (用途 == 枚举_WebView2窗口用途::相机播放) {
@@ -1515,6 +1552,7 @@ namespace {
         return "控制面板";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_独立窗口线程主体(枚举_WebView2窗口用途 用途) noexcept
     {
         HRESULT COM结果 = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -1591,9 +1629,12 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_打开相机播放窗口(HWND 来源窗口) noexcept
     {
         try {
+
+            // 功能：按函数名执行对应处理。
             if (auto* 现有窗口 = 私有_相机播放窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
                 ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
                 SetForegroundWindow(现有窗口);
@@ -1604,6 +1645,8 @@ namespace {
             }
 
             std::lock_guard<std::mutex> 锁(私有_相机播放窗口互斥);
+
+            // 功能：按函数名执行对应处理。
             if (auto* 现有窗口 = 私有_相机播放窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
                 ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
                 SetForegroundWindow(现有窗口);
@@ -1624,9 +1667,12 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_打开自我场景窗口(HWND 来源窗口) noexcept
     {
         try {
+
+            // 功能：按函数名执行对应处理。
             if (auto* 现有窗口 = 私有_自我场景窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
                 PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
                 ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
@@ -1638,6 +1684,8 @@ namespace {
             }
 
             std::lock_guard<std::mutex> 锁(私有_自我场景窗口互斥);
+
+            // 功能：按函数名执行对应处理。
             if (auto* 现有窗口 = 私有_自我场景窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
                 PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
                 ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
@@ -1659,6 +1707,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_窗口线程主体(std::promise<bool> 启动结果) noexcept
     {
         HRESULT COM结果 = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -1679,6 +1728,7 @@ namespace {
                 return;
             }
 
+            // 功能：按函数名执行对应处理。
             if (auto* 现有窗口 = 私有_窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
                 私有_启动诊断码.store(3);
                 PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
@@ -1743,11 +1793,13 @@ namespace {
     }
 }
 
+// 功能：启动线程、模块或运行流程。
 bool 启动控制面板WebView2窗口() noexcept
 {
     try {
         私有_启动诊断码.store(0);
 
+        // 功能：按函数名执行对应处理。
         if (auto* 现有窗口 = 私有_窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
             PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
             ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
@@ -1756,6 +1808,8 @@ bool 启动控制面板WebView2窗口() noexcept
         }
 
         std::lock_guard<std::mutex> 锁(私有_窗口互斥);
+
+        // 功能：按函数名执行对应处理。
         if (auto* 现有窗口 = 私有_窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
             PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
             ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
@@ -1781,6 +1835,7 @@ bool 启动控制面板WebView2窗口() noexcept
     }
 }
 
+// 功能：等待线程、任务、外设或条件变化。
 void 等待控制面板WebView2窗口关闭() noexcept
 {
     while (true) {
@@ -1792,6 +1847,7 @@ void 等待控制面板WebView2窗口关闭() noexcept
     }
 }
 
+// 功能：读取并返回指定对象、状态或运行材料。
 int 获取控制面板WebView2启动诊断码() noexcept
 {
     return 私有_启动诊断码.load();

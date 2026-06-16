@@ -1022,6 +1022,11 @@ private:
         const char* 来源,
         时间戳 now,
         std::size_t 最大结果数量 = 0);
+    bool 抢占落账任务管理派生需求_(
+        结构_主循环骨架上下文* 上下文,
+        const char* 来源,
+        时间戳 now,
+        std::size_t 最大派生需求数量 = 0);
     void 记录自检报告待处理_(
         const 自我线程消息协议::结构_治理消息& 消息);
     void 执行休眠期自检报告修复门控_(

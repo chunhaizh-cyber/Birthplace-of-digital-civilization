@@ -71,11 +71,13 @@ namespace 动作验证报告 {
         VecI64 报告偏差{};
     };
 
+    // 功能：设置对象字段、状态或运行参数。
     inline 结构_动作验证值 已设置值(const VecI64& 值)
     {
         return 结构_动作验证值{ true, 值 };
     }
 
+    // 功能：按函数名执行对应处理。
     inline const char* 转文本(const 枚举_动作验证状态 状态) noexcept
     {
         switch (状态) {
@@ -98,6 +100,7 @@ namespace 动作验证报告 {
         }
     }
 
+    // 功能：按函数名执行对应处理。
     inline const char* 转文本(const 枚举_事实提交等级 等级) noexcept
     {
         switch (等级) {
@@ -110,6 +113,7 @@ namespace 动作验证报告 {
         }
     }
 
+    // 功能：计算权重、状态、差值或派生结果。
     inline VecI64 计算偏差_实际减基准(
         const 结构_动作验证值& 实际值,
         const 结构_动作验证值& 基准值)
@@ -126,6 +130,7 @@ namespace 动作验证报告 {
         return 输出;
     }
 
+    // 功能：按函数名执行对应处理。
     inline void 刷新偏差(结构_动作验证报告& 报告)
     {
         报告.目标偏差 = 计算偏差_实际减基准(报告.实际值, 报告.目标值);
@@ -133,6 +138,7 @@ namespace 动作验证报告 {
         报告.报告偏差 = 计算偏差_实际减基准(报告.实际值, 报告.执行报告值);
     }
 
+    // 功能：按函数名执行对应处理。
     inline 结构_动作验证报告摘要 提取摘要(const 结构_动作验证报告& 报告)
     {
         结构_动作验证报告摘要 摘要{};
@@ -154,6 +160,7 @@ namespace 动作验证报告 {
         return 摘要;
     }
 
+    // 功能：按函数名执行对应处理。
     inline bool 摘要语义相同(
         const 结构_动作验证报告摘要& 左,
         const 结构_动作验证报告摘要& 右)
@@ -168,6 +175,7 @@ namespace 动作验证报告 {
             && 左.报告偏差 == 右.报告偏差;
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::string 值转文本(const 结构_动作验证值& 值)
     {
         if (!值.已设置) {
@@ -186,6 +194,7 @@ namespace 动作验证报告 {
         return 输出.str();
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::string 向量转文本(const VecI64& 值)
     {
         if (值.empty()) {
@@ -204,6 +213,7 @@ namespace 动作验证报告 {
         return 输出.str();
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::string 摘要转日志文本(const 结构_动作验证报告摘要& 摘要)
     {
         if (!摘要.有报告) {
@@ -222,6 +232,7 @@ namespace 动作验证报告 {
         return 输出.str();
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::string 转日志文本(const 结构_动作验证报告& 报告)
     {
         std::ostringstream 输出;

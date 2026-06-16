@@ -61,11 +61,13 @@ namespace {
         const 任务类::节点类* 父节点,
         const std::function<void(const 任务类::节点类*)>& 回调);
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_布尔文本(bool 值) noexcept
     {
         return 值 ? "是" : "否";
     }
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     void 私有_记录动作验证报告结构日志(
         const std::uint64_t 线程Tick计数,
         const std::uint64_t 任务数,
@@ -94,6 +96,7 @@ namespace {
 #endif
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_命令行包含参数(
         const int argc,
         char** argv,
@@ -110,6 +113,7 @@ namespace {
         return false;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_线程生命周期文本(枚举_线程生命周期状态 状态) noexcept
     {
         switch (状态) {
@@ -132,6 +136,7 @@ namespace {
         单帧采集,
     };
 
+    // 功能：解析输入文本、消息、场景或运行包。
     bool 私有_解析非负毫秒参数(std::string_view 文本, int& 输出) noexcept
     {
         if (文本.empty()) {
@@ -152,6 +157,7 @@ namespace {
         return true;
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     int 私有_解析自检日志等待毫秒(int argc, char** argv) noexcept
     {
         constexpr int 默认等待毫秒 = 800;
@@ -184,6 +190,7 @@ namespace {
         return 等待毫秒;
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     枚举_命令行相机命令 私有_解析命令行相机命令(int argc, char** argv) noexcept
     {
         枚举_命令行相机命令 输出 = 枚举_命令行相机命令::无;
@@ -202,6 +209,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_相机失败原因文本(双目相机本能适配器::失败原因 原因) noexcept
     {
         using enum 双目相机本能适配器::失败原因;
@@ -215,6 +223,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_相机调用结果摘要(
         std::string_view 阶段,
         const 双目相机本能适配器::调用结果& 结果)
@@ -322,6 +331,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     void 私有_输出并记录相机结果(
         std::string_view 阶段,
         const 双目相机本能适配器::调用结果& 结果)
@@ -331,6 +341,7 @@ namespace {
         鱼巢_控制台输出(std::cout << 文本 << '\n');
     }
 
+    // 功能：执行任务、方法或动作的主体逻辑。
     int 私有_执行命令行相机命令(枚举_命令行相机命令 命令)
     {
         if (命令 == 枚举_命令行相机命令::无) {
@@ -378,6 +389,7 @@ namespace {
         return 采集结果.成功 ? 0 : 2;
     }
 
+    // 功能：生成展示用文本、界面片段或可视化内容。
     std::string 私有_渲染自检线程摘要()
     {
         const auto 摘要 = 读取自检线程摘要();
@@ -400,6 +412,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     const char* 私有_线程运行阶段文本(枚举_自我线程运行阶段 阶段) noexcept
     {
         switch (阶段) {
@@ -421,6 +434,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_线程最终去向文本(枚举_自我线程最终去向 去向) noexcept
     {
         switch (去向) {
@@ -434,6 +448,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_根层重判结果文本(枚举_任务管理根层重判结果 结果) noexcept
     {
         switch (结果) {
@@ -445,6 +460,7 @@ namespace {
         }
     }
 
+    // 功能：执行任务、方法或动作的主体逻辑。
     const char* 私有_执行前门控结果文本(枚举_任务管理执行前门控结果 结果) noexcept
     {
         switch (结果) {
@@ -456,6 +472,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_任务管理总控结果文本(枚举_任务管理总控结果 结果) noexcept
     {
         switch (结果) {
@@ -470,6 +487,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_任务管理反馈类型文本(枚举_任务管理反馈类型 类型) noexcept
     {
         switch (类型) {
@@ -481,6 +499,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_拼接片段(const std::vector<std::string>& 片段)
     {
         std::ostringstream 输出;
@@ -498,6 +517,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     void 私有_写多行运行日志(const std::string& 前缀, const std::string& 文本)
     {
         std::istringstream 输入(文本);
@@ -509,6 +529,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_枚举任务子节点(
         const 任务类::节点类* 父节点,
         const std::function<void(const 任务类::节点类*)>& 回调)
@@ -525,6 +546,7 @@ namespace {
         } while (当前 && 当前 != 首节点);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_前序遍历任务树(
         const 任务类::节点类* 父节点,
         const std::function<void(const 任务类::节点类*)>& 回调)
@@ -540,6 +562,7 @@ namespace {
         std::size_t 步骤节点数 = 0;
     };
 
+    // 功能：建立对象、任务、方法或因果之间的绑定关系。
     bool 私有_任务头绑定需求(const 任务类::节点类* 节点) noexcept
     {
         return 节点
@@ -548,6 +571,7 @@ namespace {
                 || !节点->主信息.对应需求.主键.empty());
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_任务节点属于需求任务链(const 任务类::节点类* 节点) noexcept
     {
         std::size_t 保护 = 0;
@@ -564,6 +588,7 @@ namespace {
         return false;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     结构_任务节点统计 私有_统计任务节点(const 任务类::节点类* 任务根节点)
     {
         结构_任务节点统计 输出{};
@@ -593,15 +618,19 @@ namespace {
         return 输出;
     }
 
+    // 功能：初始化相关对象、状态或运行上下文。
     void 私有_初始化日志()
     {
         初始化项目日志();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_包含片段(const std::string& 文本, const std::string& 片段) noexcept
     {
         return !片段.empty() && 文本.find(片段) != std::string::npos;
     }
+
+    // 功能：记录日志、动态、证据或运行痕迹。
     void 私有_记录自我实现检查日志()
     {
         const auto 初始化结果 = 自我初始化模块::读取自我初始化结果(自我);
@@ -992,6 +1021,7 @@ namespace {
         bool 已启动 = false;
         bool 自检已启动 = false;
 
+        // 功能：释放或收束对象资源。
         ~私有_自我线程守卫()
         {
             if (自检已启动) {
@@ -1011,6 +1041,7 @@ namespace {
         }
     };
 
+    // 功能：初始化相关对象、状态或运行上下文。
     bool 私有_确保自我环境已初始化(const std::string& 标记)
     {
         (void)标记;
@@ -1038,6 +1069,7 @@ namespace {
         return 已初始化;
     }
 
+    // 功能：确保目标结构、状态或前置条件存在并可用。
     bool 私有_确保自我线程已启动(const std::string& 标记)
     {
         (void)标记;
@@ -1088,11 +1120,13 @@ namespace {
         return 已启动;
     }
 
+    // 功能：确保目标结构、状态或前置条件存在并可用。
     bool 私有_确保自检线程已启动()
     {
         return 启动自检线程();
     }
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     void 私有_记录任务管理摘要即时状态(const char* 场景)
     {
         auto& 自我线程 = 获取全局自我线程();
@@ -1159,6 +1193,7 @@ namespace {
         return 快照;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_摘要快照状态行(const 结构_控制面板快照& 快照)
     {
         const bool 中间态 =
@@ -1177,6 +1212,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求树生长离线摘要文本(
         const 结构_控制面板摘要快照& 快照)
     {
@@ -1247,6 +1283,7 @@ namespace {
         return 最新快照;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_语素入口显示文本_控制命令(const 语素入口节点类* 入口) noexcept
     {
         if (!入口) {
@@ -1267,6 +1304,7 @@ namespace {
         return 主键.empty() ? 词 : (词 + "#" + 主键);
     }
 
+    // 功能：执行跟踪相关定位、匹配或结果输出逻辑。
     std::string 私有_特征值跟踪文本(const 特征值& 值)
     {
         if (std::holds_alternative<std::monostate>(值)) {
@@ -1288,6 +1326,7 @@ namespace {
         return "未定义";
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     状态节点类* 私有_解析状态引用_控制命令(
         const 可解析引用<状态节点类>& 状态引用) noexcept
     {
@@ -1307,6 +1346,7 @@ namespace {
         std::string 特征值文本{};
     };
 
+    // 功能：从指定来源读取数据或状态。
     结构_状态变化跟踪项 私有_读取状态变化跟踪项(
         const 状态节点类* 状态节点) noexcept
     {
@@ -1337,6 +1377,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：执行跟踪相关定位、匹配或结果输出逻辑。
     std::string 私有_状态变化跟踪行(
         const char* 标签,
         const 结构_状态变化跟踪项& 状态) noexcept
@@ -1355,54 +1396,63 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_任务追踪特征_目标是否达成() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("目标是否达成", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_任务追踪特征_本轮是否有推进() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("本轮是否有推进", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_任务追踪特征_本轮推进量() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("本轮推进量", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_任务追踪特征_剩余差距() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("剩余差距", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
+    // 功能：执行任务、方法或动作的主体逻辑。
     const 语素入口节点类* 私有_任务追踪特征_执行结果类型() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("执行结果类型", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     const 语素入口节点类* 私有_任务追踪特征_当前方法运行存在() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("当前方法运行存在", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_任务追踪特征_动作动态() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("动作动态", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_任务追踪特征_输出结果场景() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("输出结果场景", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 基础信息节点类* 私有_任务虚拟存在_控制命令(
         const 任务类::节点类* 任务节点) noexcept
     {
@@ -1417,6 +1467,7 @@ namespace {
             任务节点->主信息.任务虚拟存在.指针);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_任务虚拟存在I64特征文本(
         const 任务类::节点类* 任务节点,
         const 语素入口节点类* 特征类型) noexcept
@@ -1431,6 +1482,7 @@ namespace {
         return std::to_string(值);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 存在节点类* 私有_任务虚拟存在指针特征(
         const 任务类::节点类* 任务节点,
         const 语素入口节点类* 特征类型) noexcept
@@ -1446,6 +1498,7 @@ namespace {
         return reinterpret_cast<const 存在节点类*>(指针);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_任务虚拟存在指针特征主键文本(
         const 任务类::节点类* 任务节点,
         const 语素入口节点类* 特征类型) noexcept
@@ -1454,6 +1507,7 @@ namespace {
         return 指针 ? 指针->获取主键() : std::string("空");
     }
 
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     std::string 私有_任务虚拟存在当前方法运行成功文本(
         const 任务类::节点类* 任务节点) noexcept
     {
@@ -1466,6 +1520,7 @@ namespace {
         return 本能动作运行成功(运行存在) ? "1" : "0";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_任务虚拟存在主键文本(const 任务类::节点类* 任务节点) noexcept
     {
         auto* 任务虚拟存在 = 私有_任务虚拟存在_控制命令(任务节点);
@@ -1478,6 +1533,7 @@ namespace {
         return "空";
     }
 
+    // 功能：执行跟踪相关定位、匹配或结果输出逻辑。
     std::string 私有_渲染完成任务变化跟踪()
     {
         const auto* 自我存在 = 自我.获取自我存在();
@@ -1542,6 +1598,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：执行任务、方法或动作的主体逻辑。
     int 私有_执行需求树生长摘要Live()
     {
         项目运行日志("控制面板命令/需求树生长摘要 | 开始 | 模式=live");
@@ -1658,6 +1715,7 @@ namespace {
     }
 }
 
+// 功能：启动项目主流程。
 int main(int argc, char** argv)
 {
     私有_自我线程守卫 自我线程守卫{};

@@ -76,6 +76,7 @@ enum class 枚举_结果变化方向 : std::uint8_t {
     上升 = 14,
 };
 
+// 功能：按函数名执行对应处理。
 inline constexpr 方向掩码 方法结果变化方向允许方向(const 枚举_结果变化方向 方向) noexcept
 {
     switch (方向) {
@@ -108,6 +109,7 @@ struct 结构体_动作句柄 {
     std::string 外部实现主键{};
     std::string 动作序列主键{};
 
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept {
         switch (类型) {
         case 枚举_动作句柄类型::本能函数ID: return 本能ID != 0;
@@ -148,6 +150,7 @@ struct 结构_方法结果关系模板 {
     I64 最小变化量 = 0;
     I64 最大变化量 = 0;
 
+    // 功能：按函数名执行对应处理。
     bool 有方向约束() const noexcept
     {
         return 允许方向 != 0
@@ -168,6 +171,7 @@ struct 结构_方法结果项 {
     I64 最大变化量 = 0;
     结构_方法结果关系模板 关系模板{};
 
+    // 功能：同步线程、任务、场景或对象之间的状态。
     void 同步兼容字段到关系模板() noexcept
     {
         if (!关系模板.目标特征类型 && 特征类型) {
@@ -194,21 +198,25 @@ struct 结构_方法结果项 {
         }
     }
 
+    // 功能：按函数名执行对应处理。
     const 语素入口节点类* 关系目标特征类型() const noexcept
     {
         return 关系模板.目标特征类型 ? 关系模板.目标特征类型 : 特征类型;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 关系目标特征类型由参数决定() const noexcept
     {
         return 关系模板.目标特征类型由参数决定 || 特征类型由参数决定;
     }
 
+    // 功能：按函数名执行对应处理。
     const 语素入口节点类* 关系目标特征类型参数() const noexcept
     {
         return 关系模板.目标特征类型参数 ? 关系模板.目标特征类型参数 : 特征类型参数;
     }
 
+    // 功能：按函数名执行对应处理。
     方向掩码 关系允许方向() const noexcept
     {
         return 关系模板.允许方向 != 0
@@ -216,6 +224,7 @@ struct 结构_方法结果项 {
             : 方法结果变化方向允许方向(方向);
     }
 
+    // 功能：执行任务、方法或动作的主体逻辑。
     bool 声明了执行目标值约束() const noexcept
     {
         return 关系模板.有目标值
@@ -289,6 +298,8 @@ public:
     方法角色信息 角色{};
 
     方法主信息类() = default;
+
+    // 功能：按函数名执行对应处理。
     explicit 方法主信息类(const 自然句节点类* 描述) {
         公共.描述信息 = 描述;
     }
@@ -305,6 +316,7 @@ public:
         return 信息;
     }
 
+    // 功能：按函数名执行对应处理。
     static 方法主信息类 构造条件节点() {
         方法主信息类 信息{};
         信息.公共.节点种类 = 枚举_方法节点种类::方法条件节点;
@@ -312,6 +324,7 @@ public:
         return 信息;
     }
 
+    // 功能：按函数名执行对应处理。
     static 方法主信息类 构造结果节点() {
         方法主信息类 信息{};
         信息.公共.节点种类 = 枚举_方法节点种类::方法结果节点;
@@ -319,58 +332,70 @@ public:
         return 信息;
     }
 
+    // 功能：按函数名执行对应处理。
     枚举_方法节点种类 节点种类() const noexcept {
         return 公共.节点种类;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 是否方法首节点() const noexcept {
         return 公共.节点种类 == 枚举_方法节点种类::方法首节点;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 是否方法条件节点() const noexcept {
         return 公共.节点种类 == 枚举_方法节点种类::方法条件节点;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 是否方法结果节点() const noexcept {
         return 公共.节点种类 == 枚举_方法节点种类::方法结果节点;
     }
 
+    // 功能：按函数名执行对应处理。
     结构_方法首节点信息* 取首节点信息() noexcept {
         if (!是否方法首节点()) return nullptr;
         return std::get_if<结构_方法首节点信息>(&角色);
     }
 
+    // 功能：按函数名执行对应处理。
     const 结构_方法首节点信息* 取首节点信息() const noexcept {
         if (!是否方法首节点()) return nullptr;
         return std::get_if<结构_方法首节点信息>(&角色);
     }
 
+    // 功能：按函数名执行对应处理。
     结构_方法条件节点信息* 取条件节点信息() noexcept {
         if (!是否方法条件节点()) return nullptr;
         return std::get_if<结构_方法条件节点信息>(&角色);
     }
 
+    // 功能：按函数名执行对应处理。
     const 结构_方法条件节点信息* 取条件节点信息() const noexcept {
         if (!是否方法条件节点()) return nullptr;
         return std::get_if<结构_方法条件节点信息>(&角色);
     }
 
+    // 功能：按函数名执行对应处理。
     结构_方法结果节点信息* 取结果节点信息() noexcept {
         if (!是否方法结果节点()) return nullptr;
         return std::get_if<结构_方法结果节点信息>(&角色);
     }
 
+    // 功能：按函数名执行对应处理。
     const 结构_方法结果节点信息* 取结果节点信息() const noexcept {
         if (!是否方法结果节点()) return nullptr;
         return std::get_if<结构_方法结果节点信息>(&角色);
     }
 
+    // 功能：按函数名执行对应处理。
     结构_方法首节点信息& 首节点信息() noexcept {
         auto* 信息 = 取首节点信息();
         if (信息) return *信息;
         std::abort();
     }
 
+    // 功能：按函数名执行对应处理。
     const 结构_方法首节点信息& 首节点信息() const noexcept {
         const auto* 信息 = 取首节点信息();
         if (信息) return *信息;
@@ -378,6 +403,7 @@ public:
         return 空;
     }
 
+    // 功能：按函数名执行对应处理。
     const 结构_方法条件节点信息& 条件节点信息() const noexcept {
         const auto* 信息 = 取条件节点信息();
         if (信息) return *信息;
@@ -385,6 +411,7 @@ public:
         return 空;
     }
 
+    // 功能：按函数名执行对应处理。
     const 结构_方法结果节点信息& 结果节点信息() const noexcept {
         const auto* 信息 = 取结果节点信息();
         if (信息) return *信息;
@@ -392,17 +419,20 @@ public:
         return 空;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 有方法动作() const noexcept {
         const auto* 首节点 = 取首节点信息();
         return 首节点 && (首节点->动作名 || 首节点->动作句柄.有效());
     }
 
+    // 功能：按函数名执行对应处理。
     bool 有结果能力() const noexcept {
         const auto* 首节点 = 取首节点信息();
         if (!首节点) return false;
         return !首节点->能力.结果包.结果项集.empty();
     }
 
+    // 功能：按函数名执行对应处理。
     const 语素入口节点类* 首个结果能力特征类型() const noexcept {
         const auto* 首节点 = 取首节点信息();
         if (!首节点) return nullptr;
@@ -414,31 +444,38 @@ public:
         return nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     const 结构_方法结果包* 取能力结果包() const noexcept {
         const auto* 首节点 = 取首节点信息();
         return 首节点 ? &首节点->能力.结果包 : nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 有最小出生锚点() const noexcept {
         return 有方法动作() || 有结果能力();
     }
 
+    // 功能：按函数名执行对应处理。
     bool 是仅结果特征需求位() const noexcept {
         return 有结果能力() && !有方法动作();
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(const 方法主信息类* 对象, 枚举_比较字段 字段) const {
         return 生成比较量(对象, 字段);
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(const 方法主信息类& 对象, 枚举_比较字段 字段) const {
         return 生成比较量(对象, 字段);
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     std::int64_t 生成比较量(const 方法主信息类* 对象, 枚举_比较字段 字段) const {
         return 对象 ? 生成比较量(*对象, 字段) : -1;
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     std::int64_t 生成比较量(const 方法主信息类& 对象, 枚举_比较字段 字段) const {
         const auto* 左首节点 = 取首节点信息();
         const auto* 右首节点 = 对象.取首节点信息();
@@ -458,15 +495,18 @@ public:
         }
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     bool 命中比较条件(const 方法主信息类* 对象, 枚举_比较字段 字段) const {
         return 对象 && 命中比较条件(*对象, 字段);
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     bool 命中比较条件(const 方法主信息类& 对象, 枚举_比较字段 字段) const {
         return 生成比较量(对象, 字段) == 0;
     }
 
 protected:
+    // 功能：服务所在模块的内部辅助流程。
     static bool 私有_动作句柄相等(const 结构体_动作句柄& a, const 结构体_动作句柄& b) noexcept {
         return a.类型 == b.类型
             && a.本能ID == b.本能ID
@@ -474,6 +514,7 @@ protected:
             && a.动作序列主键 == b.动作序列主键;
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     static std::int64_t 私有_比较入口指针(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept {
         if (左 == 右) return 0;
         return reinterpret_cast<std::uintptr_t>(左) < reinterpret_cast<std::uintptr_t>(右) ? -1 : 1;

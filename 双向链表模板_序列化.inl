@@ -1,4 +1,4 @@
-﻿// 说明：这是模板分片文件，不单独声明 module，供 双向链表模板核心.ixx 末尾 #include 使用。
+// 说明：这是模板分片文件，不单独声明 module，供 双向链表模板核心.ixx 末尾 #include 使用。
 //
 // 注意：
 // - 对“指针型主信息”，本分片仍支持通过 Pointee::序列化 / Pointee::反序列化 读写。
@@ -24,6 +24,7 @@ inline bool 链表模板<主信息类型>::_读POD(std::istream& is, T& v)
     return static_cast<bool>(is);
 }
 
+// 功能：按函数名执行对应处理。
 template<typename 主信息类型>
 inline void 链表模板<主信息类型>::_写字符串(std::ostream& os, const std::string& s)
 {
@@ -32,6 +33,7 @@ inline void 链表模板<主信息类型>::_写字符串(std::ostream& os, const
     if (n) os.write(s.data(), n);
 }
 
+// 功能：按函数名执行对应处理。
 template<typename 主信息类型>
 inline bool 链表模板<主信息类型>::_读字符串(std::istream& is, std::string& out, std::uint32_t 上限)
 {
@@ -43,6 +45,7 @@ inline bool 链表模板<主信息类型>::_读字符串(std::istream& is, std::
     return static_cast<bool>(is);
 }
 
+// 功能：按函数名执行对应处理。
 template<typename 主信息类型>
 inline std::uint64_t 链表模板<主信息类型>::_索引或空(
     const std::unordered_map<const 节点类*, std::uint64_t>& mp,
@@ -54,6 +57,7 @@ inline std::uint64_t 链表模板<主信息类型>::_索引或空(
     return (it == mp.end()) ? NIL : it->second;
 }
 
+// 功能：按函数名执行对应处理。
 template<typename 主信息类型>
 inline typename 链表模板<主信息类型>::节点类*
 链表模板<主信息类型>::_由索引取指针(const std::vector<节点类*>& vec, std::uint64_t idx)
@@ -64,6 +68,7 @@ inline typename 链表模板<主信息类型>::节点类*
     return vec[static_cast<std::size_t>(idx)];
 }
 
+// 功能：按函数名执行对应处理。
 template<typename 主信息类型>
 bool 链表模板<主信息类型>::保存数据_已加锁(const std::string& 文件名) const
 {
@@ -135,6 +140,7 @@ bool 链表模板<主信息类型>::保存数据_已加锁(const std::string& �
     return static_cast<bool>(ofs);
 }
 
+// 功能：按函数名执行对应处理。
 template<typename 主信息类型>
 bool 链表模板<主信息类型>::保存数据(const std::string& 文件名) const
 {
@@ -142,6 +148,7 @@ bool 链表模板<主信息类型>::保存数据(const std::string& 文件名) c
     return 保存数据_已加锁(文件名);
 }
 
+// 功能：从指定来源读取数据或状态。
 template<typename 主信息类型>
 bool 链表模板<主信息类型>::读取数据_已加锁(const std::string& 文件名)
 {
@@ -231,6 +238,7 @@ FAIL:
     return false;
 }
 
+// 功能：从指定来源读取数据或状态。
 template<typename 主信息类型>
 bool 链表模板<主信息类型>::读取数据(const std::string& 文件名)
 {

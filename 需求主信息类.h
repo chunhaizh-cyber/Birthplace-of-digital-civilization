@@ -64,18 +64,22 @@ public:
     std::uintptr_t 派生本能能力缺口类型抽象特征指针 = 0;
     std::int64_t 派生本能能力缺口类型值 = 0;
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(const 需求主信息类* 对象, 枚举_比较字段 字段) const {
         return 生成比较量(对象, 字段);
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(const 需求主信息类& 对象, 枚举_比较字段 字段) const {
         return 生成比较量(对象, 字段);
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     std::int64_t 生成比较量(const 需求主信息类* 对象, 枚举_比较字段 字段) const {
         return 对象 ? 生成比较量(*对象, 字段) : -1;
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     std::int64_t 生成比较量(const 需求主信息类& 对象, 枚举_比较字段 字段) const {
         switch (字段) {
         case 枚举_比较字段::产生需求主体:
@@ -89,10 +93,12 @@ public:
         }
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     bool 命中比较条件(const 需求主信息类* 对象, 枚举_比较字段 字段) const {
         return 对象 && 命中比较条件(*对象, 字段);
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     bool 命中比较条件(const 需求主信息类& 对象, 枚举_比较字段 字段) const {
         return 生成比较量(对象, 字段) == 0;
     }
@@ -108,6 +114,7 @@ private:
         return a.主键 < b.主键 ? -1 : 1;
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     static std::int64_t 私有_比较入口指针(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept {
         if (左 == 右) return 0;
         return reinterpret_cast<std::uintptr_t>(左) < reinterpret_cast<std::uintptr_t>(右) ? -1 : 1;

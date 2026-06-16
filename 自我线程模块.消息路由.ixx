@@ -15,6 +15,7 @@ enum class 枚举_首收件人 : std::uint8_t {
     丢弃 = 255,
 };
 
+// 功能：按函数名执行对应处理。
 inline 枚举_首收件人 判定首收件人(const 自我线程消息协议::结构_治理消息& 消息) noexcept
 {
     using namespace 自我线程消息协议;
@@ -30,11 +31,13 @@ inline 枚举_首收件人 判定首收件人(const 自我线程消息协议::�
     return 枚举_首收件人::自我线程;
 }
 
+// 功能：按函数名执行对应处理。
 inline bool 是否需要上浮到自我线程(const 自我线程消息协议::结构_治理消息& 消息) noexcept
 {
     return 判定首收件人(消息) == 枚举_首收件人::自我线程;
 }
 
+// 功能：按函数名执行对应处理。
 inline bool 是否需要路由回父任务(const 自我线程消息协议::结构_治理消息& 消息) noexcept
 {
     using namespace 自我线程消息协议;
@@ -43,6 +46,7 @@ inline bool 是否需要路由回父任务(const 自我线程消息协议::结�
         && 消息.头.父任务主键 != 0;
 }
 
+// 功能：按函数名执行对应处理。
 inline bool 是否影响全局优先级(const 自我线程消息协议::结构_治理消息& 消息) noexcept
 {
     using namespace 自我线程消息协议;
@@ -58,6 +62,7 @@ inline bool 是否影响全局优先级(const 自我线程消息协议::结构_�
     }
 }
 
+// 功能：按函数名执行对应处理。
 inline bool 是否触发二次特征重算(const 自我线程消息协议::结构_治理消息& 消息) noexcept
 {
     using namespace 自我线程消息协议;

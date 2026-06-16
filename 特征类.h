@@ -80,7 +80,10 @@ struct 结构_VecU特征解释规则 {
     std::uint32_t 坐标维度 = 0;
     bool 需要ZigZag解码 = false;
 
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept { return 规则 != 枚举_VecU解释规则::未定义; }
+
+    // 功能：按函数名执行对应处理。
     bool 是坐标链() const noexcept { return 坐标维度 == 2 || 坐标维度 == 3; }
 };
 
@@ -104,6 +107,7 @@ struct 结构_轮廓比较结果 {
     I64 点链最大L1误差 = 0;
     I64 匹配评分Q10000 = 0;
 
+    // 功能：比较当前值、目标值或历史基准。
     bool 可比较() const noexcept { return 状态 == 枚举_轮廓比较状态::可比较; }
 };
 

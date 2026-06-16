@@ -17,16 +17,21 @@ public:
     时间戳 最后命中 = 0;
 
     特征值主信息类() = default;
+
+    // 功能：按函数名执行对应处理。
     explicit 特征值主信息类(VecIU64 v) : 值(std::move(v)) {}
 
+    // 功能：按函数名执行对应处理。
     bool 绝对相同(const 特征值主信息类& rhs) const noexcept {
         return 值 == rhs.值;
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(const 特征值主信息类* 对象, 枚举_比较字段 字段) const {
         return 对象 ? 比较(*对象, 字段) : -1;
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(const 特征值主信息类& 对象, 枚举_比较字段 字段) const {
         switch (字段) {
         case 枚举_比较字段::特征值_值:
@@ -41,23 +46,28 @@ public:
         }
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     std::int64_t 生成比较量(const 特征值主信息类* 对象, 枚举_比较字段 字段) const {
         return 对象 ? 生成比较量(*对象, 字段) : -1;
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     std::int64_t 生成比较量(const 特征值主信息类& 对象, 枚举_比较字段 字段) const {
         return 比较(对象, 字段);
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     bool 命中比较条件(const 特征值主信息类* 对象, 枚举_比较字段 字段) const {
         return 对象 && 命中比较条件(*对象, 字段);
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     bool 命中比较条件(const 特征值主信息类& 对象, 枚举_比较字段 字段) const {
         return 生成比较量(对象, 字段) == 0;
     }
 
 private:
+    // 功能：比较当前值、目标值或历史基准。
     static std::int64_t 私有_比较向量(const VecIU64& a, const VecIU64& b) noexcept {
         if (a == b) return 0;
 
@@ -71,12 +81,14 @@ private:
         return a.size() < b.size() ? -1 : 1;
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     static std::int64_t 私有_比较整数(std::uint64_t a, std::uint64_t b) noexcept {
         if (a == b) return 0;
         return a < b ? -1 : 1;
     }
 
 public:
+    // 功能：把对象转换为可保存或可传输形式。
     void 序列化(std::ostream& os) const {
         const std::uint64_t count = static_cast<std::uint64_t>(值.size());
         os.write(reinterpret_cast<const char*>(&count), sizeof(count));
@@ -92,6 +104,7 @@ public:
         os.write(reinterpret_cast<const char*>(&最后命中), sizeof(最后命中));
     }
 
+    // 功能：把对象转换为可保存或可传输形式。
     static 特征值主信息类 反序列化(std::istream& is) {
         特征值主信息类 out{};
 

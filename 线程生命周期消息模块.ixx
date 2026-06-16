@@ -107,21 +107,25 @@ namespace {
     std::unordered_map<std::string, 结构_控制面板线程信息项> g_线程信息表;
     bool g_线程信息表缓存已加载 = false;
 
+    // 功能：服务所在模块的内部辅助流程。
     std::filesystem::path 私有_消息目录()
     {
         return std::filesystem::absolute(std::filesystem::path(L"消息中间件"));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::filesystem::path 私有_已消费目录()
     {
         return 私有_消息目录() / std::filesystem::path(L"已消费");
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::filesystem::path 私有_归档目录()
     {
         return 私有_消息目录() / std::filesystem::path(L"归档");
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::filesystem::path 私有_线程信息表缓存路径()
     {
         return 私有_消息目录() / std::filesystem::path(L"control_panel_thread_info_table.cache");
@@ -143,6 +147,7 @@ namespace {
         std::size_t 删除失败数 = 0;
     };
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_是终态事件(const 枚举_线程生命周期消息事件 事件) noexcept
     {
         return 事件 == 枚举_线程生命周期消息事件::已退出
@@ -150,6 +155,7 @@ namespace {
             || 事件 == 枚举_线程生命周期消息事件::异常退出;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::uint64_t 私有_当前时间_微秒() noexcept
     {
         const auto now = std::chrono::system_clock::now().time_since_epoch();
@@ -157,6 +163,7 @@ namespace {
             std::chrono::duration_cast<std::chrono::microseconds>(now).count());
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_转义字段值(std::string_view 文本)
     {
         std::string 输出;
@@ -183,6 +190,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_反转义字段值(std::string_view 文本)
     {
         std::string 输出;
@@ -216,6 +224,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     std::uint64_t 私有_解析U64(const std::string& 文本) noexcept
     {
         if (文本.empty()) {
@@ -228,16 +237,19 @@ namespace {
         }
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     bool 私有_解析布尔(const std::string& 文本) noexcept
     {
         return 文本 == "1" || 文本 == "true" || 文本 == "是";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_布尔文本(const bool 值)
     {
         return 值 ? "1" : "0";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const std::string& 私有_取字段(
         const std::unordered_map<std::string, std::string>& 字段,
         const char* 键) noexcept
@@ -247,11 +259,13 @@ namespace {
         return it == 字段.end() ? 空 : it->second;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_项字段键(const std::size_t 索引, const char* 键)
     {
         return std::string("项.") + std::to_string(索引) + "." + 键;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const std::string& 私有_取项字段(
         const std::unordered_map<std::string, std::string>& 字段,
         const std::size_t 索引,
@@ -262,6 +276,7 @@ namespace {
         return it == 字段.end() ? 空 : it->second;
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     枚举_线程生命周期消息事件 私有_解析事件类型(
         const std::string& 文本,
         const std::string& 代码文本) noexcept
@@ -279,6 +294,7 @@ namespace {
         return 枚举_线程生命周期消息事件::状态变化;
     }
 
+    // 功能：从指定来源读取数据或状态。
     std::unordered_map<std::string, std::string> 私有_读取字段文件(
         const std::filesystem::path& 路径)
     {
@@ -304,6 +320,7 @@ namespace {
         return 字段;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     结构_线程生命周期消息 私有_从字段构造消息(
         const std::unordered_map<std::string, std::string>& 字段)
     {
@@ -339,16 +356,19 @@ namespace {
         return 消息;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_写字段(std::ofstream& 输出, std::string_view 键, std::string_view 值)
     {
         输出 << 键 << '=' << 私有_转义字段值(值) << '\n';
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_事件文件代码(const 枚举_线程生命周期消息事件 事件)
     {
         return std::to_string(static_cast<std::uint32_t>(事件));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_写项字段(
         std::ofstream& 输出,
         const std::size_t 索引,
@@ -358,6 +378,7 @@ namespace {
         私有_写字段(输出, 私有_项字段键(索引, 键), 值);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     结构_控制面板线程信息项 私有_从缓存字段构造线程信息项(
         const std::unordered_map<std::string, std::string>& 字段,
         const std::size_t 索引)
@@ -397,6 +418,7 @@ namespace {
         return 项;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_加载线程信息表缓存_已持锁() noexcept
     {
         if (g_线程信息表缓存已加载) {
@@ -436,6 +458,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_写线程信息表缓存_已持锁() noexcept
     {
         try {
@@ -518,6 +541,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_应用线程生命周期消息_已持锁(const 结构_线程生命周期消息& 消息)
     {
         if (消息.线程逻辑ID.empty()) {
@@ -596,6 +620,7 @@ namespace {
         ++项.版本;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_是正式线程生命周期消息文件(const std::filesystem::directory_entry& 项) noexcept
     {
         if (!项.is_regular_file()) {
@@ -609,6 +634,7 @@ namespace {
         return 文件名.rfind(L"thread_lifecycle_", 0) == 0;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_移动到已消费(const std::filesystem::path& 源路径) noexcept
     {
         try {
@@ -645,6 +671,7 @@ namespace {
         return 当前时间 - 写入时间 > 保留时长;
     }
 
+    // 功能：删除指定对象、状态或登记项。
     bool 私有_删除文件(
         const std::filesystem::path& 路径,
         const char* 原因,
@@ -666,6 +693,7 @@ namespace {
         return 已删除;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_归档日期文本(const std::uint64_t 发生时间微秒) noexcept
     {
         const auto 有效时间 = 发生时间微秒 < 消息归档最早可信发生时间
@@ -687,6 +715,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_消息值得归档(const 结构_线程生命周期消息& 消息) noexcept
     {
         return 消息.事件类型 == 枚举_线程生命周期消息事件::创建
@@ -701,6 +730,7 @@ namespace {
             || !消息.显示摘要.empty();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_归档已消费消息文件(
         const std::filesystem::path& 源路径,
         const 结构_线程生命周期消息& 消息) noexcept
@@ -742,6 +772,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_维护消息中间件根目录(结构_消息中间件维护统计& 统计)
     {
         const auto 目录 = 私有_消息目录();
@@ -776,6 +807,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_维护消息中间件已消费目录(结构_消息中间件维护统计& 统计)
     {
         const auto 目录 = 私有_已消费目录();
@@ -828,6 +860,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_维护消息中间件归档目录(结构_消息中间件维护统计& 统计)
     {
         const auto 目录 = 私有_归档目录();
@@ -848,6 +881,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_维护消息中间件文件() noexcept
     {
         std::lock_guard<std::mutex> 锁(g_消息中间件维护锁);
@@ -895,6 +929,7 @@ namespace {
     }
 }
 
+// 功能：按函数名执行对应处理。
 export const char* 线程生命周期消息事件文本(
     const 枚举_线程生命周期消息事件 事件) noexcept
 {
@@ -909,11 +944,13 @@ export const char* 线程生命周期消息事件文本(
     }
 }
 
+// 功能：按函数名执行对应处理。
 export std::uint64_t 线程生命周期当前时间_微秒() noexcept
 {
     return 私有_当前时间_微秒();
 }
 
+// 功能：按函数名执行对应处理。
 export std::uint64_t 当前系统线程ID_控制面板线程消息() noexcept
 {
 #if defined(_WIN32)
@@ -924,6 +961,7 @@ export std::uint64_t 当前系统线程ID_控制面板线程消息() noexcept
 #endif
 }
 
+// 功能：按函数名执行对应处理。
 export bool 发送线程生命周期消息(结构_线程生命周期消息 消息) noexcept
 {
     if (消息.线程逻辑ID.empty()) {
@@ -1024,6 +1062,7 @@ export bool 发送线程生命周期消息(结构_线程生命周期消息 消�
     }
 }
 
+// 功能：从指定来源读取数据或状态。
 export std::vector<结构_控制面板线程信息项> 读取控制面板线程信息表快照()
 {
     std::vector<结构_控制面板线程信息项> 输出;
@@ -1047,6 +1086,7 @@ export std::vector<结构_控制面板线程信息项> 读取控制面板线程�
     return 输出;
 }
 
+// 功能：从指定来源读取数据或状态。
 export std::vector<结构_控制面板线程信息项> 消费并读取控制面板线程信息表()
 {
     struct 待消费项 {

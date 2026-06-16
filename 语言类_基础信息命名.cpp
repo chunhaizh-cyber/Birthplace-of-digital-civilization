@@ -9,6 +9,8 @@
 import 二次特征应用模块;
 
 namespace {
+
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_安全词(const 语素入口节点类* 词)
     {
         if (!词) return {};
@@ -20,11 +22,13 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_安全文本(const std::string& 文本, const std::string& 默认值)
     {
         return 文本.empty() ? 默认值 : 文本;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_世界类型文本(枚举_世界类型 类型) noexcept
     {
         switch (类型) {
@@ -39,6 +43,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_指针句柄文本(std::uintptr_t 指针值)
     {
         if (指针值 == 0) {
@@ -47,6 +52,7 @@ namespace {
         return "指针#" + std::to_string(指针值);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_特征值文本(const 特征值& 值)
     {
         if (std::holds_alternative<I64>(值)) {
@@ -61,6 +67,7 @@ namespace {
         return "未定义";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_基础节点短名(const 基础信息节点类* 节点)
     {
         if (!节点) {
@@ -70,6 +77,7 @@ namespace {
         return 名称.empty() ? std::string("节点#") + 节点->获取主键() : 名称;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_方法节点名称(const 方法类::节点类* 节点)
     {
         if (!节点) {
@@ -78,6 +86,7 @@ namespace {
         return 私有_安全文本(私有_安全词(节点->主信息.首节点信息().动作名), std::string("方法#") + 节点->获取主键());
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征种类文本(枚举_二次特征种类 种类) noexcept
     {
         switch (种类) {
@@ -92,6 +101,7 @@ namespace {
     }
 }
 
+// 功能：读取并返回指定对象、状态或运行材料。
 std::string 语言类::获取基础信息名称(const 基础信息节点类* 节点) const
 {
     const auto& 基础信息 = 世界树.基础信息();

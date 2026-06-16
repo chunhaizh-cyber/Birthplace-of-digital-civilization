@@ -25,11 +25,19 @@ export struct I64区间 {
     std::int64_t 低值 = 0;
     std::int64_t 高值 = 0;
 
+    // 功能：按函数名执行对应处理。
     constexpr bool 有效() const noexcept { return 低值 <= 高值; }
+
+    // 功能：按函数名执行对应处理。
     constexpr bool 是否点() const noexcept { return 低值 == 高值; }
+
+    // 功能：按函数名执行对应处理。
     constexpr std::int64_t 点值() const noexcept { return 低值; }
+
+    // 功能：按函数名执行对应处理。
     constexpr bool 包含(std::int64_t v) const noexcept { return v >= 低值 && v <= 高值; }
 
+    // 功能：按函数名执行对应处理。
     static constexpr I64区间 点(std::int64_t v) noexcept { return I64区间{ v, v }; }
 };
 
@@ -61,6 +69,7 @@ export inline constexpr 方向掩码 方向_大于等于 = 方向_大于0 | 方�
 export inline constexpr 方向掩码 方向_不等于 = 方向_小于0 | 方向_大于0;
 export inline constexpr 方向掩码 方向_任意 = 方向_小于0 | 方向_等于0 | 方向_大于0;
 
+// 功能：按函数名执行对应处理。
 export inline bool 三向关系被接受(
     const 枚举_三向关系 关系,
     const 三向关系掩码 掩码) noexcept
@@ -79,21 +88,26 @@ export inline bool 三向关系被接受(
 
 // 有符号比较量规则工具：
 // 比较函数可返回任意负数、0、任意正数；基础逻辑只读取符号。
+
+// 功能：有符号比较量规则工具： 比较函数可返回任意负数、0、任意正数；基础逻辑只读取符号。
 export inline constexpr 比较量 比较I64_三态(const I64 左, const I64 右) noexcept
 {
     return 左 < 右 ? -1 : (左 > 右 ? 1 : 0);
 }
 
+// 功能：比较当前值、目标值或历史基准。
 export inline constexpr 比较量 比较U64_三态(const std::uint64_t 左, const std::uint64_t 右) noexcept
 {
     return 左 < 右 ? -1 : (左 > 右 ? 1 : 0);
 }
 
+// 功能：比较当前值、目标值或历史基准。
 export inline constexpr std::int8_t 比较符号(const 比较量 r) noexcept
 {
     return static_cast<std::int8_t>((r > 0) - (r < 0));
 }
 
+// 功能：比较当前值、目标值或历史基准。
 export inline constexpr 枚举_三向关系 比较量转三向关系(const 比较量 r) noexcept
 {
     return r < 0
@@ -101,11 +115,13 @@ export inline constexpr 枚举_三向关系 比较量转三向关系(const 比�
         : (r > 0 ? 枚举_三向关系::大于 : 枚举_三向关系::等于);
 }
 
+// 功能：比较当前值、目标值或历史基准。
 export inline constexpr 三向关系掩码 比较量方向掩码(const 比较量 r) noexcept
 {
     return r < 0 ? 关系_小于 : (r > 0 ? 关系_大于 : 关系_等于);
 }
 
+// 功能：比较当前值、目标值或历史基准。
 export inline constexpr bool 比较量命中三向关系(
     const 比较量 r,
     const 三向关系掩码 掩码) noexcept
@@ -113,6 +129,7 @@ export inline constexpr bool 比较量命中三向关系(
     return (比较量方向掩码(r) & 掩码) != 0;
 }
 
+// 功能：比较当前值、目标值或历史基准。
 export inline constexpr bool 比较量命中方向(
     const 比较量 r,
     const 方向掩码 允许方向) noexcept
@@ -134,26 +151,38 @@ struct 可解析引用 {
     std::string 主键{};
 
     可解析引用() = default;
+
+    // 功能：解析输入文本、消息、场景或运行包。
     可解析引用(T节点* 节点) { 绑定(节点); }
+
+    // 功能：解析输入文本、消息、场景或运行包。
     可解析引用(T节点* 节点, const std::string& 主键值) { 绑定(节点, 主键值); }
 
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept { return 指针 != nullptr || !主键.empty(); }
+
+    // 功能：读取并返回指定对象、状态或运行材料。
     T节点* 获取() const noexcept { return 指针; }
     T节点* operator->() const noexcept { return 指针; }
+
+    // 功能：按函数名执行对应处理。
     operator T节点* () const noexcept { return 指针; }
 
+    // 功能：按函数名执行对应处理。
     可解析引用& operator=(T节点* 节点)
     {
         绑定(节点);
         return *this;
     }
 
+    // 功能：建立对象、任务、方法或因果之间的绑定关系。
     void 绑定(T节点* 节点)
     {
         指针 = 节点;
         主键 = 私有_提取主键(节点);
     }
 
+    // 功能：建立对象、任务、方法或因果之间的绑定关系。
     void 绑定(T节点* 节点, const std::string& 主键值)
     {
         指针 = 节点;
@@ -162,6 +191,7 @@ struct 可解析引用 {
             : 私有_提取主键(节点);
     }
 
+    // 功能：按函数名执行对应处理。
     void 清空() noexcept { 指针 = nullptr; 主键.clear(); }
 
 private:
@@ -177,6 +207,7 @@ private:
         return {};
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     static std::string 私有_提取主键(T节点* 节点)
     {
         return 私有_提取主键_impl(节点, 0);
@@ -187,6 +218,7 @@ export struct 结构_基础信息轻引用 {
     std::uintptr_t 指针 = 0;
     std::string 主键{};
 
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept { return 指针 != 0 || !主键.empty(); }
 
     template<class T节点>
@@ -202,6 +234,7 @@ export struct 结构_基础信息轻引用 {
         主键 = 私有_提取主键(节点);
     }
 
+    // 功能：按函数名执行对应处理。
     void 清空() noexcept
     {
         指针 = 0;
@@ -236,6 +269,7 @@ export struct 结构_统计 {
     std::uint64_t 命中次数 = 0;
     std::int64_t 可信度 = 10000; // Q10000
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     void 记录观测(时间戳 now) noexcept {
         if (创建时间 == 0 && now != 0) 创建时间 = now;
         if (now != 0) 最后观测时间 = now;
@@ -254,17 +288,24 @@ export struct 结构_时间段 {
 // ============================================================================
 export struct VecU句柄 {
     std::uintptr_t 主信息指针 = 0;
+
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept { return 主信息指针 != 0; }
 };
 
 export struct 指针句柄 {
     std::uintptr_t 指针 = 0;
+
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept { return 指针 != 0; }
 };
 
+// 功能：按函数名执行对应处理。
 export inline bool operator==(const VecU句柄& a, const VecU句柄& b) noexcept {
     return a.主信息指针 == b.主信息指针;
 }
+
+// 功能：按函数名执行对应处理。
 export inline bool operator==(const 指针句柄& a, const 指针句柄& b) noexcept {
     return a.指针 == b.指针;
 }
@@ -272,10 +313,12 @@ export inline bool operator==(const 指针句柄& a, const 指针句柄& b) noex
 export using 特征值 = std::variant<std::monostate, I64, VecU句柄, 指针句柄>;
 export using 特征快照值 = 特征值;
 
+// 功能：按函数名执行对应处理。
 export inline bool 特征值有效(const 特征值& v) noexcept {
     return !std::holds_alternative<std::monostate>(v);
 }
 
+// 功能：按函数名执行对应处理。
 export inline bool 特征快照有值(const 特征快照值& v) noexcept {
     return 特征值有效(v);
 }
@@ -489,6 +532,8 @@ export struct 结构体_分词 {
     std::string 词;
     std::string  词性;
     结构体_分词() = default;
+
+    // 功能：按函数名执行对应处理。
     结构体_分词(std::string 词_, std::string  词性_)
         :词(词_), 词性(词性_) {
     }
@@ -497,9 +542,13 @@ export struct 结构体_分词 {
 //============================ 空间/几何 ============================
 export struct 结构体_空间坐标 {
     long long x = 0, y = 0, z = 0;
+
+    // 功能：按函数名执行对应处理。
     friend bool operator==(const 结构体_空间坐标& a, const 结构体_空间坐标& b) {
         return a.x == b.x && a.y == b.y && a.z == b.z;
     }
+
+    // 功能：按函数名执行对应处理。
     结构体_空间坐标 operator-(const 结构体_空间坐标& o) const {
         return { x - o.x, y - o.y, z - o.z };
     }
@@ -552,6 +601,8 @@ export struct 结构体_时间戳 {
     时间戳 值 = 0; // 约定：单位 = 微秒 us（steady_clock）
 
     // 当前时间戳（微秒）
+
+    // 功能：当前时间戳（微秒）
     static 时间戳 当前_微秒() noexcept {
         using clock = std::chrono::steady_clock;
         using us = std::chrono::microseconds;
@@ -561,6 +612,8 @@ export struct 结构体_时间戳 {
     }
 
     // 当前时间戳（纳秒，可选）
+
+    // 功能：当前时间戳（纳秒，可选）
     static 时间戳 当前_纳秒() noexcept {
         using clock = std::chrono::steady_clock;
         using ns = std::chrono::nanoseconds;
@@ -570,11 +623,15 @@ export struct 结构体_时间戳 {
     }
 
     // 计算时间差（微秒，返回无符号；如果担心顺序，提供一个有符号版本更安全）
+
+    // 功能：计算时间差（微秒，返回无符号；如果担心顺序，提供一个有符号版本更安全）
     static 时间戳 时间差_微秒(时间戳 t0, 时间戳 t1) noexcept {
         return (t1 >= t0) ? (t1 - t0) : (t0 - t1);
     }
 
     // 更推荐：有符号差值（允许 t1 < t0 的情况）
+
+    // 功能：更推荐：有符号差值（允许 t1 < t0 的情况）
     static std::int64_t 时间差_微秒_有符号(时间戳 t0, 时间戳 t1) noexcept {
         return static_cast<std::int64_t>(t1) - static_cast<std::int64_t>(t0);
     }
@@ -664,6 +721,7 @@ export using 字符串UTF8 = std::string;
 export constexpr I64 I64_MIN = (std::numeric_limits<I64>::min)();
 export constexpr I64 I64_MAX = (std::numeric_limits<I64>::max)();
 
+// 功能：按函数名执行对应处理。
 export inline constexpr std::uint64_t 编码I64为U64_ZigZag(const I64 值) noexcept
 {
     const auto 原始位 = static_cast<std::uint64_t>(值);
@@ -671,6 +729,7 @@ export inline constexpr std::uint64_t 编码I64为U64_ZigZag(const I64 值) noex
     return (原始位 << 1) ^ 符号掩码;
 }
 
+// 功能：按函数名执行对应处理。
 export inline constexpr I64 解码U64为I64_ZigZag(const std::uint64_t 值) noexcept
 {
     const auto 半值 = 值 >> 1;
@@ -679,16 +738,19 @@ export inline constexpr I64 解码U64为I64_ZigZag(const std::uint64_t 值) noex
     return -static_cast<I64>(半值 + 1ull);
 }
 
+// 功能：按函数名执行对应处理。
 export inline constexpr std::uint64_t 编码I64为U64(const I64 值) noexcept
 {
     return 编码I64为U64_ZigZag(值);
 }
 
+// 功能：按函数名执行对应处理。
 export inline constexpr I64 解码U64为I64(const std::uint64_t 值) noexcept
 {
     return 解码U64为I64_ZigZag(值);
 }
 
+// 功能：按函数名执行对应处理。
 export inline VecIU64 编码VecI64为VecIU64_ZigZag(const VecI64& 值)
 {
     VecIU64 输出{};
@@ -699,6 +761,7 @@ export inline VecIU64 编码VecI64为VecIU64_ZigZag(const VecI64& 值)
     return 输出;
 }
 
+// 功能：按函数名执行对应处理。
 export inline VecI64 解码VecIU64为VecI64_ZigZag(const VecIU64& 值)
 {
     VecI64 输出{};
@@ -709,11 +772,13 @@ export inline VecI64 解码VecIU64为VecI64_ZigZag(const VecIU64& 值)
     return 输出;
 }
 
+// 功能：按函数名执行对应处理。
 export inline VecIU64 编码VecI64为VecIU64(const VecI64& 值)
 {
     return 编码VecI64为VecIU64_ZigZag(值);
 }
 
+// 功能：按函数名执行对应处理。
 export inline VecI64 解码VecIU64为VecI64(const VecIU64& 值)
 {
     return 解码VecIU64为VecI64_ZigZag(值);
@@ -733,11 +798,15 @@ export struct I64多维区间 {
 
 
     std::vector<I64区间> 维度{};  // 多维区间：每个维度一个 {lo,hi} 标量区间：维度.size()==1
+
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept {
         if (维度.empty()) return false;
         for (const auto& d : 维度) if (d.低值 > d.高值) return false;
         return true;
     }
+
+    // 功能：按函数名执行对应处理。
     std::size_t 维度数() const noexcept { return 维度.size(); }
 };
 
@@ -885,34 +954,46 @@ export struct Vector3D {
 
     // 可选：构造函数
     Vector3D() = default;
+
+    // 功能：按函数名执行对应处理。
     constexpr Vector3D(double  xx, double  yy, double  zz) : x(xx), y(yy), z(zz) {}
 
     // ===== 关键：标量乘法（成员函数）=====
+
+    // 功能：===== 关键：标量乘法（成员函数）=====
     constexpr Vector3D operator*(double  scalar) const {
         return Vector3D(x * scalar, y * scalar, z * scalar);
     }
 
     // ===== 推荐同时添加：标量除法 =====
+
+    // 功能：===== 推荐同时添加：标量除法 =====
     constexpr Vector3D operator/(double  scalar) const {
         if (scalar == 0.0f) return *this; // 防除零，或抛异常
         return Vector3D(x / scalar, y / scalar, z / scalar);
     }
 
     // ===== 推荐添加：向量加法/减法 =====
+
+    // 功能：===== 推荐添加：向量加法/减法 =====
     constexpr Vector3D operator+(const Vector3D& other) const {
         return Vector3D(x + other.x, y + other.y, z + other.z);
     }
 
+    // 功能：按函数名执行对应处理。
     constexpr Vector3D operator-(const Vector3D& other) const {
         return Vector3D(x - other.x, y - other.y, z - other.z);
     }
 
     // ===== 推荐添加：复合赋值运算符 =====
+
+    // 功能：===== 推荐添加：复合赋值运算符 =====
     Vector3D& operator*=(double  scalar) {
         x *= scalar; y *= scalar; z *= scalar;
         return *this;
     }
 
+    // 功能：按函数名执行对应处理。
     Vector3D& operator/=(double  scalar) {
         if (scalar != 0.0f) {
             x /= scalar; y /= scalar; z /= scalar;
@@ -920,11 +1001,13 @@ export struct Vector3D {
         return *this;
     }
 
+    // 功能：按函数名执行对应处理。
     Vector3D& operator+=(const Vector3D& other) {
         x += other.x; y += other.y; z += other.z;
         return *this;
     }
 
+    // 功能：按函数名执行对应处理。
     Vector3D& operator-=(const Vector3D& other) {
         x -= other.x; y -= other.y; z -= other.z;
         return *this;
@@ -942,18 +1025,25 @@ export struct Quaternion {
     double y = 0.0;
     double z = 0.0;
 
+    // 功能：按函数名执行对应处理。
     static Quaternion 单位() noexcept { return {}; }
 
+    // 功能：按函数名执行对应处理。
     double 范数() const noexcept { return std::sqrt(w * w + x * x + y * y + z * z); }
+
+    // 功能：按函数名执行对应处理。
     void 归一化() noexcept {
         const double n = 范数();
         if (n <= 0.0) { w = 1.0; x = y = z = 0.0; return; }
         w /= n; x /= n; y /= n; z /= n;
     }
 
+    // 功能：按函数名执行对应处理。
     Quaternion 共轭() const noexcept { return { w, -x, -y, -z }; }
 
     // 复合旋转：this ⊗ r
+
+    // 功能：复合旋转：this ⊗ r
     Quaternion operator*(const Quaternion& r) const noexcept {
         return {
             w * r.w - x * r.x - y * r.y - z * r.z,
@@ -964,6 +1054,8 @@ export struct Quaternion {
     }
 
     // 旋转向量：v' = q ⊗ (0,v) ⊗ q*  (注意：取决于你对 q 的语义约定；此处提供常用形式)
+
+    // 功能：旋转向量：v' = q ⊗ (0,v) ⊗ q* (注意：取决于你对 q 的语义约定；此处提供常用形式)
     Vector3D 旋转(const Vector3D& v) const noexcept {
         Quaternion p{ 0.0, v.x, v.y, v.z };
         Quaternion qn = *this;
@@ -988,10 +1080,13 @@ export enum class 运行状态 : std::int8_t {
     故障 = 4
 };
 // ===== 额外：非成员函数版本，支持 double  * Vector3D（如 0.5 * vec）=====
+
+// 功能：===== 额外：非成员函数版本，支持 double * Vector3D（如 0.5 * vec）=====
 export constexpr Vector3D operator*(double  scalar, const Vector3D& vec) {
     return vec * scalar;
 }
 
+// 功能：按函数名执行对应处理。
 export constexpr Vector3D operator/(double  scalar, const Vector3D& vec) {
     return Vector3D(scalar / vec.x, scalar / vec.y, scalar / vec.z); // 注意：语义不同，通常不常用
 }
@@ -1090,9 +1185,13 @@ struct RawImage {
     int w = 0, h = 0;
     std::vector<T> data;
 
+    // 功能：按函数名执行对应处理。
     bool valid() const { return w > 0 && h > 0 && (int)data.size() == w * h; }
 
+    // 功能：按函数名执行对应处理。
     T& at(int x, int y) { return data[(size_t)y * (size_t)w + (size_t)x]; }
+
+    // 功能：按函数名执行对应处理。
     const T& at(int x, int y) const { return data[(size_t)y * (size_t)w + (size_t)x]; }
 };
 
@@ -1152,30 +1251,43 @@ export struct 结构体_原始场景帧 {
 
     std::vector<结构体_轮廓观测> 轮廓观测列表;
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] bool 有效深度() const noexcept {
         return 宽度 > 0 && 高度 > 0
             && 深度.size() == static_cast<std::size_t>(宽度) * static_cast<std::size_t>(高度);
     }
+
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] bool 有效颜色() const noexcept { return 颜色.size() == 深度.size(); }
+
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] bool 有效点云() const noexcept { return 点云.size() == 深度.size(); }
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] bool 有效深度掩膜() const noexcept { return 深度有效.size() == 深度.size(); }
+
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] bool 有效前景提示() const noexcept { return 前景提示.size() == 深度.size(); }
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] inline std::size_t 索引(int u, int v) const noexcept {
         return static_cast<std::size_t>(v) * static_cast<std::size_t>(宽度) + static_cast<std::size_t>(u);
     }
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] inline double 深度_at(int u, int v) const noexcept { return 深度[索引(u, v)]; }
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] inline bool 深度有效_at(int u, int v) const noexcept {
         return 有效深度掩膜() ? (深度有效[索引(u, v)] != 0) : (深度_at(u, v) > 0.0);
     }
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] inline Color 颜色_at(int u, int v) const noexcept {
         return 有效颜色() ? 颜色[索引(u, v)] : Color{ 255, 255, 255 };
     }
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] inline Vector3D 点云_at(int u, int v) const noexcept {
         return 有效点云() ? 点云[索引(u, v)] : Vector3D{};
     }
@@ -1198,9 +1310,12 @@ export enum class 枚举_存在观测缓冲 : std::uint32_t {
     融合权重图 = 1u << 5,
 };
 
+// 功能：按函数名执行对应处理。
 export inline 枚举_存在观测缓冲 operator|(枚举_存在观测缓冲 a, 枚举_存在观测缓冲 b) {
     return (枚举_存在观测缓冲)((std::uint32_t)a | (std::uint32_t)b);
 }
+
+// 功能：按函数名执行对应处理。
 export inline bool Has(枚举_存在观测缓冲 mask, 枚举_存在观测缓冲 bit) {
     return (((std::uint32_t)mask) & ((std::uint32_t)bit)) != 0;
 }
@@ -1210,7 +1325,11 @@ export inline bool Has(枚举_存在观测缓冲 mask, 枚举_存在观测缓冲
 export struct 点索引 {
     int u = 0;
     int v = 0;
+
+    // 功能：按函数名执行对应处理。
     点索引(int uu, int vv) : u(uu), v(vv) {}
+
+    // 功能：按函数名执行对应处理。
     点索引() {}
 };
 export using 点簇 = std::vector<点索引>;
@@ -1227,13 +1346,18 @@ export struct 结构体_图像缓冲_u8 {
     int stride_bytes = 0;
     std::vector<std::uint8_t> data;
 
+    // 功能：按函数名执行对应处理。
     inline bool 有效() const {
         return w > 0 && h > 0 && c > 0 && !data.empty();
     }
+
+    // 功能：按函数名执行对应处理。
     inline std::size_t 期望字节数() const {
         std::size_t stride = (stride_bytes > 0) ? (std::size_t)stride_bytes : (std::size_t)(w * c);
         return stride * (std::size_t)h;
     }
+
+    // 功能：按函数名执行对应处理。
     inline void 清空() { w = h = c = stride_bytes = 0; data.clear(); data.shrink_to_fit(); }
 };
 
@@ -1242,8 +1366,13 @@ export struct 结构体_图像缓冲_f32 {
     int w = 0, h = 0, c = 0;       // 法线 c=3, 权重 c=1
     std::vector<float> data;
 
+    // 功能：按函数名执行对应处理。
     inline bool 有效() const { return w > 0 && h > 0 && c > 0 && !data.empty(); }
+
+    // 功能：按函数名执行对应处理。
     inline std::size_t 期望元素数() const { return (std::size_t)w * (std::size_t)h * (std::size_t)c; }
+
+    // 功能：按函数名执行对应处理。
     inline void 清空() { w = h = c = 0; data.clear(); data.shrink_to_fit(); }
 };
 // 轮廓编码/占据签名：用 uint64_t 表达 bit-block 更贴切
@@ -1343,8 +1472,11 @@ export struct 结构体_存在观测 {
     std::shared_ptr<const 结构体_原始场景帧> 原始场景帧;
     std::vector<结构体_轮廓观测> 轮廓观测;
     // ===== 轻量工具函数 =====
+
+    // 功能：===== 轻量工具函数 =====
     inline void 重新计算距离() { 距离 = std::sqrt(中心坐标.x * 中心坐标.x + 中心坐标.y * 中心坐标.y + 中心坐标.z * 中心坐标.z); }
 
+    // 功能：清理缓存、临时状态或运行资源。
     inline void 清理大缓冲() {
         缓冲掩码 = 枚举_存在观测缓冲::无;
         裁剪BGR.清空();
@@ -1737,11 +1869,13 @@ export struct 结构_特征使用事件 {
     枚举_特征结果影响 结果影响 = 枚举_特征结果影响::未定义;
     时间戳 时间 = 0;
 
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept
     {
         return !特征类型主键.empty();
     }
 
+    // 功能：按函数名执行对应处理。
     bool 是有效治理边() const noexcept
     {
         return 有效() && 已改变结果;
@@ -1755,6 +1889,7 @@ export struct 结构_特征暴露事件 {
     bool 已被使用 = false;
     时间戳 时间 = 0;
 
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept
     {
         return !特征类型主键.empty() && !机会主键.empty();
@@ -1768,11 +1903,13 @@ export struct 结构_特征使用边 {
     枚举_特征使用方式 使用方式 = 枚举_特征使用方式::未定义;
     bool 已改变结果 = false;
 
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept
     {
         return !特征类型主键.empty() && !目标种类.empty();
     }
 
+    // 功能：按函数名执行对应处理。
     bool 是有效治理边() const noexcept
     {
         return 有效() && 已改变结果;
@@ -1802,17 +1939,20 @@ export struct 结构_特征使用统计 {
     时间戳 最近使用时间 = 0;
     时间戳 最近有效使用时间 = 0;
 
+    // 功能：按函数名执行对应处理。
     bool 有效() const noexcept
     {
         return !特征类型主键.empty();
     }
 
+    // 功能：按函数名执行对应处理。
     bool 存在有效治理边() const noexcept
     {
         return 结果改变次数 > 0;
     }
 };
 
+// 功能：按函数名执行对应处理。
 export inline bool 特征生命周期仍在试用暴露期(枚举_特征生命周期 生命周期) noexcept
 {
     return 生命周期 == 枚举_特征生命周期::候选

@@ -6,6 +6,8 @@
 #include "世界树类.h"
 
 namespace {
+
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加去重项(std::vector<std::string>* 输出, const std::string& 项, std::size_t 上限)
     {
         if (!输出 || 项.empty()) {
@@ -35,11 +37,13 @@ namespace {
         return 输出;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_安全词(const 语素入口节点类* 词)
     {
         return 词 ? 词->获取主键() : std::string{};
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::vector<基础信息节点类*> 私有_直接基础信息子节点(
         const 基础信息类& 基础信息,
         const 基础信息节点类* 父节点)
@@ -58,6 +62,7 @@ namespace {
         return 结果;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_存在称呼(const 语言类& 语言, const 存在节点类* 节点, const 存在节点主信息类* 主信息)
     {
         const auto 节点名称 = 语言.获取基础信息名称(节点);
@@ -72,6 +77,7 @@ namespace {
         return 类型.empty() ? std::string("该存在") : 类型;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_收集树根子项名称(
         const 语言类& 语言,
         const 基础信息节点类* 树根节点,
@@ -94,6 +100,7 @@ namespace {
     }
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 语言类::生成存在有什么表达(const 存在节点类* 节点, std::size_t 上限) const
 {
     const auto* 主信息 = 节点 ? dynamic_cast<const 存在节点主信息类*>(节点->主信息) : nullptr;
@@ -131,6 +138,7 @@ std::string 语言类::生成存在有什么表达(const 存在节点类* 节点
     return 称呼 + "有" + 私有_连接短语(项目);
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 语言类::生成存在是什么表达(const 存在节点类* 节点) const
 {
     const auto* 主信息 = 节点 ? dynamic_cast<const 存在节点主信息类*>(节点->主信息) : nullptr;
@@ -162,6 +170,7 @@ std::string 语言类::生成存在是什么表达(const 存在节点类* 节点
     return 表达;
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 语言类::生成存在能什么表达(const 存在节点类* 节点, std::size_t 上限) const
 {
     const auto* 主信息 = 节点 ? dynamic_cast<const 存在节点主信息类*>(节点->主信息) : nullptr;
@@ -177,6 +186,7 @@ std::string 语言类::生成存在能什么表达(const 存在节点类* 节点
     return 称呼 + "当前具备" + 私有_连接短语(方法项) + "这些方法能力";
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 语言类::生成存在会什么表达(const 存在节点类* 节点, std::size_t 上限) const
 {
     const auto* 主信息 = 节点 ? dynamic_cast<const 存在节点主信息类*>(节点->主信息) : nullptr;
@@ -196,6 +206,7 @@ std::string 语言类::生成存在会什么表达(const 存在节点类* 节点
     return "从已有因果看，" + 私有_连接短语(因果短语, "；");
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 语言类::生成存在需要什么表达(const 存在节点类* 节点, std::size_t 上限) const
 {
     const auto* 主信息 = 节点 ? dynamic_cast<const 存在节点主信息类*>(节点->主信息) : nullptr;

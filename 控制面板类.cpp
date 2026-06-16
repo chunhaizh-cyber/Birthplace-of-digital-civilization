@@ -78,6 +78,7 @@ namespace {
         std::string 最近缺口反馈摘要{};
     };
 
+    // 功能：从指定来源读取数据或状态。
     结构_控制面板缺口承接快照 私有_读取缺口承接快照_控制面板(
         const 自我类& 自我,
         const 自我线程类& 自我线程) noexcept
@@ -98,6 +99,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：执行任务、方法或动作的主体逻辑。
     const 语素入口节点类* 私有_特征_最近执行时间_控制面板() noexcept
     {
         static const 语素入口节点类* s_词 =
@@ -105,6 +107,7 @@ namespace {
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_特征_最近完成时间_控制面板() noexcept
     {
         static const 语素入口节点类* s_词 =
@@ -112,6 +115,7 @@ namespace {
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_特征_方法状态_控制面板() noexcept
     {
         static const 语素入口节点类* s_词 =
@@ -119,6 +123,7 @@ namespace {
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_特征_方法动作状态_控制面板() noexcept
     {
         static const 语素入口节点类* s_词 =
@@ -126,6 +131,7 @@ namespace {
         return s_词;
     }
 
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     const 语素入口节点类* 私有_特征_方法运行次数_控制面板() noexcept
     {
         static const 语素入口节点类* s_词 =
@@ -133,6 +139,7 @@ namespace {
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_特征_方法成功次数_控制面板() noexcept
     {
         static const 语素入口节点类* s_词 =
@@ -140,6 +147,7 @@ namespace {
         return s_词;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_特征_方法最近连续成功次数_控制面板() noexcept
     {
         static const 语素入口节点类* s_词 =
@@ -147,6 +155,7 @@ namespace {
         return s_词;
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     存在节点类* 私有_解析方法虚拟存在_控制面板(const 方法节点* 方法) noexcept
     {
         if (!方法) {
@@ -166,6 +175,7 @@ namespace {
             世界树.基础信息().查找主键(首信息->方法虚拟存在.主键));
     }
 
+    // 功能：从指定来源读取数据或状态。
     bool 私有_读取方法I64特征_控制面板(
         const 方法节点* 方法,
         const 语素入口节点类* 特征类型,
@@ -180,6 +190,7 @@ namespace {
                 输出);
     }
 
+    // 功能：从指定来源读取数据或状态。
     时间戳 私有_读取方法运行账时间_控制面板(
         const 方法节点* 方法,
         const 语素入口节点类* 特征类型) noexcept
@@ -254,6 +265,7 @@ namespace {
         return reinterpret_cast<std::uintptr_t>(节点);
     }
 
+    // 功能：建立对象、任务、方法或因果之间的绑定关系。
     bool 私有_任务头绑定需求(const 任务节点* 节点) noexcept
     {
         return 节点
@@ -262,6 +274,7 @@ namespace {
                 || !节点->主信息.对应需求.主键.empty());
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_任务节点属于需求任务链(const 任务节点* 节点) noexcept
     {
         std::size_t 保护 = 0;
@@ -278,6 +291,7 @@ namespace {
         return false;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_任务节点可在普通任务树显示(const 任务节点* 节点) noexcept
     {
         return 节点
@@ -428,6 +442,7 @@ namespace {
             主键));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_布尔文本(const bool 值) noexcept
     {
         return 值 ? "是" : "否";
@@ -454,6 +469,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_十六进制指针(const std::uintptr_t 值)
     {
         std::ostringstream 输出;
@@ -461,11 +477,13 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_时间文本(const 时间戳 时间)
     {
         return 时间 == 0 ? "0" : std::to_string(时间);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_时长文本_微秒(const 时间戳 时长)
     {
         std::ostringstream 输出;
@@ -481,6 +499,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_起点时长文本(const 时间戳 起点, const 时间戳 终点)
     {
         if (起点 == 0 || 终点 == 0 || 终点 < 起点) {
@@ -489,16 +508,19 @@ namespace {
         return 私有_时长文本_微秒(终点 - 起点);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_区间文本(const I64区间& 区间)
     {
         return "[" + std::to_string(区间.低值) + ", " + std::to_string(区间.高值) + "]";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_可选区间文本(const std::optional<I64区间>& 区间)
     {
         return 区间.has_value() ? 私有_区间文本(*区间) : "空";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_抽象特征形态文本(const 枚举_抽象特征形态 形态) noexcept
     {
         switch (形态) {
@@ -508,6 +530,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_I64值域文本(const I64值域& 值域)
     {
         if (值域.项集.empty()) {
@@ -531,6 +554,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_特征值域文本(const std::optional<特征值域>& 值域)
     {
         if (!值域.has_value()) {
@@ -556,11 +580,13 @@ namespace {
         return "未知值域";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_时间段文本(const 结构_时间段& 时间段)
     {
         return "起=" + 私有_时间文本(时间段.起) + " | 止=" + 私有_时间文本(时间段.止);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_向量文本(const Vector3D& 向量)
     {
         std::ostringstream 输出;
@@ -568,6 +594,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_词文本(const 语素入口节点类* 词) noexcept
     {
         const auto* 安全词节点 = 私有_解析当前树节点(词);
@@ -582,6 +609,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_自然句文本(const 自然句节点类* 句子) noexcept
     {
         const auto* 安全句子节点 = 私有_解析当前树节点(句子);
@@ -591,6 +619,7 @@ namespace {
         return "自然句#" + 安全句子节点->获取主键();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_特征值文本(const 特征值& 值)
     {
         if (std::holds_alternative<std::monostate>(值)) {
@@ -608,6 +637,7 @@ namespace {
         return "未定义";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_特征值类型文本(const 特征值& 值) noexcept
     {
         if (std::holds_alternative<std::monostate>(值)) {
@@ -625,6 +655,7 @@ namespace {
         return "未定义";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_线程生命周期文本(const 枚举_线程生命周期状态 状态) noexcept
     {
         switch (状态) {
@@ -639,6 +670,7 @@ namespace {
         }
     }
 
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     const char* 私有_线程运行阶段文本(const 枚举_自我线程运行阶段 阶段) noexcept
     {
         switch (阶段) {
@@ -660,6 +692,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_线程最终去向文本(const 枚举_自我线程最终去向 去向) noexcept
     {
         switch (去向) {
@@ -673,6 +706,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_任务节点种类文本(const 枚举_任务节点种类 种类) noexcept
     {
         switch (种类) {
@@ -682,6 +716,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_任务状态文本(const 枚举_任务状态 状态) noexcept
     {
         switch (状态) {
@@ -704,6 +739,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_需求状态已达(const 需求节点* 节点) noexcept
     {
         if (!节点) {
@@ -732,6 +768,7 @@ namespace {
         return 引用.指针 ? 引用.指针->获取主键() : std::string{};
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求节点主键探测_无日志(const 需求节点* 节点) noexcept
     {
         if (!节点) {
@@ -750,6 +787,7 @@ namespace {
         }
     }
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     void 私有_记录需求节点子链数量不一致_控制面板(const 需求节点* 节点) noexcept
     {
         if (!节点 || !节点->子 || 节点->子节点数量 > 0) {
@@ -779,6 +817,7 @@ namespace {
         项目运行错误日志(日志.str());
     }
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     void 私有_记录异常需求节点链路_控制面板(const 需求节点* 节点) noexcept
     {
         if (!节点) {
@@ -860,6 +899,7 @@ namespace {
         return false;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_节点主键_控制面板(const 需求节点* 节点)
     {
         std::string 主键{};
@@ -869,16 +909,19 @@ namespace {
         return {};
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_节点主键_控制面板(const 语素入口节点类* 节点)
     {
         return 节点 ? 节点->获取主键() : std::string{};
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_任务节点主键_控制面板(const 任务节点* 节点)
     {
         return 节点 ? 节点->获取主键() : std::string{};
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_累计任务状态(结构_控制面板快照& 快照, const 枚举_任务状态 状态) noexcept
     {
         switch (状态) {
@@ -904,6 +947,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加非零计数(std::ostringstream& 输出, bool& 已写, const char* 名称, std::size_t 数量)
     {
         if (数量 == 0) {
@@ -916,6 +960,7 @@ namespace {
         已写 = true;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加计数(std::ostringstream& 输出, bool& 已写, const char* 名称, std::size_t 数量)
     {
         if (已写) {
@@ -925,6 +970,7 @@ namespace {
         已写 = true;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_任务状态数量摘要(const 结构_控制面板快照& 快照)
     {
         std::ostringstream 输出;
@@ -953,6 +999,7 @@ namespace {
         return 已写 ? 输出.str() : "暂无任务状态";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求满足数量摘要(const 结构_控制面板快照& 快照)
     {
         std::ostringstream 输出;
@@ -969,6 +1016,7 @@ namespace {
         std::size_t 条件无结果数 = 0;
     };
 
+    // 功能：服务所在模块的内部辅助流程。
     结构_方法直接结构计数 私有_统计方法直接条件结果(const 方法节点* 方法首节点) noexcept
     {
         结构_方法直接结构计数 计数{};
@@ -1008,6 +1056,7 @@ namespace {
         return 计数;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     I64 私有_统计方法条件结果对数量_控制面板(const 方法节点* 方法首节点) noexcept
     {
         if (!方法首节点 || !方法首节点->子) {
@@ -1038,6 +1087,7 @@ namespace {
         return 数量;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_方法结构诊断摘要(const 结构_控制面板快照& 快照)
     {
         std::ostringstream 输出;
@@ -1048,6 +1098,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_方法节点种类文本(const 枚举_方法节点种类 种类) noexcept
     {
         switch (种类) {
@@ -1058,6 +1109,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_方法状态文本(const I64 状态) noexcept
     {
         switch (static_cast<枚举_方法状态>(状态)) {
@@ -1072,6 +1124,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_方法来源文本(const 枚举_方法来源 来源) noexcept
     {
         switch (来源) {
@@ -1085,6 +1138,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_动作句柄类型文本(const 枚举_动作句柄类型 类型) noexcept
     {
         switch (类型) {
@@ -1095,6 +1149,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_世界类型文本(const 枚举_世界类型 类型) noexcept
     {
         switch (类型) {
@@ -1109,6 +1164,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_状态域文本(const 枚举_状态域 域) noexcept
     {
         switch (域) {
@@ -1118,6 +1174,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_动态来源类型文本(const 枚举_动态来源类型 类型) noexcept
     {
         switch (类型) {
@@ -1127,6 +1184,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_动态业务语义类型文本(const 枚举_动态业务语义类型 类型) noexcept
     {
         switch (类型) {
@@ -1139,6 +1197,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_动作事件相位文本(const 枚举_动作事件相位 相位) noexcept
     {
         switch (相位) {
@@ -1149,6 +1208,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_动态聚合方式文本(const 枚举_动态聚合方式 方式) noexcept
     {
         switch (方式) {
@@ -1161,6 +1221,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_因果形态文本(const 枚举_因果形态 形态) noexcept
     {
         switch (形态) {
@@ -1170,6 +1231,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_因果锚点类型文本(const 枚举_因果锚点类型 类型) noexcept
     {
         switch (类型) {
@@ -1179,6 +1241,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_任务管理总控结果文本(const 枚举_任务管理总控结果 结果) noexcept
     {
         switch (结果) {
@@ -1193,6 +1256,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_主信息类型文本(const 枚举_主信息类型 类型) noexcept
     {
         switch (类型) {
@@ -1209,6 +1273,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_信息存储树文本(const 枚举_信息存储树 存储树) noexcept
     {
         switch (存储树) {
@@ -1224,6 +1289,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_信息入口类型文本(const 枚举_信息入口类型 类型) noexcept
     {
         switch (类型) {
@@ -1258,6 +1324,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_语素入口诊断文本(const 语素入口节点类* 入口节点)
     {
         if (!入口节点 || !入口节点->主信息) {
@@ -1287,6 +1354,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_动作句柄文本(const 结构体_动作句柄& 句柄)
     {
         std::ostringstream 输出;
@@ -1355,6 +1423,7 @@ namespace {
         return 私有_基础信息标题(节点, 空上下文);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_场景复现特征词(const char* 名称) noexcept
     {
         try {
@@ -1371,6 +1440,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_场景复现存在概念词(const char* 名称) noexcept
     {
         try {
@@ -1387,6 +1457,7 @@ namespace {
         }
     }
 
+    // 功能：从指定来源读取数据或状态。
     bool 私有_读取场景复现I64(
         const 基础信息节点类* 宿主,
         const char* 特征名,
@@ -1399,6 +1470,7 @@ namespace {
             && 世界树.读取特征_I64(宿主, 特征类型, 输出值);
     }
 
+    // 功能：从指定来源读取数据或状态。
     bool 私有_读取场景复现I64_保留默认(
         const 基础信息节点类* 宿主,
         const char* 特征名,
@@ -1412,6 +1484,7 @@ namespace {
         return true;
     }
 
+    // 功能：从指定来源读取数据或状态。
     bool 私有_读取场景复现VecI64(
         const 基础信息节点类* 宿主,
         const char* 特征名,
@@ -1424,6 +1497,7 @@ namespace {
             && 世界树.读取特征VecI64(宿主, 特征类型, 输出值);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     int 私有_场景复现宿主评分(const 基础信息节点类* 宿主) noexcept
     {
         if (!宿主) {
@@ -1465,6 +1539,7 @@ namespace {
         return 评分;
     }
 
+    // 功能：从候选集中选择当前使用对象或方法。
     基础信息节点类* 私有_选择自我场景复现宿主(场景节点类* 自我所在场景) noexcept
     {
         auto* 场景宿主 = reinterpret_cast<基础信息节点类*>(自我所在场景);
@@ -1507,6 +1582,7 @@ namespace {
         return 最佳宿主 ? 最佳宿主 : 场景宿主;
     }
 
+    // 功能：评估状态、风险、质量、权重或完成度。
     int 私有_场景安全评估宿主评分(const 基础信息节点类* 宿主) noexcept
     {
         if (!宿主) {
@@ -1550,6 +1626,7 @@ namespace {
         return 评分;
     }
 
+    // 功能：从候选集中选择当前使用对象或方法。
     基础信息节点类* 私有_选择自我场景安全评估宿主(场景节点类* 自我所在场景) noexcept
     {
         auto* 场景宿主 = reinterpret_cast<基础信息节点类*>(自我所在场景);
@@ -1612,6 +1689,7 @@ namespace {
         std::vector<std::string> 存在样例{};
     };
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_累计自我场景内容节点(
         结构_自我场景内容统计& 统计,
         const 基础信息节点类* 节点,
@@ -1645,6 +1723,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     结构_自我场景内容统计 私有_统计自我场景子树内容(
         const 基础信息节点类* 根,
         const bool 采集样例) noexcept
@@ -1685,6 +1764,7 @@ namespace {
         return 统计;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_自我场景内容类型摘要(const 结构_自我场景内容统计& 统计)
     {
         std::ostringstream 输出;
@@ -1708,6 +1788,7 @@ namespace {
         return 已写入 > 0 ? 输出.str() : "空";
     }
 
+    // 功能：从指定来源读取数据或状态。
     void 私有_读取自我场景内容统计(
         结构_控制面板快照& 快照,
         场景节点类* 自我所在场景,
@@ -1755,6 +1836,7 @@ namespace {
             : 私有_文本列表摘要(宿主子树统计.存在样例, 6);
     }
 
+    // 功能：从指定来源读取数据或状态。
     void 私有_读取自我场景诊断区域列表(
         基础信息节点类* 宿主,
         结构_控制面板快照& 快照) noexcept
@@ -1826,6 +1908,7 @@ namespace {
         }
     }
 
+    // 功能：从指定来源读取数据或状态。
     bool 私有_读取自我场景存在三元特征(
         const 基础信息节点类* 节点,
         const char* x名,
@@ -1849,6 +1932,7 @@ namespace {
         return true;
     }
 
+    // 功能：从指定来源读取数据或状态。
     bool 私有_读取自我场景存在AABB特征(
         const 基础信息节点类* 节点,
         结构_控制面板自我场景存在复现项& 项) noexcept
@@ -1879,6 +1963,7 @@ namespace {
         return true;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_填充自我场景存在复现项(
         const 基础信息节点类* 节点,
         const std::int64_t 来源范围,
@@ -2033,6 +2118,7 @@ namespace {
         return true;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_收集自我场景存在复现项(
         const 基础信息节点类* 根,
         const std::int64_t 来源范围,
@@ -2089,6 +2175,7 @@ namespace {
         }
     }
 
+    // 功能：从指定来源读取数据或状态。
     void 私有_读取自我场景存在复现项列表(
         场景节点类* 自我所在场景,
         基础信息节点类* 复现宿主,
@@ -2137,6 +2224,7 @@ namespace {
             static_cast<std::int64_t>(快照.自我场景存在复现项列表.size());
     }
 
+    // 功能：从指定来源读取数据或状态。
     void 私有_读取自我场景复现快照(结构_控制面板快照& 快照) noexcept
     {
         auto* 自我所在场景 = 自我.获取自我现实场景();
@@ -2413,6 +2501,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_轻引用文本(const 结构_基础信息轻引用& 引用)
     {
         auto* 指针 = 引用.指针 != 0
@@ -2463,6 +2552,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_字段显示文本(
         const std::string& 名称,
         std::string_view 类型,
@@ -2471,6 +2561,7 @@ namespace {
         return 名称 + " | 类型=" + std::string(类型) + " | 值=" + (值.empty() ? "空" : 值);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_等号字段显示文本(
         const std::string& 名称,
         std::string_view 类型,
@@ -2479,6 +2570,7 @@ namespace {
         return 名称 + "=" + (值.empty() ? "空" : 值) + " | 数据类型=" + std::string(类型);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_等号字段显示文本(
         const std::string& 名称,
         const std::string& 值)
@@ -2504,6 +2596,7 @@ namespace {
         return 节点;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加叶字段(
         结构_控制面板树节点& 父节点,
         const std::string& 名称,
@@ -2512,6 +2605,7 @@ namespace {
         父节点.子项.push_back(私有_新节点(私有_字段显示文本(名称, "文本", 值)));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加叶字段(
         结构_控制面板树节点& 父节点,
         const std::string& 名称,
@@ -2520,6 +2614,7 @@ namespace {
         私有_追加叶字段(父节点, 名称, 值 ? std::string(值) : std::string{});
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加叶字段(
         结构_控制面板树节点& 父节点,
         const std::string& 名称,
@@ -2528,6 +2623,7 @@ namespace {
         父节点.子项.push_back(私有_新节点(私有_字段显示文本(名称, "i64", std::to_string(值))));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加叶字段(
         结构_控制面板树节点& 父节点,
         const std::string& 名称,
@@ -2536,6 +2632,7 @@ namespace {
         父节点.子项.push_back(私有_新节点(私有_字段显示文本(名称, "u64", std::to_string(值))));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加叶字段(
         结构_控制面板树节点& 父节点,
         const std::string& 名称,
@@ -2554,6 +2651,7 @@ namespace {
         父节点.子项.push_back(私有_新节点(私有_字段显示文本(名称, "数值", std::to_string(值))));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加统计字段(结构_控制面板树节点& 父节点, const 结构_统计& 统计)
     {
         auto 统计节点 = 私有_新节点("统计");
@@ -2641,6 +2739,7 @@ namespace {
         父节点.子项.push_back(std::move(列表节点));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加等号字段(
         结构_控制面板树节点& 父节点,
         const std::string& 名称,
@@ -2649,6 +2748,7 @@ namespace {
         父节点.子项.push_back(私有_新节点(私有_等号字段显示文本(名称, "文本", 值)));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加等号字段(
         结构_控制面板树节点& 父节点,
         const std::string& 名称,
@@ -2657,6 +2757,7 @@ namespace {
         私有_追加等号字段(父节点, 名称, 值 ? std::string(值) : std::string{});
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加等号字段(
         结构_控制面板树节点& 父节点,
         const std::string& 名称,
@@ -2772,6 +2873,7 @@ namespace {
         return 结果;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::vector<任务节点*> 私有_筛选需求任务链节点(
         const std::vector<任务节点*>& 节点集)
     {
@@ -2784,6 +2886,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_累计文本计数(
         std::vector<std::pair<std::string, std::size_t>>& 统计,
         std::string 键)
@@ -2840,6 +2943,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：创建并返回或登记对应对象。
     结构_控制面板树节点 私有_创建结构省略节点(
         const std::string& 展开类型,
         const std::uintptr_t 父节点指针,
@@ -2894,12 +2998,14 @@ namespace {
         return 路径;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     路径集合 私有_合并路径集合(路径集合 左, const 路径集合& 右)
     {
         左.insert(右.begin(), 右.end());
         return 左;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_基础信息类别文本(const 基础信息基类* 主信息)
     {
         if (!主信息) {
@@ -2917,6 +3023,7 @@ namespace {
         return 私有_主信息类型文本(主信息->主信息类型);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_基础信息子层摘要(const 基础信息节点类* 节点)
     {
         std::vector<std::pair<std::string, std::size_t>> 统计{};
@@ -2926,6 +3033,7 @@ namespace {
         return 私有_文本计数摘要(std::move(统计));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求子层摘要(const 需求节点* 节点)
     {
         std::vector<std::pair<std::string, std::size_t>> 统计{};
@@ -2939,6 +3047,7 @@ namespace {
         return 私有_文本计数摘要(std::move(统计));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_任务子层摘要(const 任务节点* 节点)
     {
         std::vector<std::pair<std::string, std::size_t>> 统计{};
@@ -2948,6 +3057,7 @@ namespace {
         return 私有_文本计数摘要(std::move(统计));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_方法子层摘要(const 方法节点* 节点)
     {
         std::vector<std::pair<std::string, std::size_t>> 统计{};
@@ -2957,6 +3067,7 @@ namespace {
         return 私有_文本计数摘要(std::move(统计));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_基础信息标题(const 基础信息节点类* 节点, const 结构_构建上下文& 上下文)
     {
         if (!节点) {
@@ -3022,6 +3133,7 @@ namespace {
         枚举_需求方法可用性状态 状态 = 枚举_需求方法可用性状态::无需求状态;
     };
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_需求方法可用性状态文本(const 枚举_需求方法可用性状态 状态) noexcept
     {
         switch (状态) {
@@ -3038,6 +3150,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_方向文本_控制面板(const int 方向) noexcept
     {
         if (方向 > 0 && 方向 != 2) {
@@ -3052,6 +3165,7 @@ namespace {
         return "未解析";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_语素入口相同_控制面板(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept
     {
         if (左 == 右) {
@@ -3063,6 +3177,7 @@ namespace {
         return 左->获取主键() == 右->获取主键();
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     const 语素入口节点类* 私有_查找特征模板入口_控制面板(const char* 名称) noexcept
     {
         try {
@@ -3082,17 +3197,20 @@ namespace {
     using 枚举_需求目标语义_控制面板 = 需求类::枚举_需求目标语义;
     using 结构_需求目标语义视图_控制面板 = 需求类::结构_需求目标语义视图;
 
+    // 功能：服务所在模块的内部辅助流程。
     结构_需求目标语义视图_控制面板 私有_需求目标语义视图_控制面板(
         const 语素入口节点类* 目标特征类型) noexcept
     {
         return 需求类::需求目标语义视图(目标特征类型);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_需求结构形态文本_控制面板(const 需求节点* 节点) noexcept
     {
         return 需求类::需求结构形态文本(节点);
     }
 
+    // 功能：推进任务筹办，形成候选、缺口或就绪回执。
     std::string 私有_普通筹办不可用原因_控制面板(
         const 需求节点* 节点,
         const 结构_需求目标语义视图_控制面板& 视图)
@@ -3101,6 +3219,7 @@ namespace {
         return 需求类::普通候选方法筹办禁止原因(视图);
     }
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     I64 私有_OR组令牌记录键_控制面板(const 需求节点* OR组) noexcept
     {
         std::uint64_t 哈希 = 1469598103934665603ull;
@@ -3117,6 +3236,7 @@ namespace {
         return 正值 != 0 ? 正值 : 1;
     }
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     存在节点类* 私有_查找OR组令牌记录_控制面板(const 需求节点* OR组) noexcept
     {
         auto* 自我存在 = 自我.获取自我存在();
@@ -3150,6 +3270,7 @@ namespace {
         std::string 当前激活路径 = "不适用";
     };
 
+    // 功能：从指定来源读取数据或状态。
     结构_OR组令牌只读视图_控制面板 私有_读取OR组令牌只读视图_控制面板(
         const 需求节点* 节点,
         const 结构_需求目标语义视图_控制面板& 目标语义) noexcept
@@ -3212,6 +3333,7 @@ namespace {
         return 视图;
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     const 语素入口节点类* 私有_查找人类词性入口_控制面板(
         const std::string& 词值,
         const std::string& 词性值) noexcept
@@ -3223,6 +3345,7 @@ namespace {
         return 词节点 ? 语素集.查找人类词性入口节点(词节点, 词性值) : nullptr;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_方法是否可用特征类型_控制面板() noexcept
     {
         return 私有_查找人类词性入口_控制面板("方法是否可用", "名词");
@@ -3240,6 +3363,7 @@ namespace {
         return nullptr;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_状态特征类型_控制面板(const 状态节点类* 状态节点) noexcept
     {
         const auto* 状态主信息 = 状态节点 ? 世界树.状态().取状态主信息(状态节点) : nullptr;
@@ -3256,16 +3380,19 @@ namespace {
         return 特征主信息 ? 特征主信息->类型 : nullptr;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 语素入口节点类* 私有_需求目标特征类型_控制面板(const 需求节点* 节点) noexcept
     {
         return 需求类::读取需求目标特征类型(节点);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_需求是根层节点_控制面板(const 需求节点* 节点) noexcept
     {
         return 节点 && 节点->父 && 节点->父->父 == nullptr;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求显示名_控制面板(const 需求节点* 节点)
     {
         const auto* 目标特征类型 = 私有_需求目标特征类型_控制面板(节点);
@@ -3281,6 +3408,7 @@ namespace {
         return 文本.empty() ? std::string("空目标特征") : std::move(文本);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_状态主体主键_控制面板(const 状态节点类* 状态节点) noexcept
     {
         const auto* 状态主信息 = 状态节点 ? 世界树.状态().取状态主信息(状态节点) : nullptr;
@@ -3290,6 +3418,7 @@ namespace {
         return 私有_引用主键_控制面板(状态主信息->状态主体);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求目标宿主主键_控制面板(const 需求节点* 节点) noexcept
     {
         if (!节点) {
@@ -3310,6 +3439,7 @@ namespace {
         return 私有_引用主键_控制面板(节点->主信息.被需求存在);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_基础主键是存在_控制面板(const std::string& 主键) noexcept
     {
         if (主键.empty()) {
@@ -3321,6 +3451,7 @@ namespace {
             && 节点->主信息->主信息类型 == 枚举_主信息类型::存在;
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     const 任务节点* 私有_解析任务引用_控制面板(
         const 可解析引用<任务节点类>& 引用) noexcept
     {
@@ -3329,6 +3460,7 @@ namespace {
         return reinterpret_cast<const 任务节点*>(引用.指针);
     }
 
+    // 功能：解析输入文本、消息、场景或运行包。
     const 需求节点* 私有_解析需求引用_控制面板(
         const 可解析引用<需求节点类>& 引用) noexcept
     {
@@ -3378,6 +3510,7 @@ namespace {
         return false;
     }
 
+    // 功能：检查状态、条件、缺口或运行约束。
     void 私有_检查需求父子权重_控制面板(
         const 需求节点* 父需求,
         结构_控制面板快照& 快照) noexcept
@@ -3447,6 +3580,7 @@ namespace {
         } while (当前子节点 && 当前子节点 != 首子节点);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_状态I64值_控制面板(const 状态节点类* 状态节点, I64& 输出值) noexcept
     {
         const auto* 状态主信息 = 状态节点 ? 世界树.状态().取状态主信息(状态节点) : nullptr;
@@ -3460,6 +3594,7 @@ namespace {
         return false;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     int 私有_需求方向_控制面板(const 需求节点* 节点) noexcept
     {
         if (!节点) {
@@ -3490,6 +3625,7 @@ namespace {
         return 0;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加唯一方法_控制面板(std::vector<方法节点*>& 列表, 方法节点* 方法) noexcept
     {
         if (!方法) {
@@ -3500,6 +3636,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_收集候选方法_按结果特征_控制面板(
         方法节点* 当前方法节点,
         const 语素入口节点类* 目标特征类型,
@@ -3540,6 +3677,7 @@ namespace {
         } while (当前 && 当前 != 首子 && 保护计数 < 4096);
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     std::vector<方法节点*> 私有_查找需求候选方法_控制面板(
         const 需求节点* 需求,
         const 语素入口节点类* 目标特征类型) noexcept
@@ -3571,6 +3709,7 @@ namespace {
         return 候选方法;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::optional<int> 私有_二次特征方向_控制面板(const 二次特征节点类* 二次特征节点) noexcept
     {
         const auto* 主信息 = 二次特征节点
@@ -3601,6 +3740,7 @@ namespace {
         return std::nullopt;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::optional<int> 私有_允许方向_控制面板(方向掩码 允许方向) noexcept
     {
         if (允许方向 == 方向_大于0) return 1;
@@ -3609,6 +3749,7 @@ namespace {
         return std::nullopt;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::optional<int> 私有_结果变化方向_控制面板(枚举_结果变化方向 方向) noexcept
     {
         switch (方向) {
@@ -3634,6 +3775,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_收集方法结果方向_控制面板(
         const 方法节点* 方法,
         std::vector<int>& 输出,
@@ -3674,6 +3816,7 @@ namespace {
         } while (当前 && 当前 != 首子 && 保护计数 < 4096);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     int 私有_方法相对需求方向_控制面板(const 方法节点* 方法, const int 需求方向) noexcept
     {
         if (!方法 || 需求方向 == 2) {
@@ -3692,6 +3835,7 @@ namespace {
         return -1;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_方法当前可用_控制面板(const 方法节点* 方法) noexcept
     {
         if (!方法) {
@@ -3716,6 +3860,7 @@ namespace {
             && 可用值 != 0;
     }
 
+    // 功能：评估状态、风险、质量、权重或完成度。
     结构_需求方法可用性评估 私有_评估需求方法可用性_控制面板(const 需求节点* 节点) noexcept
     {
         结构_需求方法可用性评估 评估{};
@@ -3813,6 +3958,7 @@ namespace {
         std::string 满足情况 = "未满足";
     };
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_状态值文本_控制面板(const 状态节点类* 状态节点)
     {
         const auto* 状态主信息 = 状态节点
@@ -3936,6 +4082,7 @@ namespace {
         return 评估;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求满足情况说明_控制面板(
         const 结构_需求满足情况_控制面板& 评估)
     {
@@ -3953,6 +4100,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求标题_核心(const 需求节点* 节点)
     {
         if (!节点) {
@@ -3992,6 +4140,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求标题(const 需求节点* 节点)
     {
         try {
@@ -4015,6 +4164,7 @@ namespace {
             + 私有_十六进制指针(私有_地址(节点));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求结构标题_核心(const 需求节点* 节点)
     {
         if (!节点) {
@@ -4038,6 +4188,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求结构标题(const 需求节点* 节点)
     {
         try {
@@ -4061,6 +4212,7 @@ namespace {
             + 私有_十六进制指针(私有_地址(节点));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_任务标题(const 任务节点* 节点)
     {
         if (!节点) {
@@ -4080,6 +4232,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_任务结构标题(const 任务节点* 节点)
     {
         if (!节点) {
@@ -4100,6 +4253,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_方法标题(const 方法节点* 节点)
     {
         if (!节点) {
@@ -4162,6 +4316,7 @@ namespace {
             "need-node");
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_标记详情默认展开(结构_控制面板树节点& 节点)
     {
         if (!节点.子项.empty() && !节点.可延迟展开) {
@@ -4172,6 +4327,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_需求列表摘要文本(需求节点* 节点)
     {
         auto* 目标状态 = 私有_解析基础信息引用_控制面板(节点->主信息.需求状态);
@@ -4185,6 +4341,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     结构_控制面板树节点 私有_需求列表详情节点(
         需求节点* 节点,
         const 结构_构建上下文& 上下文)
@@ -4298,6 +4455,7 @@ namespace {
             "method-node");
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     std::vector<结构_控制面板树节点> 私有_构建方法主信息详情(方法节点* 节点)
     {
         if (!节点) {
@@ -4377,6 +4535,7 @@ namespace {
         return { std::move(字段节点) };
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     std::vector<结构_控制面板树节点> 私有_构建任务主信息详情(任务节点* 节点)
     {
         if (!节点) {
@@ -4403,6 +4562,7 @@ namespace {
         return { std::move(字段节点) };
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_需求结构角色文本(const 枚举_需求结构角色 角色) noexcept
     {
         switch (角色) {
@@ -4413,6 +4573,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_三向关系掩码文本(const 三向关系掩码 掩码)
     {
         std::vector<std::string> 片段{};
@@ -4441,6 +4602,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_目标投影维度文本_控制面板(
         const 枚举_目标投影维度 维度) noexcept
     {
@@ -4456,6 +4618,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_目标权重类型文本_控制面板(
         const 枚举_目标权重类型 权重类型) noexcept
     {
@@ -4471,6 +4634,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_因果形态文本_控制面板(const 枚举_因果形态 形态) noexcept
     {
         switch (形态) {
@@ -4481,6 +4645,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加唯一片段_控制面板(
         std::vector<std::string>& 片段集,
         std::string 片段)
@@ -4514,6 +4679,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     const 需求节点* 私有_查找根需求_按目标特征_控制面板(
         const 语素入口节点类* 目标特征类型) noexcept
     {
@@ -4540,6 +4706,7 @@ namespace {
         return nullptr;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 任务节点* 私有_需求首个任务_控制面板(const 需求节点* 需求) noexcept
     {
         if (!需求) {
@@ -4556,6 +4723,7 @@ namespace {
         return nullptr;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     基础信息节点类* 私有_需求目标宿主基础节点_控制面板(const 需求节点* 需求) noexcept
     {
         if (!需求) {
@@ -4577,6 +4745,7 @@ namespace {
         return nullptr;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     bool 私有_需求是自检派生需求_控制面板(
         const 需求类::结构_需求派生归因兼容视图& 派生归因) noexcept
     {
@@ -4584,6 +4753,7 @@ namespace {
             || 派生归因.派生本能能力缺口类型值 != 0;
     }
 
+    // 功能：从候选集中选择当前使用对象或方法。
     std::string 私有_推断自检父需求选择原因_控制面板(const 需求节点* 节点)
     {
         auto* 父需求 = 节点 ? reinterpret_cast<const 需求节点*>(节点->父) : nullptr;
@@ -4615,6 +4785,7 @@ namespace {
         return "父子关系只读推断";
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建自检投影只读视图_控制面板(
         需求节点* 节点,
         const 需求类::结构_需求派生归因兼容视图& 派生归因)
@@ -4716,6 +4887,7 @@ namespace {
         return 视图节点;
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     std::vector<结构_控制面板树节点> 私有_构建需求主信息详情(
         需求节点* 节点,
         const 结构_构建上下文& 上下文)
@@ -4823,6 +4995,7 @@ namespace {
         return { std::move(字段节点) };
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加基础信息通用字段(
         结构_控制面板树节点& 字段节点,
         基础信息节点类* 节点,
@@ -4856,6 +5029,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加特征节点字段(
         结构_控制面板树节点& 字段节点,
         const 特征节点主信息类& 主信息)
@@ -4879,6 +5053,7 @@ namespace {
             私有_区间文本(主信息.连续测量误差区间));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加抽象特征节点字段(
         结构_控制面板树节点& 字段节点,
         const 抽象特征主信息类& 主信息)
@@ -4936,6 +5111,7 @@ namespace {
         字段节点.子项.push_back(std::move(规则节点));
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加存在节点字段(
         结构_控制面板树节点& 字段节点,
         const 存在节点主信息类& 主信息,
@@ -5026,6 +5202,7 @@ namespace {
             上下文.树广度上限);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加场景节点字段(
         结构_控制面板树节点& 字段节点,
         const 场景节点主信息类& 主信息,
@@ -5115,6 +5292,7 @@ namespace {
             上下文.树广度上限);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加状态节点字段(
         结构_控制面板树节点& 字段节点,
         const 状态节点主信息类& 主信息,
@@ -5159,6 +5337,7 @@ namespace {
             });
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加动态节点字段(
         结构_控制面板树节点& 字段节点,
         const 动态节点主信息类& 主信息,
@@ -5260,6 +5439,7 @@ namespace {
             上下文.树广度上限);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加二次特征字段(
         结构_控制面板树节点& 字段节点,
         const 二次特征主信息类& 主信息,
@@ -5382,6 +5562,7 @@ namespace {
             });
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加因果字段(
         结构_控制面板树节点& 字段节点,
         const 因果主信息类& 主信息,
@@ -5459,6 +5640,7 @@ namespace {
             上下文.树广度上限);
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建基础信息树节点(
         基础信息节点类* 节点,
         const 结构_构建上下文& 上下文,
@@ -5529,6 +5711,7 @@ namespace {
         return 树节点;
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建因果信息树(
         const 结构_构建上下文& 上下文,
         const std::size_t 抽象因果数,
@@ -5594,6 +5777,7 @@ namespace {
         return 根节点;
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建需求树节点(
         需求节点* 节点,
         const 结构_构建上下文& 上下文,
@@ -5774,6 +5958,7 @@ namespace {
         return 树节点;
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建任务树节点(
         任务节点* 节点,
         const 结构_构建上下文& 上下文,
@@ -5918,6 +6103,7 @@ namespace {
         return 树节点;
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建方法树节点(
         方法节点* 节点,
         const 结构_构建上下文& 上下文,
@@ -6102,6 +6288,7 @@ namespace {
         return 树节点;
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建基础信息根链骨架(
         基础信息节点类* 节点,
         const 结构_构建上下文& 上下文)
@@ -6127,6 +6314,7 @@ namespace {
         return 树节点;
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建需求根链骨架(
         需求节点* 节点,
         const 结构_构建上下文& 上下文)
@@ -6163,6 +6351,7 @@ namespace {
         return 树节点;
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建任务根链骨架(
         任务节点* 节点,
         const 结构_构建上下文& 上下文)
@@ -6206,6 +6395,7 @@ namespace {
         return 树节点;
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建方法根链骨架(
         方法节点* 节点,
         const 结构_构建上下文& 上下文)
@@ -6250,6 +6440,7 @@ namespace {
         std::size_t 故障数 = 0;
     };
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_计入线程生命周期统计(
         结构_线程状态页统计& 统计,
         const 枚举_线程生命周期状态 状态) noexcept
@@ -6277,6 +6468,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_计入摘要线程生命周期统计(
         结构_线程状态页统计& 统计,
         const 枚举_控制面板摘要线程生命周期状态 状态) noexcept
@@ -6303,6 +6495,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_计入布尔线程统计(
         结构_线程状态页统计& 统计,
         const bool 已启动,
@@ -6321,6 +6514,7 @@ namespace {
         }
     }
 
+    // 功能：计算权重、状态、差值或派生结果。
     结构_线程状态页统计 私有_计算线程状态页统计(
         const 结构_控制面板快照& 快照) noexcept
     {
@@ -6345,6 +6539,7 @@ namespace {
         return 统计;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_计入线程信息项统计(
         结构_线程状态页统计& 统计,
         const 结构_控制面板线程信息项& 线程) noexcept
@@ -6367,6 +6562,7 @@ namespace {
         }
     }
 
+    // 功能：计算权重、状态、差值或派生结果。
     结构_线程状态页统计 私有_计算线程信息表统计(
         const std::vector<结构_控制面板线程信息项>& 线程信息项集) noexcept
     {
@@ -6377,6 +6573,7 @@ namespace {
         return 统计;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_线程状态统计文本(
         const 结构_线程状态页统计& 统计)
     {
@@ -6389,6 +6586,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_线程信息项系统线程ID文本(
         const 结构_控制面板线程信息项& 线程)
     {
@@ -6397,6 +6595,7 @@ namespace {
             : std::to_string(线程.系统线程ID);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_线程信息项状态文本(
         const 结构_控制面板线程信息项& 线程)
     {
@@ -6406,6 +6605,7 @@ namespace {
         return 线程.创建消息已到 ? std::string("创建消息已到") : std::string("未记录");
     }
 
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     std::string 私有_线程信息项运行状态文本(
         const 结构_控制面板线程信息项& 线程)
     {
@@ -6427,6 +6627,7 @@ namespace {
         return 线程.是否健康 ? std::string("健康") : std::string("异常或未记录");
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_控制面板任务工作线程显示文本(std::string 文本)
     {
         const auto 替换全部 = [&文本](const std::string& 原文, const std::string& 替换) {
@@ -6446,6 +6647,7 @@ namespace {
         return 文本;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_线程信息项最近事件文本(
         const 结构_控制面板线程信息项& 线程)
     {
@@ -6478,6 +6680,7 @@ namespace {
         const std::string& 最近事件,
         const std::string& 说明);
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建线程信息项节点(
         const 结构_控制面板线程信息项& 线程,
         const 时间戳 详情加载时间)
@@ -6535,6 +6738,7 @@ namespace {
         return 节点;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加线程显示详情(
         结构_控制面板树节点& 节点,
         const std::string& 线程名称,
@@ -6566,6 +6770,7 @@ namespace {
         节点.详情.push_back(std::move(字段节点));
     }
 
+    // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建线程状态树(
         const 结构_控制面板快照& 快照,
         const 任务管理线程协议::结构_任务界面线程快照& 界面线程快照,
@@ -6734,6 +6939,7 @@ namespace {
         return 根节点;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_转义HTML(std::string_view 文本)
     {
         std::string 输出;
@@ -6751,6 +6957,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加JSON字符串(std::ostringstream& 输出, std::string_view 文本)
     {
         输出 << '"';
@@ -6776,6 +6983,7 @@ namespace {
         输出 << '"';
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加树节点JSON(std::ostringstream& 输出, const 结构_控制面板树节点& 节点)
     {
         输出 << "{";
@@ -6811,6 +7019,7 @@ namespace {
         输出 << "}";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_树节点JSON(const 结构_控制面板树节点& 节点)
     {
         std::ostringstream 输出;
@@ -6839,11 +7048,13 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加JSON_I64数组3(std::ostringstream& 输出, I64 x, I64 y, I64 z)
     {
         输出 << "[" << x << "," << y << "," << z << "]";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加自我场景诊断区域数组JSON(
         std::ostringstream& 输出,
         const std::vector<结构_控制面板诊断区域>& 区域列表)
@@ -6871,6 +7082,7 @@ namespace {
         输出 << "]";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加自我场景存在复现项数组JSON(
         std::ostringstream& 输出,
         const std::vector<结构_控制面板自我场景存在复现项>& 存在列表)
@@ -6925,6 +7137,7 @@ namespace {
         输出 << "]";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_自我场景复现JSON(const 结构_控制面板快照& 快照)
     {
         const bool 候选范围有效 =
@@ -7158,6 +7371,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_树节点子项JSON(const 结构_控制面板树节点& 节点)
     {
         std::ostringstream 输出;
@@ -7172,6 +7386,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_树节点列表JSON(const std::vector<结构_控制面板树节点>& 节点列表)
     {
         std::ostringstream 输出;
@@ -7191,6 +7406,7 @@ namespace {
         return 私有_树节点列表JSON({ 私有_新节点(文本) });
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_移除节点字段子项(结构_控制面板树节点& 节点)
     {
         节点.子项.erase(
@@ -7203,6 +7419,7 @@ namespace {
             节点.子项.end());
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::vector<结构_控制面板树节点> 私有_提取节点字段详情(const 结构_控制面板树节点& 节点)
     {
         std::vector<结构_控制面板树节点> 结果{};
@@ -7214,6 +7431,7 @@ namespace {
         return 结果;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_页面摘要(const std::string& 文本)
     {
         return 文本.empty() ? "暂无数据" : 文本;
@@ -7227,6 +7445,7 @@ namespace {
         return 文本.substr(0, 上限) + "...";
     }
 
+    // 功能：创建并返回或登记对应对象。
     结构_构建上下文 私有_创建构建上下文(const std::size_t 树广度上限)
     {
         结构_构建上下文 上下文{};
@@ -7251,6 +7470,7 @@ namespace {
         std::size_t 已遍历数量 = 0;
     };
 
+    // 功能：从指定来源读取数据或状态。
     结构_需求列表分页结果 私有_读取需求列表分页(
         需求节点* 根节点,
         const std::size_t 起始偏移,
@@ -7291,6 +7511,7 @@ namespace {
         return 结果;
     }
 
+    // 功能：创建并返回或登记对应对象。
     结构_控制面板树节点 私有_创建需求列表加载更多节点(const std::size_t 下一个偏移)
     {
         return 私有_新节点(
@@ -7303,6 +7524,7 @@ namespace {
     }
 }
 
+// 功能：从指定来源读取数据或状态。
 结构_控制面板快照 私有_读取控制面板快照(
     const std::size_t 树深度上限,
     const std::size_t 树广度上限,
@@ -8089,6 +8311,7 @@ namespace {
     return 快照;
 }
 
+// 功能：从指定来源读取数据或状态。
 结构_控制面板快照 读取控制面板快照(
     const std::size_t 树深度上限,
     const std::size_t 树广度上限)
@@ -8099,6 +8322,7 @@ namespace {
         true);
 }
 
+// 功能：从指定来源读取数据或状态。
 结构_控制面板快照 读取控制面板主窗口快照(
     const std::size_t 树深度上限,
     const std::size_t 树广度上限)
@@ -8109,11 +8333,13 @@ namespace {
         false);
 }
 
+// 功能：从指定来源读取数据或状态。
 结构_控制面板快照 读取控制面板轻量摘要快照()
 {
     return 私有_读取控制面板快照(0, 0, false);
 }
 
+// 功能：从指定来源读取数据或状态。
 std::string 读取控制面板页面刷新JSON(std::string_view 页面)
 {
     const auto 快照 = 读取控制面板快照(0, 0);
@@ -8295,6 +8521,7 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
     return 私有_页面刷新JSON(页面, nullptr, "未知控制面板页面");
 }
 
+// 功能：从指定来源读取数据或状态。
 std::string 读取控制面板节点子项JSON(
     std::string_view 展开类型,
     const std::uintptr_t 节点指针,
@@ -8515,6 +8742,7 @@ std::string 读取控制面板节点子项JSON(
     return "[]";
 }
 
+// 功能：从指定来源读取数据或状态。
 std::string 读取控制面板节点详情JSON(
     std::string_view 展开类型,
     const std::uintptr_t 节点指针,
@@ -8755,6 +8983,7 @@ std::string 读取控制面板节点详情JSON(
     return "[]";
 }
 
+// 功能：生成展示用文本、界面片段或可视化内容。
 std::string 渲染控制面板摘要(
     const 结构_控制面板快照& 快照,
     std::size_t,
@@ -8861,6 +9090,8 @@ std::string 渲染控制面板摘要(
         << '\n';
     return 输出.str();
 }
+
+// 功能：生成展示用文本、界面片段或可视化内容。
 std::string 渲染任务管理摘要(
     const 结构_控制面板快照& 快照,
     std::size_t)
@@ -8949,6 +9180,7 @@ std::string 渲染任务管理摘要(
     return 输出.str();
 }
 
+// 功能：生成展示用文本、界面片段或可视化内容。
 std::string 渲染缺口摘要(
     const 结构_控制面板快照& 快照,
     std::size_t)
@@ -8980,6 +9212,7 @@ std::string 渲染缺口摘要(
     return 输出.str();
 }
 
+// 功能：生成展示用文本、界面片段或可视化内容。
 std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
 {
     std::ostringstream 输出;
@@ -9138,6 +9371,7 @@ std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
     return 输出.str();
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 私有_生成控制面板HTML(
     const 结构_控制面板快照& 快照,
     std::size_t,
@@ -12821,6 +13055,7 @@ std::string 私有_生成控制面板HTML(
     return 输出.str();
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 生成控制面板HTML(
     const 结构_控制面板快照& 快照,
     std::size_t 列表预览上限)
@@ -12831,6 +13066,7 @@ std::string 生成控制面板HTML(
         枚举_控制面板HTML用途::主面板);
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 生成自我场景独立窗口HTML(
     const 结构_控制面板快照& 快照)
 {
@@ -12840,6 +13076,7 @@ std::string 生成自我场景独立窗口HTML(
         枚举_控制面板HTML用途::自我场景窗口);
 }
 
+// 功能：按函数名执行对应处理。
 bool 保存控制面板HTML(
     const std::filesystem::path& 输出路径,
     const 结构_控制面板快照& 快照)
@@ -12854,26 +13091,31 @@ bool 保存控制面板HTML(
     return 输出文件.good();
 }
 
+// 功能：启动线程、模块或运行流程。
 bool 启动控制面板窗口() noexcept
 {
     return 启动控制面板WebView2窗口();
 }
 
+// 功能：等待线程、任务、外设或条件变化。
 void 等待控制面板窗口关闭() noexcept
 {
     等待控制面板WebView2窗口关闭();
 }
 
+// 功能：读取并返回指定对象、状态或运行材料。
 int 获取控制面板启动诊断码() noexcept
 {
     return 获取控制面板WebView2启动诊断码();
 }
 
+// 功能：按函数名执行对应处理。
 std::filesystem::path 默认控制面板HTML路径()
 {
     return std::filesystem::absolute(std::filesystem::path(L"控制面板.html"));
 }
 
+// 功能：解析输入文本、消息、场景或运行包。
 枚举_控制面板命令 解析控制面板命令行(const int argc, char** argv) noexcept
 {
     枚举_控制面板命令 输出 = 枚举_控制面板命令::无;

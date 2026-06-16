@@ -23,11 +23,13 @@ public:
     using 写锁守卫 = 基类::写锁守卫;
 
 public:
+    // 功能：初始化相关对象、状态或运行上下文。
     void 初始化() {
         写锁守卫 lk(this->链表锁);
         私有_重建缓存_已加锁();
     }
 
+    // 功能：按函数名执行对应处理。
     void 调试清空缓存() noexcept {
         缓存已构建_ = false;
         decltype(哈希到候选_){}.swap(哈希到候选_);
@@ -36,6 +38,7 @@ public:
         根3D_ = nullptr;
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     节点类* 查找(const 特征值主信息类& mi) const {
         return 查找(mi.值);
     }
@@ -46,6 +49,7 @@ public:
         return 获取或创建_已加锁(std::move(mi), dim);
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     节点类* 查找(const VecIU64& v) const {
         写锁守卫 lk(this->链表锁);
         私有_确保缓存_已加锁();
@@ -77,17 +81,20 @@ public:
         return 获取或创建句柄(std::move(v), dim);
     }
 
+    // 功能：按函数名执行对应处理。
     const VecIU64* 取VecU只读指针(VecU句柄 h) const noexcept {
         if (!h.有效()) return nullptr;
         auto* mi = reinterpret_cast<const 特征值主信息类*>(h.主信息指针);
         return mi ? &mi->值 : nullptr;
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     节点类* 查找_已加锁(const 特征值主信息类& mi) const {
         私有_确保缓存_已加锁();
         return 查找_已加锁(mi.值);
     }
 
+    // 功能：创建并返回或登记对应对象。
     节点类* 获取或创建_已加锁(特征值主信息类&& mi, 枚举_轮廓维度 dim) {
         私有_确保缓存_已加锁();
         if (mi.内容哈希 == 0) mi.内容哈希 = 哈希VecIU64(mi.值);
@@ -95,6 +102,7 @@ public:
         return 添加_分层_已加锁(std::move(mi), dim);
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     节点类* 查找_已加锁(const VecIU64& v) const {
         私有_确保缓存_已加锁();
 
@@ -109,6 +117,7 @@ public:
         return nullptr;
     }
 
+    // 功能：创建并返回或登记对应对象。
     节点类* 获取或创建_已加锁(VecIU64&& v, 枚举_轮廓维度 dim) {
         私有_确保缓存_已加锁();
         if (auto* hit = 查找_已加锁(v)) return hit;
@@ -134,6 +143,7 @@ private:
     分层索引节点* 根3D_ = nullptr;
 
 private:
+    // 功能：服务所在模块的内部辅助流程。
     static std::size_t 私有_向上取整平方边长(std::size_t x) noexcept {
         if (x <= 1) return x;
 
@@ -142,6 +152,7 @@ private:
         return n;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     static std::size_t 私有_向上取整立方边长(std::size_t x) noexcept {
         if (x <= 1) return x;
 
@@ -150,10 +161,12 @@ private:
         return n;
     }
 
+    // 功能：确保目标结构、状态或前置条件存在并可用。
     void 私有_确保缓存_已加锁() const {
         if (!缓存已构建_) 私有_重建缓存_已加锁();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     void 私有_重建缓存_已加锁() const {
         哈希到候选_.clear();
 
@@ -172,6 +185,7 @@ private:
         缓存已构建_ = true;
     }
 
+    // 功能：按函数名执行对应处理。
     static std::uint64_t FNV1a64_混入64位值(std::uint64_t h, std::uint64_t x) noexcept {
         for (int i = 0; i < 8; ++i) {
             const auto b = static_cast<std::uint8_t>((x >> (i * 8)) & 0xFF);
@@ -181,6 +195,7 @@ private:
         return h;
     }
 
+    // 功能：按函数名执行对应处理。
     static std::uint64_t 哈希VecIU64(const VecIU64& v) noexcept {
         std::uint64_t h = 1469598103934665603ull;
         h = FNV1a64_混入64位值(h, static_cast<std::uint64_t>(v.size()));
@@ -188,10 +203,12 @@ private:
         return h;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     static std::uint64_t 私有_哈希层(const VecIU64& layer) noexcept {
         return 哈希VecIU64(layer);
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     static std::vector<I64> 生成二维轮廓金字塔(VecIU64 base, std::vector<VecIU64>& 输出层) {
         输出层.clear();
         std::vector<I64> tokens{};
@@ -245,6 +262,7 @@ private:
         return tokens;
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     static std::vector<I64> 生成三维轮廓金字塔(VecIU64 base, std::vector<VecIU64>& 输出层) {
         输出层.clear();
         std::vector<I64> tokens{};
@@ -307,6 +325,7 @@ private:
         return tokens;
     }
 
+    // 功能：创建并返回或登记对应对象。
     分层索引节点* 分层_取或创建路径_已加锁(分层索引节点*& root, const std::vector<I64>& tokens) {
         if (!root) {
             索引池_.emplace_back(std::make_unique<分层索引节点>());
@@ -330,6 +349,7 @@ private:
         return cur;
     }
 
+    // 功能：登记方法、模板、对象或运行入口。
     void 分层_登记叶子_已加锁(枚举_轮廓维度 dim, const std::vector<I64>& tokens, 节点类* leaf) {
         if (!leaf) return;
 
@@ -338,6 +358,7 @@ private:
         path->叶子.push_back(leaf);
     }
 
+    // 功能：按函数名执行对应处理。
     节点类* 添加_分层_已加锁(特征值主信息类&& mi, 枚举_轮廓维度 dim) {
         if (mi.内容哈希 == 0) mi.内容哈希 = 哈希VecIU64(mi.值);
 

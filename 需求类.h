@@ -100,6 +100,7 @@ public:
         三向关系掩码 方向掩码 = 0;
         bool 是否必需 = true;
 
+        // 功能：按函数名执行对应处理。
         bool 有效() const noexcept {
             return 需求节点
                 && 目标特征类型
@@ -126,6 +127,7 @@ public:
         bool 有标量值 = false;
         I64 标量值 = 0;
 
+        // 功能：按函数名执行对应处理。
         bool 有方向信息() const noexcept {
             return 方向掩码 != 0
                 || 方向区间 != 二次特征主信息类::枚举_方向区间::未定义
@@ -133,6 +135,7 @@ public:
                 || 有标量值;
         }
 
+        // 功能：按函数名执行对应处理。
         bool 有效() const noexcept {
             return !目标特征类型主键.empty() && 有方向信息();
         }
@@ -148,28 +151,33 @@ public:
         std::uintptr_t 派生本能能力缺口类型抽象特征指针 = 0;
         std::int64_t 派生本能能力缺口类型值 = 0;
 
+        // 功能：按函数名执行对应处理。
         bool 有派生来源方法() const noexcept
         {
             return 派生来源方法主键 && !派生来源方法主键->empty();
         }
 
+        // 功能：按函数名执行对应处理。
         bool 有派生来源因果() const noexcept
         {
             return 派生来源因果主键 && !派生来源因果主键->empty();
         }
 
+        // 功能：按函数名执行对应处理。
         const std::string& 派生来源方法主键文本() const noexcept
         {
             static const std::string 空{};
             return 派生来源方法主键 ? *派生来源方法主键 : 空;
         }
 
+        // 功能：按函数名执行对应处理。
         const std::string& 派生来源因果主键文本() const noexcept
         {
             static const std::string 空{};
             return 派生来源因果主键 ? *派生来源因果主键 : 空;
         }
 
+        // 功能：按函数名执行对应处理。
         bool 有任意兼容归因() const noexcept
         {
             return 有派生来源方法()
@@ -183,6 +191,7 @@ public:
         }
     };
 
+    // 功能：按函数名执行对应处理。
     static std::recursive_mutex& 借用需求树全局互斥() noexcept
     {
         static std::recursive_mutex 互斥{};
@@ -205,6 +214,7 @@ public:
         std::int64_t 安全权重 = 0;
         std::int64_t 服务权重 = 0;
 
+        // 功能：按函数名执行对应处理。
         bool 有效() const noexcept
         {
             return 来源需求
@@ -402,6 +412,7 @@ public:
     static 结构_需求树更新指令 构造因果子链支撑需求更新指令(
         const 结构_逻辑组织需求更新输入& 输入) noexcept;
 
+    // 功能：计算权重、状态、差值或派生结果。
     static 结构_子需求平分权重 计算子需求权重(
         const std::int64_t 父需求安全权重,
         const std::int64_t 父需求服务权重,
@@ -432,6 +443,7 @@ public:
         return 输出;
     }
 
+    // 功能：计算权重、状态、差值或派生结果。
     static 结构_子需求平分权重 计算子需求平分权重(
         const std::int64_t 父需求安全权重,
         const std::int64_t 父需求服务权重,
@@ -445,6 +457,7 @@ public:
             false);
     }
 
+    // 功能：计算权重、状态、差值或派生结果。
     static 结构_子需求平分权重 计算子需求平分权重(const 节点类* 父需求) noexcept
     {
         if (!父需求 || 父需求->子节点数量 <= 0) {
@@ -458,12 +471,14 @@ public:
             子需求权重采用OR关系(父需求));
     }
 
+    // 功能：按函数名执行对应处理。
     static bool 子需求权重采用OR关系(const 节点类* 父需求) noexcept
     {
         return 需求目标语义视图(父需求).逻辑组织类型
             == 枚举_逻辑组织需求类型::OR组;
     }
 
+    // 功能：按函数名执行对应处理。
     std::size_t 刷新子需求权重(节点类* 父需求) noexcept
     {
         std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
@@ -471,6 +486,7 @@ public:
         return 刷新子需求权重_已加锁(父需求);
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     节点类* 查找直接子需求_按目标重叠(
         节点类* 父需求,
         const 需求主信息类& 候选主信息) noexcept
@@ -480,6 +496,7 @@ public:
         return 查找直接子需求_按目标重叠_已加锁(父需求, 候选主信息);
     }
 
+    // 功能：按函数名执行对应处理。
     std::vector<结构_需求目标视图项> 收集直接子需求目标视图(节点类* 父需求) noexcept
     {
         std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
@@ -491,6 +508,7 @@ public:
         节点类* 需求,
         任务节点类* 任务) noexcept;
 
+    // 功能：按函数名执行对应处理。
     static void 刷新需求结构角色(节点类* 需求) noexcept
     {
         if (!需求) {
@@ -501,6 +519,7 @@ public:
             : 枚举_需求结构角色::执行需求;
     }
 
+    // 功能：按函数名执行对应处理。
     static void 刷新需求及祖先结构角色(节点类* 需求) noexcept
     {
         std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
@@ -515,6 +534,7 @@ public:
 
     static 结构_任务初始化上下文 生成任务初始化上下文(节点类* 需求) noexcept;
 
+    // 功能：从指定来源读取数据或状态。
     static 结构_需求派生归因兼容视图 读取派生归因兼容视图(
         const 需求主信息类& 主信息) noexcept
     {
@@ -531,17 +551,20 @@ public:
         return 输出;
     }
 
+    // 功能：按函数名执行对应处理。
     static bool 存在派生归因兼容缓存(const 需求主信息类& 主信息) noexcept
     {
         return 读取派生归因兼容视图(主信息).有任意兼容归因();
     }
 
+    // 功能：从指定来源读取数据或状态。
     static const std::string& 读取派生来源方法主键_兼容(
         const 需求主信息类& 主信息) noexcept
     {
         return 读取派生归因兼容视图(主信息).派生来源方法主键文本();
     }
 
+    // 功能：从指定来源读取数据或状态。
     static const std::string& 读取派生来源因果主键_兼容(
         const 需求主信息类& 主信息) noexcept
     {
@@ -560,6 +583,7 @@ public:
     static 结构_枚举目标校验结果 校验更新指令枚举目标(
         const 结构_需求树更新指令& 指令) noexcept;
 
+    // 功能：更新已有对象、状态、索引或缓存。
     节点类* 执行更新指令(
         节点类* 需求根节点,
         const 结构_需求树更新指令& 指令) noexcept
@@ -583,6 +607,7 @@ public:
     二次特征节点类* 获取需求方向(节点类* 需求节点) const noexcept;
 
 private:
+    // 功能：读取并返回指定对象、状态或运行材料。
     static 节点类* 获取独立树根_已加锁(节点类* 节点) noexcept
     {
         while (节点 && 节点->父) {
@@ -591,6 +616,7 @@ private:
         return 节点;
     }
 
+    // 功能：按函数名执行对应处理。
     static 节点类* 按主键定位节点_已加锁(
         节点类* 需求根节点,
         const std::string& 主键) noexcept
@@ -609,6 +635,7 @@ private:
         return nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     static bool 节点属于独立树_已加锁(
         const 节点类* 需求根节点,
         const 节点类* 候选节点) noexcept
@@ -630,6 +657,7 @@ private:
         return false;
     }
 
+    // 功能：按函数名执行对应处理。
     static 节点类* 定位节点_已加锁(
         节点类* 需求根节点,
         const std::uintptr_t 节点指针,
@@ -644,11 +672,13 @@ private:
         return 按主键定位节点_已加锁(需求根节点, 主键);
     }
 
+    // 功能：按函数名执行对应处理。
     static const 状态节点主信息类* 状态主信息_已加锁(const 状态节点类* 状态) noexcept
     {
         return 状态 ? dynamic_cast<const 状态节点主信息类*>(状态->主信息) : nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     static std::string 状态特征类型主键_已加锁(const 状态节点主信息类* 主信息) noexcept
     {
         if (!主信息) {
@@ -667,6 +697,7 @@ private:
         return {};
     }
 
+    // 功能：按函数名执行对应处理。
     static std::string 基础引用主键_已加锁(const 可解析引用<基础信息节点类>& 引用) noexcept
     {
         if (!引用.主键.empty()) {
@@ -675,6 +706,7 @@ private:
         return 引用.指针 ? 引用.指针->获取主键() : std::string{};
     }
 
+    // 功能：按函数名执行对应处理。
     static std::string 存在引用主键_已加锁(const 可解析引用<存在节点类>& 引用) noexcept
     {
         if (!引用.主键.empty()) {
@@ -747,11 +779,13 @@ private:
         std::string 目标特征类型主键{};
         三向关系掩码 方向掩码 = 0;
 
+        // 功能：按函数名执行对应处理。
         bool 有效() const noexcept {
             return !目标特征类型主键.empty() && 方向掩码 != 0;
         }
     };
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     static 结构_需求目标键 生成需求目标键_已加锁(const 需求主信息类& 主信息) noexcept
     {
         结构_需求目标键 输出{};
@@ -787,6 +821,7 @@ private:
         return 输出;
     }
 
+    // 功能：按函数名执行对应处理。
     static bool 需求目标重叠_已加锁(
         const 结构_需求目标键& 左,
         const 结构_需求目标键& 右) noexcept
@@ -805,6 +840,7 @@ private:
         return (左.方向掩码 & 右.方向掩码) != 0;
     }
 
+    // 功能：按函数名执行对应处理。
     static bool 需求目标重叠_已加锁(
         const 需求主信息类& 左,
         const 需求主信息类& 右) noexcept
@@ -814,6 +850,7 @@ private:
             生成需求目标键_已加锁(右));
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     static 节点类* 查找直接子需求_按目标重叠_已加锁(
         节点类* 父需求,
         const 需求主信息类& 候选主信息) noexcept
@@ -843,6 +880,7 @@ private:
         return nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     static std::vector<结构_需求目标视图项> 收集直接子需求目标视图_已加锁(
         节点类* 父需求) noexcept
     {
@@ -882,6 +920,7 @@ private:
         return 输出;
     }
 
+    // 功能：补齐条件、参数、证据或方法能力缺口。
     static void 从状态补齐目标主体和特征缓存_已加锁(需求主信息类& 主信息) noexcept
     {
         const auto* 目标状态主信息 = 状态主信息_已加锁(
@@ -909,6 +948,7 @@ private:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     static void 合并需求主信息_已加锁(
         需求主信息类& 目标,
         const 需求主信息类& 候选) noexcept
@@ -960,6 +1000,7 @@ private:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     节点类* 添加子需求节点_已加锁(
         节点类* 父需求,
         const 结构_需求树更新指令& 指令) noexcept
@@ -1025,6 +1066,7 @@ private:
         return 基类::添加子节点_已加锁(父需求, 主信息);
     }
 
+    // 功能：删除指定对象、状态或登记项。
     bool 删除节点_已加锁(节点类* 节点) noexcept
     {
         if (!节点) {
@@ -1043,6 +1085,7 @@ private:
         return true;
     }
 
+    // 功能：更新已有对象、状态、索引或缓存。
     节点类* 执行更新指令_已加锁(
         节点类* 需求根节点,
         const 结构_需求树更新指令& 指令) noexcept
@@ -1177,6 +1220,7 @@ private:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     std::size_t 刷新子需求权重_已加锁(节点类* 父需求) noexcept
     {
         if (!父需求 || !父需求->子 || 父需求->子节点数量 <= 0) {
@@ -1196,6 +1240,7 @@ private:
         return 已递归刷新数量;
     }
 
+    // 功能：按函数名执行对应处理。
     std::size_t 刷新直接子需求权重_已加锁(节点类* 父需求) noexcept
     {
         if (!父需求 || !父需求->子 || 父需求->子节点数量 <= 0) {

@@ -55,12 +55,14 @@ public:
         [[nodiscard]] virtual std::string 生成链键(const 结构_模板参数& 参数) const = 0;
         [[nodiscard]] virtual bool 匹配链键(std::string_view 链键) const noexcept = 0;
 
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] virtual std::vector<结构_刻度片> 默认刻度(const 结构_模板参数& 参数) const
         {
             (void)参数;
             return {};
         }
 
+        // 功能：按函数名执行对应处理。
         virtual void 校验参数(const 结构_模板参数& 参数) const
         {
             (void)参数;
@@ -68,12 +70,14 @@ public:
     };
 
 public:
+    // 功能：按函数名执行对应处理。
     static 度量模板注册表类& 实例()
     {
         static 度量模板注册表类 实例{};
         return 实例;
     }
 
+    // 功能：注册方法、模板、对象或运行入口。
     void 注册(std::unique_ptr<模板基类> 模板)
     {
         if (!模板) {
@@ -85,12 +89,14 @@ public:
         表_[模板族] = std::move(模板);
     }
 
+    // 功能：注册方法、模板、对象或运行入口。
     [[nodiscard]] bool 已注册(枚举_模板族 模板族) const
     {
         std::shared_lock 锁(锁_);
         return 表_.find(模板族) != 表_.end();
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     [[nodiscard]] const 模板基类* 查找(枚举_模板族 模板族) const
     {
         std::shared_lock 锁(锁_);
@@ -98,6 +104,7 @@ public:
         return it == 表_.end() ? nullptr : it->second.get();
     }
 
+    // 功能：读取并返回指定对象、状态或运行材料。
     [[nodiscard]] const 模板基类& 获取或抛(枚举_模板族 模板族) const
     {
         const auto* 结果 = 查找(模板族);
@@ -110,6 +117,7 @@ public:
         return *结果;
     }
 
+    // 功能：按条件查找目标对象、方法或事实。
     [[nodiscard]] const 模板基类* 由链键查找(std::string_view 链键) const
     {
         std::shared_lock 锁(锁_);
@@ -121,12 +129,14 @@ public:
         return nullptr;
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     [[nodiscard]] std::string 生成链键_存在(枚举_模板族 模板族) const
     {
         结构_模板参数 参数{};
         return 获取或抛(模板族).生成链键(参数);
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     [[nodiscard]] std::string 生成链键_特征(枚举_模板族 模板族, std::string_view 特征类型主键) const
     {
         结构_模板参数 参数{};
@@ -153,6 +163,7 @@ public:
         return 模板->默认刻度(参数);
     }
 
+    // 功能：注册方法、模板、对象或运行入口。
     void 注册默认模板()
     {
         std::unique_lock 锁(锁_);
@@ -179,9 +190,16 @@ public:
 private:
     class 模板_存在_归一化差异度Q final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::存在_归一化差异度Q; }
+
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数&) const override { return "存在|归一化差异度Q"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override { return 链键 == "存在|归一化差异度Q"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] std::vector<结构_刻度片> 默认刻度(const 结构_模板参数&) const override
         {
             return {
@@ -194,9 +212,16 @@ private:
 
     class 模板_存在_总体相似度Q final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::存在_总体相似度Q; }
+
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数&) const override { return "存在|总体相似度Q"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override { return 链键 == "存在|总体相似度Q"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] std::vector<结构_刻度片> 默认刻度(const 结构_模板参数&) const override
         {
             return {
@@ -209,23 +234,40 @@ private:
 
     class 模板_存在_命中特征数 final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::存在_命中特征数; }
+
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数&) const override { return "存在|命中特征数"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override { return 链键 == "存在|命中特征数"; }
     };
 
     class 模板_存在_比较特征数 final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::存在_比较特征数; }
+
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数&) const override { return "存在|比较特征数"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override { return 链键 == "存在|比较特征数"; }
     };
 
     class 模板_存在_覆盖率Q final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::存在_覆盖率Q; }
+
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数&) const override { return "存在|覆盖率Q"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override { return 链键 == "存在|覆盖率Q"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] std::vector<结构_刻度片> 默认刻度(const 结构_模板参数&) const override
         {
             return {
@@ -238,16 +280,28 @@ private:
 
     class 模板_存在_加权平均差异度Q final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::存在_加权平均差异度Q; }
+
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数&) const override { return "存在|加权平均差异度Q"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override { return 链键 == "存在|加权平均差异度Q"; }
     };
 
     class 模板_存在_加权相似度Q final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::存在_加权相似度Q; }
+
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数&) const override { return "存在|加权相似度Q"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override { return 链键 == "存在|加权相似度Q"; }
+
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] std::vector<结构_刻度片> 默认刻度(const 结构_模板参数&) const override
         {
             return {
@@ -260,8 +314,10 @@ private:
 
     class 模板_特征_差异度Q final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::特征_差异度Q; }
 
+        // 功能：按函数名执行对应处理。
         void 校验参数(const 结构_模板参数& 参数) const override
         {
             if (参数.特征类型主键.empty()) {
@@ -269,16 +325,19 @@ private:
             }
         }
 
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数& 参数) const override
         {
             return std::string("特征|差异度Q|T=") + 参数.特征类型主键;
         }
 
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override
         {
             return 链键.rfind("特征|差异度Q|T=", 0) == 0;
         }
 
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] std::vector<结构_刻度片> 默认刻度(const 结构_模板参数&) const override
         {
             return {
@@ -291,8 +350,10 @@ private:
 
     class 模板_特征_权重Q final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::特征_权重Q; }
 
+        // 功能：按函数名执行对应处理。
         void 校验参数(const 结构_模板参数& 参数) const override
         {
             if (参数.特征类型主键.empty()) {
@@ -300,11 +361,13 @@ private:
             }
         }
 
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数& 参数) const override
         {
             return std::string("特征|权重Q|T=") + 参数.特征类型主键;
         }
 
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override
         {
             return 链键.rfind("特征|权重Q|T=", 0) == 0;
@@ -313,8 +376,10 @@ private:
 
     class 模板_特征_缺失码 final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::特征_缺失码; }
 
+        // 功能：按函数名执行对应处理。
         void 校验参数(const 结构_模板参数& 参数) const override
         {
             if (参数.特征类型主键.empty()) {
@@ -322,16 +387,19 @@ private:
             }
         }
 
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数& 参数) const override
         {
             return std::string("特征|缺失码|T=") + 参数.特征类型主键;
         }
 
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override
         {
             return 链键.rfind("特征|缺失码|T=", 0) == 0;
         }
 
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] std::vector<结构_刻度片> 默认刻度(const 结构_模板参数&) const override
         {
             return {
@@ -345,8 +413,10 @@ private:
 
     class 模板_特征_贡献度Q final : public 模板基类 {
     public:
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] 枚举_模板族 模板族() const noexcept override { return 枚举_模板族::特征_贡献度Q; }
 
+        // 功能：按函数名执行对应处理。
         void 校验参数(const 结构_模板参数& 参数) const override
         {
             if (参数.特征类型主键.empty()) {
@@ -354,11 +424,13 @@ private:
             }
         }
 
+        // 功能：根据当前输入生成目标数据、场景、动态或回执。
         [[nodiscard]] std::string 生成链键(const 结构_模板参数& 参数) const override
         {
             return std::string("特征|贡献度Q|T=") + 参数.特征类型主键;
         }
 
+        // 功能：按函数名执行对应处理。
         [[nodiscard]] bool 匹配链键(std::string_view 链键) const noexcept override
         {
             return 链键.rfind("特征|贡献度Q|T=", 0) == 0;

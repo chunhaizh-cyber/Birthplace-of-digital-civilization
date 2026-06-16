@@ -48,6 +48,7 @@ namespace {
     constexpr std::size_t 最大深度空洞诊断区域数量 = 96;
     constexpr std::size_t 最大诊断区域数量 = 160;
 
+    // 功能：按函数名执行对应处理。
     std::string 路径UTF8(const std::filesystem::path& 路径)
     {
         const auto 文本 = 路径.u8string();
@@ -56,6 +57,7 @@ namespace {
             文本.size());
     }
 
+    // 功能：按函数名执行对应处理。
     std::filesystem::path 模块目录() noexcept
     {
         wchar_t 缓冲区[MAX_PATH]{};
@@ -66,6 +68,7 @@ namespace {
         return std::filesystem::path(缓冲区).parent_path();
     }
 
+    // 功能：确保目标结构、状态或前置条件存在并可用。
     bool 确保RealSense运行时(std::string& 错误消息) noexcept
     {
         if (g_RealSense运行时模块) {
@@ -109,12 +112,14 @@ namespace {
         }
     }
 
+    // 功能：把输入数据转换为目标类型、语义或结构。
     std::int64_t 转换像素计数(std::size_t 值) noexcept
     {
         constexpr auto 上限 = static_cast<std::size_t>(std::numeric_limits<std::int64_t>::max());
         return 值 > 上限 ? std::numeric_limits<std::int64_t>::max() : static_cast<std::int64_t>(值);
     }
 
+    // 功能：把输入数据转换为目标类型、语义或结构。
     std::int64_t 转换毫米(double 值) noexcept
     {
         if (!std::isfinite(值)) {
@@ -131,6 +136,7 @@ namespace {
         return static_cast<std::int64_t>(std::llround(值));
     }
 
+    // 功能：按函数名执行对应处理。
     bool 帧像素有有效空间点(const 结构体_原始场景帧& 帧, std::size_t 索引) noexcept
     {
         if (索引 >= 帧.深度.size()) {
@@ -148,6 +154,7 @@ namespace {
         return 帧.点云[索引].z > 0.0;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 空间邻近(const 结构体_原始场景帧& 帧, std::size_t a, std::size_t b) noexcept
     {
         const auto& A = 帧.点云[a];
@@ -164,6 +171,7 @@ namespace {
         return dx * dx + dy * dy + dz * dz <= 空间阈值 * 空间阈值;
     }
 
+    // 功能：按函数名执行对应处理。
     std::int64_t 比例万分比(std::size_t 分子, std::size_t 分母) noexcept
     {
         if (分母 == 0) {
@@ -174,6 +182,7 @@ namespace {
             / static_cast<unsigned long long>(分母));
     }
 
+    // 功能：按函数名执行对应处理。
     bool 帧像素深度有效(const 结构体_原始场景帧& 帧, std::size_t 索引) noexcept
     {
         if (索引 >= 帧.深度.size()) {
@@ -185,6 +194,7 @@ namespace {
         return 掩膜有效 && 帧.深度[索引] > 0.0;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 深度向量像素有效(
         const std::vector<double>& 深度,
         const std::vector<std::uint8_t>& 有效掩膜,
@@ -199,6 +209,7 @@ namespace {
         return 掩膜有效 && 深度[索引] > 0.0;
     }
 
+    // 功能：按函数名执行对应处理。
     void 填充深度毫米结构(
         const std::vector<double>& 深度,
         const std::vector<std::uint8_t>& 有效掩膜,
@@ -211,11 +222,13 @@ namespace {
         }
     }
 
+    // 功能：按函数名执行对应处理。
     std::int64_t 绝对差毫米(std::int64_t a, std::int64_t b) noexcept
     {
         return a >= b ? a - b : b - a;
     }
 
+    // 功能：按函数名执行对应处理。
     std::int64_t 深度差异评分(std::int64_t 差异毫米) noexcept
     {
         if (差异毫米 <= 5) {
@@ -227,6 +240,7 @@ namespace {
         return 10000 - ((差异毫米 - 5) * 10000 / 245);
     }
 
+    // 功能：按函数名执行对应处理。
     void 建立深度三口径诊断(双目相机本能适配器::调用结果& 结果) noexcept
     {
         const std::size_t 总数 = 结果.原始深度毫米.size();
@@ -351,6 +365,7 @@ namespace {
             : 邻域累计 / static_cast<std::int64_t>(有邻域数量);
     }
 
+    // 功能：按函数名执行对应处理。
     void 建立静态多帧融合诊断(
         双目相机本能适配器::调用结果& 结果,
         const std::vector<结构体_原始场景帧>& 帧组) noexcept
@@ -475,6 +490,7 @@ namespace {
         std::vector<双目相机本能适配器::诊断区域摘要> 区域列表{};
     };
 
+    // 功能：按函数名执行对应处理。
     深度空洞区域收集结果 收集深度空洞诊断区域(const 结构体_原始场景帧& 帧)
     {
         深度空洞区域收集结果 输出{};
@@ -566,6 +582,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 候选诊断投影有效(
         const 双目相机本能适配器::空间候选摘要& 候选,
         int 宽,
@@ -577,6 +594,7 @@ namespace {
             && 候选.投影最大Y >= 候选.投影最小Y;
     }
 
+    // 功能：按函数名执行对应处理。
     void 追加候选诊断区域(
         std::vector<双目相机本能适配器::诊断区域摘要>& 区域列表,
         const 双目相机本能适配器::空间候选摘要& 候选,
@@ -614,6 +632,7 @@ namespace {
         区域列表.push_back(区域);
     }
 
+    // 功能：按函数名执行对应处理。
     void 追加空间候选诊断区域(
         std::vector<双目相机本能适配器::诊断区域摘要>& 区域列表,
         const std::vector<双目相机本能适配器::空间候选摘要>& 候选列表,
@@ -671,6 +690,7 @@ namespace {
             });
     }
 
+    // 功能：按函数名执行对应处理。
     bool 点在范围内(
         const Vector3D& P,
         double minX,
@@ -685,6 +705,7 @@ namespace {
             && P.z >= minZ && P.z <= maxZ;
     }
 
+    // 功能：按函数名执行对应处理。
     void 填充像素归属验证摘要(
         const 结构体_原始场景帧& 帧,
         双目相机本能适配器::空间候选摘要& 候选,
@@ -832,6 +853,7 @@ namespace {
         }
     }
 
+    // 功能：按函数名执行对应处理。
     std::vector<双目相机本能适配器::空间候选摘要> 提取空间候选摘要(
         const 结构体_原始场景帧& 帧)
     {
@@ -991,6 +1013,7 @@ namespace {
         return 输出;
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     双目相机本能适配器::调用结果 从帧生成结果(const 结构体_原始场景帧& 帧)
     {
         双目相机本能适配器::调用结果 结果{};
@@ -1252,6 +1275,8 @@ namespace {
 }
 
 namespace 双目相机本能适配器 {
+
+    // 功能：按函数名执行对应处理。
     调用结果 打开() noexcept
     {
         std::lock_guard<std::mutex> 锁(g_互斥);
@@ -1302,6 +1327,7 @@ namespace 双目相机本能适配器 {
         }
     }
 
+    // 功能：按函数名执行对应处理。
     调用结果 释放() noexcept
     {
         std::lock_guard<std::mutex> 锁(g_互斥);
@@ -1325,6 +1351,7 @@ namespace 双目相机本能适配器 {
         }
     }
 
+    // 功能：检查状态、条件、缺口或运行约束。
     调用结果 检查() noexcept
     {
         std::lock_guard<std::mutex> 锁(g_互斥);
@@ -1343,6 +1370,7 @@ namespace 双目相机本能适配器 {
         return 结果;
     }
 
+    // 功能：按函数名执行对应处理。
     调用结果 采集一帧() noexcept
     {
         std::lock_guard<std::mutex> 锁(g_互斥);

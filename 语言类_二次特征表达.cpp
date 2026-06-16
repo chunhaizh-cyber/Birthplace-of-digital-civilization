@@ -12,6 +12,7 @@ import 二次特征应用模块;
 namespace {
     std::string 私有_基础节点短名(const 基础信息类* 基础信息, const 基础信息节点类* 节点);
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_安全词(const 语素入口节点类* 词) noexcept
     {
         if (!词) return {};
@@ -23,11 +24,13 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_安全文本(std::string 文本, const std::string& 回退)
     {
         return 文本.empty() ? 回退 : std::move(文本);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_世界类型文本(枚举_世界类型 世界类型)
     {
         switch (世界类型) {
@@ -42,6 +45,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征种类文本(枚举_二次特征种类 种类)
     {
         switch (种类) {
@@ -68,6 +72,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_方法节点名称(const 方法类::节点类* 节点)
     {
         if (!节点) return {};
@@ -82,6 +87,7 @@ namespace {
         bool 是方位关系 = false;
     };
 
+    // 功能：服务所在模块的内部辅助流程。
     const 结构_二次特征方向模板* 私有_匹配二次特征方向模板(const std::string& 轴键) noexcept
     {
         static const std::vector<结构_二次特征方向模板> 模板表{
@@ -109,6 +115,7 @@ namespace {
         return nullptr;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征轴键(const 二次特征主信息类* 主信息)
     {
         if (!主信息) return {};
@@ -118,12 +125,14 @@ namespace {
         return 私有_二次特征种类文本(主信息->种类);
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     const 结构_二次特征方向模板* 私有_二次特征方向模板_按主信息(const 二次特征主信息类* 主信息) noexcept
     {
         if (!主信息) return nullptr;
         return 私有_匹配二次特征方向模板(私有_二次特征轴键(主信息));
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::string 私有_二次特征比较对象名称(const 基础信息类* 基础信息, const 二次特征主信息类* 主信息)
     {
         if (!基础信息 || !主信息) return {};
@@ -132,6 +141,7 @@ namespace {
         return {};
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征主语名称(const 基础信息类* 基础信息, const 二次特征主信息类* 主信息)
     {
         if (!基础信息 || !主信息) return {};
@@ -140,6 +150,7 @@ namespace {
         return {};
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征维度短语(const 二次特征主信息类* 主信息)
     {
         const auto 轴键 = 私有_二次特征轴键(主信息);
@@ -148,6 +159,7 @@ namespace {
         return "在" + 轴键 + "维度上";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征粒度短语(const 二次特征主信息类* 主信息)
     {
         if (!主信息) return {};
@@ -161,6 +173,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征基准短语(const 二次特征主信息类* 主信息)
     {
         if (!主信息) return {};
@@ -175,6 +188,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征时间归一短语(const 二次特征主信息类* 主信息)
     {
         if (!主信息) return {};
@@ -186,6 +200,7 @@ namespace {
         }
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_连接限定短语(const std::vector<std::string>& 短语列表)
     {
         std::ostringstream 输出;
@@ -199,6 +214,7 @@ namespace {
         return 输出.str();
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征单体方向结果(std::string 结果)
     {
         if (结果.rfind("更", 0) == 0 && 结果.size() > std::string("更").size()) {
@@ -209,6 +225,7 @@ namespace {
         return 结果;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征空间关系结果(const std::string& 结果, const std::string& 比较对象)
     {
         if (结果.empty()) return {};
@@ -222,6 +239,7 @@ namespace {
         return "相对于" + 比较对象 + 结果;
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::string 私有_二次特征比较结果(
         const std::string& 结果,
         const std::string& 比较对象,
@@ -242,6 +260,7 @@ namespace {
         return 单体结果;
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征反义词结果_按主信息(const 二次特征主信息类* 主信息)
     {
         if (!主信息) return {};
@@ -266,6 +285,7 @@ namespace {
         return "相当";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_二次特征介词短语_按主信息(const 基础信息类* 基础信息, const 二次特征主信息类* 主信息)
     {
         if (!基础信息 || !主信息) return {};
@@ -308,6 +328,7 @@ namespace {
         return "（" + 私有_连接限定短语(短语) + "）";
     }
 
+    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_基础节点短名(const 基础信息类* 基础信息, const 基础信息节点类* 节点)
     {
         if (!基础信息 || !节点 || !节点->主信息) return {};
@@ -394,18 +415,21 @@ namespace {
     }
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 语言类::生成二次特征反义词结果(const 二次特征节点类* 节点) const
 {
     const auto* 主信息 = 二次特征主信息_桥接(节点);
     return 私有_二次特征反义词结果_按主信息(主信息);
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 语言类::生成二次特征介词短语(const 二次特征节点类* 节点) const
 {
     const auto* 主信息 = 二次特征主信息_桥接(节点);
     return 私有_二次特征介词短语_按主信息(&世界树.基础信息(), 主信息);
 }
 
+// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 语言类::生成二次特征自然语言(const 二次特征节点类* 节点) const
 {
     const auto& 基础信息 = 世界树.基础信息();

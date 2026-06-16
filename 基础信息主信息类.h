@@ -136,7 +136,11 @@ public:
     枚举_主信息类型 主信息类型 = 枚举_主信息类型::基础信息基类;
 
     基础信息基类() = default;
+
+    // 功能：按函数名执行对应处理。
     explicit 基础信息基类(枚举_主信息类型 t) { 主信息类型 = t; }
+
+    // 功能：按函数名执行对应处理。
     基础信息基类(const 语素入口节点类* 名, const 语素入口节点类* 型, 枚举_主信息类型 t) {
         名称 = 名;
         类型 = 型;
@@ -147,10 +151,13 @@ public:
 
     // 新比较协议入口：返回有符号比较量，命中判断只读取其符号。
     // 旧 `比较(...)` 在迁移期仍保留；新查找和关系生成优先调用这两个接口。
+
+    // 功能：新比较协议入口：返回有符号比较量，命中判断只读取其符号。 旧 `比较(...)` 在迁移期仍保留；新查找和关系生成优先调用...
     virtual std::int64_t 生成比较量(基础信息基类* 对象, 枚举_比较字段 字段) const {
         return 比较(对象, 字段);
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     virtual bool 命中比较条件(基础信息基类* 对象, 枚举_比较字段 字段) const {
         return 对象 && 生成比较量(对象, 字段) == 0;
     }
@@ -163,14 +170,17 @@ public:
     // 语言记录只保存语言结构入口；不得作为存在、特征、任务、需求或结算事实的权威来源。
     const 语素入口节点类* 语言词性 = nullptr;
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     语言记录主信息类()
         : 基础信息基类(nullptr, nullptr, 枚举_主信息类型::语言信息_仅记录) {
     }
 
+    // 功能：记录日志、动态、证据或运行痕迹。
     explicit 语言记录主信息类(const 语素入口节点类* 词性)
         : 基础信息基类(词性, nullptr, 枚举_主信息类型::语言信息_仅记录), 语言词性(词性) {
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段 字段) const override {
         auto* 右 = dynamic_cast<语言记录主信息类*>(对象);
         if (!右) return -1;
@@ -187,6 +197,7 @@ public:
     }
 
 private:
+    // 功能：比较当前值、目标值或历史基准。
     static std::int64_t 私有_比较入口指针(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept {
         if (左 == 右) return 0;
         return reinterpret_cast<std::uintptr_t>(左) < reinterpret_cast<std::uintptr_t>(右) ? -1 : 1;
@@ -200,8 +211,10 @@ struct 环形缓冲 {
      std::size_t head = 0;
      std::size_t size = 0;
 
+     // 功能：按函数名执行对应处理。
      void clear() { head = 0; size = 0; }
 
+     // 功能：按函数名执行对应处理。
      void push(const T& v)
      {
          data[head] = v;
@@ -210,6 +223,8 @@ struct 环形缓冲 {
      }
 
      // 0 表示最新，1 表示前一项...
+
+     // 功能：0 表示最新，1 表示前一项...
      const T* get_from_latest(std::size_t i) const
      {
          if (i >= size) return nullptr;
@@ -233,6 +248,7 @@ struct 稳态点原型
      std::uint64_t 命中次数 = 0;
      时间戳 最后命中 = 0;
 
+     // 功能：按函数名执行对应处理。
      bool 有效() const noexcept { return 特征快照有值(点); }
  };
 
@@ -247,6 +263,7 @@ struct 稳态多维区间原型
      // 可选：用于解释/回溯/做 medoid（I64 或 VecU句柄）
      std::optional<特征快照值> 代表点{};
 
+     // 功能：按函数名执行对应处理。
      bool 有效() const noexcept {
          if (!box.有效()) return false;
          if (box.维度.size() != 1) return false; // 当前区间统一为 1 维标量区间
@@ -298,7 +315,10 @@ public:
     const 语素入口节点类* 代词 = nullptr;
     可解析引用<存在节点类> 指代对象{};
 
+    // 功能：按函数名执行对应处理。
     指代节点主信息类() : 基础信息基类(枚举_主信息类型::指代) {}
+
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段) const override {
         // 这里只做同类主信息判定；不把指代对象关系编码成业务比较结论。
         return dynamic_cast<指代节点主信息类*>(对象) ? 0 : -1;
@@ -316,46 +336,61 @@ public:
     std::vector<结构_抽象特征组合规则> 组合规则{};
     std::vector<可解析引用<基础信息节点类>> 来源实例特征{}; //基础信息节点类可以是特征节点主信息类,二次特征节点主信息类
 
+    // 功能：按函数名执行对应处理。
     抽象特征主信息类() : 基础信息基类(枚举_主信息类型::抽象特征) {}
+
+    // 功能：按函数名执行对应处理。
     explicit 抽象特征主信息类(const 语素入口节点类* 特征类型)
         : 基础信息基类(nullptr, 特征类型, 枚举_主信息类型::抽象特征) {
         名称 = 特征类型;
         设为复合特征();
     }
+
+    // 功能：按函数名执行对应处理。
     抽象特征主信息类(const 语素入口节点类* 特征类型, I64区间 初始区间)
         : 基础信息基类(nullptr, 特征类型, 枚举_主信息类型::抽象特征), 区间(初始区间) {
         名称 = 特征类型;
         值域 = I64值域{ { I64值域项{初始区间} } };
     }
 
+    // 功能：按函数名执行对应处理。
     bool 有区间() const noexcept { return 区间.has_value() && 区间->有效(); }
+
+    // 功能：按函数名执行对应处理。
     bool 是叶子特征() const noexcept { return 形态 == 枚举_抽象特征形态::叶子; }
+
+    // 功能：按函数名执行对应处理。
     bool 是复合特征() const noexcept { return 形态 == 枚举_抽象特征形态::复合; }
 
+    // 功能：按函数名执行对应处理。
     const 特征值域* 取值域() const noexcept
     {
         if (!是叶子特征() || !值域.has_value()) return nullptr;
         return &值域.value();
     }
 
+    // 功能：按函数名执行对应处理。
     特征值域* 取可写值域() noexcept
     {
         if (!是叶子特征() || !值域.has_value()) return nullptr;
         return &值域.value();
     }
 
+    // 功能：按函数名执行对应处理。
     void 设为叶子特征(特征值域 新值域)
     {
         形态 = 枚举_抽象特征形态::叶子;
         值域 = std::move(新值域);
     }
 
+    // 功能：按函数名执行对应处理。
     void 设为复合特征()
     {
         形态 = 枚举_抽象特征形态::复合;
         值域.reset();
     }
 
+    // 功能：按函数名执行对应处理。
     bool 校验结构() const noexcept
     {
         if (!名称 || !类型) return false;
@@ -364,6 +399,7 @@ public:
         return false;
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段) const override {
         return dynamic_cast<抽象特征主信息类*>(对象) ? 0 : -1;
     }
@@ -400,18 +436,29 @@ public:
     // 连续测量误差缓存：只服务特征比较时的容差修正，不表达业务事实。
     I64区间 连续测量误差区间{ 0, -1 };
 
+    // 功能：按函数名执行对应处理。
     特征节点主信息类() : 基础信息基类(枚举_主信息类型::特征) {}
+
+    // 功能：按函数名执行对应处理。
     explicit 特征节点主信息类(const 语素入口节点类* 特征类型)
         : 基础信息基类(nullptr, 特征类型, 枚举_主信息类型::特征) {
     }
+
+    // 功能：按函数名执行对应处理。
     特征节点主信息类(const 语素入口节点类* 特征类型, const 特征值& v)
         : 基础信息基类(nullptr, 特征类型, 枚举_主信息类型::特征), 当前值(v) {
     }
 
+    // 功能：按函数名执行对应处理。
     bool 有当前值() const noexcept { return 特征值有效(当前值); }
+
+    // 功能：按函数名执行对应处理。
     bool 有区间() const noexcept { return 区间.has_value() && 区间->有效(); }
+
+    // 功能：设置对象字段、状态或运行参数。
     void 设置当前值(const 特征值& v) { 当前值 = v; }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段) const override {
         return dynamic_cast<特征节点主信息类*>(对象) ? 0 : -1;
     }
@@ -439,12 +486,14 @@ public:
 
     std::vector<可解析引用<因果实例节点类>> 实例因果{};
 
+    // 功能：按函数名执行对应处理。
     存在节点主信息类() : 基础信息基类(nullptr, nullptr, 枚举_主信息类型::存在) {}
     存在节点主信息类(const 语素入口节点类* 名, const 语素入口节点类* 型 = nullptr)
         : 基础信息基类(名, 型, 枚举_主信息类型::存在) {
     }
     ~存在节点主信息类() override;
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段 字段) const override {
         auto* 右 = dynamic_cast<存在节点主信息类*>(对象);
         if (!右) return -1;
@@ -462,6 +511,7 @@ public:
     }
 
 private:
+    // 功能：比较当前值、目标值或历史基准。
     static std::int64_t 私有_比较入口指针(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept {
         if (左 == 右) return 0;
         return reinterpret_cast<std::uintptr_t>(左) < reinterpret_cast<std::uintptr_t>(右) ? -1 : 1;
@@ -482,15 +532,22 @@ public:
     std::vector<可解析引用<二次特征节点类>> 二次特征索引{};
     std::vector<可解析引用<因果实例节点类>> 实例因果索引{};
 
+    // 功能：按函数名执行对应处理。
     场景节点主信息类() : 基础信息基类(nullptr, nullptr, 枚举_主信息类型::场景) {}
+
+    // 功能：按函数名执行对应处理。
     explicit 场景节点主信息类(const 语素入口节点类* 名, 枚举_世界类型 t)
         : 基础信息基类(名, nullptr, 枚举_主信息类型::场景) {
         世界类型 = t;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 是否内部世界() const noexcept { return 宿主存在.有效(); }
+
+    // 功能：按函数名执行对应处理。
     bool 是否现实世界() const noexcept { return 世界类型 == 枚举_世界类型::现实世界; }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段 字段) const override {
         auto* 右 = dynamic_cast<场景节点主信息类*>(对象);
         if (!右) return -1;
@@ -507,6 +564,7 @@ public:
     }
 
 private:
+    // 功能：比较当前值、目标值或历史基准。
     static std::int64_t 私有_比较入口指针(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept {
         if (左 == 右) return 0;
         return reinterpret_cast<std::uintptr_t>(左) < reinterpret_cast<std::uintptr_t>(右) ? -1 : 1;
@@ -525,8 +583,10 @@ public:
     // 创建提示 / 显示缓存：状态变化的权威判断必须由动态初始/结果状态或二次特征比较得到。
     bool 是否变化 = false;
 
+    // 功能：按函数名执行对应处理。
     状态节点主信息类() : 基础信息基类(nullptr, nullptr, 枚举_主信息类型::状态) {}
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段) const override {
         return dynamic_cast<状态节点主信息类*>(对象) ? 0 : -1;
     }
@@ -556,8 +616,10 @@ public:
     枚举_动态聚合方式 聚合方式 = 枚举_动态聚合方式::未定义;
     std::vector<可解析引用<动态节点类>> 来源低层动态{};
 
+    // 功能：按函数名执行对应处理。
     动态节点主信息类() : 基础信息基类(nullptr, nullptr, 枚举_主信息类型::动态) {}
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段) const override {
         return dynamic_cast<动态节点主信息类*>(对象) ? 0 : -1;
     }
@@ -636,13 +698,16 @@ public:
     bool 是否满足 = false;
     std::uint32_t 规则版本 = 1;
 
+    // 功能：按函数名执行对应处理。
     二次特征主信息类() : 基础信息基类(nullptr, nullptr, 枚举_主信息类型::二次特征_修饰) {}
 
+    // 功能：按函数名执行对应处理。
     void 刷新度量签名_链键()
     {
         度量签名_链键 = 私有_生成度量签名_链键();
     }
 
+    // 功能：判断条件、状态或业务结果是否成立。
     static 枚举_方向区间 由差值判断方向区间(std::int64_t 差值) noexcept
     {
         if (差值 > 0) return 枚举_方向区间::正区间;
@@ -650,6 +715,7 @@ public:
         return 枚举_方向区间::零区间;
     }
 
+    // 功能：按函数名执行对应处理。
     static std::int32_t 方向区间编码(枚举_方向区间 区间) noexcept
     {
         switch (区间) {
@@ -660,6 +726,7 @@ public:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     static const char* 方向区间文本(枚举_方向区间 区间) noexcept
     {
         switch (区间) {
@@ -670,6 +737,7 @@ public:
         }
     }
 
+    // 功能：判断条件、状态或业务结果是否成立。
     static 枚举_方向区间 由比较量判断方向区间(比较量 r) noexcept
     {
         if (r < 0) return 枚举_方向区间::正区间;
@@ -677,6 +745,7 @@ public:
         return 枚举_方向区间::零区间;
     }
 
+    // 功能：计算权重、状态、差值或派生结果。
     static std::optional<std::int64_t> 安全计算右减左(std::int64_t 左值, std::int64_t 右值) noexcept
     {
         if (左值 > 0 && 右值 < std::numeric_limits<std::int64_t>::min() + 左值) {
@@ -688,6 +757,7 @@ public:
         return 右值 - 左值;
     }
 
+    // 功能：设置对象字段、状态或运行参数。
     void 设置差值结果(std::int64_t 左值, std::int64_t 右值) noexcept
     {
         比较左值 = 左值;
@@ -700,6 +770,7 @@ public:
             : 由比较量判断方向区间(比较结果);
     }
 
+    // 功能：按函数名执行对应处理。
     void 清空差值结果() noexcept
     {
         比较左值.reset();
@@ -709,6 +780,7 @@ public:
         方向区间 = 枚举_方向区间::未定义;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 标量值命中标量区间() const noexcept
     {
         return 标量区间.has_value()
@@ -716,6 +788,7 @@ public:
             && 标量区间->包含(标量值);
     }
 
+    // 功能：按函数名执行对应处理。
     bool 语义相同(const 二次特征主信息类& 右) const
     {
         const bool 基础语义相同 = 种类 == 右.种类
@@ -771,6 +844,7 @@ public:
         }
     }
 
+    // 功能：按函数名执行对应处理。
     bool 模板匹配(const 二次特征主信息类& 模板) const
     {
         if (模板.种类 != 枚举_二次特征种类::未定义 && 种类 != 模板.种类) return false;
@@ -829,6 +903,7 @@ public:
         return true;
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段) const override {
         auto* 右 = dynamic_cast<二次特征主信息类*>(对象);
         if (!右) return -1;
@@ -896,6 +971,7 @@ private:
         return 私有_引用键(当前值) == 模板键;
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     static std::int64_t 私有_比较可选I64(
         const std::optional<std::int64_t>& 左,
         const std::optional<std::int64_t>& 右) noexcept
@@ -908,6 +984,7 @@ private:
         return *左 < *右 ? -1 : 1;
     }
 
+    // 功能：根据当前输入生成目标数据、场景、动态或回执。
     std::string 私有_生成度量签名_链键() const
     {
         std::string out;
@@ -983,23 +1060,30 @@ public:
     // 确认标记只用于人工 / 系统确认后的筛选，不表示因果确定性，也不替代基础计数与证据动态链。
     bool 已验证 = false;
 
+    // 功能：按函数名执行对应处理。
     因果主信息类()
         : 基础信息基类(nullptr, nullptr, 枚举_主信息类型::因果) {}
 
+    // 功能：按函数名执行对应处理。
     explicit 因果主信息类(枚举_因果形态 新形态)
         : 基础信息基类(nullptr, nullptr, 枚举_主信息类型::因果)
     {
         形态 = 新形态;
     }
 
+    // 功能：按函数名执行对应处理。
     bool 是实例因果() const noexcept { return 形态 == 枚举_因果形态::实例; }
+
+    // 功能：按函数名执行对应处理。
     bool 是抽象因果() const noexcept { return 形态 == 枚举_因果形态::抽象; }
 
+    // 功能：计算权重、状态、差值或派生结果。
     std::int64_t 计算稳定度() const noexcept
     {
         return static_cast<std::int64_t>(成立次数) - static_cast<std::int64_t>(失败次数);
     }
 
+    // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(基础信息基类* 对象, 枚举_比较字段) const override {
         auto* 右 = dynamic_cast<因果主信息类*>(对象);
         if (!右) return -1;

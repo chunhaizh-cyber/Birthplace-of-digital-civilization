@@ -15,43 +15,52 @@ module;
 export module 本能动作模块;
 
 namespace 本能动作模块_detail {
+
+    // 功能：按函数名执行对应处理。
     inline bool 是特征节点(const 基础信息节点类* 节点) noexcept
     {
         return 节点 && dynamic_cast<const 特征节点主信息类*>(节点->主信息) != nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     inline 特征节点主信息类* 取特征主信息(基础信息节点类* 节点) noexcept
     {
         return 节点 ? dynamic_cast<特征节点主信息类*>(节点->主信息) : nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     inline const 特征节点主信息类* 取特征主信息(const 基础信息节点类* 节点) noexcept
     {
         return 节点 ? dynamic_cast<const 特征节点主信息类*>(节点->主信息) : nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     inline bool 特征有值(const 基础信息节点类* 节点) noexcept
     {
         const auto* 主信息 = 取特征主信息(节点);
         return 主信息 && 特征值有效(主信息->当前值);
     }
 
+    // 功能：按函数名执行对应处理。
     inline const 特征值* 取特征值(const 基础信息节点类* 节点) noexcept
     {
         const auto* 主信息 = 取特征主信息(节点);
         return 主信息 ? &主信息->当前值 : nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     inline const 语素入口节点类* 取类型(const 基础信息节点类* 节点) noexcept
     {
         return 节点 && 节点->主信息 ? 节点->主信息->类型 : nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::string 取主键(const 基础信息节点类* 节点)
     {
         return 节点 ? 节点->获取主键() : std::string{};
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::vector<基础信息节点类*> 枚举子节点(基础信息节点类* 父节点)
     {
         std::vector<基础信息节点类*> 输出{};
@@ -69,6 +78,7 @@ namespace 本能动作模块_detail {
         return 输出;
     }
 
+    // 功能：按函数名执行对应处理。
     inline std::vector<const 基础信息节点类*> 枚举子节点_只读(const 基础信息节点类* 父节点)
     {
         std::vector<const 基础信息节点类*> 输出{};
@@ -86,6 +96,7 @@ namespace 本能动作模块_detail {
         return 输出;
     }
 
+    // 功能：按函数名执行对应处理。
     inline bool 是OR组(const 基础信息节点类* 模式节点) noexcept
     {
         return 是特征节点(模式节点)
@@ -93,6 +104,7 @@ namespace 本能动作模块_detail {
             && 模式节点->子 != nullptr;
     }
 
+    // 功能：按函数名执行对应处理。
     inline I64 饱和绝对差(I64 左, I64 右) noexcept
     {
         constexpr I64 最大值 = (std::numeric_limits<I64>::max)();
@@ -125,6 +137,8 @@ public:
     struct 结构体_场景模式匹配参数 {
         I64 I64容忍误差 = 0;
         I64 歧义分差阈值 = 50;
+
+        // 功能：按函数名执行对应处理。
         std::function<I64(const 语素入口节点类* 类型, const 特征值& 输入值, const 特征值& 模式值)> 差值算法{};
     };
 
@@ -143,6 +157,7 @@ public:
     };
 
 public:
+    // 功能：按函数名执行对应处理。
     static inline void 回执_拼接诊断(std::string& 输入输出, const std::string& 追加)
     {
         if (追加.empty()) {
@@ -248,6 +263,7 @@ private:
         I64 score = 0;
     };
 
+    // 功能：按函数名执行对应处理。
     static inline I64 差值(
         const 结构体_场景模式匹配参数& 参数,
         const 语素入口节点类* 类型,
@@ -273,6 +289,7 @@ private:
         return (std::numeric_limits<I64>::max)();
     }
 
+    // 功能：按函数名执行对应处理。
     static inline I64 值匹配分(
         const 结构体_场景模式匹配参数& 参数,
         const 语素入口节点类* 类型,
@@ -307,6 +324,7 @@ private:
         return std::max<I64>(0, 1000 - std::min<I64>(1000, 代价));
     }
 
+    // 功能：建立对象、任务、方法或因果之间的绑定关系。
     static inline 局部结果 挑选绑定(
         基础信息节点类* 输入父节点,
         const 基础信息节点类* 模式子节点,
@@ -369,6 +387,7 @@ private:
         return 输出;
     }
 
+    // 功能：按函数名执行对应处理。
     static inline 局部结果 递归匹配节点(
         基础信息节点类* 输入节点,
         const 基础信息节点类* 模式节点,
@@ -393,6 +412,7 @@ private:
             输入输出);
     }
 
+    // 功能：按函数名执行对应处理。
     static inline 局部结果 递归匹配子节点(
         基础信息节点类* 输入节点,
         const 基础信息节点类* 模式父节点,

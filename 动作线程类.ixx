@@ -71,6 +71,7 @@ struct 结构_动作执行结果 {
 
     std::vector<结构_动作步骤结果> 步骤结果{};
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] std::uint64_t 总耗时_us() const noexcept
     {
         return (结束_us >= 开始_us) ? (结束_us - 开始_us) : 0;
@@ -133,55 +134,66 @@ private:
 
 public:
     动作线程类() = default;
+
+    // 功能：释放或收束对象资源。
     ~动作线程类() { 停止(true); }
 
     动作线程类(const 动作线程类&) = delete;
     动作线程类& operator=(const 动作线程类&) = delete;
 
 public:
+    // 功能：建立对象、任务、方法或因果之间的绑定关系。
     void 绑定环境(世界树类* 世界树, 三维场景管理类* 场景管理) noexcept
     {
         世界树_.store(世界树, std::memory_order_release);
         场景管理_.store(场景管理, std::memory_order_release);
     }
 
+    // 功能：设置对象字段、状态或运行参数。
     void 设置队列上限(std::size_t 上限) noexcept
     {
         队列上限_.store(上限, std::memory_order_release);
     }
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] std::size_t 取队列上限() const noexcept
     {
         return 队列上限_.load(std::memory_order_acquire);
     }
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] std::size_t 队列上限() const noexcept
     {
         return 取队列上限();
     }
 
+    // 功能：按函数名执行对应处理。
     std::size_t 取队列深度()
     {
         std::lock_guard<std::mutex> 锁(队列锁_);
         return 队列_.size();
     }
 
+    // 功能：按函数名执行对应处理。
     std::size_t 队列深度()
     {
         return 取队列深度();
     }
 
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     [[nodiscard]] bool 是否运行中() const noexcept
     {
         return 运行中_.load(std::memory_order_acquire);
     }
 
+    // 功能：执行对应模块、线程或方法的运行逻辑。
     [[nodiscard]] bool 运行中() const noexcept
     {
         return 是否运行中();
     }
 
 public:
+    // 功能：注册方法、模板、对象或运行入口。
     void 注册本能(枚举_本能方法ID 动作ID, 最小动作函数 动作函数)
     {
         if (!动作函数) {
@@ -198,6 +210,7 @@ public:
         注册表快照_.store(std::const_pointer_cast<const 注册表>(新快照), std::memory_order_release);
     }
 
+    // 功能：注册方法、模板、对象或运行入口。
     void 取消注册(枚举_本能方法ID 动作ID)
     {
         const auto 索引键 = static_cast<std::uint32_t>(动作ID);
@@ -213,6 +226,7 @@ public:
         注册表快照_.store(std::const_pointer_cast<const 注册表>(新快照), std::memory_order_release);
     }
 
+    // 功能：注册方法、模板、对象或运行入口。
     [[nodiscard]] bool 已注册(枚举_本能方法ID 动作ID) const
     {
         const auto 索引键 = static_cast<std::uint32_t>(动作ID);
@@ -220,6 +234,7 @@ public:
         return 当前快照 && 当前快照->find(索引键) != 当前快照->end();
     }
 
+    // 功能：注册方法、模板、对象或运行入口。
     [[nodiscard]] std::vector<枚举_本能方法ID> 列出已注册动作() const
     {
         std::vector<枚举_本能方法ID> 输出{};
@@ -238,6 +253,7 @@ public:
         return 输出;
     }
 
+    // 功能：注册方法、模板、对象或运行入口。
     bool 从本能动作管理器注册(枚举_本能方法ID 动作ID)
     {
         auto 已注册动作 = 取本能动作集().查询(动作ID);
@@ -286,6 +302,7 @@ public:
     }
 
 public:
+    // 功能：启动线程、模块或运行流程。
     void 启动()
     {
         if (工作线程_.joinable() && !运行中_.load(std::memory_order_acquire)) {
@@ -301,12 +318,14 @@ public:
         项目运行日志("[动作线程] 启动");
     }
 
+    // 功能：按函数名执行对应处理。
     void 请求退出() noexcept
     {
         停止请求_.store(true, std::memory_order_release);
         队列条件_.notify_all();
     }
 
+    // 功能：等待线程、任务、外设或条件变化。
     void 等待线程结束()
     {
         if (!工作线程_.joinable()) {
@@ -335,12 +354,14 @@ public:
     }
 
 public:
+    // 功能：提交事实、动态、任务状态或运行回执。
     std::future<结构_动作执行结果> 提交(const 结构_动作执行请求& 请求)
     {
         auto 副本 = 请求;
         return 提交(std::move(副本));
     }
 
+    // 功能：提交事实、动态、任务状态或运行回执。
     std::future<结构_动作执行结果> 提交(结构_动作执行请求&& 请求)
     {
         if (请求.请求ID == 0) {
@@ -397,6 +418,7 @@ public:
     }
 
 private:
+    // 功能：按函数名执行对应处理。
     static std::future<结构_动作执行结果> 立即返回失败_(
         std::uint64_t 请求ID,
         std::int64_t 错误码,
@@ -423,6 +445,7 @@ private:
         return future;
     }
 
+    // 功能：按函数名执行对应处理。
     [[nodiscard]] 函数句柄 取动作函数_(枚举_本能方法ID 动作ID) const
     {
         const auto 索引键 = static_cast<std::uint32_t>(动作ID);
@@ -435,6 +458,7 @@ private:
         return it != 当前快照->end() ? it->second : 函数句柄{};
     }
 
+    // 功能：按函数名执行对应处理。
     void 线程函数_()
     {
         while (true) {

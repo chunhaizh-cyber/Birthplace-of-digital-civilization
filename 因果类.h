@@ -44,6 +44,7 @@ struct 结构_两层因果构建结果 {
     std::string 状态变化签名{};
     std::string 动作致变签名{};
 
+    // 功能：按函数名执行对应处理。
     bool 成功() const noexcept {
         return 状态变化关系 != nullptr || 动作致变关系 != nullptr || 证据实例 != nullptr;
     }
@@ -86,6 +87,7 @@ struct 结构_自我动作组合候选 {
     std::int64_t 本能方法ID = 0;
     std::int64_t 稳定度 = 0;
 
+    // 功能：建立对象、任务、方法或因果之间的绑定关系。
     bool 可直接绑定单步本能() const noexcept
     {
         return 候选方法 != nullptr && 本能方法ID != 0;
@@ -97,6 +99,7 @@ struct 结构_自我动作组合反推结果 {
         枚举_自我动作组合反推状态::未定义;
     std::vector<结构_自我动作组合候选> 候选{};
 
+    // 功能：建立对象、任务、方法或因果之间的绑定关系。
     bool 有可直接绑定单步本能() const noexcept
     {
         for (const auto& 项 : 候选) {
