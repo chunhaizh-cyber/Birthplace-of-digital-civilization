@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 import uuid
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +36,34 @@ INTERESTING_LOG_TOKENS = (
     "变化事实",
 )
 EXCLUDED_DIRS = {".git", "x64", "Debug", "Release", "logs", "日志"}
+SQL_INTEGER_COLUMNS = {
+    "source_line",
+    "line_no",
+    "event_seq",
+    "row_index",
+    "message_id",
+    "event_type_code",
+    "occurred_time_us",
+    "system_thread_id",
+    "first_message_id",
+    "latest_message_id",
+    "created_time_us",
+    "updated_time_us",
+    "exit_time_us",
+    "is_blocked",
+    "is_paused",
+    "is_healthy",
+    "is_normal_exit",
+    "is_exited",
+    "is_fault",
+    "creation_message_seen",
+    "task_id",
+    "work_item_id",
+    "version",
+    "late_message_count",
+    "value_number",
+}
+SQL_DATETIME2_COLUMNS = {"log_time"}
 
 
 def read_text(path: Path) -> str:
@@ -63,6 +92,56 @@ def rel(path: Path, root: Path) -> str:
         return str(path.relative_to(root)).replace("\\", "/")
     except ValueError:
         return str(path).replace("\\", "/")
+
+
+def unescape_kv_value(text: str) -> str:
+    out: list[str] = []
+    escaped = False
+    for char in text:
+        if not escaped:
+            if char == "\\":
+                escaped = True
+            else:
+                out.append(char)
+            continue
+        if char == "n":
+            out.append("\n")
+        elif char == "r":
+            out.append("\r")
+        elif char == "t":
+            out.append("\t")
+        elif char == "\\":
+            out.append("\\")
+        else:
+            out.append(char)
+        escaped = False
+    if escaped:
+        out.append("\\")
+    return "".join(out)
+
+
+def read_key_value_file(path: Path) -> dict[str, str]:
+    fields: dict[str, str] = {}
+    if not path.exists():
+        return fields
+    for line in read_text(path).splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        fields[key.strip()] = unescape_kv_value(value.strip())
+    return fields
+
+
+def int_or_zero(value: Any) -> int:
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
+        return 0
+
+
+def bool_number(value: Any) -> int:
+    text = str(value or "").strip().lower()
+    return 1 if text in {"1", "true", "是", "yes"} else 0
 
 
 def clean_feature_name(value: str) -> str:
@@ -250,6 +329,100 @@ def extract_feature_tree(root: Path, features: list[dict[str, Any]], seen: set[t
     return relations
 
 
+CXX_FIELD_RE = re.compile(
+    r"^\s*(?P<cxx_type>[\w:\u3400-\u9fff]+(?:<[^>]+>)?)\s+"
+    r"(?P<field_name>[\w\u3400-\u9fff_]+)\s*(?:=|\{|\;)"
+)
+
+
+def panel_field_group(field_name: str) -> str:
+    ordered_prefixes = (
+        ("任务管理界面线程", "任务管理界面线程"),
+        ("任务管理工作线程池", "任务管理工作线程池"),
+        ("任务管理工作线程", "任务管理工作线程"),
+        ("控制面板摘要", "控制面板摘要"),
+        ("自我场景", "自我场景"),
+        ("自我线程", "自我线程"),
+        ("需求树", "需求树"),
+        ("缺口", "缺口治理"),
+        ("自检", "自检"),
+        ("任务", "任务"),
+        ("方法", "方法"),
+        ("因果", "因果"),
+        ("线程", "线程"),
+        ("世界", "世界"),
+        ("基础信息", "世界基础"),
+    )
+    for prefix, group in ordered_prefixes:
+        if field_name.startswith(prefix):
+            return group
+    if "线程" in field_name:
+        return "线程"
+    if "需求" in field_name:
+        return "需求"
+    if "任务" in field_name:
+        return "任务"
+    if "方法" in field_name:
+        return "方法"
+    if "动态" in field_name:
+        return "动态"
+    if "因果" in field_name:
+        return "因果"
+    return "运行概览"
+
+
+def extract_struct_fields(root: Path, source_path: str, struct_name: str, source_kind: str) -> list[dict[str, Any]]:
+    path = root / source_path
+    if not path.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    in_struct = False
+    for line_no, line in enumerate(read_text(path).splitlines(), 1):
+        stripped = line.strip()
+        if not in_struct:
+            if re.search(rf"\bstruct\s+{re.escape(struct_name)}\b", stripped):
+                in_struct = True
+            continue
+        if stripped.startswith("};"):
+            break
+        match = CXX_FIELD_RE.match(line)
+        if not match:
+            continue
+        field_name = match.group("field_name")
+        cxx_type = match.group("cxx_type")
+        rows.append(
+            {
+                "metric_key": field_name,
+                "cxx_type": cxx_type,
+                "panel_struct": struct_name,
+                "data_group": panel_field_group(field_name),
+                "source_kind": source_kind,
+                "source_path": source_path,
+                "source_line": line_no,
+                "raw_text": stripped,
+            }
+        )
+    return rows
+
+
+def extract_panel_metric_catalog(root: Path) -> list[dict[str, Any]]:
+    rows = extract_struct_fields(
+        root,
+        "控制面板类.ixx",
+        "结构_控制面板快照",
+        "panel_snapshot_contract",
+    )
+    rows.extend(
+        extract_struct_fields(
+            root,
+            "控制面板摘要线程模块.ixx",
+            "结构_控制面板摘要快照",
+            "panel_summary_contract",
+        )
+    )
+    return rows
+
+
 def parse_log_fields(body: str) -> tuple[str, dict[str, str]]:
     parts = [part.strip() for part in body.split(" | ")]
     event_name = parts[0] if parts else body.strip()
@@ -380,6 +553,173 @@ def extract_runtime_events(root: Path, logs: list[Path], max_events: int) -> tup
     return events, edges
 
 
+def extract_control_panel_thread_info(root: Path) -> list[dict[str, Any]]:
+    path = root / "消息中间件" / "control_panel_thread_info_table.cache"
+    fields = read_key_value_file(path)
+    count = int_or_zero(fields.get("项数"))
+    rows: list[dict[str, Any]] = []
+    for index in range(count):
+        prefix = f"项.{index}."
+        item = {key[len(prefix):]: value for key, value in fields.items() if key.startswith(prefix)}
+        if not item:
+            continue
+        rows.append(
+            {
+                "row_index": index,
+                "logical_id": item.get("线程逻辑ID", "") or f"row-{index}",
+                "thread_name": item.get("线程名称", ""),
+                "thread_purpose": item.get("线程用途", ""),
+                "thread_category": item.get("线程类别", ""),
+                "module_name": item.get("所属模块", ""),
+                "creator_logical_id": item.get("创建者逻辑ID", ""),
+                "creator_name": item.get("创建者名称", ""),
+                "thread_pool_id": item.get("所属线程池ID", ""),
+                "thread_pool_name": item.get("所属线程池名称", ""),
+                "lifecycle_state": item.get("生命周期状态", ""),
+                "runtime_state": item.get("运行状态", ""),
+                "system_thread_id": int_or_zero(item.get("系统线程ID")),
+                "first_message_id": int_or_zero(item.get("首次消息ID")),
+                "latest_message_id": int_or_zero(item.get("最近消息ID")),
+                "created_time_us": int_or_zero(item.get("创建时间")),
+                "updated_time_us": int_or_zero(item.get("最近更新时间")),
+                "exit_time_us": int_or_zero(item.get("退出时间")),
+                "is_blocked": bool_number(item.get("是否堵塞")),
+                "is_paused": bool_number(item.get("是否暂停")),
+                "is_healthy": bool_number(item.get("是否健康")),
+                "is_exited": bool_number(item.get("是否已退出")),
+                "is_fault": bool_number(item.get("是否故障")),
+                "creation_message_seen": bool_number(item.get("创建消息已到")),
+                "task_id": int_or_zero(item.get("关联任务ID")),
+                "work_item_id": int_or_zero(item.get("关联工作项ID")),
+                "latest_event_type": item.get("最近事件类型", ""),
+                "latest_reason_key": item.get("最近原因键", ""),
+                "latest_event_summary": item.get("最近事件摘要", ""),
+                "version": int_or_zero(item.get("版本")),
+                "late_message_count": int_or_zero(item.get("迟到消息数")),
+                "source_path": rel(path, root),
+                "fields_json": json.dumps(item, ensure_ascii=False, separators=(",", ":")),
+            }
+        )
+    return rows
+
+
+def thread_lifecycle_message_paths(root: Path, max_events: int) -> list[Path]:
+    message_dir = root / "消息中间件"
+    if not message_dir.exists():
+        return []
+    paths: list[Path] = []
+    for folder in (message_dir, message_dir / "已消费"):
+        if folder.exists():
+            paths.extend(path for path in folder.glob("thread_lifecycle_*.msg") if path.is_file())
+    paths = sorted(paths, key=lambda item: item.stat().st_mtime, reverse=True)
+    if max_events > 0:
+        paths = paths[:max_events]
+    return paths
+
+
+def extract_thread_lifecycle_events(root: Path, max_events: int) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    seen_message_ids: set[int] = set()
+    for path in thread_lifecycle_message_paths(root, max_events):
+        fields = read_key_value_file(path)
+        message_id = int_or_zero(fields.get("消息ID"))
+        if message_id and message_id in seen_message_ids:
+            continue
+        if message_id:
+            seen_message_ids.add(message_id)
+        rows.append(
+            {
+                "message_id": message_id,
+                "event_type_code": int_or_zero(fields.get("事件类型代码")),
+                "event_type": fields.get("事件类型", ""),
+                "occurred_time_us": int_or_zero(fields.get("发生时间")),
+                "logical_id": fields.get("线程逻辑ID", ""),
+                "system_thread_id": int_or_zero(fields.get("系统线程ID")),
+                "thread_name": fields.get("线程名称", ""),
+                "thread_purpose": fields.get("线程用途", ""),
+                "thread_category": fields.get("线程类别", ""),
+                "module_name": fields.get("所属模块", ""),
+                "creator_logical_id": fields.get("创建者逻辑ID", ""),
+                "creator_name": fields.get("创建者名称", ""),
+                "thread_pool_id": fields.get("所属线程池ID", ""),
+                "thread_pool_name": fields.get("所属线程池名称", ""),
+                "old_lifecycle_state": fields.get("旧生命周期状态", ""),
+                "new_lifecycle_state": fields.get("新生命周期状态", ""),
+                "old_runtime_state": fields.get("旧运行状态", ""),
+                "new_runtime_state": fields.get("新运行状态", ""),
+                "is_blocked": bool_number(fields.get("是否堵塞")),
+                "is_paused": bool_number(fields.get("是否暂停")),
+                "is_healthy": bool_number(fields.get("是否健康")),
+                "is_normal_exit": bool_number(fields.get("是否正常退出")),
+                "task_id": int_or_zero(fields.get("关联任务ID")),
+                "work_item_id": int_or_zero(fields.get("关联工作项ID")),
+                "reason_key": fields.get("原因键", ""),
+                "display_summary": fields.get("显示摘要", ""),
+                "source_path": rel(path, root),
+                "fields_json": json.dumps(fields, ensure_ascii=False, separators=(",", ":")),
+            }
+        )
+    rows.sort(key=lambda row: (row.get("occurred_time_us") or 0, row.get("message_id") or 0))
+    return rows
+
+
+def add_panel_metric(
+    rows: list[dict[str, Any]],
+    metric_key: str,
+    metric_group: str,
+    value: Any,
+    source_kind: str,
+    source_path: str = "",
+    source_line: int = 0,
+    raw_text: str = "",
+) -> None:
+    value_number = value if isinstance(value, int) and not isinstance(value, bool) else None
+    if isinstance(value, bool):
+        value_number = 1 if value else 0
+    rows.append(
+        {
+            "metric_key": metric_key,
+            "metric_group": metric_group,
+            "value_text": str(value),
+            "value_number": value_number,
+            "source_kind": source_kind,
+            "source_path": source_path,
+            "source_line": source_line,
+            "raw_text": raw_text,
+        }
+    )
+
+
+def build_panel_runtime_metrics(
+    summary: dict[str, Any],
+    events: list[dict[str, Any]],
+    thread_info: list[dict[str, Any]],
+    thread_events: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    add_panel_metric(rows, "特征类型记录数", "基础信息", summary["feature_count"], "sql_projection_summary")
+    add_panel_metric(rows, "特征关系记录数", "基础信息", summary["feature_relation_count"], "sql_projection_summary")
+    add_panel_metric(rows, "运行事件记录数", "运行事实", summary["event_count"], "runtime_log_projection")
+    add_panel_metric(rows, "动作动态事件数", "运行事实", summary["action_dynamic_count"], "runtime_log_projection")
+    add_panel_metric(rows, "因果边记录数", "因果", summary["causal_edge_count"], "runtime_log_projection")
+    add_panel_metric(rows, "线程信息项数", "线程", len(thread_info), "message_middleware_thread_cache", "消息中间件/control_panel_thread_info_table.cache")
+    add_panel_metric(rows, "线程生命周期事件数", "线程", len(thread_events), "message_middleware_lifecycle_messages", "消息中间件")
+
+    add_panel_metric(rows, "当前运行线程数", "线程", sum(1 for row in thread_info if row.get("lifecycle_state") == "运行中"), "message_middleware_thread_cache")
+    add_panel_metric(rows, "健康线程数", "线程", sum(1 for row in thread_info if row.get("is_healthy") == 1), "message_middleware_thread_cache")
+    add_panel_metric(rows, "故障线程数", "线程", sum(1 for row in thread_info if row.get("is_fault") == 1 or row.get("lifecycle_state") == "故障"), "message_middleware_thread_cache")
+    add_panel_metric(rows, "已退出线程数", "线程", sum(1 for row in thread_info if row.get("is_exited") == 1 or row.get("lifecycle_state") in {"已退出", "已停止"}), "message_middleware_thread_cache")
+
+    event_classes = Counter(row.get("event_class") or "未分类" for row in events)
+    for event_class, count in sorted(event_classes.items()):
+        add_panel_metric(rows, f"运行事件_{event_class}", "运行事实", count, "runtime_log_projection")
+
+    lifecycle_states = Counter(row.get("lifecycle_state") or "未记录" for row in thread_info)
+    for state, count in sorted(lifecycle_states.items()):
+        add_panel_metric(rows, f"线程状态_{state}", "线程", count, "message_middleware_thread_cache")
+    return rows
+
+
 def sql_string(value: Any, null_empty: bool = True) -> str:
     if value is None:
         return "NULL"
@@ -409,9 +749,9 @@ def write_insert_lines(out: list[str], table: str, columns: list[str], rows: lis
         for column in columns:
             if column == "run_id":
                 values.append("'" + run_id + "'")
-            elif column in {"source_line", "line_no", "event_seq"}:
+            elif column in SQL_INTEGER_COLUMNS:
                 values.append(sql_int(row.get(column)))
-            elif column == "log_time":
+            elif column in SQL_DATETIME2_COLUMNS:
                 value = row.get(column)
                 values.append("CONVERT(datetime2(3), " + sql_string(value) + ", 121)" if value else "NULL")
             else:
@@ -508,6 +848,103 @@ CREATE TABLE fishnest.causal_edge (
     log_file nvarchar(500) NULL,
     line_no int NULL
 );
+IF OBJECT_ID(N'fishnest.panel_metric_catalog', N'U') IS NULL
+CREATE TABLE fishnest.panel_metric_catalog (
+    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    run_id uniqueidentifier NOT NULL,
+    metric_key nvarchar(300) NOT NULL,
+    cxx_type nvarchar(160) NOT NULL,
+    panel_struct nvarchar(160) NOT NULL,
+    data_group nvarchar(80) NOT NULL,
+    source_kind nvarchar(80) NOT NULL,
+    source_path nvarchar(500) NULL,
+    source_line int NULL,
+    raw_text nvarchar(max) NULL
+);
+IF OBJECT_ID(N'fishnest.panel_runtime_metric', N'U') IS NULL
+CREATE TABLE fishnest.panel_runtime_metric (
+    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    run_id uniqueidentifier NOT NULL,
+    metric_key nvarchar(300) NOT NULL,
+    metric_group nvarchar(80) NOT NULL,
+    value_text nvarchar(max) NULL,
+    value_number bigint NULL,
+    source_kind nvarchar(80) NOT NULL,
+    source_path nvarchar(500) NULL,
+    source_line int NULL,
+    raw_text nvarchar(max) NULL
+);
+IF OBJECT_ID(N'fishnest.panel_thread_info', N'U') IS NULL
+CREATE TABLE fishnest.panel_thread_info (
+    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    run_id uniqueidentifier NOT NULL,
+    row_index int NOT NULL,
+    logical_id nvarchar(160) NOT NULL,
+    thread_name nvarchar(300) NULL,
+    thread_purpose nvarchar(max) NULL,
+    thread_category nvarchar(120) NULL,
+    module_name nvarchar(300) NULL,
+    creator_logical_id nvarchar(160) NULL,
+    creator_name nvarchar(300) NULL,
+    thread_pool_id nvarchar(160) NULL,
+    thread_pool_name nvarchar(300) NULL,
+    lifecycle_state nvarchar(80) NULL,
+    runtime_state nvarchar(160) NULL,
+    system_thread_id bigint NULL,
+    first_message_id bigint NULL,
+    latest_message_id bigint NULL,
+    created_time_us bigint NULL,
+    updated_time_us bigint NULL,
+    exit_time_us bigint NULL,
+    is_blocked bit NULL,
+    is_paused bit NULL,
+    is_healthy bit NULL,
+    is_exited bit NULL,
+    is_fault bit NULL,
+    creation_message_seen bit NULL,
+    task_id bigint NULL,
+    work_item_id bigint NULL,
+    latest_event_type nvarchar(120) NULL,
+    latest_reason_key nvarchar(300) NULL,
+    latest_event_summary nvarchar(max) NULL,
+    version bigint NULL,
+    late_message_count bigint NULL,
+    source_path nvarchar(500) NULL,
+    fields_json nvarchar(max) NULL
+);
+IF OBJECT_ID(N'fishnest.panel_thread_lifecycle_event', N'U') IS NULL
+CREATE TABLE fishnest.panel_thread_lifecycle_event (
+    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    run_id uniqueidentifier NOT NULL,
+    message_id bigint NOT NULL,
+    event_type_code int NULL,
+    event_type nvarchar(120) NULL,
+    occurred_time_us bigint NULL,
+    logical_id nvarchar(160) NULL,
+    system_thread_id bigint NULL,
+    thread_name nvarchar(300) NULL,
+    thread_purpose nvarchar(max) NULL,
+    thread_category nvarchar(120) NULL,
+    module_name nvarchar(300) NULL,
+    creator_logical_id nvarchar(160) NULL,
+    creator_name nvarchar(300) NULL,
+    thread_pool_id nvarchar(160) NULL,
+    thread_pool_name nvarchar(300) NULL,
+    old_lifecycle_state nvarchar(80) NULL,
+    new_lifecycle_state nvarchar(80) NULL,
+    old_runtime_state nvarchar(160) NULL,
+    new_runtime_state nvarchar(160) NULL,
+    is_blocked bit NULL,
+    is_paused bit NULL,
+    is_healthy bit NULL,
+    is_normal_exit bit NULL,
+    task_id bigint NULL,
+    work_item_id bigint NULL,
+    reason_key nvarchar(300) NULL,
+    display_summary nvarchar(max) NULL,
+    source_path nvarchar(500) NULL,
+    fields_json nvarchar(max) NULL
+);
 """,
         "GO",
         """
@@ -521,6 +958,14 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_action_
     CREATE INDEX IX_runtime_event_action_dynamic ON fishnest.runtime_event(run_id, action_dynamic) WHERE action_dynamic IS NOT NULL;
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_causal_edge_run_source' AND object_id = OBJECT_ID(N'fishnest.causal_edge'))
     CREATE INDEX IX_causal_edge_run_source ON fishnest.causal_edge(run_id, source_kind, source_key);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_metric_catalog_run_key' AND object_id = OBJECT_ID(N'fishnest.panel_metric_catalog'))
+    CREATE INDEX IX_panel_metric_catalog_run_key ON fishnest.panel_metric_catalog(run_id, metric_key);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_runtime_metric_run_key' AND object_id = OBJECT_ID(N'fishnest.panel_runtime_metric'))
+    CREATE INDEX IX_panel_runtime_metric_run_key ON fishnest.panel_runtime_metric(run_id, metric_key);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_info_run_logical' AND object_id = OBJECT_ID(N'fishnest.panel_thread_info'))
+    CREATE INDEX IX_panel_thread_info_run_logical ON fishnest.panel_thread_info(run_id, logical_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_lifecycle_run_logical' AND object_id = OBJECT_ID(N'fishnest.panel_thread_lifecycle_event'))
+    CREATE INDEX IX_panel_thread_lifecycle_run_logical ON fishnest.panel_thread_lifecycle_event(run_id, logical_id, occurred_time_us);
 """,
         "GO",
         f"INSERT INTO fishnest.projection_run (run_id, created_at, workspace, source_note) VALUES ('{run_id}', CONVERT(datetime2(0), N'{now}', 126), {sql_string(str(root))}, {sql_string(payload['source_note'])});",
@@ -579,6 +1024,99 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_causal_edge_run_sourc
         payload["causal_edges"],
         run_id,
     )
+    write_insert_lines(
+        lines,
+        "fishnest.panel_metric_catalog",
+        ["run_id", "metric_key", "cxx_type", "panel_struct", "data_group", "source_kind", "source_path", "source_line", "raw_text"],
+        payload["panel_metric_catalog"],
+        run_id,
+    )
+    write_insert_lines(
+        lines,
+        "fishnest.panel_runtime_metric",
+        ["run_id", "metric_key", "metric_group", "value_text", "value_number", "source_kind", "source_path", "source_line", "raw_text"],
+        payload["panel_runtime_metrics"],
+        run_id,
+    )
+    write_insert_lines(
+        lines,
+        "fishnest.panel_thread_info",
+        [
+            "run_id",
+            "row_index",
+            "logical_id",
+            "thread_name",
+            "thread_purpose",
+            "thread_category",
+            "module_name",
+            "creator_logical_id",
+            "creator_name",
+            "thread_pool_id",
+            "thread_pool_name",
+            "lifecycle_state",
+            "runtime_state",
+            "system_thread_id",
+            "first_message_id",
+            "latest_message_id",
+            "created_time_us",
+            "updated_time_us",
+            "exit_time_us",
+            "is_blocked",
+            "is_paused",
+            "is_healthy",
+            "is_exited",
+            "is_fault",
+            "creation_message_seen",
+            "task_id",
+            "work_item_id",
+            "latest_event_type",
+            "latest_reason_key",
+            "latest_event_summary",
+            "version",
+            "late_message_count",
+            "source_path",
+            "fields_json",
+        ],
+        payload["panel_thread_info"],
+        run_id,
+    )
+    write_insert_lines(
+        lines,
+        "fishnest.panel_thread_lifecycle_event",
+        [
+            "run_id",
+            "message_id",
+            "event_type_code",
+            "event_type",
+            "occurred_time_us",
+            "logical_id",
+            "system_thread_id",
+            "thread_name",
+            "thread_purpose",
+            "thread_category",
+            "module_name",
+            "creator_logical_id",
+            "creator_name",
+            "thread_pool_id",
+            "thread_pool_name",
+            "old_lifecycle_state",
+            "new_lifecycle_state",
+            "old_runtime_state",
+            "new_runtime_state",
+            "is_blocked",
+            "is_paused",
+            "is_healthy",
+            "is_normal_exit",
+            "task_id",
+            "work_item_id",
+            "reason_key",
+            "display_summary",
+            "source_path",
+            "fields_json",
+        ],
+        payload["panel_thread_lifecycle_events"],
+        run_id,
+    )
     lines.extend(
         [
             "GO",
@@ -618,6 +1156,34 @@ FROM fishnest.feature_relation r
 WHERE r.run_id = (SELECT run_id FROM fishnest.v_latest_run);
 """,
             "GO",
+            """
+CREATE OR ALTER VIEW fishnest.v_latest_panel_metric_catalog AS
+SELECT c.*
+FROM fishnest.panel_metric_catalog c
+WHERE c.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+""",
+            "GO",
+            """
+CREATE OR ALTER VIEW fishnest.v_latest_panel_runtime_metrics AS
+SELECT m.*
+FROM fishnest.panel_runtime_metric m
+WHERE m.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+""",
+            "GO",
+            """
+CREATE OR ALTER VIEW fishnest.v_latest_panel_thread_info AS
+SELECT t.*
+FROM fishnest.panel_thread_info t
+WHERE t.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+""",
+            "GO",
+            """
+CREATE OR ALTER VIEW fishnest.v_latest_panel_thread_lifecycle_events AS
+SELECT e.*
+FROM fishnest.panel_thread_lifecycle_event e
+WHERE e.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+""",
+            "GO",
         ]
     )
     return "\n".join(lines)
@@ -636,6 +1202,10 @@ def write_html(path: Path, payload: dict[str, Any], run_id: str, database: str, 
     relations = payload["feature_relations"][:1500]
     events = payload["events"][-2500:]
     edges = payload["causal_edges"][:1500]
+    panel_metrics = payload["panel_runtime_metrics"][:1500]
+    panel_catalog = payload["panel_metric_catalog"][:2000]
+    thread_info = payload["panel_thread_info"][:1000]
+    thread_events = payload["panel_thread_lifecycle_events"][-2500:]
     summary = payload["summary"]
     html_text = f"""<!doctype html>
 <html lang="zh-CN">
@@ -680,16 +1250,44 @@ def write_html(path: Path, payload: dict[str, Any], run_id: str, database: str, 
       <div class="metric"><b>{summary['event_count']}</b><span>运行事件记录</span></div>
       <div class="metric"><b>{summary['action_dynamic_count']}</b><span>动作动态事件</span></div>
       <div class="metric"><b>{summary['causal_edge_count']}</b><span>因果边记录</span></div>
+      <div class="metric"><b>{summary['panel_metric_catalog_count']}</b><span>控制面板字段目录</span></div>
+      <div class="metric"><b>{summary['panel_runtime_metric_count']}</b><span>控制面板运行指标</span></div>
+      <div class="metric"><b>{summary['panel_thread_info_count']}</b><span>线程信息项</span></div>
+      <div class="metric"><b>{summary['panel_thread_event_count']}</b><span>线程生命周期事件</span></div>
     </div>
-    <p class="note">常用 SQL 视图：<code>fishnest.v_latest_features</code>、<code>fishnest.v_latest_feature_relations</code>、<code>fishnest.v_latest_action_dynamics</code>、<code>fishnest.v_latest_causal_edges</code>。</p>
+    <p class="note">常用 SQL 视图：<code>fishnest.v_latest_features</code>、<code>fishnest.v_latest_feature_relations</code>、<code>fishnest.v_latest_action_dynamics</code>、<code>fishnest.v_latest_causal_edges</code>、<code>fishnest.v_latest_panel_runtime_metrics</code>、<code>fishnest.v_latest_panel_thread_info</code>。</p>
     <input id="filter" type="search" placeholder="过滤当前页表格文本">
     <div class="tabs">
-      <button class="active" data-target="events">运行事件</button>
+      <button class="active" data-target="panelMetrics">面板指标</button>
+      <button data-target="threads">线程信息</button>
+      <button data-target="threadEvents">线程事件</button>
+      <button data-target="panelCatalog">字段目录</button>
+      <button data-target="events">运行事件</button>
       <button data-target="edges">因果边</button>
       <button data-target="features">特征类型</button>
       <button data-target="relations">特征关系</button>
     </div>
-    <section id="events" class="active">
+    <section id="panelMetrics" class="active">
+      <div class="table-wrap"><table data-filterable><thead><tr><th>指标</th><th>分组</th><th>值</th><th>来源</th><th>文件</th></tr></thead><tbody>
+      {html_table_rows(panel_metrics, ['metric_key','metric_group','value_text','source_kind','source_path'])}
+      </tbody></table></div>
+    </section>
+    <section id="threads">
+      <div class="table-wrap"><table data-filterable><thead><tr><th>逻辑ID</th><th>线程名</th><th>生命周期</th><th>运行状态</th><th>健康</th><th>模块</th><th>最近原因</th><th>最近摘要</th></tr></thead><tbody>
+      {html_table_rows(thread_info, ['logical_id','thread_name','lifecycle_state','runtime_state','is_healthy','module_name','latest_reason_key','latest_event_summary'])}
+      </tbody></table></div>
+    </section>
+    <section id="threadEvents">
+      <div class="table-wrap"><table data-filterable><thead><tr><th>消息ID</th><th>事件</th><th>线程</th><th>旧生命周期</th><th>新生命周期</th><th>旧运行</th><th>新运行</th><th>原因</th><th>摘要</th><th>文件</th></tr></thead><tbody>
+      {html_table_rows(thread_events, ['message_id','event_type','logical_id','old_lifecycle_state','new_lifecycle_state','old_runtime_state','new_runtime_state','reason_key','display_summary','source_path'])}
+      </tbody></table></div>
+    </section>
+    <section id="panelCatalog">
+      <div class="table-wrap"><table data-filterable><thead><tr><th>字段</th><th>类型</th><th>结构</th><th>分组</th><th>来源</th><th>文件</th><th>行</th></tr></thead><tbody>
+      {html_table_rows(panel_catalog, ['metric_key','cxx_type','panel_struct','data_group','source_kind','source_path','source_line'])}
+      </tbody></table></div>
+    </section>
+    <section id="events">
       <div class="table-wrap"><table data-filterable><thead><tr><th>时间</th><th>类</th><th>事件</th><th>方法</th><th>任务</th><th>需求</th><th>特征</th><th>动作动态</th><th>来源动态</th><th>日志</th><th>行</th></tr></thead><tbody>
       {html_table_rows(events, ['log_time','event_class','event_name','method_name','task_key','demand_key','feature_key','action_dynamic','source_action_dynamic','log_file','line_no'])}
       </tbody></table></div>
@@ -735,22 +1333,39 @@ def write_html(path: Path, payload: dict[str, Any], run_id: str, database: str, 
     path.write_text(html_text, encoding="utf-8")
 
 
-def build_payload(root: Path, logs: list[Path], max_events: int) -> dict[str, Any]:
+def build_payload(root: Path, logs: list[Path], max_events: int, max_thread_events: int) -> dict[str, Any]:
     features: list[dict[str, Any]] = []
     feature_seen: set[tuple[str, str, str, int, str]] = set()
     extract_feature_accessors(root, features, feature_seen)
     feature_relations = extract_feature_dictionary(root, features, feature_seen)
     feature_relations.extend(extract_feature_tree(root, features, feature_seen))
     events, causal_edges = extract_runtime_events(root, logs, max_events)
-    source_note = "SQL projection only; authoritative state remains in Fishnest world tree and action dynamic chain. Logs: " + ", ".join(rel(log, root) for log in logs)
+    panel_metric_catalog = extract_panel_metric_catalog(root)
+    panel_thread_info = extract_control_panel_thread_info(root)
+    panel_thread_lifecycle_events = extract_thread_lifecycle_events(root, max_thread_events)
     summary = {
         "feature_count": len(features),
         "feature_relation_count": len(feature_relations),
         "event_count": len(events),
         "action_dynamic_count": sum(1 for row in events if row.get("action_dynamic")),
         "causal_edge_count": len(causal_edges),
+        "panel_metric_catalog_count": len(panel_metric_catalog),
+        "panel_thread_info_count": len(panel_thread_info),
+        "panel_thread_event_count": len(panel_thread_lifecycle_events),
         "logs": [rel(log, root) for log in logs],
     }
+    panel_runtime_metrics = build_panel_runtime_metrics(
+        summary,
+        events,
+        panel_thread_info,
+        panel_thread_lifecycle_events,
+    )
+    summary["panel_runtime_metric_count"] = len(panel_runtime_metrics)
+    source_note = (
+        "SQL projection only; authoritative state remains in Fishnest world tree, "
+        "message middleware and action dynamic chain. Logs: "
+        + ", ".join(rel(log, root) for log in logs)
+    )
     return {
         "source_note": source_note,
         "summary": summary,
@@ -758,6 +1373,10 @@ def build_payload(root: Path, logs: list[Path], max_events: int) -> dict[str, An
         "feature_relations": feature_relations,
         "events": events,
         "causal_edges": causal_edges,
+        "panel_metric_catalog": panel_metric_catalog,
+        "panel_runtime_metrics": panel_runtime_metrics,
+        "panel_thread_info": panel_thread_info,
+        "panel_thread_lifecycle_events": panel_thread_lifecycle_events,
     }
 
 
@@ -775,11 +1394,12 @@ def apply_sql(server: str, sql_path: Path, root: Path) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Create SQL Server projection and HTML view for Fishnest data.")
     parser.add_argument("--workspace", default=".", help="Project root, default current directory.")
-    parser.add_argument("--server", default=r"(localdb)\MSSQLLocalDB", help="SQL Server instance.")
+    parser.add_argument("--server", default=r".\SQLEXPRESS", help="SQL Server instance.")
     parser.add_argument("--database", default="FishnestProjection", help="Target database name.")
     parser.add_argument("--latest-runs", type=int, default=2, help="Number of latest 鱼巢_run logs to read.")
     parser.add_argument("--log", action="append", default=[], help="Additional or explicit log path. Can be repeated.")
     parser.add_argument("--max-events", type=int, default=60000, help="Maximum runtime events to import; 0 means no cap.")
+    parser.add_argument("--max-thread-events", type=int, default=2000, help="Maximum latest thread lifecycle messages to import; 0 means no cap.")
     parser.add_argument("--out-dir", default="运行输出/sql_projection", help="Output directory.")
     parser.add_argument("--no-apply", action="store_true", help="Only generate SQL/JSON/HTML, do not call sqlcmd.")
     args = parser.parse_args()
@@ -791,7 +1411,7 @@ def main() -> int:
     logs = explicit_logs or latest_run_logs(root, args.latest_runs)
     logs = [log for log in logs if log.exists()]
     run_id = str(uuid.uuid4())
-    payload = build_payload(root, logs, args.max_events)
+    payload = build_payload(root, logs, args.max_events, args.max_thread_events)
     sql_text = build_sql(args.database, run_id, root, payload)
 
     payload_path = out_dir / "fishnest_projection_data.json"
