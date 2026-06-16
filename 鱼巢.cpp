@@ -1684,19 +1684,14 @@ namespace {
         }
 
         if (命令 == 枚举_控制面板命令::生成HTML) {
-            if (!私有_确保自我环境已初始化("鱼巢::main/控制面板/HTML")) {
-                鱼巢_控制台输出(std::cerr << "自我环境初始化失败。\n");
-                return 4;
-            }
-            const auto 快照 = 读取控制面板快照();
             const auto 输出路径 = 默认控制面板HTML路径();
-            if (!保存控制面板HTML(输出路径, 快照)) {
+            if (!保存控制面板HTML(输出路径)) {
                 项目运行错误日志("控制面板HTML保存失败 | 路径=" + 输出路径.string());
                 鱼巢_控制台输出(std::cerr << "控制面板 HTML 保存失败: " << 输出路径.string() << '\n');
                 return 2;
             }
 
-            鱼巢_控制台输出(std::cout << "控制面板 HTML 已生成: " << 输出路径.string() << '\n');
+            鱼巢_控制台输出(std::cout << "控制面板 HTML 已生成: " << 输出路径.string() << " | 来源=SQL\n");
             return 0;
         }
 

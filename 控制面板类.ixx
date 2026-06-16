@@ -578,6 +578,9 @@ std::string 读取控制面板页面刷新JSON(
     std::string_view 页面);
 
 bool 保存控制面板HTML(
+    const std::filesystem::path& 输出路径);
+
+bool 保存控制面板HTML(
     const std::filesystem::path& 输出路径,
     const 结构_控制面板快照& 快照);
 

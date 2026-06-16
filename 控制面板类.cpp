@@ -4,6 +4,7 @@ module;
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -13,6 +14,7 @@ module;
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <thread>
 #include <type_traits>
 #include <unordered_map>
@@ -6945,6 +6947,367 @@ namespace {
         return 输出;
     }
 
+    struct 结构_SQL控制面板数据 {
+        std::vector<std::string> 批次{};
+        std::vector<std::vector<std::string>> 指标{};
+        std::vector<std::vector<std::string>> 线程{};
+        std::vector<std::vector<std::string>> 线程事件{};
+        std::vector<std::vector<std::string>> 动作动态{};
+        std::vector<std::vector<std::string>> 因果边{};
+        std::vector<std::vector<std::string>> 特征{};
+        std::vector<std::vector<std::string>> 字段目录{};
+    };
+
+    // 功能：生成控制面板 SQL 读模型查询脚本。
+    std::string 私有_SQL控制面板查询脚本()
+    {
+        return R"SQL(SET NOCOUNT ON;
+
+SELECT
+    N'RUN',
+    CONVERT(nvarchar(36), run_id),
+    CONVERT(nvarchar(19), created_at, 120),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(workspace, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(source_note, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    N'', N'', N''
+FROM fishnest.v_latest_run;
+
+SELECT TOP (80)
+    N'METRIC',
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(metric_key, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(metric_group, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(value_text, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(source_kind, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(source_path, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    N'', N''
+FROM fishnest.v_latest_panel_runtime_metrics
+ORDER BY id;
+
+SELECT TOP (120)
+    N'THREAD',
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(logical_id, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(thread_name, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(lifecycle_state, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(runtime_state, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    CONVERT(nvarchar(10), COALESCE(is_healthy, 0)),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(module_name, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(latest_reason_key, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' ')
+FROM fishnest.v_latest_panel_thread_info
+ORDER BY row_index;
+
+SELECT TOP (120)
+    N'THREAD_EVENT',
+    CONVERT(nvarchar(40), message_id),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(event_type, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(logical_id, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(old_lifecycle_state, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(new_lifecycle_state, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(reason_key, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(display_summary, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' ')
+FROM fishnest.v_latest_panel_thread_lifecycle_events
+ORDER BY occurred_time_us DESC, message_id DESC;
+
+SELECT TOP (120)
+    N'ACTION',
+    CONVERT(nvarchar(23), log_time, 121),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(event_class, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(event_name, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(method_name, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(feature_key, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(action_dynamic, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(source_action_dynamic, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' ')
+FROM fishnest.v_latest_action_dynamics
+ORDER BY log_time DESC, event_seq DESC;
+
+SELECT TOP (120)
+    N'CAUSAL',
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(source_kind, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(source_key, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(target_kind, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(target_key, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(relation_type, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(log_file, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    CONVERT(nvarchar(20), COALESCE(line_no, 0))
+FROM fishnest.v_latest_causal_edges
+ORDER BY id DESC;
+
+SELECT TOP (120)
+    N'FEATURE',
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(feature_name, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(source_kind, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(symbol_name, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(source_path, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    CONVERT(nvarchar(20), COALESCE(source_line, 0)),
+    N'', N''
+FROM fishnest.v_latest_features
+ORDER BY feature_name;
+
+SELECT TOP (160)
+    N'CATALOG',
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(metric_key, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(data_group, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(cxx_type, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(panel_struct, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(source_path, N''), N'|', N'／'), CHAR(9), N' '), CHAR(10), N' '), CHAR(13), N' '),
+    CONVERT(nvarchar(20), COALESCE(source_line, 0)),
+    N''
+FROM fishnest.v_latest_panel_metric_catalog
+ORDER BY data_group, metric_key;
+)SQL";
+    }
+
+    // 功能：生成控制面板 SQL 查询用临时文件路径。
+    std::filesystem::path 私有_SQL控制面板临时路径(std::string_view 后缀)
+    {
+        const auto 计数 = std::chrono::steady_clock::now().time_since_epoch().count();
+        return std::filesystem::temp_directory_path()
+            / (std::string("fishnest_panel_sql_") + std::to_string(计数) + std::string(后缀));
+    }
+
+    // 功能：生成可用于命令行参数的路径引用文本。
+    std::string 私有_命令路径引用(const std::filesystem::path& 路径)
+    {
+        std::string 文本 = 路径.string();
+        std::string 输出 = "\"";
+        for (const char 字符 : 文本) {
+            if (字符 != '"') {
+                输出.push_back(字符);
+            }
+        }
+        输出.push_back('"');
+        return 输出;
+    }
+
+    // 功能：删除控制面板 SQL 查询临时文件。
+    void 私有_删除SQL控制面板临时文件(const std::filesystem::path& 路径) noexcept
+    {
+        std::error_code 错误码{};
+        std::filesystem::remove(路径, 错误码);
+    }
+
+    // 功能：按 SQL 控制面板输出分隔符拆分一行。
+    std::vector<std::string> 私有_拆分SQL输出行(std::string 行)
+    {
+        if (行.rfind("\xEF\xBB\xBF", 0) == 0) {
+            行.erase(0, 3);
+        }
+        std::vector<std::string> 输出{};
+        std::size_t 起点 = 0;
+        while (起点 <= 行.size()) {
+            const auto 位置 = 行.find('|', 起点);
+            if (位置 == std::string::npos) {
+                输出.push_back(行.substr(起点));
+                break;
+            }
+            输出.push_back(行.substr(起点, 位置 - 起点));
+            起点 = 位置 + 1;
+        }
+        return 输出;
+    }
+
+    // 功能：从 SQL Server 最新投影视图读取控制面板数据。
+    bool 私有_读取SQL控制面板数据(结构_SQL控制面板数据& 数据, std::string& 错误)
+    {
+        const auto 查询路径 = 私有_SQL控制面板临时路径(".sql");
+        const auto 输出路径 = 私有_SQL控制面板临时路径(".txt");
+        {
+            std::ofstream 查询文件(查询路径, std::ios::binary);
+            if (!查询文件) {
+                错误 = "无法写入 SQL 查询临时文件";
+                return false;
+            }
+            查询文件 << "\xEF\xBB\xBF" << 私有_SQL控制面板查询脚本();
+        }
+
+        const std::string 命令 =
+            "sqlcmd -S .\\SQLEXPRESS -E -d FishnestProjection -b -W -s \"|\" -h -1 -f 65001 -i "
+            + 私有_命令路径引用(查询路径)
+            + " -o "
+            + 私有_命令路径引用(输出路径);
+        const int 退出码 = std::system(命令.c_str());
+        私有_删除SQL控制面板临时文件(查询路径);
+        if (退出码 != 0) {
+            错误 = "sqlcmd 执行失败，退出码=" + std::to_string(退出码);
+            私有_删除SQL控制面板临时文件(输出路径);
+            return false;
+        }
+
+        std::ifstream 输出文件(输出路径, std::ios::binary);
+        if (!输出文件) {
+            错误 = "无法读取 SQL 查询输出";
+            私有_删除SQL控制面板临时文件(输出路径);
+            return false;
+        }
+
+        std::string 行;
+        while (std::getline(输出文件, 行)) {
+            if (!行.empty() && 行.back() == '\r') {
+                行.pop_back();
+            }
+            if (行.empty()) {
+                continue;
+            }
+            auto 列 = 私有_拆分SQL输出行(std::move(行));
+            if (列.empty()) {
+                continue;
+            }
+            const auto 类型 = 列.front();
+            列.erase(列.begin());
+            if (类型 == "RUN") {
+                数据.批次 = std::move(列);
+            }
+            else if (类型 == "METRIC") {
+                数据.指标.push_back(std::move(列));
+            }
+            else if (类型 == "THREAD") {
+                数据.线程.push_back(std::move(列));
+            }
+            else if (类型 == "THREAD_EVENT") {
+                数据.线程事件.push_back(std::move(列));
+            }
+            else if (类型 == "ACTION") {
+                数据.动作动态.push_back(std::move(列));
+            }
+            else if (类型 == "CAUSAL") {
+                数据.因果边.push_back(std::move(列));
+            }
+            else if (类型 == "FEATURE") {
+                数据.特征.push_back(std::move(列));
+            }
+            else if (类型 == "CATALOG") {
+                数据.字段目录.push_back(std::move(列));
+            }
+        }
+        输出文件.close();
+        私有_删除SQL控制面板临时文件(输出路径);
+        if (数据.批次.empty()) {
+            错误 = "SQL 最新批次为空";
+            return false;
+        }
+        return true;
+    }
+
+    // 功能：读取 SQL 控制面板结果行中的指定字段。
+    std::string 私有_SQL字段(
+        const std::vector<std::string>& 行,
+        const std::size_t 索引)
+    {
+        return 索引 < 行.size() ? 行[索引] : std::string{};
+    }
+
+    // 功能：向 SQL 控制面板 HTML 追加一个数据表区段。
+    void 私有_追加SQL控制面板表(
+        std::ostringstream& 输出,
+        std::string_view 标题,
+        std::string_view 区段ID,
+        const std::vector<std::string_view>& 表头,
+        const std::vector<std::vector<std::string>>& 行集)
+    {
+        输出 << "<section id=\"" << 私有_转义HTML(区段ID) << "\">\n"
+            << "<h2>" << 私有_转义HTML(标题) << "</h2>\n"
+            << "<div class=\"table-wrap\"><table data-filterable><thead><tr>";
+        for (const auto 表头项 : 表头) {
+            输出 << "<th>" << 私有_转义HTML(表头项) << "</th>";
+        }
+        输出 << "</tr></thead><tbody>\n";
+        for (const auto& 行 : 行集) {
+            输出 << "<tr>";
+            for (std::size_t i = 0; i < 表头.size(); ++i) {
+                输出 << "<td>" << 私有_转义HTML(私有_SQL字段(行, i)) << "</td>";
+            }
+            输出 << "</tr>\n";
+        }
+        输出 << "</tbody></table></div></section>\n";
+    }
+
+    // 功能：根据 SQL 控制面板数据生成静态 HTML。
+    std::string 私有_生成SQL控制面板HTML(const 结构_SQL控制面板数据& 数据)
+    {
+        const auto 批次ID = 私有_SQL字段(数据.批次, 0);
+        const auto 创建时间 = 私有_SQL字段(数据.批次, 1);
+        const auto 工作区 = 私有_SQL字段(数据.批次, 2);
+        const auto 来源说明 = 私有_SQL字段(数据.批次, 3);
+        std::ostringstream 输出;
+        输出 << R"HTML(<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>鱼巢控制面板</title>
+  <style>
+    :root{color-scheme:light;font-family:"Microsoft YaHei UI","Segoe UI",sans-serif;--bg:#f4f6f8;--surface:#fff;--line:#d8dee7;--ink:#172026;--muted:#5d6977;--accent:#0f766e;--blue:#2563eb}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink)}
+    header{padding:20px 28px;background:#18212f;color:#fff} h1{margin:0 0 8px;font-size:24px;letter-spacing:0} header p{margin:4px 0;color:#d7deea}
+    main{padding:18px 28px 36px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0 0 16px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}.card b{display:block;font-size:22px;margin-bottom:4px}
+    .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.tabs button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:8px 11px;cursor:pointer}.tabs button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+    input{width:min(720px,100%);padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;margin-bottom:12px}
+    section{display:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}section.active{display:block}h2{font-size:18px;margin:0 0 12px}
+    .table-wrap{overflow:auto;max-height:68vh;border:1px solid #e5e7eb}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #e5e7eb;padding:8px 10px;text-align:left;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;background:#f8fafc;z-index:1}
+    .note{color:var(--muted);font-size:13px;line-height:1.6}code{background:#eef2f7;color:#172026;padding:1px 4px;border-radius:4px}
+  </style>
+</head>
+<body>
+)HTML";
+        输出 << "<header><h1>鱼巢控制面板</h1>"
+            << "<p>数据来源：SQL Server <code>.\\SQLEXPRESS</code> / <code>FishnestProjection</code> / <code>fishnest.v_latest_*</code></p>"
+            << "<p>批次：<code>" << 私有_转义HTML(批次ID) << "</code>；创建时间：" << 私有_转义HTML(创建时间)
+            << "；工作区：" << 私有_转义HTML(工作区) << "</p></header><main>\n"
+            << "<p class=\"note\">本页面只读取 SQL 投影，不读取 live 控制面板快照，也不是世界树、任务树或动作动态链的写入口。"
+            << 私有_转义HTML(来源说明) << "</p>\n"
+            << "<div class=\"cards\">";
+        for (const auto& 行 : 数据.指标) {
+            输出 << "<div class=\"card\"><b>" << 私有_转义HTML(私有_SQL字段(行, 2))
+                << "</b><span>" << 私有_转义HTML(私有_SQL字段(行, 0))
+                << "</span><div class=\"note\">" << 私有_转义HTML(私有_SQL字段(行, 1))
+                << "</div></div>";
+        }
+        输出 << "</div><input id=\"filter\" type=\"search\" placeholder=\"过滤当前页表格文本\">"
+            << "<div class=\"tabs\">"
+            << "<button class=\"active\" data-target=\"metrics\">面板指标</button>"
+            << "<button data-target=\"threads\">线程信息</button>"
+            << "<button data-target=\"threadEvents\">线程事件</button>"
+            << "<button data-target=\"actions\">动作动态</button>"
+            << "<button data-target=\"causal\">因果边</button>"
+            << "<button data-target=\"features\">特征类型</button>"
+            << "<button data-target=\"catalog\">字段目录</button>"
+            << "</div>\n";
+
+        私有_追加SQL控制面板表(输出, "面板指标", "metrics", { "指标", "分组", "值", "来源", "文件" }, 数据.指标);
+        私有_追加SQL控制面板表(输出, "线程信息", "threads", { "逻辑ID", "线程名", "生命周期", "运行状态", "健康", "模块", "最近原因" }, 数据.线程);
+        私有_追加SQL控制面板表(输出, "线程生命周期事件", "threadEvents", { "消息ID", "事件", "线程", "旧生命周期", "新生命周期", "原因", "摘要" }, 数据.线程事件);
+        私有_追加SQL控制面板表(输出, "动作动态", "actions", { "时间", "类", "事件", "方法", "特征", "动作动态", "来源动态" }, 数据.动作动态);
+        私有_追加SQL控制面板表(输出, "因果边", "causal", { "来源类", "来源键", "目标类", "目标键", "关系", "日志", "行" }, 数据.因果边);
+        私有_追加SQL控制面板表(输出, "特征类型", "features", { "特征", "来源", "符号", "文件", "行" }, 数据.特征);
+        私有_追加SQL控制面板表(输出, "控制面板字段目录", "catalog", { "字段", "分组", "C++类型", "结构", "文件", "行" }, 数据.字段目录);
+
+        输出 << R"HTML(</main>
+<script>
+const buttons=Array.from(document.querySelectorAll('button[data-target]'));
+const sections=Array.from(document.querySelectorAll('section'));
+const filter=document.getElementById('filter');
+function applyFilter(){
+  const query=filter.value.trim().toLowerCase();
+  const active=document.querySelector('section.active table[data-filterable]');
+  if(!active)return;
+  for(const row of active.tBodies[0].rows){row.style.display=!query||row.textContent.toLowerCase().includes(query)?'':'none';}
+}
+buttons.forEach(button=>button.addEventListener('click',()=>{
+  buttons.forEach(item=>item.classList.toggle('active',item===button));
+  sections.forEach(section=>section.classList.toggle('active',section.id===button.dataset.target));
+  applyFilter();
+}));
+filter.addEventListener('input',applyFilter);
+window.__panelApplyPageRefresh=function(){};
+window.__panelApplyExpand=function(){};
+window.__panelApplyDetail=function(){};
+</script>
+</body>
+</html>
+)HTML";
+        return 输出.str();
+    }
+
     // 功能：服务所在模块的内部辅助流程。
     void 私有_追加JSON字符串(std::ostringstream& 输出, std::string_view 文本)
     {
@@ -13062,6 +13425,27 @@ std::string 生成自我场景独立窗口HTML(
         快照,
         24,
         枚举_控制面板HTML用途::自我场景窗口);
+}
+
+// 功能：从 SQL Server 读模型读取数据并保存控制面板 HTML。
+bool 保存控制面板HTML(const std::filesystem::path& 输出路径)
+{
+    结构_SQL控制面板数据 数据{};
+    std::string 错误{};
+    if (!私有_读取SQL控制面板数据(数据, 错误)) {
+        项目运行错误日志("控制面板HTML保存失败 | 来源=SQL | 原因=" + 错误);
+        return false;
+    }
+
+    std::ofstream 输出文件(输出路径, std::ios::binary);
+    if (!输出文件) {
+        项目运行错误日志("控制面板HTML保存失败 | 来源=SQL | 原因=无法打开输出文件 | 路径=" + 输出路径.string());
+        return false;
+    }
+
+    const auto HTML = 私有_生成SQL控制面板HTML(数据);
+    输出文件.write(HTML.data(), static_cast<std::streamsize>(HTML.size()));
+    return 输出文件.good();
 }
 
 // 功能：按函数名执行对应处理。
