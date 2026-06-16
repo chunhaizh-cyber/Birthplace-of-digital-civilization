@@ -42,6 +42,9 @@
     <ClCompile Include="基础数据类型.ixx">
       <Filter>源文件\基础模块</Filter>
     </ClCompile>
+    <ClCompile Include="全局共享函数类.ixx">
+      <Filter>源文件\基础模块</Filter>
+    </ClCompile>
     <ClCompile Include="相机接口类.ixx">
       <Filter>源文件\基础模块</Filter>
     </ClCompile>
