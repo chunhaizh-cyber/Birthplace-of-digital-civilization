@@ -119,6 +119,10 @@ struct 结构_三维体素二分层摘要 {
     std::uint32_t 顶层边长 = 4;
     std::uint32_t 细分层数 = 0;
     std::uint64_t 最终边长 = 0;
+    std::uint32_t 原始宽度 = 0;
+    std::uint32_t 原始高度 = 0;
+    std::uint32_t 原始深度 = 0;
+    bool 来源为非立方体 = false;
     std::uint64_t 最小体素边长_mm = 0;
     std::uint64_t 节点数量 = 0;
     std::uint64_t 占据体素数量 = 0;
@@ -142,6 +146,9 @@ struct 结构_三维体素链节点信息 {
     枚举_三维体素链节点状态 状态 = 枚举_三维体素链节点状态::空;
     std::uint64_t 占据体素数量 = 0;
     std::uint32_t 最小体素边长_mm = 0;
+    std::uint32_t 原始宽度 = 0;
+    std::uint32_t 原始高度 = 0;
+    std::uint32_t 原始深度 = 0;
 };
 
 struct 结构_三维体素链写入结果 {
@@ -262,8 +269,20 @@ public:
     static 结构_VecU特征解释规则 VecU解释规则_按特征类型(const 语素入口节点类* 特征类型);
     static std::optional<std::uint32_t> 轮廓坐标维度_按特征类型(const 语素入口节点类* 特征类型);
     static std::uint64_t 三维体素最终边长(std::uint32_t 细分层数) noexcept;
+    static std::optional<std::uint32_t> 三维体素包围立方体细分层数(
+        std::uint32_t 宽度,
+        std::uint32_t 高度,
+        std::uint32_t 深度) noexcept;
     static std::uint64_t 三维体素占据位块数量(std::uint32_t 细分层数) noexcept;
+    static std::uint64_t 三维体素长方体占据位块数量(
+        std::uint32_t 宽度,
+        std::uint32_t 高度,
+        std::uint32_t 深度) noexcept;
     static VecIU64 创建三维体素占据位块(std::uint32_t 细分层数);
+    static VecIU64 创建三维体素长方体占据位块(
+        std::uint32_t 宽度,
+        std::uint32_t 高度,
+        std::uint32_t 深度);
     static bool 读取三维体素占据位(
         const VecIU64& 占据位块,
         std::uint32_t 细分层数,
@@ -277,10 +296,36 @@ public:
         std::uint32_t y,
         std::uint32_t z,
         bool 有存在) noexcept;
+    static bool 读取三维体素长方体占据位(
+        const VecIU64& 占据位块,
+        std::uint32_t 宽度,
+        std::uint32_t 高度,
+        std::uint32_t 深度,
+        std::uint32_t x,
+        std::uint32_t y,
+        std::uint32_t z) noexcept;
+    static bool 写入三维体素长方体占据位(
+        VecIU64& 占据位块,
+        std::uint32_t 宽度,
+        std::uint32_t 高度,
+        std::uint32_t 深度,
+        std::uint32_t x,
+        std::uint32_t y,
+        std::uint32_t z,
+        bool 有存在) noexcept;
+    static VecIU64 归一化三维体素长方体占据位块(
+        const VecIU64& 长方体占据位块,
+        std::uint32_t 宽度,
+        std::uint32_t 高度,
+        std::uint32_t 深度,
+        std::uint32_t& 输出细分层数);
     static VecIU64 创建三维体素根节点VecU(
         std::uint32_t 细分层数,
         std::uint32_t 最小体素边长_mm,
-        std::uint64_t 占据体素数量);
+        std::uint64_t 占据体素数量,
+        std::uint32_t 原始宽度 = 0,
+        std::uint32_t 原始高度 = 0,
+        std::uint32_t 原始深度 = 0);
     static VecIU64 创建三维体素链节点VecU(
         std::uint32_t 层级,
         std::uint32_t 最大层级,
@@ -299,6 +344,25 @@ public:
         特征节点类* 节点,
         const VecIU64& 占据位块,
         std::uint32_t 细分层数,
+        std::uint32_t 最小体素边长_mm = 0,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+    结构_三维体素链写入结果 写入三维体素二分层链(
+        特征值类& 值池,
+        特征节点类* 节点,
+        const VecIU64& 占据位块,
+        std::uint32_t 细分层数,
+        std::uint32_t 原始宽度,
+        std::uint32_t 原始高度,
+        std::uint32_t 原始深度,
+        std::uint32_t 最小体素边长_mm = 0,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+    结构_三维体素链写入结果 写入三维体素长方体二分层链(
+        特征值类& 值池,
+        特征节点类* 节点,
+        const VecIU64& 长方体占据位块,
+        std::uint32_t 宽度,
+        std::uint32_t 高度,
+        std::uint32_t 深度,
         std::uint32_t 最小体素边长_mm = 0,
         时间戳 now = 结构体_时间戳::当前_微秒());
     static 结构_三维体素链查询结果 查询三维体素二分层链(

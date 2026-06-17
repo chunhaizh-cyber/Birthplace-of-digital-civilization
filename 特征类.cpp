@@ -294,6 +294,19 @@ namespace {
     }
 
     // 功能：计算权重、状态、差值或派生结果。
+    std::uint64_t 私有_三维体素长方体总数(
+        const std::uint64_t 宽度,
+        const std::uint64_t 高度,
+        const std::uint64_t 深度) noexcept
+    {
+        if (宽度 == 0 || 高度 == 0 || 深度 == 0) return 0;
+        if (宽度 > (std::numeric_limits<std::uint64_t>::max)() / 高度) return 0;
+        const auto 面 = 宽度 * 高度;
+        if (深度 > (std::numeric_limits<std::uint64_t>::max)() / 面) return 0;
+        return 面 * 深度;
+    }
+
+    // 功能：计算权重、状态、差值或派生结果。
     std::uint64_t 私有_统计三维体素占据数(const VecIU64& 占据位块) noexcept
     {
         std::uint64_t 数量 = 0;
@@ -2994,6 +3007,20 @@ std::uint64_t 特征类::三维体素最终边长(const std::uint32_t 细分层�
 }
 
 // 功能：计算权重、状态、差值或派生结果。
+std::optional<std::uint32_t> 特征类::三维体素包围立方体细分层数(
+    const std::uint32_t 宽度,
+    const std::uint32_t 高度,
+    const std::uint32_t 深度) noexcept
+{
+    const auto 最大边长 = std::max({ 宽度, 高度, 深度 });
+    if (最大边长 == 0) return std::nullopt;
+    for (std::uint32_t 层数 = 0; 层数 <= 私有_三维体素最大细分层数; ++层数) {
+        if (三维体素最终边长(层数) >= 最大边长) return 层数;
+    }
+    return std::nullopt;
+}
+
+// 功能：计算权重、状态、差值或派生结果。
 std::uint64_t 特征类::三维体素占据位块数量(const std::uint32_t 细分层数) noexcept
 {
     const auto 边长 = 三维体素最终边长(细分层数);
@@ -3001,10 +3028,33 @@ std::uint64_t 特征类::三维体素占据位块数量(const std::uint32_t 细�
     return 总数 == 0 ? 0 : (总数 + 63ull) / 64ull;
 }
 
+// 功能：计算权重、状态、差值或派生结果。
+std::uint64_t 特征类::三维体素长方体占据位块数量(
+    const std::uint32_t 宽度,
+    const std::uint32_t 高度,
+    const std::uint32_t 深度) noexcept
+{
+    const auto 总数 = 私有_三维体素长方体总数(宽度, 高度, 深度);
+    return 总数 == 0 ? 0 : (总数 + 63ull) / 64ull;
+}
+
 // 功能：创建并返回或登记对应对象。
 VecIU64 特征类::创建三维体素占据位块(const std::uint32_t 细分层数)
 {
     const auto 块数 = 三维体素占据位块数量(细分层数);
+    if (块数 == 0 || 块数 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())) {
+        return {};
+    }
+    return VecIU64(static_cast<std::size_t>(块数), 0);
+}
+
+// 功能：创建并返回或登记对应对象。
+VecIU64 特征类::创建三维体素长方体占据位块(
+    const std::uint32_t 宽度,
+    const std::uint32_t 高度,
+    const std::uint32_t 深度)
+{
+    const auto 块数 = 三维体素长方体占据位块数量(宽度, 高度, 深度);
     if (块数 == 0 || 块数 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())) {
         return {};
     }
@@ -3056,14 +3106,105 @@ bool 特征类::写入三维体素占据位(
     return true;
 }
 
+// 功能：从指定来源读取数据或状态。
+bool 特征类::读取三维体素长方体占据位(
+    const VecIU64& 占据位块,
+    const std::uint32_t 宽度,
+    const std::uint32_t 高度,
+    const std::uint32_t 深度,
+    const std::uint32_t x,
+    const std::uint32_t y,
+    const std::uint32_t z) noexcept
+{
+    if (x >= 宽度 || y >= 高度 || z >= 深度) return false;
+
+    const auto 总数 = 私有_三维体素长方体总数(宽度, 高度, 深度);
+    if (总数 == 0) return false;
+
+    const auto 索引 = (static_cast<std::uint64_t>(z) * 高度 + y) * 宽度 + x;
+    const auto 块索引 = 索引 / 64ull;
+    const auto 位索引 = 索引 % 64ull;
+    if (块索引 >= 占据位块.size()) return false;
+    return (占据位块[static_cast<std::size_t>(块索引)] & (1ull << 位索引)) != 0;
+}
+
+// 功能：把处理结果写入指定对象、场景或日志。
+bool 特征类::写入三维体素长方体占据位(
+    VecIU64& 占据位块,
+    const std::uint32_t 宽度,
+    const std::uint32_t 高度,
+    const std::uint32_t 深度,
+    const std::uint32_t x,
+    const std::uint32_t y,
+    const std::uint32_t z,
+    const bool 有存在) noexcept
+{
+    if (x >= 宽度 || y >= 高度 || z >= 深度) return false;
+
+    const auto 总数 = 私有_三维体素长方体总数(宽度, 高度, 深度);
+    if (总数 == 0) return false;
+
+    const auto 索引 = (static_cast<std::uint64_t>(z) * 高度 + y) * 宽度 + x;
+    const auto 块索引 = 索引 / 64ull;
+    const auto 位索引 = 索引 % 64ull;
+    if (块索引 >= 占据位块.size()) return false;
+
+    auto& 块 = 占据位块[static_cast<std::size_t>(块索引)];
+    const auto 掩码 = 1ull << 位索引;
+    if (有存在) {
+        块 |= 掩码;
+    } else {
+        块 &= ~掩码;
+    }
+    return true;
+}
+
+// 功能：把长方体输入归一化到标准包围立方体，填充区保持为空体素。
+VecIU64 特征类::归一化三维体素长方体占据位块(
+    const VecIU64& 长方体占据位块,
+    const std::uint32_t 宽度,
+    const std::uint32_t 高度,
+    const std::uint32_t 深度,
+    std::uint32_t& 输出细分层数)
+{
+    输出细分层数 = 0;
+    const auto 细分层数 = 三维体素包围立方体细分层数(宽度, 高度, 深度);
+    if (!细分层数) return {};
+
+    const auto 期望块数 = 三维体素长方体占据位块数量(宽度, 高度, 深度);
+    if (期望块数 == 0 || 长方体占据位块.size() < 期望块数) return {};
+
+    auto 标准占据位块 = 创建三维体素占据位块(*细分层数);
+    if (标准占据位块.empty()) return {};
+
+    for (std::uint32_t z = 0; z < 深度; ++z) {
+        for (std::uint32_t y = 0; y < 高度; ++y) {
+            for (std::uint32_t x = 0; x < 宽度; ++x) {
+                if (读取三维体素长方体占据位(长方体占据位块, 宽度, 高度, 深度, x, y, z)) {
+                    写入三维体素占据位(标准占据位块, *细分层数, x, y, z, true);
+                }
+            }
+        }
+    }
+
+    输出细分层数 = *细分层数;
+    return 标准占据位块;
+}
+
 // 功能：创建并返回或登记对应对象。
 VecIU64 特征类::创建三维体素根节点VecU(
     const std::uint32_t 细分层数,
     const std::uint32_t 最小体素边长_mm,
-    const std::uint64_t 占据体素数量)
+    const std::uint64_t 占据体素数量,
+    const std::uint32_t 原始宽度,
+    const std::uint32_t 原始高度,
+    const std::uint32_t 原始深度)
 {
     const auto 边长 = 三维体素最终边长(细分层数);
     const auto 总数 = 私有_三维体素总数(边长);
+    const auto 根原始宽度 = 原始宽度 == 0 ? 边长 : 原始宽度;
+    const auto 根原始高度 = 原始高度 == 0 ? 边长 : 原始高度;
+    const auto 根原始深度 = 原始深度 == 0 ? 边长 : 原始深度;
     const auto 状态 = 占据体素数量 == 0
         ? 枚举_三维体素链节点状态::空
         : (占据体素数量 == 总数 ? 枚举_三维体素链节点状态::满 : 枚举_三维体素链节点状态::混合);
@@ -3078,7 +3219,10 @@ VecIU64 特征类::创建三维体素根节点VecU(
         边长,
         static_cast<std::uint64_t>(状态),
         占据体素数量,
-        static_cast<std::uint64_t>(最小体素边长_mm)
+        static_cast<std::uint64_t>(最小体素边长_mm),
+        static_cast<std::uint64_t>(根原始宽度),
+        static_cast<std::uint64_t>(根原始高度),
+        static_cast<std::uint64_t>(根原始深度)
     };
 }
 
@@ -3115,10 +3259,19 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     输出信息 = {};
     if (值.size() < 11 || 值[0] != 私有_三维体素VecUMagic) return false;
     if (值[1] != 私有_三维体素VecU_根 && 值[1] != 私有_三维体素VecU_节点) return false;
+    if (值[1] == 私有_三维体素VecU_根 && 值.size() < 14) return false;
     if (值[3] > 私有_三维体素最大细分层数 || 值[7] > static_cast<std::uint64_t>((std::numeric_limits<std::uint32_t>::max)())) {
         return false;
     }
     if (值[8] > static_cast<std::uint64_t>(枚举_三维体素链节点状态::混合)) return false;
+    if (值[1] == 私有_三维体素VecU_根
+        && (值[11] == 0 || 值[12] == 0 || 值[13] == 0
+            || 值[11] > 值[7] || 值[12] > 值[7] || 值[13] > 值[7]
+            || 值[11] > static_cast<std::uint64_t>((std::numeric_limits<std::uint32_t>::max)())
+            || 值[12] > static_cast<std::uint64_t>((std::numeric_limits<std::uint32_t>::max)())
+            || 值[13] > static_cast<std::uint64_t>((std::numeric_limits<std::uint32_t>::max)()))) {
+        return false;
+    }
 
     输出信息.有效 = true;
     输出信息.是根 = 值[1] == 私有_三维体素VecU_根;
@@ -3131,6 +3284,11 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     输出信息.状态 = static_cast<枚举_三维体素链节点状态>(值[8]);
     输出信息.占据体素数量 = 值[9];
     输出信息.最小体素边长_mm = static_cast<std::uint32_t>(值[10]);
+    if (输出信息.是根) {
+        输出信息.原始宽度 = static_cast<std::uint32_t>(值[11]);
+        输出信息.原始高度 = static_cast<std::uint32_t>(值[12]);
+        输出信息.原始深度 = static_cast<std::uint32_t>(值[13]);
+    }
     if (输出信息.边长 == 0) {
         输出信息 = {};
         return false;
@@ -3147,15 +3305,52 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     const std::uint32_t 最小体素边长_mm,
     时间戳 now)
 {
+    const auto 最终边长 = 三维体素最终边长(细分层数);
+    if (最终边长 == 0 || 最终边长 > static_cast<std::uint64_t>((std::numeric_limits<std::uint32_t>::max)())) {
+        return {};
+    }
+    return 写入三维体素二分层链(
+        值池,
+        节点,
+        占据位块,
+        细分层数,
+        static_cast<std::uint32_t>(最终边长),
+        static_cast<std::uint32_t>(最终边长),
+        static_cast<std::uint32_t>(最终边长),
+        最小体素边长_mm,
+        now);
+}
+
+// 功能：把处理结果写入指定对象、场景或日志。
+结构_三维体素链写入结果 特征类::写入三维体素二分层链(
+    特征值类& 值池,
+    特征节点类* 节点,
+    const VecIU64& 占据位块,
+    const std::uint32_t 细分层数,
+    const std::uint32_t 原始宽度,
+    const std::uint32_t 原始高度,
+    const std::uint32_t 原始深度,
+    const std::uint32_t 最小体素边长_mm,
+    时间戳 now)
+{
     结构_三维体素链写入结果 结果{};
     const auto 最终边长 = 三维体素最终边长(细分层数);
     const auto 期望块数 = 三维体素占据位块数量(细分层数);
-    if (!节点 || 最终边长 == 0 || 期望块数 == 0 || 占据位块.size() < 期望块数) {
+    if (!节点 || 最终边长 == 0 || 期望块数 == 0 || 占据位块.size() < 期望块数
+        || 原始宽度 == 0 || 原始高度 == 0 || 原始深度 == 0
+        || 原始宽度 > 最终边长 || 原始高度 > 最终边长 || 原始深度 > 最终边长) {
         return 结果;
     }
 
     const auto 占据总数 = 私有_统计三维体素占据数(占据位块);
-    auto* 根节点 = 值池.创建值节点(创建三维体素根节点VecU(细分层数, 最小体素边长_mm, 占据总数));
+    auto* 根节点 = 值池.创建值节点(
+        创建三维体素根节点VecU(
+            细分层数,
+            最小体素边长_mm,
+            占据总数,
+            原始宽度,
+            原始高度,
+            原始深度));
     if (!根节点) return 结果;
 
     结果.根句柄 = 特征值类::生成句柄(根节点);
@@ -3163,6 +3358,10 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     结果.摘要.顶层边长 = 私有_三维体素顶层边长;
     结果.摘要.细分层数 = 细分层数;
     结果.摘要.最终边长 = 最终边长;
+    结果.摘要.原始宽度 = 原始宽度;
+    结果.摘要.原始高度 = 原始高度;
+    结果.摘要.原始深度 = 原始深度;
+    结果.摘要.来源为非立方体 = 原始宽度 != 最终边长 || 原始高度 != 最终边长 || 原始深度 != 最终边长;
     结果.摘要.最小体素边长_mm = 最小体素边长_mm;
     结果.摘要.节点数量 = 1;
     结果.摘要.占据体素数量 = 占据总数;
@@ -3235,6 +3434,38 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
 
     结果.成功 = 写入三维体素特征值(节点, 结果.根句柄, now);
     return 结果;
+}
+
+// 功能：把长方体输入归一化后写入三维体素二分层链。
+结构_三维体素链写入结果 特征类::写入三维体素长方体二分层链(
+    特征值类& 值池,
+    特征节点类* 节点,
+    const VecIU64& 长方体占据位块,
+    const std::uint32_t 宽度,
+    const std::uint32_t 高度,
+    const std::uint32_t 深度,
+    const std::uint32_t 最小体素边长_mm,
+    时间戳 now)
+{
+    std::uint32_t 细分层数 = 0;
+    auto 标准占据位块 = 归一化三维体素长方体占据位块(
+        长方体占据位块,
+        宽度,
+        高度,
+        深度,
+        细分层数);
+    if (标准占据位块.empty()) return {};
+
+    return 写入三维体素二分层链(
+        值池,
+        节点,
+        标准占据位块,
+        细分层数,
+        宽度,
+        高度,
+        深度,
+        最小体素边长_mm,
+        now);
 }
 
 // 功能：按条件查找目标对象、方法或事实。
