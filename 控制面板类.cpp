@@ -1224,16 +1224,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    const char* 私有_因果形态文本(const 枚举_因果形态 形态) noexcept
-    {
-        switch (形态) {
-        case 枚举_因果形态::实例: return "实例";
-        case 枚举_因果形态::抽象: return "抽象";
-        default: return "未定义";
-        }
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_因果锚点类型文本(const 枚举_因果锚点类型 类型) noexcept
     {
         switch (类型) {
@@ -1307,7 +1297,6 @@ namespace {
         case 枚举_信息入口类型::状态实例入口: return "状态实例入口";
         case 枚举_信息入口类型::动态实例入口: return "动态实例入口";
         case 枚举_信息入口类型::关系实例入口: return "关系实例入口";
-        case 枚举_信息入口类型::因果实例入口: return "因果实例入口";
         case 枚举_信息入口类型::场景实例入口: return "场景实例入口";
         case 枚举_信息入口类型::需求概念入口: return "需求概念入口";
         case 枚举_信息入口类型::任务概念入口: return "任务概念入口";
@@ -4625,17 +4614,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    const char* 私有_因果形态文本_控制面板(const 枚举_因果形态 形态) noexcept
-    {
-        switch (形态) {
-        case 枚举_因果形态::实例: return "实例";
-        case 枚举_因果形态::抽象: return "抽象";
-        case 枚举_因果形态::未定义:
-        default: return "未定义";
-        }
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加唯一片段_控制面板(
         std::vector<std::string>& 片段集,
         std::string 片段)
@@ -4849,21 +4827,6 @@ namespace {
                 ? 私有_拼接片段_控制面板(投影.来源因果主键集)
                 : 派生归因.派生来源因果主键文本());
 
-        std::vector<std::string> 因果形态片段{};
-        for (const auto& 因果键 : 投影.来源因果主键集) {
-            auto* 因果节点 = !因果键.empty()
-                ? 世界树.基础信息().查找主键(因果键)
-                : nullptr;
-            const auto* 因果主信息 = 因果节点
-                ? 世界树.基础信息().取主信息<因果主信息类>(因果节点)
-                : nullptr;
-            if (因果主信息) {
-                私有_追加唯一片段_控制面板(
-                    因果形态片段,
-                    私有_因果形态文本_控制面板(因果主信息->形态));
-            }
-        }
-        私有_追加等号字段(视图节点, "来源因果类型", 私有_拼接片段_控制面板(因果形态片段));
         私有_追加等号字段(视图节点, "来源因果命中数量", static_cast<I64>(投影.来源因果主键集.size()));
         私有_追加等号字段(
             视图节点,
@@ -5179,17 +5142,6 @@ namespace {
         私有_追加叶字段(字段节点, "最近位移缓存_mm", 主信息.最近位移_mm);
         私有_追加叶字段(字段节点, "连续静止帧缓存", static_cast<std::uint64_t>(主信息.连续静止帧));
         私有_追加叶字段(字段节点, "连续未命中帧缓存", static_cast<std::uint64_t>(主信息.连续未命中帧));
-        私有_追加引用列表字段(
-            字段节点,
-            "实例因果",
-            主信息.实例因果,
-            上下文,
-            剩余深度,
-            路径,
-            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
-                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
-            },
-            上下文.树广度上限);
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -5216,14 +5168,12 @@ namespace {
         std::vector<可解析引用<动态节点类>> 动态索引快照;
         std::vector<可解析引用<二次特征节点类>> 关系索引快照;
         std::vector<可解析引用<二次特征节点类>> 二次特征索引快照;
-        std::vector<可解析引用<因果实例节点类>> 实例因果索引快照;
         {
             std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
             状态索引快照 = 主信息.状态索引;
             动态索引快照 = 主信息.动态索引;
             关系索引快照 = 主信息.关系索引;
             二次特征索引快照 = 主信息.二次特征索引;
-            实例因果索引快照 = 主信息.实例因果索引;
         }
         私有_追加引用列表字段(
             字段节点,
@@ -5262,17 +5212,6 @@ namespace {
             字段节点,
             "二次特征索引",
             二次特征索引快照,
-            上下文,
-            剩余深度,
-            路径,
-            [](基础信息节点类* 目标, const 结构_构建上下文& 局部上下文, std::size_t 深度, 路径集合 路径集) {
-                return 私有_构建基础信息树节点(目标, 局部上下文, 深度, std::move(路径集));
-            },
-            上下文.树广度上限);
-        私有_追加引用列表字段(
-            字段节点,
-            "实例因果索引",
-            实例因果索引快照,
             上下文,
             剩余深度,
             路径,
@@ -5560,7 +5499,6 @@ namespace {
         const std::size_t 剩余深度,
         const 路径集合& 路径)
     {
-        私有_追加叶字段(字段节点, "形态", 私有_因果形态文本(主信息.形态));
         私有_追加叶字段(字段节点, "适用锚点类型", 私有_因果锚点类型文本(主信息.适用锚点类型));
         私有_追加叶字段(字段节点, "适用层级", static_cast<std::uint64_t>(主信息.适用层级));
         私有_追加叶字段(字段节点, "因动作名称", 主信息.因动作名称);
@@ -5704,40 +5642,28 @@ namespace {
     // 功能：构建运行所需的数据结构或中间结果。
     结构_控制面板树节点 私有_构建因果信息树(
         const 结构_构建上下文& 上下文,
-        const std::size_t 抽象因果数,
-        const std::size_t 实例因果数,
+        const std::size_t 因果模板数,
         const std::size_t 证据动态样本数)
     {
         auto 根节点 = 私有_新节点(
-            "因果信息 | 抽象因果=" + std::to_string(抽象因果数)
-                + " | 实例因果=" + std::to_string(实例因果数)
+            "因果信息 | 因果模板=" + std::to_string(因果模板数)
                 + " | 证据动态样本=" + std::to_string(证据动态样本数),
             0,
             true);
 
-        std::vector<基础信息节点类*> 抽象因果节点{};
-        std::vector<基础信息节点类*> 实例因果节点{};
-        std::vector<基础信息节点类*> 未定义因果节点{};
+        std::vector<基础信息节点类*> 因果模板节点{};
 
         for (auto* 因果节点 : 世界树.基础信息().枚举节点_按类型<因果主信息类>()) {
             const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
             if (!主信息) continue;
-            if (主信息->是抽象因果()) {
-                抽象因果节点.push_back(因果节点);
-            }
-            else if (主信息->是实例因果()) {
-                实例因果节点.push_back(因果节点);
-            }
-            else {
-                未定义因果节点.push_back(因果节点);
-            }
+            因果模板节点.push_back(因果节点);
         }
 
         auto 追加分组 = [&](const std::string& 名称, const std::vector<基础信息节点类*>& 节点集) {
             auto 分组节点 = 私有_新节点(
                 名称 + " | 数量=" + std::to_string(节点集.size()),
                 0,
-                名称 == "抽象因果");
+                true);
             const auto 实际上限 = (std::min)(上下文.树广度上限, 节点集.size());
             for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
                 分组节点.子项.push_back(
@@ -5753,13 +5679,9 @@ namespace {
             根节点.子项.push_back(std::move(分组节点));
         };
 
-        追加分组("抽象因果", 抽象因果节点);
-        追加分组("实例因果", 实例因果节点);
-        if (!未定义因果节点.empty()) {
-            追加分组("未定义因果", 未定义因果节点);
-        }
+        追加分组("因果模板", 因果模板节点);
 
-        if (抽象因果节点.empty() && 实例因果节点.empty() && 未定义因果节点.empty()) {
+        if (因果模板节点.empty()) {
             根节点.子项.clear();
             根节点.子项.push_back(私有_新节点("当前世界树未记录因果信息"));
         }
@@ -8620,23 +8542,16 @@ window.__panelApplyDetail=function(){};
 
         const auto 因果节点集 = 世界树.基础信息().枚举节点_按类型<因果主信息类>();
         std::size_t 因果模板数 = 0;
-        std::size_t 因果实例数 = 0;
         std::size_t 因果证据动态样本数 = 0;
         for (auto* 因果节点 : 因果节点集) {
             const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
             if (!主信息) {
                 continue;
             }
-            if (主信息->是抽象因果()) {
-                ++因果模板数;
-            }
-            else if (主信息->是实例因果()) {
-                ++因果实例数;
-            }
+            ++因果模板数;
             因果证据动态样本数 += 主信息->证据动态样本.size();
         }
         快照.因果模板数 = 因果模板数;
-        快照.因果实例数 = 因果实例数;
         快照.因果证据动态样本数 = 因果证据动态样本数;
     }
 
@@ -9212,7 +9127,6 @@ window.__panelApplyDetail=function(){};
     快照.因果信息根 = 私有_构建因果信息树(
         上下文,
         快照.因果模板数,
-        快照.因果实例数,
         快照.因果证据动态样本数);
     记录快照阶段("因果信息树构建完成");
 
@@ -9358,25 +9272,18 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
 
     if (页面 == "causal-info") {
         std::size_t 因果模板数 = 0;
-        std::size_t 因果实例数 = 0;
         std::size_t 因果证据动态样本数 = 0;
         for (auto* 因果节点 : 世界树.基础信息().枚举节点_按类型<因果主信息类>()) {
             const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
             if (!主信息) {
                 continue;
             }
-            if (主信息->是抽象因果()) {
-                ++因果模板数;
-            }
-            else if (主信息->是实例因果()) {
-                ++因果实例数;
-            }
+            ++因果模板数;
             因果证据动态样本数 += 主信息->证据动态样本.size();
         }
         auto 根 = 私有_构建因果信息树(
             上下文,
             因果模板数,
-            因果实例数,
             因果证据动态样本数);
         return 私有_页面刷新JSON(页面, &根);
     }
@@ -10424,8 +10331,7 @@ std::string 私有_生成控制面板HTML(
         + " | 动态=" + std::to_string(快照.动态数)
         + " | 因果模板=" + std::to_string(快照.因果模板数));
     const auto 因果信息摘要 = 私有_转义HTML(
-        "抽象因果=" + std::to_string(快照.因果模板数)
-        + " | 实例因果=" + std::to_string(快照.因果实例数)
+        "因果模板=" + std::to_string(快照.因果模板数)
         + " | 证据动态样本=" + std::to_string(快照.因果证据动态样本数)
         + " | 来源=世界树因果主信息");
     const auto 需求树摘要 = 私有_转义HTML(
@@ -11526,7 +11432,7 @@ std::string 私有_生成控制面板HTML(
         << 快照.基础信息节点数
         << R"HTML(</span></button>
           <button class="menu-item" type="button" data-page="causal-info"><span>因果信息</span><span class="menu-badge">)HTML"
-        << (快照.因果模板数 + 快照.因果实例数)
+        << 快照.因果模板数
         << R"HTML(</span></button>
           <button class="menu-item" type="button" data-page="need-tree"><span>需求树</span><span class="menu-badge">)HTML"
         << 快照.需求数
@@ -11643,7 +11549,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="causal-info" data-title="因果信息" data-subtitle="当前世界树中记录的抽象因果、实例因果和证据动态样本。">
+        <section class="page" data-page="causal-info" data-title="因果信息" data-subtitle="当前世界树中记录的因果模板和证据动态样本。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">因果账本</div>
@@ -12113,7 +12019,7 @@ std::string 私有_生成控制面板HTML(
       'causal-info': {
         treeHost: 'tree-causal-info',
         detailHost: 'detail-causal-info',
-        detailHint: '因果主信息字段；抽象因果、实例因果和证据动态样本均来自当前世界树。'
+        detailHint: '因果主信息字段；因果模板和证据动态样本均来自当前世界树。'
       },
       'need-tree': {
         treeHost: 'tree-need-tree',

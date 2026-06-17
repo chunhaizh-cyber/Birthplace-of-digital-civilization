@@ -96,7 +96,6 @@ struct 结构_控制面板快照 {
     std::size_t 状态数 = 0;
     std::size_t 动态数 = 0;
     std::size_t 因果模板数 = 0;
-    std::size_t 因果实例数 = 0;
     std::size_t 因果证据动态样本数 = 0;
     std::size_t 需求数 = 0;
     std::size_t 任务数 = 0;

@@ -214,23 +214,13 @@ std::string 语言类::获取基础信息名称(const 基础信息节点类* 节
     }
 
     if (const auto* 因果主信息 = 世界树.因果().取因果主信息(static_cast<const 因果节点类*>(节点))) {
-        if (因果主信息->是实例因果()) {
-            const auto 自然语言 = 世界树.因果().生成实例因果自然语言(static_cast<const 因果实例节点类*>(节点));
-            if (!自然语言.empty()) return 自然语言;
-            if (!因果主信息->因动作名称.empty()) return 因果主信息->因动作名称;
-            if (!因果主信息->因动作语义键.empty()) return 因果主信息->因动作语义键;
-            return "因果实例";
-        }
+        const auto 名称 = 私有_安全词(因果主信息->名称);
+        if (名称 == "因果信息") return 名称;
 
-        if (因果主信息->是抽象因果()) {
-            const auto 名称 = 私有_安全词(因果主信息->名称);
-            if (名称 == "因果信息") return 名称;
-
-            const auto 自然语言 = 世界树.因果().生成抽象因果自然语言(static_cast<const 因果模板节点类*>(节点));
-            if (!自然语言.empty()) return 自然语言;
-            if (!名称.empty()) return 名称;
-            return "抽象因果";
-        }
+        const auto 自然语言 = 世界树.因果().生成抽象因果自然语言(static_cast<const 因果模板节点类*>(节点));
+        if (!自然语言.empty()) return 自然语言;
+        if (!名称.empty()) return 名称;
+        return "因果模板";
     }
 
     const auto 名称 = 私有_安全词(节点->主信息->名称);
