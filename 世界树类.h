@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+#include <limits>
 #include <vector>
 #include <memory>
 #include <string>
@@ -28,6 +30,21 @@ struct 场景绝对坐标换算结果 {
     const 存在节点类* 参考存在 = nullptr;
     I64 使用相对坐标项数量 = 0;
     I64 置信度 = 0;
+};
+
+struct 结构_世界树场景轮廓查找参数 {
+    const 语素入口节点类* 三维体素特征类型 = nullptr;
+    std::uint32_t 查询层级 = (std::numeric_limits<std::uint32_t>::max)();
+    I64 最低相似度Q10000 = 0;
+    std::uint32_t 默认存在最小体素边长_mm = 0;
+    std::uint64_t 最大返回数量 = 0;
+};
+
+struct 结构_世界树场景轮廓存在比较结果 {
+    存在节点类* 存在 = nullptr;
+    特征节点类* 三维体素特征 = nullptr;
+    I64 相似度Q10000 = 0;
+    结构_三维体素局部轮廓相似度结果 比较结果{};
 };
 
 class 世界树类 {
@@ -221,6 +238,12 @@ public:
         const 语素入口节点类* 特征类型,
         const 特征节点类* 左特征,
         const 特征节点类* 右特征) const;
+    // 在场景直接子存在中按局部深度/彩图轮廓查找候选存在，只返回比较结果。
+    std::vector<结构_世界树场景轮廓存在比较结果> 查找场景存在_按深度或彩图轮廓图(
+        const 场景节点类* 场景,
+        const std::vector<结构_三维体素轮廓图视角>& 局部视角集合,
+        const 结构_三维体素轮廓融合参数& 局部融合参数,
+        const 结构_世界树场景轮廓查找参数& 参数) const;
     存在比较结果 比较存在(
         const 存在节点类* 左存在,
         const 存在节点类* 右存在,
