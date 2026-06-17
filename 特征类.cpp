@@ -3797,6 +3797,156 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     return 结果;
 }
 
+// 功能：根据局部深度轮廓生成的体素，和已存存在体素链做只读相似度比较。
+结构_三维体素局部轮廓相似度结果 特征类::比较局部轮廓深度图与三维体素链(
+    const 特征值类& 值池,
+    VecU句柄 存在体素根句柄,
+    const 结构_三维体素存在空间绑定参数& 存在空间,
+    const std::vector<结构_三维体素轮廓图视角>& 局部视角集合,
+    const 结构_三维体素轮廓融合参数& 局部融合参数,
+    const std::uint32_t 查询层级)
+{
+    结构_三维体素局部轮廓相似度结果 结果{};
+    结果.请求查询层级 = 查询层级;
+
+    auto 拒绝 = [&](std::string 原因) {
+        结果.可比较 = false;
+        结果.不可比较原因 = std::move(原因);
+        结果.相似度Q10000 = 0;
+        结果.命中率Q10000 = 0;
+        结果.越界惩罚Q10000 = 0;
+        return 结果;
+    };
+
+    auto* 根节点 = 值池.取节点(存在体素根句柄);
+    if (!根节点) return 拒绝("存在体素根句柄无效");
+
+    结构_三维体素链节点信息 根信息{};
+    if (!解析三维体素链节点VecU(根节点->主信息.值, 根信息) || !根信息.是根) {
+        return 拒绝("存在体素根节点不是三维体素根VecU");
+    }
+    if (根信息.边长 == 0) return 拒绝("存在体素根节点边长为0");
+
+    std::uint32_t 存在最小体素边长_mm = 存在空间.最小体素边长_mm;
+    if (存在最小体素边长_mm == 0) {
+        存在最小体素边长_mm = 根信息.最小体素边长_mm;
+    } else if (根信息.最小体素边长_mm != 0 && 根信息.最小体素边长_mm != 存在最小体素边长_mm) {
+        return 拒绝("存在体素边长与根节点元数据不一致");
+    }
+    if (存在最小体素边长_mm == 0) return 拒绝("缺少存在体素最小边长");
+
+    结果.存在体素网格边长 = 根信息.边长;
+    结果.存在最小体素边长_mm = 存在最小体素边长_mm;
+
+    const auto 局部体素 = 从多视角轮廓图生成三维体素(局部视角集合, 局部融合参数);
+    结果.局部体素边长_mm = 局部体素.体素边长_mm;
+    结果.局部占据体素数量 = 局部体素.占据体素数量;
+    if (!局部体素.成功) return 拒绝("局部轮廓生成体素失败: " + 局部体素.失败原因);
+    if (局部体素.体素边长_mm == 0) return 拒绝("局部体素边长为0");
+    if (局部体素.占据体素数量 == 0) return 拒绝("局部轮廓没有占据体素");
+
+    const auto 查询精度层级 = [&]() -> std::uint32_t {
+        std::uint32_t 允许层级 = 0;
+        for (std::uint32_t 层级 = 0; 层级 <= 根信息.最大层级; ++层级) {
+            const auto 分母 = static_cast<std::uint64_t>(私有_三维体素顶层边长) << 层级;
+            if (分母 == 0 || 分母 > 根信息.边长) break;
+            const auto 节点边长体素 = static_cast<std::uint64_t>(根信息.边长) / 分母;
+            if (节点边长体素 == 0) break;
+            const auto 节点边长_mm = static_cast<long double>(节点边长体素)
+                * static_cast<long double>(存在最小体素边长_mm);
+            if (节点边长_mm + 0.0001L < static_cast<long double>(局部体素.体素边长_mm)) break;
+            允许层级 = 层级;
+        }
+        return 允许层级;
+    }();
+    结果.实际查询层级 = std::min({ 查询层级, 根信息.最大层级, 查询精度层级 });
+
+    const auto 比率Q10000 = [](const std::uint64_t 分子, const std::uint64_t 分母) -> I64 {
+        if (分母 == 0) return 0;
+        const auto 值 = std::llround(static_cast<long double>(分子) * 10000.0L / static_cast<long double>(分母));
+        return std::clamp<I64>(static_cast<I64>(值), 0, 10000);
+    };
+
+    const auto 映射到存在体素轴 = [&](
+        const I64 局部原点_mm,
+        const std::uint32_t 局部坐标,
+        const I64 存在原点_mm,
+        std::uint32_t& 输出坐标) -> bool {
+        const auto 世界坐标 = static_cast<long double>(局部原点_mm)
+            + (static_cast<long double>(局部坐标) + 0.5L) * static_cast<long double>(局部体素.体素边长_mm);
+        const auto 偏移体素 = (世界坐标 - static_cast<long double>(存在原点_mm))
+            / static_cast<long double>(存在最小体素边长_mm);
+        if (!std::isfinite(偏移体素)) return false;
+        const auto 网格坐标 = std::floor(偏移体素);
+        if (网格坐标 < 0.0L || 网格坐标 >= static_cast<long double>(根信息.边长)) return false;
+        输出坐标 = static_cast<std::uint32_t>(网格坐标);
+        return true;
+    };
+
+    for (std::uint32_t z = 0; z < 局部体素.深度; ++z) {
+        for (std::uint32_t y = 0; y < 局部体素.高度; ++y) {
+            for (std::uint32_t x = 0; x < 局部体素.宽度; ++x) {
+                if (!读取三维体素长方体占据位(
+                    局部体素.占据位块,
+                    局部体素.宽度,
+                    局部体素.高度,
+                    局部体素.深度,
+                    x,
+                    y,
+                    z)) {
+                    continue;
+                }
+
+                std::uint32_t 存在X = 0;
+                std::uint32_t 存在Y = 0;
+                std::uint32_t 存在Z = 0;
+                if (!映射到存在体素轴(局部体素.原点X_mm, x, 存在空间.原点X_mm, 存在X)
+                    || !映射到存在体素轴(局部体素.原点Y_mm, y, 存在空间.原点Y_mm, 存在Y)
+                    || !映射到存在体素轴(局部体素.原点Z_mm, z, 存在空间.原点Z_mm, 存在Z)) {
+                    ++结果.越界体素数量;
+                    continue;
+                }
+
+                const auto 查询 = 查询三维体素二分层链(
+                    值池,
+                    存在体素根句柄,
+                    存在X,
+                    存在Y,
+                    存在Z,
+                    结果.实际查询层级);
+                if (!查询.命中 || !查询.节点.有效) {
+                    ++结果.空体素冲突数量;
+                    continue;
+                }
+
+                switch (查询.节点.状态) {
+                case 枚举_三维体素链节点状态::满:
+                    ++结果.命中体素数量;
+                    ++结果.满节点命中数量;
+                    break;
+                case 枚举_三维体素链节点状态::混合:
+                    ++结果.命中体素数量;
+                    ++结果.混合节点命中数量;
+                    break;
+                case 枚举_三维体素链节点状态::空:
+                    ++结果.空体素冲突数量;
+                    if (!查询.节点句柄.有效()) ++结果.隐式空冲突数量;
+                    break;
+                }
+            }
+        }
+    }
+
+    结果.命中率Q10000 = 比率Q10000(结果.命中体素数量, 结果.局部占据体素数量);
+    结果.越界惩罚Q10000 = 比率Q10000(结果.越界体素数量, 结果.局部占据体素数量);
+    结果.相似度Q10000 = std::clamp<I64>(
+        结果.命中率Q10000 - (结果.越界惩罚Q10000 / 2),
+        0,
+        10000);
+    结果.可比较 = true;
+    return 结果;
+}
+
 // 功能：按函数名执行对应处理。
 std::optional<std::uint32_t> 特征类::轮廓坐标维度_按特征类型(const 语素入口节点类* 特征类型)
 {

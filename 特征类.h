@@ -214,6 +214,33 @@ struct 结构_三维体素轮廓融合结果 {
     std::uint64_t 颜色体素数量 = 0;
 };
 
+struct 结构_三维体素存在空间绑定参数 {
+    I64 原点X_mm = 0;
+    I64 原点Y_mm = 0;
+    I64 原点Z_mm = 0;
+    std::uint32_t 最小体素边长_mm = 0;
+};
+
+struct 结构_三维体素局部轮廓相似度结果 {
+    bool 可比较 = false;
+    std::string 不可比较原因{};
+    I64 相似度Q10000 = 0;
+    I64 命中率Q10000 = 0;
+    I64 越界惩罚Q10000 = 0;
+    std::uint32_t 请求查询层级 = 0;
+    std::uint32_t 实际查询层级 = 0;
+    std::uint32_t 存在体素网格边长 = 0;
+    std::uint32_t 存在最小体素边长_mm = 0;
+    std::uint32_t 局部体素边长_mm = 0;
+    std::uint64_t 局部占据体素数量 = 0;
+    std::uint64_t 命中体素数量 = 0;
+    std::uint64_t 满节点命中数量 = 0;
+    std::uint64_t 混合节点命中数量 = 0;
+    std::uint64_t 空体素冲突数量 = 0;
+    std::uint64_t 隐式空冲突数量 = 0;
+    std::uint64_t 越界体素数量 = 0;
+};
+
 struct 常用抽象特征初始化结果 {
     std::uint32_t 抽象特征数 = 0;
     std::uint32_t 区间状态数 = 0;
@@ -425,6 +452,14 @@ public:
     static 结构_三维体素轮廓融合结果 从多视角轮廓图生成三维体素(
         const std::vector<结构_三维体素轮廓图视角>& 视角集合,
         const 结构_三维体素轮廓融合参数& 参数);
+    // 根据局部深度轮廓生成的体素，和已存存在体素链做只读相似度比较。
+    static 结构_三维体素局部轮廓相似度结果 比较局部轮廓深度图与三维体素链(
+        const 特征值类& 值池,
+        VecU句柄 存在体素根句柄,
+        const 结构_三维体素存在空间绑定参数& 存在空间,
+        const std::vector<结构_三维体素轮廓图视角>& 局部视角集合,
+        const 结构_三维体素轮廓融合参数& 局部融合参数,
+        std::uint32_t 查询层级);
     static bool 校验坐标链VecI64(const VecI64& 值, std::uint32_t 坐标维度) noexcept;
     static bool 校验平面轮廓VecI64(const VecI64& 值) noexcept;
     static bool 校验空间极值轮廓VecI64(const VecI64& 值) noexcept;
