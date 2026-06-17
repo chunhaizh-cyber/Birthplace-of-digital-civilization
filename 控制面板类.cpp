@@ -7428,6 +7428,8 @@ ORDER BY row_index;
             << "<button data-target=\"features\">特征类型</button>"
             << "<button data-target=\"catalog\">字段目录</button>"
             << "</nav></aside><main class=\"content\">\n"
+            << "<input id=\"filter\" type=\"search\" placeholder=\"过滤当前页表格和世界树文本\">\n"
+            << "<section id=\"metrics\" class=\"active\"><h2>面板指标</h2>\n"
             << "<p class=\"note\">本页面通过 ADO 读取 SQL 投影，不读取 live 控制面板快照，也不是世界树、任务树或动作动态链的写入口。"
             << 私有_转义HTML(来源说明) << "</p>\n"
             << "<div class=\"cards\">";
@@ -7437,9 +7439,18 @@ ORDER BY row_index;
                 << "</span><div class=\"note\">" << 私有_转义HTML(私有_SQL字段(行, 1))
                 << "</div></div>";
         }
-        输出 << "</div><input id=\"filter\" type=\"search\" placeholder=\"过滤当前页表格和世界树文本\">\n";
+        输出 << "</div><div class=\"table-wrap\"><table data-filterable><thead><tr>"
+            << "<th>指标</th><th>分组</th><th>值</th><th>来源</th><th>文件</th>"
+            << "</tr></thead><tbody>\n";
+        for (const auto& 行 : 数据.指标) {
+            输出 << "<tr>";
+            for (std::size_t i = 0; i < 5; ++i) {
+                输出 << "<td>" << 私有_转义HTML(私有_SQL字段(行, i)) << "</td>";
+            }
+            输出 << "</tr>\n";
+        }
+        输出 << "</tbody></table></div></section>\n";
 
-        私有_追加SQL控制面板表(输出, "面板指标", "metrics", { "指标", "分组", "值", "来源", "文件" }, 数据.指标);
         私有_追加SQL控制面板表(输出, "线程信息", "threads", { "逻辑ID", "线程名", "生命周期", "运行状态", "健康", "模块", "最近原因" }, 数据.线程);
         私有_追加SQL控制面板表(输出, "线程生命周期事件", "threadEvents", { "消息ID", "事件", "线程", "旧生命周期", "新生命周期", "原因", "摘要" }, 数据.线程事件);
         私有_追加SQL控制面板表(输出, "动作动态", "actions", { "时间", "类", "事件", "方法", "特征", "动作动态", "来源动态" }, 数据.动作动态);
