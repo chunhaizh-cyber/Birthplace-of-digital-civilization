@@ -2498,7 +2498,7 @@ namespace {
         auto* 指针 = 引用.指针 != 0
             ? reinterpret_cast<基础信息节点类*>(引用.指针)
             : nullptr;
-        return 私有_引用主键文本(指针, 引用.主键);
+        return 私有_引用文本(指针, 引用.主键);
     }
 
     template<class T节点>
@@ -2670,7 +2670,7 @@ namespace {
         const auto 展开类型 = std::string(私有_引用展开类型<T节点>());
         auto* 可展开指针 = 私有_解析当前树节点_可写(指针, 主键);
         auto 字段节点 = 私有_新节点(
-            私有_字段显示文本(名称, 私有_引用字段类型文本<T节点>(), 私有_引用主键文本(指针, 主键)),
+            私有_字段显示文本(名称, 私有_引用字段类型文本<T节点>(), 私有_引用文本(指针, 主键)),
             私有_地址(可展开指针),
             false,
             false,
@@ -2781,7 +2781,7 @@ namespace {
         const auto 展开类型 = std::string(私有_引用展开类型<T节点>());
         auto* 可展开指针 = 私有_解析当前树节点_可写(指针, 主键);
         auto 字段节点 = 私有_新节点(
-            私有_等号字段显示文本(名称, 私有_引用字段类型文本<T节点>(), 私有_引用主键文本(指针, 主键)),
+            私有_等号字段显示文本(名称, 私有_引用字段类型文本<T节点>(), 私有_引用文本(指针, 主键)),
             私有_地址(可展开指针),
             false,
             false,
@@ -4990,11 +4990,11 @@ namespace {
         私有_追加叶字段(
             字段节点,
             "抽象特征",
-            私有_引用主键文本(主信息.抽象特征.指针, 主信息.抽象特征.主键));
+            私有_引用文本(主信息.抽象特征.指针, 主信息.抽象特征.主键));
         私有_追加叶字段(
             字段节点,
             "当前命中抽象特征",
-            私有_引用主键文本(主信息.当前命中抽象特征.指针, 主信息.当前命中抽象特征.主键));
+            私有_引用文本(主信息.当前命中抽象特征.指针, 主信息.当前命中抽象特征.主键));
         私有_追加叶字段(字段节点, "当前值", 私有_特征值文本(主信息.当前值));
         私有_追加叶字段(字段节点, "当前稳态索引", 主信息.当前稳态索引);
         私有_追加叶字段(字段节点, "区间", 私有_可选区间文本(主信息.区间));
@@ -7467,7 +7467,7 @@ ORDER BY row_index;
             << "；工作区：" << 私有_转义HTML(工作区) << "</p>"
             << "<div class=\"top-actions\"><button id=\"refreshPanel\" type=\"button\">刷新</button>"
             << "<button id=\"openCameraWindow\" class=\"secondary\" type=\"button\">打开相机窗口</button>"
-            << "<span id=\"refreshStatus\">自动刷新：10 秒</span></div></header>\n"
+            << "<span id=\"refreshStatus\">手动刷新：当前查看不会被定时重置</span></div></header>\n"
             << "<div class=\"panel-shell\"><aside class=\"menu-bar\"><nav class=\"menu-group\" aria-label=\"控制面板菜单\">"
             << "<div class=\"menu-title\">运行</div>"
             << "<button class=\"active\" data-menu-index=\"1\" data-target=\"metrics\">1. 面板指标</button>"
@@ -7805,11 +7805,15 @@ function selectCausalInfo(key){
   updateCausalSelection();
 }
 function treeLabel(row){
-  const title=row.display||row.type||row.value||row.kind||row.key;
   const parts=[`<span class="tree-key">${escapeHtml(row.key)}</span>`];
+  const display=String(row.display||'').trim();
+  const type=String(row.type||'').trim();
+  const value=String(row.value||'').trim();
+  const valueKind=String(row.valueKind||'').trim();
   if(row.kind)parts.push(`<span class="tree-kind">${escapeHtml(row.kind)}</span>`);
-  parts.push(`<span>${escapeHtml(title)}</span>`);
-  if(row.valueKind||row.value)parts.push(`<span class="tree-muted">${escapeHtml(row.valueKind)} ${escapeHtml(row.value)}</span>`);
+  if(display)parts.push(`<span>${escapeHtml(display)}</span>`);
+  if(type&&type!==display)parts.push(`<span class="tree-muted">类型=${escapeHtml(type)}</span>`);
+  if(valueKind||value)parts.push(`<span class="tree-muted">${escapeHtml(valueKind)} ${escapeHtml(value)}</span>`);
   if(row.aux)parts.push(`<span class="tree-muted">${escapeHtml(row.aux)}</span>`);
   return parts.join('');
 }
@@ -8044,7 +8048,6 @@ window.__panelApplyCameraWindowState=function(data){
     refreshStatus.textContent=data.message||(data.ok?'相机窗口已打开。':'相机窗口打开失败。');
   }
 };
-window.setInterval(refreshPanel,10000);
 window.__panelApplyPageRefresh=function(){};
 window.__panelApplyExpand=function(){};
 window.__panelApplyDetail=function(){};
@@ -12334,6 +12337,44 @@ std::string 私有_生成控制面板HTML(
       return null;
     }
 
+    function 节点稳定键(node) {
+      if (!node) return '';
+      const 指针 = Number(node.ptr || 0);
+      const 附加 = Number(node.arg || 0);
+      const 展开 = String(node.expandType || '');
+      if (指针) {
+        return `${展开}|${指针}|${附加}`;
+      }
+      const 文本 = String(node.text || '').trim();
+      return 文本 ? `text|${文本}` : '';
+    }
+
+    function 查找稳定节点(node, key) {
+      if (!node || !key) return null;
+      if (节点稳定键(node) === key) return node;
+      for (const child of Array.isArray(node.children) ? node.children : []) {
+        const 命中 = 查找稳定节点(child, key);
+        if (命中) return 命中;
+      }
+      return null;
+    }
+
+    function 收集展开节点键(node, keys) {
+      if (!node || !keys) return;
+      const key = 节点稳定键(node);
+      if (node.open && key) keys.add(key);
+      (Array.isArray(node.children) ? node.children : []).forEach((child) => 收集展开节点键(child, keys));
+    }
+
+    function 恢复展开节点(node, keys) {
+      if (!node || !keys) return;
+      const key = 节点稳定键(node);
+      if (key && keys.has(key)) {
+        node.open = true;
+      }
+      (Array.isArray(node.children) ? node.children : []).forEach((child) => 恢复展开节点(child, keys));
+    }
+
     function 取页面根(page) {
       return 页面树数据[page] || null;
     }
@@ -12402,6 +12443,16 @@ std::string 私有_生成控制面板HTML(
     function 取节点标题(node) {
       const 解析结果 = 解析节点文本(node ? node.text : '');
       return 解析结果.标题 || (node ? node.text : '') || '未命名节点';
+    }
+
+    function 节点显示文本(node) {
+      const 解析结果 = 解析节点文本(node ? node.text : '');
+      const parts = [];
+      if (解析结果.标题) parts.push(解析结果.标题);
+      if (解析结果.类型) parts.push(`类型=${解析结果.类型}`);
+      if (解析结果.值) parts.push(`值=${解析结果.值}`);
+      解析结果.附加.filter(Boolean).forEach((item) => parts.push(item));
+      return parts.join(' | ') || (node ? node.text : '') || '未命名节点';
     }
 
     function 构建节点路径(node) {
@@ -12711,15 +12762,21 @@ std::string 私有_生成控制面板HTML(
         更新详情面板(page);
         return;
       }
+      const 原根节点 = 页面树数据[page] || null;
+      const 旧选中键 = 节点稳定键(取当前页面节点(page));
+      const 展开键集 = new Set();
+      收集展开节点键(原根节点, 展开键集);
       const root = data.root;
       页面树数据[page] = root;
       挂起展开.clear();
       挂起详情.clear();
       规范化节点(page, root);
-      页面选中节点.set(page, root.__id);
+      恢复展开节点(root, 展开键集);
+      const 新选中节点 = 查找稳定节点(root, 旧选中键) || root;
+      页面选中节点.set(page, 新选中节点.__id);
       更新页面摘要(page, root);
       渲染页面树(page);
-      请求节点详情(page, root);
+      请求节点详情(page, 新选中节点);
       更新详情面板(page);
     };
 
@@ -12801,7 +12858,7 @@ std::string 私有_生成控制面板HTML(
     }
 
     function 填充树行文本(page, row, node) {
-      const 文本 = node?.text || '';
+      const 文本 = 节点显示文本(node);
       if (page !== 'task-tree') {
         row.textContent = 文本;
         return;
@@ -12997,7 +13054,7 @@ std::string 私有_生成控制面板HTML(
 
         const title = document.createElement('div');
         title.className = 'detail-title';
-        title.textContent = 解析结果.标题 || 节点.text || '未命名节点';
+        title.textContent = 节点显示文本(节点);
         host.appendChild(title);
 
         const note = document.createElement('div');
@@ -14099,9 +14156,6 @@ std::string 私有_生成控制面板HTML(
     }
 
     document.getElementById('refresh-page').addEventListener('click', 刷新当前控制面板页);
-    if (!自我场景窗口模式) {
-      window.setInterval(刷新当前控制面板页, 10000);
-    }
 
     document.getElementById('copy-page').addEventListener('click', async () => {
       const 当前页面 = 页面列表.find((item) => item.classList.contains('active')) || 页面列表[0];
