@@ -164,6 +164,56 @@ struct 结构_三维体素链查询结果 {
     结构_三维体素链节点信息 节点{};
 };
 
+struct 结构_三维体素空间点毫米 {
+    I64 x = 0;
+    I64 y = 0;
+    I64 z = 0;
+};
+
+struct 结构_三维体素轮廓图视角 {
+    std::uint32_t 宽度 = 0;
+    std::uint32_t 高度 = 0;
+    std::uint32_t 视角序号 = 0;
+    std::vector<std::uint8_t> 轮廓掩码{};
+    std::vector<I64> 深度_mm{};
+    std::vector<结构_三维体素空间点毫米> 空间点_mm{};
+    std::vector<std::uint32_t> 颜色_RGBA{};
+};
+
+struct 结构_三维体素轮廓融合参数 {
+    std::uint32_t 体素边长_mm = 0;
+    std::uint32_t 互补最大间隔体素 = 1;
+    std::uint32_t 最小确认视角数 = 1;
+    std::uint64_t 最大输出体素数 = 2000000;
+};
+
+struct 结构_三维体素颜色项 {
+    std::uint32_t x = 0;
+    std::uint32_t y = 0;
+    std::uint32_t z = 0;
+    std::uint32_t 颜色_RGBA = 0;
+};
+
+struct 结构_三维体素轮廓融合结果 {
+    bool 成功 = false;
+    std::string 失败原因{};
+    VecIU64 占据位块{};
+    std::vector<结构_三维体素颜色项> 体素颜色{};
+    std::uint32_t 宽度 = 0;
+    std::uint32_t 高度 = 0;
+    std::uint32_t 深度 = 0;
+    std::uint32_t 体素边长_mm = 0;
+    I64 原点X_mm = 0;
+    I64 原点Y_mm = 0;
+    I64 原点Z_mm = 0;
+    std::uint64_t 输入视角数量 = 0;
+    std::uint64_t 有效像素数量 = 0;
+    std::uint64_t 原始命中体素数量 = 0;
+    std::uint64_t 互补补全体素数量 = 0;
+    std::uint64_t 占据体素数量 = 0;
+    std::uint64_t 颜色体素数量 = 0;
+};
+
 struct 常用抽象特征初始化结果 {
     std::uint32_t 抽象特征数 = 0;
     std::uint32_t 区间状态数 = 0;
@@ -372,6 +422,9 @@ public:
         std::uint32_t y,
         std::uint32_t z,
         std::uint32_t 查询层级);
+    static 结构_三维体素轮廓融合结果 从多视角轮廓图生成三维体素(
+        const std::vector<结构_三维体素轮廓图视角>& 视角集合,
+        const 结构_三维体素轮廓融合参数& 参数);
     static bool 校验坐标链VecI64(const VecI64& 值, std::uint32_t 坐标维度) noexcept;
     static bool 校验平面轮廓VecI64(const VecI64& 值) noexcept;
     static bool 校验空间极值轮廓VecI64(const VecI64& 值) noexcept;

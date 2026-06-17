@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <cmath>
 #include <cstddef>
 #include <initializer_list>
 #include <limits>
@@ -3531,6 +3532,268 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     结果.命中 = true;
     结果.节点句柄 = 特征值类::生成句柄(当前节点);
     结果.节点 = 当前信息;
+    return 结果;
+}
+
+// 功能：根据多视角已对齐轮廓图生成长方体体素占据位块和体素颜色绑定。
+结构_三维体素轮廓融合结果 特征类::从多视角轮廓图生成三维体素(
+    const std::vector<结构_三维体素轮廓图视角>& 视角集合,
+    const 结构_三维体素轮廓融合参数& 参数)
+{
+    结构_三维体素轮廓融合结果 结果{};
+    结果.输入视角数量 = static_cast<std::uint64_t>(视角集合.size());
+    结果.体素边长_mm = 参数.体素边长_mm;
+
+    auto 拒绝 = [&](std::string 原因) {
+        结果 = {};
+        结果.失败原因 = std::move(原因);
+        结果.输入视角数量 = static_cast<std::uint64_t>(视角集合.size());
+        结果.体素边长_mm = 参数.体素边长_mm;
+        return 结果;
+    };
+
+    if (视角集合.empty()) return 拒绝("缺少轮廓图视角");
+    if (视角集合.size() > 64) return 拒绝("轮廓图视角超过64个，无法用位集记录来源");
+    if (参数.体素边长_mm == 0) return 拒绝("体素边长为0");
+    if (参数.最大输出体素数 == 0) return 拒绝("最大输出体素数为0");
+    if (参数.最小确认视角数 == 0 || 参数.最小确认视角数 > 视角集合.size()) {
+        return 拒绝("最小确认视角数非法");
+    }
+
+    bool 有效点存在 = false;
+    bool 需要颜色累积 = false;
+    I64 最小X = 0;
+    I64 最小Y = 0;
+    I64 最小Z = 0;
+    I64 最大X = 0;
+    I64 最大Y = 0;
+    I64 最大Z = 0;
+
+    for (const auto& 视角 : 视角集合) {
+        const auto 像素数 = static_cast<std::uint64_t>(视角.宽度) * static_cast<std::uint64_t>(视角.高度);
+        if (视角.宽度 == 0 || 视角.高度 == 0 || 像素数 == 0) return 拒绝("轮廓图尺寸非法");
+        if (像素数 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())) {
+            return 拒绝("轮廓图像素数超过平台限制");
+        }
+        const auto 期望像素数 = static_cast<std::size_t>(像素数);
+        if (视角.轮廓掩码.size() != 期望像素数) return 拒绝("轮廓掩码尺寸与图像尺寸不一致");
+        if (视角.深度_mm.size() != 期望像素数) return 拒绝("深度图尺寸与图像尺寸不一致");
+        if (视角.空间点_mm.size() != 期望像素数) return 拒绝("空间点尺寸与图像尺寸不一致");
+        if (!视角.颜色_RGBA.empty() && 视角.颜色_RGBA.size() != 期望像素数) {
+            return 拒绝("彩图尺寸与图像尺寸不一致");
+        }
+        if (!视角.颜色_RGBA.empty()) {
+            需要颜色累积 = true;
+        }
+
+        for (std::size_t i = 0; i < 期望像素数; ++i) {
+            if (视角.轮廓掩码[i] == 0 || 视角.深度_mm[i] <= 0) continue;
+            const auto& 点 = 视角.空间点_mm[i];
+            if (!有效点存在) {
+                最小X = 最大X = 点.x;
+                最小Y = 最大Y = 点.y;
+                最小Z = 最大Z = 点.z;
+                有效点存在 = true;
+            } else {
+                最小X = std::min(最小X, 点.x);
+                最小Y = std::min(最小Y, 点.y);
+                最小Z = std::min(最小Z, 点.z);
+                最大X = std::max(最大X, 点.x);
+                最大Y = std::max(最大Y, 点.y);
+                最大Z = std::max(最大Z, 点.z);
+            }
+            ++结果.有效像素数量;
+        }
+    }
+
+    if (!有效点存在) return 拒绝("轮廓掩码内没有有效深度点");
+
+    const auto 轴体素数 = [&](const I64 最小值, const I64 最大值) -> std::uint32_t {
+        const long double 范围 = static_cast<long double>(最大值) - static_cast<long double>(最小值);
+        const long double 单元 = static_cast<long double>(参数.体素边长_mm);
+        const auto 数量 = static_cast<std::uint64_t>(std::floor(范围 / 单元)) + 1ull;
+        if (数量 == 0 || 数量 > static_cast<std::uint64_t>((std::numeric_limits<std::uint32_t>::max)())) {
+            return 0;
+        }
+        return static_cast<std::uint32_t>(数量);
+    };
+
+    const std::uint32_t 宽度 = 轴体素数(最小X, 最大X);
+    const std::uint32_t 高度 = 轴体素数(最小Y, 最大Y);
+    const std::uint32_t 深度 = 轴体素数(最小Z, 最大Z);
+    const auto 总体素数 = 私有_三维体素长方体总数(宽度, 高度, 深度);
+    if (宽度 == 0 || 高度 == 0 || 深度 == 0 || 总体素数 == 0) return 拒绝("输出体素尺寸非法");
+    if (总体素数 > 参数.最大输出体素数) return 拒绝("输出体素数超过上限");
+    if (总体素数 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())) {
+        return 拒绝("输出体素数超过平台限制");
+    }
+
+    const auto 稠密大小 = static_cast<std::size_t>(总体素数);
+    std::vector<std::uint8_t> 占据(稠密大小, 0);
+    std::vector<std::uint8_t> 来源视角数(稠密大小, 0);
+    std::vector<std::uint64_t> 来源视角位集(稠密大小, 0);
+    std::vector<std::uint64_t> 颜色A{};
+    std::vector<std::uint64_t> 颜色R{};
+    std::vector<std::uint64_t> 颜色G{};
+    std::vector<std::uint64_t> 颜色B{};
+    std::vector<std::uint32_t> 颜色数量{};
+    if (需要颜色累积) {
+        颜色A.assign(稠密大小, 0);
+        颜色R.assign(稠密大小, 0);
+        颜色G.assign(稠密大小, 0);
+        颜色B.assign(稠密大小, 0);
+        颜色数量.assign(稠密大小, 0);
+    }
+
+    const auto 坐标到体素 = [&](const I64 值, const I64 最小值, const std::uint32_t 上限) -> std::uint32_t {
+        const long double 偏移 = static_cast<long double>(值) - static_cast<long double>(最小值);
+        const long double 单元 = static_cast<long double>(参数.体素边长_mm);
+        auto 索引 = static_cast<std::uint64_t>(std::floor(偏移 / 单元));
+        if (索引 >= 上限) 索引 = static_cast<std::uint64_t>(上限) - 1ull;
+        return static_cast<std::uint32_t>(索引);
+    };
+
+    const auto 体素索引 = [&](const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) -> std::size_t {
+        return static_cast<std::size_t>((static_cast<std::uint64_t>(z) * 高度 + y) * 宽度 + x);
+    };
+
+    const auto 记录颜色 = [&](const std::size_t 索引, const std::uint32_t 颜色) {
+        if (!需要颜色累积) return;
+        颜色A[索引] += static_cast<std::uint64_t>((颜色 >> 24) & 0xffu);
+        颜色R[索引] += static_cast<std::uint64_t>((颜色 >> 16) & 0xffu);
+        颜色G[索引] += static_cast<std::uint64_t>((颜色 >> 8) & 0xffu);
+        颜色B[索引] += static_cast<std::uint64_t>(颜色 & 0xffu);
+        ++颜色数量[索引];
+    };
+
+    for (std::size_t 视角下标 = 0; 视角下标 < 视角集合.size(); ++视角下标) {
+        const auto& 视角 = 视角集合[视角下标];
+        const auto 期望像素数 = static_cast<std::size_t>(视角.宽度) * static_cast<std::size_t>(视角.高度);
+        const std::uint64_t 视角位 = 1ull << 视角下标;
+        const bool 有颜色 = !视角.颜色_RGBA.empty();
+
+        for (std::size_t i = 0; i < 期望像素数; ++i) {
+            if (视角.轮廓掩码[i] == 0 || 视角.深度_mm[i] <= 0) continue;
+            const auto& 点 = 视角.空间点_mm[i];
+            const auto x = 坐标到体素(点.x, 最小X, 宽度);
+            const auto y = 坐标到体素(点.y, 最小Y, 高度);
+            const auto z = 坐标到体素(点.z, 最小Z, 深度);
+            const auto idx = 体素索引(x, y, z);
+            if (占据[idx] == 0) {
+                占据[idx] = 1;
+                ++结果.原始命中体素数量;
+            }
+            if ((来源视角位集[idx] & 视角位) == 0) {
+                来源视角位集[idx] |= 视角位;
+                if (来源视角数[idx] < (std::numeric_limits<std::uint8_t>::max)()) {
+                    ++来源视角数[idx];
+                }
+            }
+            if (有颜色) {
+                记录颜色(idx, 视角.颜色_RGBA[i]);
+            }
+        }
+    }
+
+    const auto 取平均颜色 = [&](const std::size_t 索引) -> std::uint32_t {
+        if (!需要颜色累积 || 颜色数量[索引] == 0) return 0;
+        const auto 数量 = static_cast<std::uint64_t>(颜色数量[索引]);
+        const auto a = static_cast<std::uint32_t>(颜色A[索引] / 数量) & 0xffu;
+        const auto r = static_cast<std::uint32_t>(颜色R[索引] / 数量) & 0xffu;
+        const auto g = static_cast<std::uint32_t>(颜色G[索引] / 数量) & 0xffu;
+        const auto b = static_cast<std::uint32_t>(颜色B[索引] / 数量) & 0xffu;
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    };
+
+    const auto 写入补全颜色 = [&](const std::size_t 目标, const std::size_t 左, const std::size_t 右) {
+        if (!需要颜色累积 || 颜色数量[目标] != 0 || 颜色数量[左] == 0 || 颜色数量[右] == 0) return;
+        const auto 左色 = 取平均颜色(左);
+        const auto 右色 = 取平均颜色(右);
+        颜色A[目标] = static_cast<std::uint64_t>(((左色 >> 24) & 0xffu) + ((右色 >> 24) & 0xffu)) / 2ull;
+        颜色R[目标] = static_cast<std::uint64_t>(((左色 >> 16) & 0xffu) + ((右色 >> 16) & 0xffu)) / 2ull;
+        颜色G[目标] = static_cast<std::uint64_t>(((左色 >> 8) & 0xffu) + ((右色 >> 8) & 0xffu)) / 2ull;
+        颜色B[目标] = static_cast<std::uint64_t>((左色 & 0xffu) + (右色 & 0xffu)) / 2ull;
+        颜色数量[目标] = 1;
+    };
+
+    const auto 补全线 = [&](const std::size_t 起点, const std::uint32_t 长度, const std::size_t 步长) {
+        if (参数.互补最大间隔体素 == 0 || 长度 < 3) return;
+        bool 有前点 = false;
+        std::uint32_t 前位置 = 0;
+        std::size_t 前索引 = 0;
+
+        for (std::uint32_t 位置 = 0; 位置 < 长度; ++位置) {
+            const auto 当前索引 = 起点 + static_cast<std::size_t>(位置) * 步长;
+            if (占据[当前索引] == 0) continue;
+
+            if (有前点 && 位置 > 前位置 + 1) {
+                const auto 间隔 = 位置 - 前位置 - 1;
+                const auto 合并来源 = 来源视角位集[前索引] | 来源视角位集[当前索引];
+                if (间隔 <= 参数.互补最大间隔体素 && std::popcount(合并来源) >= 2) {
+                    for (std::uint32_t 补位置 = 前位置 + 1; 补位置 < 位置; ++补位置) {
+                        const auto 补索引 = 起点 + static_cast<std::size_t>(补位置) * 步长;
+                        if (占据[补索引] != 0) continue;
+                        占据[补索引] = 1;
+                        来源视角位集[补索引] = 合并来源;
+                        来源视角数[补索引] = static_cast<std::uint8_t>(
+                            std::min<std::uint32_t>(std::popcount(合并来源), (std::numeric_limits<std::uint8_t>::max)()));
+                        写入补全颜色(补索引, 前索引, 当前索引);
+                        ++结果.互补补全体素数量;
+                    }
+                }
+            }
+
+            有前点 = true;
+            前位置 = 位置;
+            前索引 = 当前索引;
+        }
+    };
+
+    if (参数.互补最大间隔体素 > 0) {
+        for (std::uint32_t z = 0; z < 深度; ++z) {
+            for (std::uint32_t y = 0; y < 高度; ++y) {
+                补全线(体素索引(0, y, z), 宽度, 1);
+            }
+        }
+        for (std::uint32_t z = 0; z < 深度; ++z) {
+            for (std::uint32_t x = 0; x < 宽度; ++x) {
+                补全线(体素索引(x, 0, z), 高度, 宽度);
+            }
+        }
+        for (std::uint32_t y = 0; y < 高度; ++y) {
+            for (std::uint32_t x = 0; x < 宽度; ++x) {
+                补全线(体素索引(x, y, 0), 深度, static_cast<std::size_t>(宽度) * 高度);
+            }
+        }
+    }
+
+    auto 位块 = 创建三维体素长方体占据位块(宽度, 高度, 深度);
+    if (位块.empty()) return 拒绝("创建长方体体素位块未完成");
+
+    for (std::size_t idx = 0; idx < 稠密大小; ++idx) {
+        if (占据[idx] == 0 || 来源视角数[idx] < 参数.最小确认视角数) continue;
+        位块[idx / 64ull] |= (1ull << (idx % 64ull));
+        ++结果.占据体素数量;
+        if (需要颜色累积 && 颜色数量[idx] > 0) {
+            const auto x = static_cast<std::uint32_t>(idx % 宽度);
+            const auto yz = idx / 宽度;
+            const auto y = static_cast<std::uint32_t>(yz % 高度);
+            const auto z = static_cast<std::uint32_t>(yz / 高度);
+            结果.体素颜色.push_back({ x, y, z, 取平均颜色(idx) });
+        }
+    }
+
+    if (结果.占据体素数量 == 0) return 拒绝("确认视角过滤后没有占据体素");
+
+    结果.成功 = true;
+    结果.占据位块 = std::move(位块);
+    结果.颜色体素数量 = static_cast<std::uint64_t>(结果.体素颜色.size());
+    结果.宽度 = 宽度;
+    结果.高度 = 高度;
+    结果.深度 = 深度;
+    结果.原点X_mm = 最小X;
+    结果.原点Y_mm = 最小Y;
+    结果.原点Z_mm = 最小Z;
     return 结果;
 }
 
