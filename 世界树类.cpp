@@ -5,12 +5,18 @@
 #include <cmath>
 #include <initializer_list>
 #include <limits>
+#include <mutex>
+#include <sstream>
+#include <type_traits>
+#include <unordered_set>
 #include <utility>
 
+#include "日志接入.h"
 #include "度量模板注册表桥接.h"
 #include "语素类.h"
 
 import 二次特征应用模块;
+import 数据库ADO模块;
 
 namespace {
 
@@ -233,6 +239,605 @@ namespace {
             ? static_cast<场景节点类*>(父节点)
             : nullptr;
     }
+
+    struct 结构_世界树SQL节点行 {
+        int 行号 = 0;
+        std::string 节点主键{};
+        std::string 父节点主键{};
+        int 深度 = 0;
+        int 同层序号 = 0;
+        int 直接子数量 = 0;
+        std::string 路径{};
+        std::string 节点类别{};
+        std::string 显示文本{};
+        bool 有主信息类型 = false;
+        int 主信息类型值 = 0;
+        std::string 主信息类型文本{};
+        std::string 名称主键{};
+        std::string 名称文本{};
+        std::string 类型主键{};
+        std::string 类型文本{};
+        std::string 值类别{};
+        std::string 值文本{};
+        std::string 辅助文本{};
+    };
+
+    struct 结构_世界树SQL关系行 {
+        int 行号 = 0;
+        std::string 宿主主键{};
+        std::string 关系名{};
+        std::string 目标类别{};
+        std::string 目标主键{};
+        std::string 目标文本{};
+        int 序号 = 0;
+    };
+
+    std::mutex& 私有_世界树SQL投影互斥() noexcept
+    {
+        static std::mutex 互斥{};
+        return 互斥;
+    }
+
+    std::string 私有_世界树SQL字符串(const std::string& 文本, const bool 空为NULL = true)
+    {
+        if (空为NULL && 文本.empty()) {
+            return "NULL";
+        }
+        std::string 输出 = "N'";
+        for (const char 字符 : 文本) {
+            if (字符 == '\'') {
+                输出 += "''";
+            }
+            else {
+                输出.push_back(字符);
+            }
+        }
+        输出.push_back('\'');
+        return 输出;
+    }
+
+    std::string 私有_世界树SQL可空整数(const bool 有值, const int 值)
+    {
+        return 有值 ? std::to_string(值) : "NULL";
+    }
+
+    std::string 私有_世界树SQL入口主键(const 语素入口节点类* 入口)
+    {
+        return 入口 ? 入口->获取主键() : std::string{};
+    }
+
+    std::string 私有_世界树SQL入口文本(const 语素入口节点类* 入口)
+    {
+        if (!入口) {
+            return {};
+        }
+        try {
+            return 语素集.获取词(入口);
+        }
+        catch (...) {
+            return 入口->获取主键();
+        }
+    }
+
+    std::string 私有_世界树SQL指针文本(const void* 指针)
+    {
+        if (!指针) {
+            return {};
+        }
+        std::ostringstream 输出;
+        输出 << "ptr:" << reinterpret_cast<std::uintptr_t>(指针);
+        return 输出.str();
+    }
+
+    const char* 私有_世界树SQL主信息类型文本(const 枚举_主信息类型 类型) noexcept
+    {
+        switch (类型) {
+        case 枚举_主信息类型::指代: return "指代";
+        case 枚举_主信息类型::特征: return "特征";
+        case 枚举_主信息类型::抽象特征: return "抽象特征";
+        case 枚举_主信息类型::存在: return "存在";
+        case 枚举_主信息类型::状态: return "状态";
+        case 枚举_主信息类型::场景: return "场景";
+        case 枚举_主信息类型::动态: return "动态";
+        case 枚举_主信息类型::因果: return "因果";
+        case 枚举_主信息类型::二次特征_修饰: return "二次特征";
+        case 枚举_主信息类型::语言信息_仅记录: return "语言信息_仅记录";
+        case 枚举_主信息类型::基础信息基类: return "基础信息基类";
+        case 枚举_主信息类型::未定义: return "未定义";
+        default: return "其它";
+        }
+    }
+
+    const char* 私有_世界树SQL世界类型文本(const 枚举_世界类型 类型) noexcept
+    {
+        switch (类型) {
+        case 枚举_世界类型::现实世界: return "现实世界";
+        case 枚举_世界类型::文本世界: return "文本世界";
+        case 枚举_世界类型::想象世界: return "想象世界";
+        case 枚举_世界类型::记忆世界: return "记忆世界";
+        case 枚举_世界类型::推理世界: return "推理世界";
+        case 枚举_世界类型::内部世界: return "内部世界";
+        case 枚举_世界类型::虚拟世界: return "虚拟世界";
+        default: return "其它";
+        }
+    }
+
+    std::string 私有_世界树SQL特征值类别(const 特征值& 值)
+    {
+        if (std::holds_alternative<I64>(值)) return "I64";
+        if (std::holds_alternative<VecU句柄>(值)) return "VecU句柄";
+        if (std::holds_alternative<指针句柄>(值)) return "指针句柄";
+        return {};
+    }
+
+    std::string 私有_世界树SQL特征值文本(const 特征值& 值)
+    {
+        if (std::holds_alternative<I64>(值)) {
+            return std::to_string(std::get<I64>(值));
+        }
+        if (std::holds_alternative<VecU句柄>(值)) {
+            return "VecU#" + std::to_string(std::get<VecU句柄>(值).主信息指针);
+        }
+        if (std::holds_alternative<指针句柄>(值)) {
+            return "Ptr#" + std::to_string(std::get<指针句柄>(值).指针);
+        }
+        return {};
+    }
+
+    std::string 私有_世界树SQL节点短标题(const 基础信息节点类* 节点)
+    {
+        if (!节点 || !节点->主信息) {
+            return "世界树查询根";
+        }
+        const auto* 主信息 = 节点->主信息;
+        const auto 名称 = 私有_世界树SQL入口文本(主信息->名称);
+        const auto 类型 = 私有_世界树SQL入口文本(主信息->类型);
+        if (!名称.empty() && !类型.empty() && 名称 != 类型) {
+            return 名称 + "(" + 类型 + ")";
+        }
+        if (!名称.empty()) {
+            return 名称;
+        }
+        if (!类型.empty()) {
+            return 类型;
+        }
+        if (const auto* 特征 = dynamic_cast<const 特征节点主信息类*>(主信息)) {
+            const auto 值文本 = 私有_世界树SQL特征值文本(特征->当前值);
+            return 值文本.empty() ? "特征" : "特征=" + 值文本;
+        }
+        if (const auto* 状态 = dynamic_cast<const 状态节点主信息类*>(主信息)) {
+            const auto 值文本 = 私有_世界树SQL特征值文本(状态->状态值);
+            return 值文本.empty() ? "状态" : "状态=" + 值文本;
+        }
+        return std::string(私有_世界树SQL主信息类型文本(主信息->主信息类型))
+            + "#"
+            + 节点->获取主键();
+    }
+
+    template<class T节点>
+    std::string 私有_世界树SQL引用主键(const 可解析引用<T节点>& 引用)
+    {
+        if (!引用.主键.empty()) {
+            return 引用.主键;
+        }
+        if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 基础信息节点类>) {
+            return 引用.指针 ? 引用.指针->获取主键() : std::string{};
+        }
+        else {
+            return 私有_世界树SQL指针文本(引用.指针);
+        }
+    }
+
+    template<class T节点>
+    void 私有_世界树SQL添加引用(
+        std::vector<结构_世界树SQL关系行>& 关系集,
+        const std::string& 宿主主键,
+        const char* 关系名,
+        const char* 目标类别,
+        const 可解析引用<T节点>& 引用,
+        const int 序号)
+    {
+        const auto 目标主键 = 私有_世界树SQL引用主键(引用);
+        if (目标主键.empty()) {
+            return;
+        }
+        结构_世界树SQL关系行 行{};
+        行.行号 = static_cast<int>(关系集.size() + 1);
+        行.宿主主键 = 宿主主键;
+        行.关系名 = 关系名 ? 关系名 : "";
+        行.目标类别 = 目标类别 ? 目标类别 : "";
+        行.目标主键 = 目标主键;
+        if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 基础信息节点类>) {
+            行.目标文本 = 私有_世界树SQL节点短标题(引用.指针);
+        }
+        else {
+            行.目标文本 = 目标主键;
+        }
+        行.序号 = 序号;
+        关系集.push_back(std::move(行));
+    }
+
+    template<class T节点>
+    void 私有_世界树SQL添加引用集(
+        std::vector<结构_世界树SQL关系行>& 关系集,
+        const std::string& 宿主主键,
+        const char* 关系名,
+        const char* 目标类别,
+        const std::vector<可解析引用<T节点>>& 引用集)
+    {
+        int 序号 = 0;
+        for (const auto& 引用 : 引用集) {
+            私有_世界树SQL添加引用(关系集, 宿主主键, 关系名, 目标类别, 引用, 序号++);
+        }
+    }
+
+    void 私有_世界树SQL收集关系(
+        const 基础信息节点类* 节点,
+        std::vector<结构_世界树SQL关系行>& 关系集)
+    {
+        if (!节点 || !节点->主信息) {
+            return;
+        }
+        const auto 宿主主键 = 节点->获取主键();
+        const auto* 主信息 = 节点->主信息;
+        if (const auto* 指代 = dynamic_cast<const 指代节点主信息类*>(主信息)) {
+            私有_世界树SQL添加引用(关系集, 宿主主键, "指代对象", "基础信息", 指代->指代对象, 0);
+        }
+        if (const auto* 抽象 = dynamic_cast<const 抽象特征主信息类*>(主信息)) {
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "来源实例特征", "基础信息", 抽象->来源实例特征);
+        }
+        if (const auto* 特征 = dynamic_cast<const 特征节点主信息类*>(主信息)) {
+            私有_世界树SQL添加引用(关系集, 宿主主键, "抽象特征", "基础信息", 特征->抽象特征, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "当前命中抽象特征", "基础信息", 特征->当前命中抽象特征, 0);
+        }
+        if (const auto* 存在 = dynamic_cast<const 存在节点主信息类*>(主信息)) {
+            私有_世界树SQL添加引用(关系集, 宿主主键, "概念模板", "基础信息", 存在->概念模板, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "概念集", "基础信息", 存在->概念集);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "内部世界", "基础信息", 存在->内部世界, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "实例因果", "基础信息", 存在->实例因果);
+            if (存在->需求根节点) {
+                const auto 主键 = 私有_世界树SQL指针文本(存在->需求根节点);
+                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主主键, "需求根节点", "需求", 主键, 主键, 0 });
+            }
+            if (存在->任务根节点) {
+                const auto 主键 = 私有_世界树SQL指针文本(存在->任务根节点);
+                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主主键, "任务根节点", "任务", 主键, 主键, 0 });
+            }
+            if (存在->方法根节点) {
+                const auto 主键 = 私有_世界树SQL指针文本(存在->方法根节点);
+                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主主键, "方法根节点", "方法", 主键, 主键, 0 });
+            }
+        }
+        if (const auto* 场景 = dynamic_cast<const 场景节点主信息类*>(主信息)) {
+            私有_世界树SQL添加引用(关系集, 宿主主键, "宿主存在", "基础信息", 场景->宿主存在, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "状态索引", "基础信息", 场景->状态索引);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "动态索引", "基础信息", 场景->动态索引);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "关系索引", "基础信息", 场景->关系索引);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "二次特征索引", "基础信息", 场景->二次特征索引);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "实例因果索引", "基础信息", 场景->实例因果索引);
+        }
+        if (const auto* 状态 = dynamic_cast<const 状态节点主信息类*>(主信息)) {
+            私有_世界树SQL添加引用(关系集, 宿主主键, "状态主体", "基础信息", 状态->状态主体, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "状态特征", "基础信息", 状态->状态特征, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "对应信息节点", "基础信息", 状态->对应信息节点, 0);
+        }
+        if (const auto* 动态 = dynamic_cast<const 动态节点主信息类*>(主信息)) {
+            私有_世界树SQL添加引用(关系集, 宿主主键, "初始状态", "基础信息", 动态->初始状态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "结果状态", "基础信息", 动态->结果状态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "动态主体", "基础信息", 动态->动态主体, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "动态特征", "基础信息", 动态->动态特征, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "来源输入场景", "基础信息", 动态->来源输入场景, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "来源输出场景", "基础信息", 动态->来源输出场景, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "来源低层动态", "基础信息", 动态->来源低层动态);
+        }
+        if (const auto* 二次 = dynamic_cast<const 二次特征主信息类*>(主信息)) {
+            私有_世界树SQL添加引用(关系集, 宿主主键, "概念模板", "基础信息", 二次->概念模板, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "所属场景", "基础信息", 二次->所属场景, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "来源起始状态", "基础信息", 二次->来源起始状态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "来源结果状态", "基础信息", 二次->来源结果状态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "来源动态", "基础信息", 二次->来源动态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "来源场景", "基础信息", 二次->来源场景, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "主体", "基础信息", 二次->主体, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "客体", "基础信息", 二次->客体, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "左对象", "基础信息", 二次->左对象, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "右对象", "基础信息", 二次->右对象, 0);
+        }
+        if (const auto* 因果 = dynamic_cast<const 因果主信息类*>(主信息)) {
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "条件比较模板", "基础信息", 因果->条件比较模板);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "因比较模板", "基础信息", 因果->因比较模板);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "因方法模板", "方法", 因果->因方法模板, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "果比较模板", "基础信息", 因果->果比较模板);
+            私有_世界树SQL添加引用(关系集, 宿主主键, "主果比较模板", "基础信息", 因果->主果比较模板, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, "证据动态样本", "基础信息", 因果->证据动态样本);
+        }
+    }
+
+    void 私有_世界树SQL填充节点主信息(const 基础信息节点类* 节点, 结构_世界树SQL节点行& 行)
+    {
+        if (!节点 || !节点->主信息) {
+            行.节点类别 = "查询根";
+            行.显示文本 = "世界树查询根";
+            return;
+        }
+        const auto* 主信息 = 节点->主信息;
+        行.有主信息类型 = true;
+        行.主信息类型值 = static_cast<int>(主信息->主信息类型);
+        行.主信息类型文本 = 私有_世界树SQL主信息类型文本(主信息->主信息类型);
+        行.节点类别 = 行.主信息类型文本;
+        行.名称主键 = 私有_世界树SQL入口主键(主信息->名称);
+        行.名称文本 = 私有_世界树SQL入口文本(主信息->名称);
+        行.类型主键 = 私有_世界树SQL入口主键(主信息->类型);
+        行.类型文本 = 私有_世界树SQL入口文本(主信息->类型);
+        行.显示文本 = 私有_世界树SQL节点短标题(节点);
+
+        if (const auto* 特征 = dynamic_cast<const 特征节点主信息类*>(主信息)) {
+            行.值类别 = 私有_世界树SQL特征值类别(特征->当前值);
+            行.值文本 = 私有_世界树SQL特征值文本(特征->当前值);
+            行.辅助文本 = "当前稳态索引=" + std::to_string(特征->当前稳态索引);
+        }
+        else if (const auto* 状态 = dynamic_cast<const 状态节点主信息类*>(主信息)) {
+            行.值类别 = 私有_世界树SQL特征值类别(状态->状态值);
+            行.值文本 = 私有_世界树SQL特征值文本(状态->状态值);
+            行.辅助文本 = "状态域=" + std::to_string(static_cast<int>(状态->状态域))
+                + " | 发生时间=" + std::to_string(状态->发生时间)
+                + " | 是否变化=" + (状态->是否变化 ? "1" : "0");
+        }
+        else if (const auto* 场景 = dynamic_cast<const 场景节点主信息类*>(主信息)) {
+            行.辅助文本 = "世界类型=" + std::string(私有_世界树SQL世界类型文本(场景->世界类型))
+                + " | 状态索引=" + std::to_string(场景->状态索引.size())
+                + " | 动态索引=" + std::to_string(场景->动态索引.size())
+                + " | 因果索引=" + std::to_string(场景->实例因果索引.size());
+        }
+        else if (const auto* 动态 = dynamic_cast<const 动态节点主信息类*>(主信息)) {
+            行.辅助文本 = "来源类型=" + std::to_string(static_cast<int>(动态->来源类型))
+                + " | 业务语义=" + std::to_string(static_cast<int>(动态->业务语义类型))
+                + " | 路径签名=" + std::to_string(动态->动态路径签名);
+        }
+        else if (const auto* 二次 = dynamic_cast<const 二次特征主信息类*>(主信息)) {
+            行.值类别 = "二次特征";
+            行.值文本 = std::to_string(二次->标量值);
+            行.辅助文本 = "种类=" + std::to_string(static_cast<int>(二次->种类))
+                + " | 域=" + std::to_string(static_cast<int>(二次->域))
+                + " | 语义键=" + 二次->离散语义键;
+        }
+        else if (const auto* 因果 = dynamic_cast<const 因果主信息类*>(主信息)) {
+            行.辅助文本 = "形态=" + std::to_string(static_cast<int>(因果->形态))
+                + " | 因动作=" + 因果->因动作名称
+                + " | 成立=" + std::to_string(因果->成立次数)
+                + " | 失败=" + std::to_string(因果->失败次数);
+        }
+    }
+
+    void 私有_收集世界树SQL节点(
+        const 基础信息节点类* 节点,
+        const std::string& 父节点主键,
+        int 深度,
+        int 同层序号,
+        const std::string& 父路径,
+        std::unordered_set<const 基础信息节点类*>& 已访问,
+        std::vector<结构_世界树SQL节点行>& 节点集,
+        std::vector<结构_世界树SQL关系行>& 关系集);
+
+    void 私有_收集世界树SQL同层(
+        const 基础信息节点类* 首节点,
+        const 基础信息节点类* 停止节点,
+        const std::string& 父节点主键,
+        const int 深度,
+        const std::string& 父路径,
+        std::unordered_set<const 基础信息节点类*>& 已访问,
+        std::vector<结构_世界树SQL节点行>& 节点集,
+        std::vector<结构_世界树SQL关系行>& 关系集)
+    {
+        if (!首节点) {
+            return;
+        }
+        auto* 当前 = 首节点;
+        int 同层序号 = 0;
+        std::size_t 保护 = 0;
+        do {
+            if (当前 == 停止节点) {
+                break;
+            }
+            私有_收集世界树SQL节点(
+                当前,
+                父节点主键,
+                深度,
+                同层序号,
+                父路径,
+                已访问,
+                节点集,
+                关系集);
+            当前 = static_cast<const 基础信息节点类*>(当前->下);
+            ++同层序号;
+            ++保护;
+        } while (当前 && 当前 != 首节点 && 当前 != 停止节点 && 保护 < 200000);
+    }
+
+    void 私有_收集世界树SQL节点(
+        const 基础信息节点类* 节点,
+        const std::string& 父节点主键,
+        const int 深度,
+        const int 同层序号,
+        const std::string& 父路径,
+        std::unordered_set<const 基础信息节点类*>& 已访问,
+        std::vector<结构_世界树SQL节点行>& 节点集,
+        std::vector<结构_世界树SQL关系行>& 关系集)
+    {
+        if (!节点 || !已访问.insert(节点).second) {
+            return;
+        }
+        const auto 节点主键 = 节点->获取主键();
+        const auto 路径 = 父路径.empty() ? 节点主键 : 父路径 + "/" + 节点主键;
+        结构_世界树SQL节点行 行{};
+        行.行号 = static_cast<int>(节点集.size() + 1);
+        行.节点主键 = 节点主键;
+        行.父节点主键 = 父节点主键;
+        行.深度 = 深度;
+        行.同层序号 = 同层序号;
+        行.直接子数量 = static_cast<int>(节点->子节点数量);
+        行.路径 = 路径;
+        私有_世界树SQL填充节点主信息(节点, 行);
+        节点集.push_back(std::move(行));
+        私有_世界树SQL收集关系(节点, 关系集);
+
+        if (节点->子) {
+            私有_收集世界树SQL同层(
+                static_cast<const 基础信息节点类*>(节点->子),
+                nullptr,
+                节点主键,
+                深度 + 1,
+                路径,
+                已访问,
+                节点集,
+                关系集);
+        }
+    }
+
+    std::string 私有_世界树SQL建库脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "IF DB_ID(N'FishnestProjection') IS NULL CREATE DATABASE [FishnestProjection];\n";
+        return SQL.str();
+    }
+
+    std::string 私有_世界树SQL建表脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');\n"
+            << "IF OBJECT_ID(N'fishnest.world_tree_snapshot', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.world_tree_snapshot (\n"
+            << "    snapshot_id uniqueidentifier NOT NULL PRIMARY KEY,\n"
+            << "    captured_at datetime2(3) NOT NULL,\n"
+            << "    source_kind nvarchar(80) NOT NULL,\n"
+            << "    source_reason nvarchar(300) NULL,\n"
+            << "    node_count int NOT NULL,\n"
+            << "    relation_count int NOT NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'fishnest.world_tree_node', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.world_tree_node (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    row_index int NOT NULL,\n"
+            << "    node_key nvarchar(80) NOT NULL,\n"
+            << "    parent_key nvarchar(80) NULL,\n"
+            << "    depth int NOT NULL,\n"
+            << "    sibling_index int NOT NULL,\n"
+            << "    direct_child_count int NOT NULL,\n"
+            << "    path_text nvarchar(1000) NULL,\n"
+            << "    node_kind nvarchar(80) NULL,\n"
+            << "    display_text nvarchar(500) NULL,\n"
+            << "    main_type_value int NULL,\n"
+            << "    main_type_text nvarchar(80) NULL,\n"
+            << "    name_key nvarchar(80) NULL,\n"
+            << "    name_text nvarchar(300) NULL,\n"
+            << "    type_key nvarchar(80) NULL,\n"
+            << "    type_text nvarchar(300) NULL,\n"
+            << "    value_kind nvarchar(80) NULL,\n"
+            << "    value_text nvarchar(500) NULL,\n"
+            << "    auxiliary_text nvarchar(1000) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'fishnest.world_tree_node_relation', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.world_tree_node_relation (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    row_index int NOT NULL,\n"
+            << "    owner_key nvarchar(80) NOT NULL,\n"
+            << "    relation_name nvarchar(120) NOT NULL,\n"
+            << "    target_kind nvarchar(80) NULL,\n"
+            << "    target_key nvarchar(80) NULL,\n"
+            << "    target_text nvarchar(500) NULL,\n"
+            << "    ordinal_index int NOT NULL\n"
+            << ");\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.world_tree_node'))\n"
+            << "    CREATE INDEX IX_world_tree_node_key ON fishnest.world_tree_node(snapshot_id, node_key, parent_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_relation_owner' AND object_id = OBJECT_ID(N'fishnest.world_tree_node_relation'))\n"
+            << "    CREATE INDEX IX_world_tree_relation_owner ON fishnest.world_tree_node_relation(snapshot_id, owner_key, target_key);\n";
+        return SQL.str();
+    }
+
+    std::string 私有_世界树SQL视图脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_world_tree_nodes AS\n"
+            << "SELECT n.*\n"
+            << "FROM fishnest.world_tree_node n\n"
+            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.world_tree_snapshot ORDER BY captured_at DESC);');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_world_tree_relations AS\n"
+            << "SELECT r.*\n"
+            << "FROM fishnest.world_tree_node_relation r\n"
+            << "WHERE r.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.world_tree_snapshot ORDER BY captured_at DESC);');\n";
+        return SQL.str();
+    }
+
+    std::string 私有_构造世界树SQL重写脚本(
+        const std::vector<结构_世界树SQL节点行>& 节点集,
+        const std::vector<结构_世界树SQL关系行>& 关系集,
+        const std::string& 来源原因)
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "SET XACT_ABORT ON;\n"
+            << "BEGIN TRANSACTION;\n"
+            << "DELETE FROM fishnest.world_tree_node_relation;\n"
+            << "DELETE FROM fishnest.world_tree_node;\n"
+            << "DELETE FROM fishnest.world_tree_snapshot;\n"
+            << "DECLARE @snapshot_id uniqueidentifier = NEWID();\n"
+            << "INSERT INTO fishnest.world_tree_snapshot (snapshot_id, captured_at, source_kind, source_reason, node_count, relation_count)\n"
+            << "VALUES (@snapshot_id, SYSUTCDATETIME(), N'world_tree_projection', "
+            << 私有_世界树SQL字符串(来源原因)
+            << ", " << 节点集.size()
+            << ", " << 关系集.size()
+            << ");\n";
+        for (const auto& 行 : 节点集) {
+            SQL << "INSERT INTO fishnest.world_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_kind, display_text, main_type_value, main_type_text, name_key, name_text, type_key, type_text, value_kind, value_text, auxiliary_text) VALUES (@snapshot_id, "
+                << 行.行号 << ", "
+                << 私有_世界树SQL字符串(行.节点主键, false) << ", "
+                << 私有_世界树SQL字符串(行.父节点主键) << ", "
+                << 行.深度 << ", "
+                << 行.同层序号 << ", "
+                << 行.直接子数量 << ", "
+                << 私有_世界树SQL字符串(行.路径) << ", "
+                << 私有_世界树SQL字符串(行.节点类别) << ", "
+                << 私有_世界树SQL字符串(行.显示文本) << ", "
+                << 私有_世界树SQL可空整数(行.有主信息类型, 行.主信息类型值) << ", "
+                << 私有_世界树SQL字符串(行.主信息类型文本) << ", "
+                << 私有_世界树SQL字符串(行.名称主键) << ", "
+                << 私有_世界树SQL字符串(行.名称文本) << ", "
+                << 私有_世界树SQL字符串(行.类型主键) << ", "
+                << 私有_世界树SQL字符串(行.类型文本) << ", "
+                << 私有_世界树SQL字符串(行.值类别) << ", "
+                << 私有_世界树SQL字符串(行.值文本) << ", "
+                << 私有_世界树SQL字符串(行.辅助文本) << ");\n";
+        }
+        for (const auto& 行 : 关系集) {
+            SQL << "INSERT INTO fishnest.world_tree_node_relation (snapshot_id, row_index, owner_key, relation_name, target_kind, target_key, target_text, ordinal_index) VALUES (@snapshot_id, "
+                << 行.行号 << ", "
+                << 私有_世界树SQL字符串(行.宿主主键, false) << ", "
+                << 私有_世界树SQL字符串(行.关系名, false) << ", "
+                << 私有_世界树SQL字符串(行.目标类别) << ", "
+                << 私有_世界树SQL字符串(行.目标主键) << ", "
+                << 私有_世界树SQL字符串(行.目标文本) << ", "
+                << 行.序号 << ");\n";
+        }
+        SQL << "COMMIT TRANSACTION;\n";
+        return SQL.str();
+    }
+
+    bool 私有_执行世界树ADO命令(
+        const std::string& 连接串,
+        const std::string& 阶段,
+        const std::string& SQL,
+        std::string& 错误)
+    {
+        std::string ADO错误{};
+        if (!执行ADO命令(连接串, SQL, ADO错误)) {
+            错误 = 阶段 + "失败 | " + ADO错误;
+            return false;
+        }
+        return true;
+    }
 }
 
 世界树类& 世界树 = *new 世界树类{};
@@ -353,6 +958,76 @@ std::vector<基础信息节点类*> 世界树类::获取子节点(const 基础�
 std::string 世界树类::获取名称(const 基础信息节点类* 节点) const
 {
     return 基础信息链_.获取名称(节点);
+}
+
+// 功能：把当前世界树本体重写到 SQL Server 查询投影。
+bool 世界树类::重写世界树SQL投影(const char* 来源原因) const noexcept
+{
+    std::lock_guard<std::mutex> SQL锁{ 私有_世界树SQL投影互斥() };
+    try {
+        std::vector<结构_世界树SQL节点行> 节点集{};
+        std::vector<结构_世界树SQL关系行> 关系集{};
+        std::unordered_set<const 基础信息节点类*> 已访问{};
+        {
+            auto lk = 基础信息链_.获取读锁();
+            结构_世界树SQL节点行 根行{};
+            根行.行号 = 1;
+            根行.节点主键 = "WORLD_ROOT";
+            根行.父节点主键 = {};
+            根行.深度 = 0;
+            根行.同层序号 = 0;
+            根行.直接子数量 = 基础信息链_.世界根()
+                ? static_cast<int>(基础信息链_.世界根()->子节点数量)
+                : 0;
+            根行.路径 = "WORLD_ROOT";
+            根行.节点类别 = "查询根";
+            根行.显示文本 = "世界树查询根";
+            节点集.push_back(std::move(根行));
+
+            auto* 根 = 基础信息链_.世界根();
+            if (根 && 根->子) {
+                私有_收集世界树SQL同层(
+                    static_cast<const 基础信息节点类*>(根->子),
+                    nullptr,
+                    "WORLD_ROOT",
+                    1,
+                    "WORLD_ROOT",
+                    已访问,
+                    节点集,
+                    关系集);
+            }
+        }
+
+        const auto 原因文本 = 来源原因 ? std::string(来源原因) : std::string{};
+        const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");
+        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "FishnestProjection");
+        std::string 错误{};
+        if (!私有_执行世界树ADO命令(主库连接串, "世界树SQL投影建库", 私有_世界树SQL建库脚本(), 错误)
+            || !私有_执行世界树ADO命令(投影库连接串, "世界树SQL投影建表", 私有_世界树SQL建表脚本(), 错误)
+            || !私有_执行世界树ADO命令(投影库连接串, "世界树SQL投影视图", 私有_世界树SQL视图脚本(), 错误)
+            || !私有_执行世界树ADO命令(投影库连接串, "世界树SQL投影重写", 私有_构造世界树SQL重写脚本(节点集, 关系集, 原因文本), 错误)) {
+            项目运行错误日志(
+                "世界树SQL投影失败"
+                " | 原因=" + 错误
+                + " | 节点数=" + std::to_string(节点集.size())
+                + " | 关系数=" + std::to_string(关系集.size()));
+            return false;
+        }
+
+        项目运行日志(
+            "世界树SQL投影完成"
+            " | 来源=" + 原因文本
+            + " | 节点数=" + std::to_string(节点集.size())
+            + " | 关系数=" + std::to_string(关系集.size()));
+        return true;
+    }
+    catch (const std::exception& 异常) {
+        项目运行错误日志(std::string("世界树SQL投影异常 | 原因=") + 异常.what());
+    }
+    catch (...) {
+        项目运行错误日志("世界树SQL投影异常 | 原因=未知异常");
+    }
+    return false;
 }
 
 // 功能：创建并返回或登记对应对象。

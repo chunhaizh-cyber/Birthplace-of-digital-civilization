@@ -1,13 +1,18 @@
 #include "任务类.h"
 
 #include <algorithm>
+#include <mutex>
+#include <sstream>
 #include <string>
+#include <unordered_set>
 
+#include "日志接入.h"
 #include "需求类.h"
 #include "方法类.h"
 #include "世界树类.h"
 #include "语素类.h"
 
+import 数据库ADO模块;
 import 二次特征应用模块;
 import 自我类.特征定义;
 
@@ -791,6 +796,348 @@ namespace {
             私有_任务虚拟存在内部世界名称词(任务头结点));
         return 任务虚拟存在;
     }
+
+    struct 结构_任务树SQL行 {
+        int 行号 = 0;
+        std::string 节点主键{};
+        std::string 父节点主键{};
+        int 深度 = 0;
+        int 同层序号 = 0;
+        int 直接子数量 = 0;
+        std::string 路径{};
+        int 节点种类值 = 0;
+        std::string 节点种类文本{};
+        int 任务状态值 = 0;
+        std::string 任务状态文本{};
+        std::string 名称文本{};
+        std::string 类型文本{};
+        std::string 对应需求主键{};
+        std::string 任务虚拟存在主键{};
+        std::string 场景主键{};
+        std::string 目标状态主键{};
+        std::string 结果状态主键{};
+        std::int64_t 创建时间 = 0;
+        std::int64_t 启动时间 = 0;
+        std::int64_t 完成时间 = 0;
+    };
+
+    std::mutex& 私有_任务树SQL投影互斥() noexcept
+    {
+        static std::mutex 互斥{};
+        return 互斥;
+    }
+
+    std::string 私有_任务SQL字符串(const std::string& 文本, const bool 空为NULL = true)
+    {
+        if (空为NULL && 文本.empty()) {
+            return "NULL";
+        }
+        std::string 输出 = "N'";
+        for (const char 字符 : 文本) {
+            if (字符 == '\'') {
+                输出 += "''";
+            }
+            else {
+                输出.push_back(字符);
+            }
+        }
+        输出.push_back('\'');
+        return 输出;
+    }
+
+    std::string 私有_任务SQL入口文本(const 语素入口节点类* 入口)
+    {
+        if (!入口) {
+            return {};
+        }
+        try {
+            return 语素集.获取词(入口);
+        }
+        catch (...) {
+            return 入口->获取主键();
+        }
+    }
+
+    template<class T节点>
+    std::string 私有_任务SQL引用主键(const 可解析引用<T节点>& 引用)
+    {
+        if (!引用.主键.empty()) {
+            return 引用.主键;
+        }
+        return 引用.指针 ? 引用.指针->获取主键() : std::string{};
+    }
+
+    const char* 私有_任务SQL节点种类文本(const 枚举_任务节点种类 种类) noexcept
+    {
+        switch (种类) {
+        case 枚举_任务节点种类::头结点: return "头结点";
+        case 枚举_任务节点种类::步骤节点: return "步骤节点";
+        default: return "未定义";
+        }
+    }
+
+    const char* 私有_任务SQL状态文本(const 枚举_任务状态 状态) noexcept
+    {
+        switch (状态) {
+        case 枚举_任务状态::未启动: return "未启动";
+        case 枚举_任务状态::运行中: return "运行中";
+        case 枚举_任务状态::挂起: return "挂起";
+        case 枚举_任务状态::完成: return "完成";
+        case 枚举_任务状态::已结算: return "已结算";
+        case 枚举_任务状态::失败: return "失败";
+        case 枚举_任务状态::取消: return "取消";
+        case 枚举_任务状态::超时: return "超时";
+        case 枚举_任务状态::就绪: return "就绪";
+        case 枚举_任务状态::执行中: return "执行中";
+        case 枚举_任务状态::筹办中: return "筹办中";
+        case 枚举_任务状态::排队中: return "排队中";
+        case 枚举_任务状态::等待中: return "等待中";
+        case 枚举_任务状态::无法执行: return "无法执行";
+        case 枚举_任务状态::待重筹办: return "待重筹办";
+        default: return "未定义";
+        }
+    }
+
+    void 私有_收集任务树SQL行(
+        const 任务节点* 节点,
+        const std::string& 父节点主键,
+        const int 深度,
+        const int 同层序号,
+        const std::string& 父路径,
+        std::unordered_set<const 任务节点*>& 已访问,
+        std::vector<结构_任务树SQL行>& 行集)
+    {
+        if (!节点 || !已访问.insert(节点).second) {
+            return;
+        }
+
+        const auto 节点主键 = 节点->获取主键();
+        const auto 路径 = 父路径.empty() ? 节点主键 : 父路径 + "/" + 节点主键;
+        const auto 节点种类 = 任务类::读取任务节点种类(节点, 枚举_任务节点种类::未定义);
+        const auto 任务状态 = 任务类::读取任务状态(节点, 枚举_任务状态::未定义);
+
+        结构_任务树SQL行 行{};
+        行.行号 = static_cast<int>(行集.size() + 1);
+        行.节点主键 = 节点主键;
+        行.父节点主键 = 父节点主键;
+        行.深度 = 深度;
+        行.同层序号 = 同层序号;
+        行.直接子数量 = static_cast<int>(节点->子节点数量);
+        行.路径 = 路径;
+        行.节点种类值 = static_cast<int>(节点种类);
+        行.节点种类文本 = 私有_任务SQL节点种类文本(节点种类);
+        行.任务状态值 = static_cast<int>(任务状态);
+        行.任务状态文本 = 私有_任务SQL状态文本(任务状态);
+        行.名称文本 = 私有_任务SQL入口文本(节点->主信息.名称);
+        行.类型文本 = 私有_任务SQL入口文本(节点->主信息.类型);
+        行.对应需求主键 = 私有_任务SQL引用主键(节点->主信息.对应需求);
+        行.任务虚拟存在主键 = 私有_任务SQL引用主键(节点->主信息.任务虚拟存在);
+        行.场景主键 = 私有_任务SQL引用主键(节点->主信息.场景);
+        行.目标状态主键 = 私有_任务SQL引用主键(节点->主信息.目标状态);
+        行.结果状态主键 = 私有_任务SQL引用主键(节点->主信息.结果状态信息);
+        行.创建时间 = static_cast<std::int64_t>(节点->主信息.创建时间);
+        行.启动时间 = static_cast<std::int64_t>(节点->主信息.启动时间);
+        行.完成时间 = static_cast<std::int64_t>(节点->主信息.完成时间);
+        行集.push_back(std::move(行));
+
+        if (!节点->子) {
+            return;
+        }
+        auto* 首子节点 = static_cast<const 任务节点*>(节点->子);
+        auto* 当前子节点 = 首子节点;
+        int 子序号 = 0;
+        std::size_t 保护 = 0;
+        do {
+            私有_收集任务树SQL行(
+                当前子节点,
+                节点主键,
+                深度 + 1,
+                子序号,
+                路径,
+                已访问,
+                行集);
+            当前子节点 = static_cast<const 任务节点*>(当前子节点->下);
+            ++子序号;
+            ++保护;
+        } while (当前子节点 && 当前子节点 != 首子节点 && 保护 < 100000);
+    }
+
+    std::string 私有_任务树SQL建库脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "IF DB_ID(N'FishnestProjection') IS NULL CREATE DATABASE [FishnestProjection];\n";
+        return SQL.str();
+    }
+
+    std::string 私有_任务树SQL建表脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');\n"
+            << "IF OBJECT_ID(N'fishnest.task_tree_snapshot', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.task_tree_snapshot (\n"
+            << "    snapshot_id uniqueidentifier NOT NULL PRIMARY KEY,\n"
+            << "    captured_at datetime2(3) NOT NULL,\n"
+            << "    source_kind nvarchar(80) NOT NULL,\n"
+            << "    source_reason nvarchar(300) NULL,\n"
+            << "    root_key nvarchar(80) NULL,\n"
+            << "    node_count int NOT NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'fishnest.task_tree_node', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.task_tree_node (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    row_index int NOT NULL,\n"
+            << "    node_key nvarchar(80) NOT NULL,\n"
+            << "    parent_key nvarchar(80) NULL,\n"
+            << "    depth int NOT NULL,\n"
+            << "    sibling_index int NOT NULL,\n"
+            << "    direct_child_count int NOT NULL,\n"
+            << "    path_text nvarchar(1000) NULL,\n"
+            << "    node_kind_value int NULL,\n"
+            << "    node_kind_text nvarchar(80) NULL,\n"
+            << "    task_state_value int NULL,\n"
+            << "    task_state_text nvarchar(80) NULL,\n"
+            << "    name_text nvarchar(300) NULL,\n"
+            << "    type_text nvarchar(300) NULL,\n"
+            << "    demand_key nvarchar(80) NULL,\n"
+            << "    virtual_exist_key nvarchar(80) NULL,\n"
+            << "    scene_key nvarchar(80) NULL,\n"
+            << "    target_state_key nvarchar(80) NULL,\n"
+            << "    result_state_key nvarchar(80) NULL,\n"
+            << "    created_time_us bigint NULL,\n"
+            << "    started_time_us bigint NULL,\n"
+            << "    completed_time_us bigint NULL\n"
+            << ");\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_task_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.task_tree_node'))\n"
+            << "    CREATE INDEX IX_task_tree_node_key ON fishnest.task_tree_node(snapshot_id, node_key, parent_key);\n";
+        return SQL.str();
+    }
+
+    std::string 私有_任务树SQL视图脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "CREATE OR ALTER VIEW fishnest.v_current_task_tree_nodes AS\n"
+            << "SELECT n.*\n"
+            << "FROM fishnest.task_tree_node n\n"
+            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.task_tree_snapshot ORDER BY captured_at DESC);\n";
+        return SQL.str();
+    }
+
+    std::string 私有_构造任务树SQL重写脚本(
+        const std::vector<结构_任务树SQL行>& 行集,
+        const std::string& 来源原因,
+        const std::string& 根主键)
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "SET XACT_ABORT ON;\n"
+            << "BEGIN TRANSACTION;\n"
+            << "DELETE FROM fishnest.task_tree_node;\n"
+            << "DELETE FROM fishnest.task_tree_snapshot;\n"
+            << "DECLARE @snapshot_id uniqueidentifier = NEWID();\n"
+            << "INSERT INTO fishnest.task_tree_snapshot (snapshot_id, captured_at, source_kind, source_reason, root_key, node_count)\n"
+            << "VALUES (@snapshot_id, SYSUTCDATETIME(), N'task_tree_projection', "
+            << 私有_任务SQL字符串(来源原因)
+            << ", " << 私有_任务SQL字符串(根主键)
+            << ", " << 行集.size() << ");\n";
+        for (const auto& 行 : 行集) {
+            SQL << "INSERT INTO fishnest.task_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_kind_value, node_kind_text, task_state_value, task_state_text, name_text, type_text, demand_key, virtual_exist_key, scene_key, target_state_key, result_state_key, created_time_us, started_time_us, completed_time_us) VALUES (@snapshot_id, "
+                << 行.行号 << ", "
+                << 私有_任务SQL字符串(行.节点主键, false) << ", "
+                << 私有_任务SQL字符串(行.父节点主键) << ", "
+                << 行.深度 << ", "
+                << 行.同层序号 << ", "
+                << 行.直接子数量 << ", "
+                << 私有_任务SQL字符串(行.路径) << ", "
+                << 行.节点种类值 << ", "
+                << 私有_任务SQL字符串(行.节点种类文本) << ", "
+                << 行.任务状态值 << ", "
+                << 私有_任务SQL字符串(行.任务状态文本) << ", "
+                << 私有_任务SQL字符串(行.名称文本) << ", "
+                << 私有_任务SQL字符串(行.类型文本) << ", "
+                << 私有_任务SQL字符串(行.对应需求主键) << ", "
+                << 私有_任务SQL字符串(行.任务虚拟存在主键) << ", "
+                << 私有_任务SQL字符串(行.场景主键) << ", "
+                << 私有_任务SQL字符串(行.目标状态主键) << ", "
+                << 私有_任务SQL字符串(行.结果状态主键) << ", "
+                << 行.创建时间 << ", "
+                << 行.启动时间 << ", "
+                << 行.完成时间 << ");\n";
+        }
+        SQL << "COMMIT TRANSACTION;\n";
+        return SQL.str();
+    }
+
+    bool 私有_执行任务树ADO命令(
+        const std::string& 连接串,
+        const std::string& 阶段,
+        const std::string& SQL,
+        std::string& 错误)
+    {
+        std::string ADO错误{};
+        if (!执行ADO命令(连接串, SQL, ADO错误)) {
+            错误 = 阶段 + "失败 | " + ADO错误;
+            return false;
+        }
+        return true;
+    }
+}
+
+// 功能：把当前任务树本体重写到 SQL Server 查询投影。
+bool 任务类::重写任务树SQL投影(
+    const 节点类* 任务根节点,
+    const char* 来源原因) noexcept
+{
+    if (!任务根节点) {
+        项目运行警告日志("任务树SQL投影跳过 | 原因=任务根为空");
+        return false;
+    }
+
+    std::lock_guard<std::mutex> SQL锁{ 私有_任务树SQL投影互斥() };
+    try {
+        std::vector<结构_任务树SQL行> 行集{};
+        std::unordered_set<const 任务节点*> 已访问{};
+        私有_收集任务树SQL行(
+            reinterpret_cast<const 任务节点*>(任务根节点),
+            {},
+            0,
+            0,
+            {},
+            已访问,
+            行集);
+
+        const auto 根主键 = 任务根节点->获取主键();
+        const auto 原因文本 = 来源原因 ? std::string(来源原因) : std::string{};
+        const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");
+        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "FishnestProjection");
+        std::string 错误{};
+        if (!私有_执行任务树ADO命令(主库连接串, "任务树SQL投影建库", 私有_任务树SQL建库脚本(), 错误)
+            || !私有_执行任务树ADO命令(投影库连接串, "任务树SQL投影建表", 私有_任务树SQL建表脚本(), 错误)
+            || !私有_执行任务树ADO命令(投影库连接串, "任务树SQL投影视图", 私有_任务树SQL视图脚本(), 错误)
+            || !私有_执行任务树ADO命令(投影库连接串, "任务树SQL投影重写", 私有_构造任务树SQL重写脚本(行集, 原因文本, 根主键), 错误)) {
+            项目运行错误日志(
+                "任务树SQL投影失败"
+                " | 原因=" + 错误
+                + " | 节点数=" + std::to_string(行集.size()));
+            return false;
+        }
+
+        项目运行日志(
+            "任务树SQL投影完成"
+            " | 来源=" + 原因文本
+            + " | 根=" + 根主键
+            + " | 节点数=" + std::to_string(行集.size()));
+        return true;
+    }
+    catch (const std::exception& 异常) {
+        项目运行错误日志(std::string("任务树SQL投影异常 | 原因=") + 异常.what());
+    }
+    catch (...) {
+        项目运行错误日志("任务树SQL投影异常 | 原因=未知异常");
+    }
+    return false;
 }
 
 // 功能：创建并返回或登记对应对象。

@@ -4,15 +4,19 @@
 #include <cstdint>
 #include <limits>
 #include <mutex>
+#include <sstream>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
+#include "日志接入.h"
 #include "场景索引同步.h"
 #include "世界树类.h"
 #include "语素类.h"
 #include "本能方法类.h"
 #include "方法虚拟存在服务类.h"
 
+import 数据库ADO模块;
 import 二次特征应用模块;
 import 自我类.特征定义;
 
@@ -1036,6 +1040,402 @@ namespace {
         } while (当前 && 当前 != 首子节点);
         return false;
     }
+
+    struct 结构_方法树SQL行 {
+        int 行号 = 0;
+        std::string 节点主键{};
+        std::string 父节点主键{};
+        int 深度 = 0;
+        int 同层序号 = 0;
+        int 直接子数量 = 0;
+        std::string 路径{};
+        int 节点种类值 = 0;
+        std::string 节点种类文本{};
+        std::string 动作名文本{};
+        std::string 动作句柄文本{};
+        int 来源值 = 0;
+        std::string 来源文本{};
+        std::string 方法虚拟存在主键{};
+        std::string 条件场景主键{};
+        std::string 结果场景主键{};
+        std::string 主结果特征主键{};
+        int 条件组数量 = 0;
+        int 结果项数量 = 0;
+        bool 允许自动查找 = false;
+        bool 有方法动作 = false;
+        bool 有结果能力 = false;
+    };
+
+    std::mutex& 私有_方法树SQL投影互斥() noexcept
+    {
+        static std::mutex 互斥{};
+        return 互斥;
+    }
+
+    std::string 私有_方法SQL字符串(const std::string& 文本, const bool 空为NULL = true)
+    {
+        if (空为NULL && 文本.empty()) {
+            return "NULL";
+        }
+        std::string 输出 = "N'";
+        for (const char 字符 : 文本) {
+            if (字符 == '\'') {
+                输出 += "''";
+            }
+            else {
+                输出.push_back(字符);
+            }
+        }
+        输出.push_back('\'');
+        return 输出;
+    }
+
+    const char* 私有_方法SQL布尔(const bool 值) noexcept
+    {
+        return 值 ? "1" : "0";
+    }
+
+    std::string 私有_方法SQL入口文本(const 语素入口节点类* 入口)
+    {
+        if (!入口) {
+            return {};
+        }
+        try {
+            return 语素集.获取词(入口);
+        }
+        catch (...) {
+            return 入口->获取主键();
+        }
+    }
+
+    template<class T节点>
+    std::string 私有_方法SQL引用主键(const 可解析引用<T节点>& 引用)
+    {
+        if (!引用.主键.empty()) {
+            return 引用.主键;
+        }
+        return 引用.指针 ? 引用.指针->获取主键() : std::string{};
+    }
+
+    const char* 私有_方法SQL节点种类文本(const 枚举_方法节点种类 种类) noexcept
+    {
+        switch (种类) {
+        case 枚举_方法节点种类::方法首节点: return "方法首节点";
+        case 枚举_方法节点种类::方法条件节点: return "方法条件节点";
+        case 枚举_方法节点种类::方法结果节点: return "方法结果节点";
+        default: return "未定义";
+        }
+    }
+
+    const char* 私有_方法SQL来源文本(const 枚举_方法来源 来源) noexcept
+    {
+        switch (来源) {
+        case 枚举_方法来源::本能: return "本能";
+        case 枚举_方法来源::外部导入: return "外部导入";
+        case 枚举_方法来源::因果抽象: return "因果抽象";
+        case 枚举_方法来源::观察抽象: return "观察抽象";
+        case 枚举_方法来源::路径提炼: return "路径提炼";
+        case 枚举_方法来源::运行时方法沉淀: return "运行时方法沉淀";
+        default: return "未定义";
+        }
+    }
+
+    const char* 私有_方法SQL动作句柄类型文本(const 枚举_动作句柄类型 类型) noexcept
+    {
+        switch (类型) {
+        case 枚举_动作句柄类型::本能函数ID: return "本能函数ID";
+        case 枚举_动作句柄类型::外部实现主键: return "外部实现主键";
+        case 枚举_动作句柄类型::动作序列主键: return "动作序列主键";
+        default: return "未设置";
+        }
+    }
+
+    std::string 私有_方法SQL动作句柄文本(const 结构体_动作句柄& 句柄)
+    {
+        std::ostringstream 输出;
+        输出 << 私有_方法SQL动作句柄类型文本(句柄.类型);
+        switch (句柄.类型) {
+        case 枚举_动作句柄类型::本能函数ID:
+            输出 << ":" << 句柄.本能ID;
+            break;
+        case 枚举_动作句柄类型::外部实现主键:
+            输出 << ":" << 句柄.外部实现主键;
+            break;
+        case 枚举_动作句柄类型::动作序列主键:
+            输出 << ":" << 句柄.动作序列主键;
+            break;
+        default:
+            break;
+        }
+        return 输出.str();
+    }
+
+    void 私有_填充方法树SQL角色字段(const 方法节点* 节点, 结构_方法树SQL行& 行)
+    {
+        if (!节点) {
+            return;
+        }
+        const auto* 首节点信息 = 节点->主信息.取首节点信息();
+        if (首节点信息) {
+            行.动作名文本 = 私有_方法SQL入口文本(首节点信息->动作名);
+            行.动作句柄文本 = 私有_方法SQL动作句柄文本(首节点信息->动作句柄);
+            行.来源值 = static_cast<int>(首节点信息->来源);
+            行.来源文本 = 私有_方法SQL来源文本(首节点信息->来源);
+            行.方法虚拟存在主键 = 私有_方法SQL引用主键(首节点信息->方法虚拟存在);
+            行.允许自动查找 = 首节点信息->是否允许自动查找;
+            行.有方法动作 = 节点->主信息.有方法动作();
+            行.有结果能力 = 节点->主信息.有结果能力();
+            行.结果项数量 = static_cast<int>(首节点信息->能力.结果包.结果项集.size());
+            if (const auto* 特征类型 = 节点->主信息.首个结果能力特征类型()) {
+                行.主结果特征主键 = 特征类型->获取主键();
+            }
+            return;
+        }
+
+        const auto* 条件信息 = 节点->主信息.取条件节点信息();
+        if (条件信息) {
+            行.条件场景主键 = 私有_方法SQL引用主键(条件信息->条件场景);
+            行.条件组数量 = static_cast<int>(条件信息->条件面.可用条件组集.size());
+            return;
+        }
+
+        const auto* 结果信息 = 节点->主信息.取结果节点信息();
+        if (结果信息) {
+            行.结果场景主键 = 私有_方法SQL引用主键(结果信息->结果场景);
+            行.结果项数量 = static_cast<int>(结果信息->结果包.结果项集.size());
+            return;
+        }
+    }
+
+    void 私有_收集方法树SQL行(
+        const 方法节点* 节点,
+        const std::string& 父节点主键,
+        const int 深度,
+        const int 同层序号,
+        const std::string& 父路径,
+        std::unordered_set<const 方法节点*>& 已访问,
+        std::vector<结构_方法树SQL行>& 行集)
+    {
+        if (!节点 || !已访问.insert(节点).second) {
+            return;
+        }
+
+        const auto 节点主键 = 节点->获取主键();
+        const auto 路径 = 父路径.empty() ? 节点主键 : 父路径 + "/" + 节点主键;
+        const auto 节点种类 = 节点->主信息.节点种类();
+        结构_方法树SQL行 行{};
+        行.行号 = static_cast<int>(行集.size() + 1);
+        行.节点主键 = 节点主键;
+        行.父节点主键 = 父节点主键;
+        行.深度 = 深度;
+        行.同层序号 = 同层序号;
+        行.直接子数量 = static_cast<int>(节点->子节点数量);
+        行.路径 = 路径;
+        行.节点种类值 = static_cast<int>(节点种类);
+        行.节点种类文本 = 私有_方法SQL节点种类文本(节点种类);
+        私有_填充方法树SQL角色字段(节点, 行);
+        行集.push_back(std::move(行));
+
+        if (!节点->子) {
+            return;
+        }
+        auto* 首子节点 = static_cast<const 方法节点*>(节点->子);
+        auto* 当前子节点 = 首子节点;
+        int 子序号 = 0;
+        std::size_t 保护 = 0;
+        do {
+            私有_收集方法树SQL行(
+                当前子节点,
+                节点主键,
+                深度 + 1,
+                子序号,
+                路径,
+                已访问,
+                行集);
+            当前子节点 = static_cast<const 方法节点*>(当前子节点->下);
+            ++子序号;
+            ++保护;
+        } while (当前子节点 && 当前子节点 != 首子节点 && 保护 < 100000);
+    }
+
+    std::string 私有_方法树SQL建库脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "IF DB_ID(N'FishnestProjection') IS NULL CREATE DATABASE [FishnestProjection];\n";
+        return SQL.str();
+    }
+
+    std::string 私有_方法树SQL建表脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');\n"
+            << "IF OBJECT_ID(N'fishnest.method_tree_snapshot', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.method_tree_snapshot (\n"
+            << "    snapshot_id uniqueidentifier NOT NULL PRIMARY KEY,\n"
+            << "    captured_at datetime2(3) NOT NULL,\n"
+            << "    source_kind nvarchar(80) NOT NULL,\n"
+            << "    source_reason nvarchar(300) NULL,\n"
+            << "    root_key nvarchar(80) NULL,\n"
+            << "    node_count int NOT NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'fishnest.method_tree_node', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.method_tree_node (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    row_index int NOT NULL,\n"
+            << "    node_key nvarchar(80) NOT NULL,\n"
+            << "    parent_key nvarchar(80) NULL,\n"
+            << "    depth int NOT NULL,\n"
+            << "    sibling_index int NOT NULL,\n"
+            << "    direct_child_count int NOT NULL,\n"
+            << "    path_text nvarchar(1000) NULL,\n"
+            << "    node_kind_value int NULL,\n"
+            << "    node_kind_text nvarchar(80) NULL,\n"
+            << "    action_name nvarchar(300) NULL,\n"
+            << "    action_handle nvarchar(300) NULL,\n"
+            << "    source_value int NULL,\n"
+            << "    source_text nvarchar(80) NULL,\n"
+            << "    method_virtual_exist_key nvarchar(80) NULL,\n"
+            << "    condition_scene_key nvarchar(80) NULL,\n"
+            << "    result_scene_key nvarchar(80) NULL,\n"
+            << "    primary_result_feature_key nvarchar(160) NULL,\n"
+            << "    condition_group_count int NOT NULL,\n"
+            << "    result_item_count int NOT NULL,\n"
+            << "    allow_auto_find bit NOT NULL,\n"
+            << "    has_action bit NOT NULL,\n"
+            << "    has_result_ability bit NOT NULL\n"
+            << ");\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_method_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.method_tree_node'))\n"
+            << "    CREATE INDEX IX_method_tree_node_key ON fishnest.method_tree_node(snapshot_id, node_key, parent_key);\n";
+        return SQL.str();
+    }
+
+    std::string 私有_方法树SQL视图脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "CREATE OR ALTER VIEW fishnest.v_current_method_tree_nodes AS\n"
+            << "SELECT n.*\n"
+            << "FROM fishnest.method_tree_node n\n"
+            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.method_tree_snapshot ORDER BY captured_at DESC);\n";
+        return SQL.str();
+    }
+
+    std::string 私有_构造方法树SQL重写脚本(
+        const std::vector<结构_方法树SQL行>& 行集,
+        const std::string& 来源原因,
+        const std::string& 根主键)
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "SET XACT_ABORT ON;\n"
+            << "BEGIN TRANSACTION;\n"
+            << "DELETE FROM fishnest.method_tree_node;\n"
+            << "DELETE FROM fishnest.method_tree_snapshot;\n"
+            << "DECLARE @snapshot_id uniqueidentifier = NEWID();\n"
+            << "INSERT INTO fishnest.method_tree_snapshot (snapshot_id, captured_at, source_kind, source_reason, root_key, node_count)\n"
+            << "VALUES (@snapshot_id, SYSUTCDATETIME(), N'method_tree_projection', "
+            << 私有_方法SQL字符串(来源原因)
+            << ", " << 私有_方法SQL字符串(根主键)
+            << ", " << 行集.size() << ");\n";
+        for (const auto& 行 : 行集) {
+            SQL << "INSERT INTO fishnest.method_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_kind_value, node_kind_text, action_name, action_handle, source_value, source_text, method_virtual_exist_key, condition_scene_key, result_scene_key, primary_result_feature_key, condition_group_count, result_item_count, allow_auto_find, has_action, has_result_ability) VALUES (@snapshot_id, "
+                << 行.行号 << ", "
+                << 私有_方法SQL字符串(行.节点主键, false) << ", "
+                << 私有_方法SQL字符串(行.父节点主键) << ", "
+                << 行.深度 << ", "
+                << 行.同层序号 << ", "
+                << 行.直接子数量 << ", "
+                << 私有_方法SQL字符串(行.路径) << ", "
+                << 行.节点种类值 << ", "
+                << 私有_方法SQL字符串(行.节点种类文本) << ", "
+                << 私有_方法SQL字符串(行.动作名文本) << ", "
+                << 私有_方法SQL字符串(行.动作句柄文本) << ", "
+                << 行.来源值 << ", "
+                << 私有_方法SQL字符串(行.来源文本) << ", "
+                << 私有_方法SQL字符串(行.方法虚拟存在主键) << ", "
+                << 私有_方法SQL字符串(行.条件场景主键) << ", "
+                << 私有_方法SQL字符串(行.结果场景主键) << ", "
+                << 私有_方法SQL字符串(行.主结果特征主键) << ", "
+                << 行.条件组数量 << ", "
+                << 行.结果项数量 << ", "
+                << 私有_方法SQL布尔(行.允许自动查找) << ", "
+                << 私有_方法SQL布尔(行.有方法动作) << ", "
+                << 私有_方法SQL布尔(行.有结果能力) << ");\n";
+        }
+        SQL << "COMMIT TRANSACTION;\n";
+        return SQL.str();
+    }
+
+    bool 私有_执行方法树ADO命令(
+        const std::string& 连接串,
+        const std::string& 阶段,
+        const std::string& SQL,
+        std::string& 错误)
+    {
+        std::string ADO错误{};
+        if (!执行ADO命令(连接串, SQL, ADO错误)) {
+            错误 = 阶段 + "失败 | " + ADO错误;
+            return false;
+        }
+        return true;
+    }
+}
+
+// 功能：把当前方法树本体重写到 SQL Server 查询投影。
+bool 方法类::重写方法树SQL投影(
+    const 节点类* 方法根节点,
+    const char* 来源原因) noexcept
+{
+    if (!方法根节点) {
+        项目运行警告日志("方法树SQL投影跳过 | 原因=方法根为空");
+        return false;
+    }
+
+    std::lock_guard<std::mutex> SQL锁{ 私有_方法树SQL投影互斥() };
+    try {
+        std::vector<结构_方法树SQL行> 行集{};
+        std::unordered_set<const 方法节点*> 已访问{};
+        私有_收集方法树SQL行(
+            reinterpret_cast<const 方法节点*>(方法根节点),
+            {},
+            0,
+            0,
+            {},
+            已访问,
+            行集);
+
+        const auto 根主键 = 方法根节点->获取主键();
+        const auto 原因文本 = 来源原因 ? std::string(来源原因) : std::string{};
+        const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");
+        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "FishnestProjection");
+        std::string 错误{};
+        if (!私有_执行方法树ADO命令(主库连接串, "方法树SQL投影建库", 私有_方法树SQL建库脚本(), 错误)
+            || !私有_执行方法树ADO命令(投影库连接串, "方法树SQL投影建表", 私有_方法树SQL建表脚本(), 错误)
+            || !私有_执行方法树ADO命令(投影库连接串, "方法树SQL投影视图", 私有_方法树SQL视图脚本(), 错误)
+            || !私有_执行方法树ADO命令(投影库连接串, "方法树SQL投影重写", 私有_构造方法树SQL重写脚本(行集, 原因文本, 根主键), 错误)) {
+            项目运行错误日志(
+                "方法树SQL投影失败"
+                " | 原因=" + 错误
+                + " | 节点数=" + std::to_string(行集.size()));
+            return false;
+        }
+
+        项目运行日志(
+            "方法树SQL投影完成"
+            " | 来源=" + 原因文本
+            + " | 根=" + 根主键
+            + " | 节点数=" + std::to_string(行集.size()));
+        return true;
+    }
+    catch (const std::exception& 异常) {
+        项目运行错误日志(std::string("方法树SQL投影异常 | 原因=") + 异常.what());
+    }
+    catch (...) {
+        项目运行错误日志("方法树SQL投影异常 | 原因=未知异常");
+    }
+    return false;
 }
 
 // 功能：按条件查找目标对象、方法或事实。

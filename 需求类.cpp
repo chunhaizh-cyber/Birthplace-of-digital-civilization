@@ -2,13 +2,17 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <mutex>
 #include <sstream>
+#include <unordered_set>
 
 #include "日志接入.h"
 #include "方法类.h"
 #include "任务类.h"
 #include "语素类.h"
 #include "世界树类.h"
+
+import 数据库ADO模块;
 
 namespace {
     template<class T节点>
@@ -20,6 +24,323 @@ namespace {
             输出.主键 = 节点->获取主键();
         }
         return 输出;
+    }
+
+    struct 结构_需求树SQL行 {
+        int 行号 = 0;
+        std::string 节点主键{};
+        std::string 父节点主键{};
+        int 深度 = 0;
+        int 同层序号 = 0;
+        int 直接子数量 = 0;
+        std::string 路径{};
+        std::string 结构角色{};
+        std::string 目标语义{};
+        std::string 逻辑组织类型{};
+        bool 已截止 = false;
+        bool 阻塞父任务执行 = false;
+        std::string 需求主体主键{};
+        std::string 需求场景主键{};
+        std::string 被需求存在主键{};
+        std::string 当前状态主键{};
+        std::string 目标状态主键{};
+        std::string 目标特征类型主键{};
+        std::string 对应任务主键{};
+        std::int64_t 满足关系 = 0;
+        std::int64_t 安全权重 = 0;
+        std::int64_t 服务权重 = 0;
+        std::int64_t 累计安全结算 = 0;
+        std::int64_t 累计服务结算 = 0;
+        std::int64_t 需求有效截止 = 0;
+        std::string 派生来源方法主键{};
+        std::string 派生来源因果主键{};
+    };
+
+    std::mutex& 私有_需求树SQL投影互斥() noexcept
+    {
+        static std::mutex 互斥{};
+        return 互斥;
+    }
+
+    std::string 私有_SQL字符串(const std::string& 文本, const bool 空为NULL = true)
+    {
+        if (空为NULL && 文本.empty()) {
+            return "NULL";
+        }
+        std::string 输出 = "N'";
+        for (const char 字符 : 文本) {
+            if (字符 == '\'') {
+                输出 += "''";
+            }
+            else {
+                输出.push_back(字符);
+            }
+        }
+        输出.push_back('\'');
+        return 输出;
+    }
+
+    std::string 私有_SQL布尔(const bool 值)
+    {
+        return 值 ? "1" : "0";
+    }
+
+    std::string 私有_需求结构角色文本(const 枚举_需求结构角色 角色)
+    {
+        switch (角色) {
+        case 枚举_需求结构角色::管理需求:
+            return "管理需求";
+        case 枚举_需求结构角色::执行需求:
+            return "执行需求";
+        case 枚举_需求结构角色::未定义:
+        default:
+            return "未定义";
+        }
+    }
+
+    template<class T节点>
+    std::string 私有_引用主键(const 可解析引用<T节点>& 引用)
+    {
+        if (引用.指针) {
+            return 引用.指针->获取主键();
+        }
+        return 引用.主键;
+    }
+
+    std::string 私有_引用主键(const 可解析引用<任务节点类>& 引用)
+    {
+        if (!引用.指针) {
+            return 引用.主键;
+        }
+        const auto* 任务节点 = reinterpret_cast<const 任务类::节点类*>(引用.指针);
+        return 任务节点 ? 任务节点->获取主键() : 引用.主键;
+    }
+
+    std::size_t 私有_需求直接子数量(const 需求类::节点类* 节点)
+    {
+        if (!节点 || !节点->子) {
+            return 0;
+        }
+        auto* 首节点 = static_cast<const 需求类::节点类*>(节点->子);
+        auto* 当前 = 首节点;
+        std::size_t 数量 = 0;
+        std::size_t 保护 = 0;
+        do {
+            ++数量;
+            当前 = static_cast<const 需求类::节点类*>(当前->下);
+            ++保护;
+        } while (当前 && 当前 != 首节点 && 保护 < 100000);
+        return 数量;
+    }
+
+    void 私有_收集需求树SQL行(
+        const 需求类::节点类* 节点,
+        const std::string& 父节点主键,
+        const int 深度,
+        const int 同层序号,
+        const std::string& 父路径,
+        std::unordered_set<const 需求类::节点类*>& 已访问,
+        std::vector<结构_需求树SQL行>& 行集)
+    {
+        if (!节点 || !已访问.insert(节点).second) {
+            return;
+        }
+
+        const auto 节点主键 = 节点->获取主键();
+        const auto 路径 = 父路径.empty()
+            ? 节点主键
+            : 父路径 + "/" + 节点主键;
+        const auto 目标语义视图 = 需求类::需求目标语义视图(节点);
+
+        结构_需求树SQL行 行{};
+        行.行号 = static_cast<int>(行集.size() + 1);
+        行.节点主键 = 节点主键;
+        行.父节点主键 = 父节点主键;
+        行.深度 = 深度;
+        行.同层序号 = 同层序号;
+        行.直接子数量 = static_cast<int>(私有_需求直接子数量(节点));
+        行.路径 = 路径;
+        行.结构角色 = 私有_需求结构角色文本(节点->主信息.结构角色);
+        行.目标语义 = 目标语义视图.语义名称 ? 目标语义视图.语义名称 : "";
+        行.逻辑组织类型 = 需求类::逻辑组织需求类型文本(目标语义视图.逻辑组织类型);
+        行.已截止 = 节点->主信息.需求有效截止 != 0;
+        行.阻塞父任务执行 = 节点->主信息.是否阻塞父任务执行;
+        行.需求主体主键 = 私有_引用主键(节点->主信息.需求主体);
+        行.需求场景主键 = 私有_引用主键(节点->主信息.需求场景);
+        行.被需求存在主键 = 私有_引用主键(节点->主信息.被需求存在);
+        行.当前状态主键 = 私有_引用主键(节点->主信息.被需求当前状态);
+        行.目标状态主键 = 私有_引用主键(节点->主信息.需求状态);
+        行.目标特征类型主键 = 节点->主信息.目标特征类型缓存
+            ? 节点->主信息.目标特征类型缓存->获取主键()
+            : std::string{};
+        行.对应任务主键 = 私有_引用主键(节点->主信息.对应任务);
+        行.满足关系 = static_cast<std::int64_t>(节点->主信息.满足关系);
+        行.安全权重 = 节点->主信息.安全权重;
+        行.服务权重 = 节点->主信息.服务权重;
+        行.累计安全结算 = 节点->主信息.累计安全结算;
+        行.累计服务结算 = 节点->主信息.累计服务结算;
+        行.需求有效截止 = static_cast<std::int64_t>(节点->主信息.需求有效截止);
+        行.派生来源方法主键 = 节点->主信息.派生来源方法主键;
+        行.派生来源因果主键 = 节点->主信息.派生来源因果主键;
+        行集.push_back(std::move(行));
+
+        if (!节点->子) {
+            return;
+        }
+        auto* 首子节点 = static_cast<const 需求类::节点类*>(节点->子);
+        auto* 当前子节点 = 首子节点;
+        int 子序号 = 0;
+        std::size_t 保护 = 0;
+        do {
+            私有_收集需求树SQL行(
+                当前子节点,
+                节点主键,
+                深度 + 1,
+                子序号,
+                路径,
+                已访问,
+                行集);
+            当前子节点 = static_cast<const 需求类::节点类*>(当前子节点->下);
+            ++子序号;
+            ++保护;
+        } while (当前子节点 && 当前子节点 != 首子节点 && 保护 < 100000);
+    }
+
+    std::string 私有_需求树SQL建库脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "IF DB_ID(N'FishnestProjection') IS NULL CREATE DATABASE [FishnestProjection];\n";
+        return SQL.str();
+    }
+
+    std::string 私有_需求树SQL建表脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');\n"
+            << "IF OBJECT_ID(N'fishnest.demand_tree_snapshot', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.demand_tree_snapshot (\n"
+            << "    snapshot_id uniqueidentifier NOT NULL PRIMARY KEY,\n"
+            << "    captured_at datetime2(3) NOT NULL,\n"
+            << "    source_kind nvarchar(80) NOT NULL,\n"
+            << "    source_reason nvarchar(300) NULL,\n"
+            << "    root_key nvarchar(80) NULL,\n"
+            << "    node_count int NOT NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'fishnest.demand_tree_node', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.demand_tree_node (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    row_index int NOT NULL,\n"
+            << "    node_key nvarchar(80) NOT NULL,\n"
+            << "    parent_key nvarchar(80) NULL,\n"
+            << "    depth int NOT NULL,\n"
+            << "    sibling_index int NOT NULL,\n"
+            << "    direct_child_count int NOT NULL,\n"
+            << "    path_text nvarchar(1000) NULL,\n"
+            << "    structure_role nvarchar(40) NULL,\n"
+            << "    target_semantics nvarchar(120) NULL,\n"
+            << "    logic_group_type nvarchar(120) NULL,\n"
+            << "    is_closed bit NOT NULL,\n"
+            << "    blocks_parent bit NOT NULL,\n"
+            << "    subject_key nvarchar(80) NULL,\n"
+            << "    scene_key nvarchar(80) NULL,\n"
+            << "    target_host_key nvarchar(80) NULL,\n"
+            << "    current_state_key nvarchar(80) NULL,\n"
+            << "    target_state_key nvarchar(80) NULL,\n"
+            << "    target_feature_key nvarchar(160) NULL,\n"
+            << "    task_key nvarchar(80) NULL,\n"
+            << "    relation_mask bigint NULL,\n"
+            << "    safety_weight bigint NULL,\n"
+            << "    service_weight bigint NULL,\n"
+            << "    safety_settled bigint NULL,\n"
+            << "    service_settled bigint NULL,\n"
+            << "    valid_until_us bigint NULL,\n"
+            << "    derived_method_key nvarchar(120) NULL,\n"
+            << "    derived_causal_key nvarchar(120) NULL\n"
+            << ");\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_demand_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.demand_tree_node'))\n"
+            << "    CREATE INDEX IX_demand_tree_node_key ON fishnest.demand_tree_node(node_key, parent_key);\n";
+        return SQL.str();
+    }
+
+    std::string 私有_需求树SQL视图脚本()
+    {
+        std::ostringstream SQL;
+        SQL << "CREATE OR ALTER VIEW fishnest.v_current_demand_tree_nodes AS\n"
+            << "SELECT n.*\n"
+            << "FROM fishnest.demand_tree_node n\n"
+            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.demand_tree_snapshot ORDER BY captured_at DESC);\n";
+        return SQL.str();
+    }
+
+    std::string 私有_构造需求树SQL重写脚本(
+        const std::vector<结构_需求树SQL行>& 行集,
+        const std::string& 来源原因,
+        const std::string& 根主键)
+    {
+        std::ostringstream SQL;
+        SQL << "SET NOCOUNT ON;\n"
+            << "SET XACT_ABORT ON;\n"
+            << "BEGIN TRANSACTION;\n"
+            << "DELETE FROM fishnest.demand_tree_node;\n"
+            << "DELETE FROM fishnest.demand_tree_snapshot;\n"
+            << "DECLARE @snapshot_id uniqueidentifier = NEWID();\n"
+            << "INSERT INTO fishnest.demand_tree_snapshot (snapshot_id, captured_at, source_kind, source_reason, root_key, node_count)\n"
+            << "VALUES (@snapshot_id, SYSUTCDATETIME(), N'demand_tree_update', "
+            << 私有_SQL字符串(来源原因)
+            << ", "
+            << 私有_SQL字符串(根主键)
+            << ", "
+            << 行集.size()
+            << ");\n";
+        for (const auto& 行 : 行集) {
+            SQL << "INSERT INTO fishnest.demand_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, structure_role, target_semantics, logic_group_type, is_closed, blocks_parent, subject_key, scene_key, target_host_key, current_state_key, target_state_key, target_feature_key, task_key, relation_mask, safety_weight, service_weight, safety_settled, service_settled, valid_until_us, derived_method_key, derived_causal_key) VALUES (@snapshot_id, "
+                << 行.行号 << ", "
+                << 私有_SQL字符串(行.节点主键, false) << ", "
+                << 私有_SQL字符串(行.父节点主键) << ", "
+                << 行.深度 << ", "
+                << 行.同层序号 << ", "
+                << 行.直接子数量 << ", "
+                << 私有_SQL字符串(行.路径) << ", "
+                << 私有_SQL字符串(行.结构角色) << ", "
+                << 私有_SQL字符串(行.目标语义) << ", "
+                << 私有_SQL字符串(行.逻辑组织类型) << ", "
+                << 私有_SQL布尔(行.已截止) << ", "
+                << 私有_SQL布尔(行.阻塞父任务执行) << ", "
+                << 私有_SQL字符串(行.需求主体主键) << ", "
+                << 私有_SQL字符串(行.需求场景主键) << ", "
+                << 私有_SQL字符串(行.被需求存在主键) << ", "
+                << 私有_SQL字符串(行.当前状态主键) << ", "
+                << 私有_SQL字符串(行.目标状态主键) << ", "
+                << 私有_SQL字符串(行.目标特征类型主键) << ", "
+                << 私有_SQL字符串(行.对应任务主键) << ", "
+                << 行.满足关系 << ", "
+                << 行.安全权重 << ", "
+                << 行.服务权重 << ", "
+                << 行.累计安全结算 << ", "
+                << 行.累计服务结算 << ", "
+                << 行.需求有效截止 << ", "
+                << 私有_SQL字符串(行.派生来源方法主键) << ", "
+                << 私有_SQL字符串(行.派生来源因果主键) << ");\n";
+        }
+        SQL << "COMMIT TRANSACTION;\n";
+        return SQL.str();
+    }
+
+    bool 私有_执行需求树ADO命令(
+        const std::string& 连接串,
+        const std::string& 阶段,
+        const std::string& SQL,
+        std::string& 错误)
+    {
+        std::string ADO错误{};
+        if (!执行ADO命令(连接串, SQL, ADO错误)) {
+            错误 = 阶段 + "失败 | " + ADO错误;
+            return false;
+        }
+        return true;
     }
 
     // 功能：解析输入文本、消息、场景或运行包。
@@ -1408,6 +1729,65 @@ const char* 需求类::枚举目标生产者分级文本(
             + " | 来源因果=" + 指令.派生来源因果主键);
     }
     return 校验;
+}
+
+// 功能：建立对象、任务、方法或因果之间的绑定关系。
+bool 需求类::重写需求树SQL投影(
+    节点类* 需求根节点,
+    const char* 来源原因) noexcept
+{
+    if (!需求根节点) {
+        项目运行警告日志("需求树SQL投影跳过 | 原因=需求根为空");
+        return false;
+    }
+
+    std::lock_guard<std::mutex> SQL锁{ 私有_需求树SQL投影互斥() };
+    try {
+        std::vector<结构_需求树SQL行> 行集{};
+        std::unordered_set<const 节点类*> 已访问{};
+        {
+            std::lock_guard<std::recursive_mutex> 需求树锁{ 借用需求树全局互斥() };
+            私有_收集需求树SQL行(
+                需求根节点,
+                {},
+                0,
+                0,
+                {},
+                已访问,
+                行集);
+        }
+
+        const auto 根主键 = 需求根节点->获取主键();
+        const auto 原因文本 = 来源原因 ? std::string(来源原因) : std::string{};
+
+        const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");
+        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "FishnestProjection");
+        std::string 错误{};
+        if (!私有_执行需求树ADO命令(主库连接串, "需求树SQL投影建库", 私有_需求树SQL建库脚本(), 错误)
+            || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影建表", 私有_需求树SQL建表脚本(), 错误)
+            || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影视图", 私有_需求树SQL视图脚本(), 错误)
+            || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影重写", 私有_构造需求树SQL重写脚本(行集, 原因文本, 根主键), 错误)) {
+            项目运行错误日志(
+                "需求树SQL投影失败"
+                " | 原因=" + 错误
+                + " | 节点数=" + std::to_string(行集.size()));
+            return false;
+        }
+
+        项目运行日志(
+            "需求树SQL投影完成"
+            " | 来源=" + 原因文本
+            + " | 根=" + 根主键
+            + " | 节点数=" + std::to_string(行集.size()));
+        return true;
+    }
+    catch (const std::exception& 异常) {
+        项目运行错误日志(std::string("需求树SQL投影异常 | 原因=") + 异常.what());
+    }
+    catch (...) {
+        项目运行错误日志("需求树SQL投影异常 | 原因=未知异常");
+    }
+    return false;
 }
 
 // 功能：建立对象、任务、方法或因果之间的绑定关系。

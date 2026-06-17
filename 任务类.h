@@ -40,6 +40,10 @@ public:
         节点类* 任务头结点,
         场景节点类* 承载场景 = nullptr,
         时间戳 now = 结构体_时间戳::当前_微秒());
+    // 功能：把当前任务树本体重写到 SQL Server 查询投影。
+    static bool 重写任务树SQL投影(
+        const 节点类* 任务根节点,
+        const char* 来源原因) noexcept;
 
     static bool 写入任务根实体特征(
         节点类* 任务头结点,

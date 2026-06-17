@@ -508,6 +508,11 @@ public:
         节点类* 需求,
         任务节点类* 任务) noexcept;
 
+    // 功能：把当前需求树本体重写到 SQL Server 查询投影。
+    static bool 重写需求树SQL投影(
+        节点类* 需求根节点,
+        const char* 来源原因) noexcept;
+
     // 功能：按函数名执行对应处理。
     static void 刷新需求结构角色(节点类* 需求) noexcept
     {
@@ -588,18 +593,30 @@ public:
         节点类* 需求根节点,
         const 结构_需求树更新指令& 指令) noexcept
     {
-        std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
-        auto 锁 = this->获取锁();
-        if (!需求根节点) {
-            return nullptr;
-        }
+        节点类* 结果 = nullptr;
+        节点类* SQL投影根 = nullptr;
+        {
+            std::lock_guard<std::recursive_mutex> 借用锁{ 借用需求树全局互斥() };
+            auto 锁 = this->获取锁();
+            if (!需求根节点) {
+                return nullptr;
+            }
+            auto* 真实根 = 获取独立树根_已加锁(需求根节点);
+            if (!真实根) {
+                return nullptr;
+            }
 
-        // 存在内部的需求树是独立树根，不由临时需求类实例拥有。
-        // 执行期间借用真实根节点，避免新增节点挂到临时根后随临时对象析构被释放。
-        auto* 原根 = this->根指针;
-        this->根指针 = 需求根节点;
-        auto* 结果 = 执行更新指令_已加锁(需求根节点, 指令);
-        this->根指针 = 原根;
+            // 存在内部的需求树是独立树根，不由临时需求类实例拥有。
+            // 执行期间借用真实根节点，避免新增节点挂到临时根后随临时对象析构被释放。
+            auto* 原根 = this->根指针;
+            this->根指针 = 真实根;
+            结果 = 执行更新指令_已加锁(真实根, 指令);
+            this->根指针 = 原根;
+            SQL投影根 = 真实根;
+        }
+        if (结果 && SQL投影根) {
+            (void)重写需求树SQL投影(SQL投影根, "需求树更新指令成功");
+        }
         return 结果;
     }
 

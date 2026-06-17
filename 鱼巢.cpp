@@ -25,6 +25,7 @@
 #include "世界树类.h"
 #include "语素类.h"
 #include "需求类.h"
+#include "任务类.h"
 #include "方法类.h"
 #include "方法主信息类.h"
 #include "方法虚拟存在服务类.h"
@@ -56,6 +57,12 @@ import 外设线程_D455深度相机;
 namespace {
     bool 私有_确保自我环境已初始化(const std::string& 标记);
     bool 私有_确保自我线程已启动(const std::string& 标记);
+    void 私有_刷新启动需求树SQL投影(const std::string& 标记) noexcept;
+    void 私有_刷新语素SQL投影(const std::string& 标记, bool 仅首次) noexcept;
+    void 私有_刷新世界树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
+    void 私有_刷新任务树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
+    void 私有_刷新方法树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
+    void 私有_刷新治理SQL投影集(const std::string& 标记, bool 仅首次) noexcept;
     void 私有_记录自我实现检查日志();
     void 私有_枚举任务子节点(
         const 任务类::节点类* 父节点,
@@ -1037,9 +1044,165 @@ namespace {
                 停止自我线程();
                 项目运行日志("程序退出/守卫 | 自我线程已停止");
             }
+            私有_刷新世界树SQL投影("程序退出/守卫", false);
+            私有_刷新任务树SQL投影("程序退出/守卫", false);
+            私有_刷新方法树SQL投影("程序退出/守卫", false);
+            私有_刷新语素SQL投影("程序退出/守卫", false);
             关闭项目日志();
         }
     };
+
+    // 功能：初始化相关对象、状态或运行上下文。
+    void 私有_刷新启动需求树SQL投影(const std::string& 标记) noexcept
+    {
+        static std::mutex 投影互斥{};
+        static bool 已成功写入 = false;
+
+        std::lock_guard<std::mutex> 锁{ 投影互斥 };
+        if (已成功写入) {
+            return;
+        }
+
+        auto* 自我存在 = 自我.获取自我存在();
+        auto* 需求根 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
+        if (!需求根) {
+            项目运行警告日志("启动需求树SQL投影跳过 | 原因=需求根为空 | 标记=" + 标记);
+            return;
+        }
+
+        已成功写入 = 需求类::重写需求树SQL投影(需求根, "启动初始化清空重写");
+        项目运行日志(
+            "启动需求树SQL投影"
+            " | 标记=" + 标记
+            + " | 成功=" + 私有_布尔文本(已成功写入));
+    }
+
+    // 功能：把当前语素树写入 SQL Server 查询投影。
+    void 私有_刷新语素SQL投影(const std::string& 标记, const bool 仅首次) noexcept
+    {
+        static std::mutex 投影互斥{};
+        static bool 启动已成功写入 = false;
+
+        std::lock_guard<std::mutex> 锁{ 投影互斥 };
+        if (仅首次 && 启动已成功写入) {
+            return;
+        }
+
+        const std::string 来源原因 = 仅首次
+            ? "启动初始化清空重写"
+            : "程序退出最终重写";
+        const bool 成功 = 语素集.重写语素SQL投影(来源原因.c_str());
+        if (仅首次 && 成功) {
+            启动已成功写入 = true;
+        }
+
+        项目运行日志(
+            "语素SQL投影刷新"
+            " | 标记=" + 标记
+            + " | 仅首次=" + 私有_布尔文本(仅首次)
+            + " | 成功=" + 私有_布尔文本(成功));
+    }
+
+    // 功能：把当前世界树写入 SQL Server 查询投影。
+    void 私有_刷新世界树SQL投影(const std::string& 标记, const bool 仅首次) noexcept
+    {
+        static std::mutex 投影互斥{};
+        static bool 启动已成功写入 = false;
+
+        std::lock_guard<std::mutex> 锁{ 投影互斥 };
+        if (仅首次 && 启动已成功写入) {
+            return;
+        }
+
+        const std::string 来源原因 = 仅首次
+            ? "启动初始化清空重写"
+            : "程序退出最终重写";
+        const bool 成功 = 世界树.重写世界树SQL投影(来源原因.c_str());
+        if (仅首次 && 成功) {
+            启动已成功写入 = true;
+        }
+
+        项目运行日志(
+            "世界树SQL投影刷新"
+            " | 标记=" + 标记
+            + " | 仅首次=" + 私有_布尔文本(仅首次)
+            + " | 成功=" + 私有_布尔文本(成功));
+    }
+
+    // 功能：把当前任务树写入 SQL Server 查询投影。
+    void 私有_刷新任务树SQL投影(const std::string& 标记, const bool 仅首次) noexcept
+    {
+        static std::mutex 投影互斥{};
+        static bool 启动已成功写入 = false;
+
+        std::lock_guard<std::mutex> 锁{ 投影互斥 };
+        if (仅首次 && 启动已成功写入) {
+            return;
+        }
+
+        auto* 自我存在 = 自我.获取自我存在();
+        auto* 任务根 = 自我存在 ? 世界树.存在().获取任务根节点(自我存在) : nullptr;
+        if (!任务根) {
+            项目运行警告日志("任务树SQL投影刷新跳过 | 原因=任务根为空 | 标记=" + 标记);
+            return;
+        }
+
+        const std::string 来源原因 = 仅首次
+            ? "启动初始化清空重写"
+            : "程序退出最终重写";
+        const bool 成功 = 任务类::重写任务树SQL投影(任务根, 来源原因.c_str());
+        if (仅首次 && 成功) {
+            启动已成功写入 = true;
+        }
+
+        项目运行日志(
+            "任务树SQL投影刷新"
+            " | 标记=" + 标记
+            + " | 仅首次=" + 私有_布尔文本(仅首次)
+            + " | 成功=" + 私有_布尔文本(成功));
+    }
+
+    // 功能：把当前方法树写入 SQL Server 查询投影。
+    void 私有_刷新方法树SQL投影(const std::string& 标记, const bool 仅首次) noexcept
+    {
+        static std::mutex 投影互斥{};
+        static bool 启动已成功写入 = false;
+
+        std::lock_guard<std::mutex> 锁{ 投影互斥 };
+        if (仅首次 && 启动已成功写入) {
+            return;
+        }
+
+        auto* 自我存在 = 自我.获取自我存在();
+        auto* 方法根 = 自我存在 ? 世界树.存在().获取方法根节点(自我存在) : nullptr;
+        if (!方法根) {
+            项目运行警告日志("方法树SQL投影刷新跳过 | 原因=方法根为空 | 标记=" + 标记);
+            return;
+        }
+
+        const std::string 来源原因 = 仅首次
+            ? "启动初始化清空重写"
+            : "程序退出最终重写";
+        const bool 成功 = 方法类::重写方法树SQL投影(方法根, 来源原因.c_str());
+        if (仅首次 && 成功) {
+            启动已成功写入 = true;
+        }
+
+        项目运行日志(
+            "方法树SQL投影刷新"
+            " | 标记=" + 标记
+            + " | 仅首次=" + 私有_布尔文本(仅首次)
+            + " | 成功=" + 私有_布尔文本(成功));
+    }
+
+    // 功能：刷新控制面板 SQL 查询所需的治理读模型投影。
+    void 私有_刷新治理SQL投影集(const std::string& 标记, const bool 仅首次) noexcept
+    {
+        私有_刷新世界树SQL投影(标记, 仅首次);
+        私有_刷新任务树SQL投影(标记, 仅首次);
+        私有_刷新方法树SQL投影(标记, 仅首次);
+        私有_刷新语素SQL投影(标记, 仅首次);
+    }
 
     // 功能：初始化相关对象、状态或运行上下文。
     bool 私有_确保自我环境已初始化(const std::string& 标记)
@@ -1057,6 +1220,8 @@ namespace {
         if (已初始化) {
             (void)自我动作实现模块::注册本能函数执行闭环();
             (void)自我动作实现模块::确认默认本能方法专属规格集(自我);
+            私有_刷新启动需求树SQL投影(标记);
+            私有_刷新治理SQL投影集(标记, true);
         } else {
             const auto 初始化结果 = 自我初始化模块::读取自我初始化结果(自我);
             项目运行错误日志(
@@ -1085,6 +1250,8 @@ namespace {
         if (已初始化) {
             (void)自我动作实现模块::注册本能函数执行闭环();
             (void)自我动作实现模块::确认默认本能方法专属规格集(自我);
+            私有_刷新启动需求树SQL投影(标记);
+            私有_刷新治理SQL投影集(标记, true);
         } else {
             const auto 初始化结果 = 自我初始化模块::读取自我初始化结果(自我);
             项目运行错误日志(
@@ -1684,6 +1851,10 @@ namespace {
         }
 
         if (命令 == 枚举_控制面板命令::生成HTML) {
+            if (!私有_确保自我环境已初始化("鱼巢::main/控制面板/生成SQL HTML")) {
+                鱼巢_控制台输出(std::cerr << "自我环境初始化失败。\n");
+                return 4;
+            }
             const auto 输出路径 = 默认控制面板HTML路径();
             if (!保存控制面板HTML(输出路径)) {
                 项目运行错误日志("控制面板HTML保存失败 | 路径=" + 输出路径.string());
@@ -1691,10 +1862,14 @@ namespace {
                 return 2;
             }
 
-            鱼巢_控制台输出(std::cout << "控制面板 HTML 已生成: " << 输出路径.string() << " | 来源=SQL\n");
+            鱼巢_控制台输出(std::cout << "控制面板 HTML 已生成: " << 输出路径.string() << " | 来源=ADO-SQL\n");
             return 0;
         }
 
+        if (!私有_确保自我环境已初始化("鱼巢::main/控制面板/打开SQL面板")) {
+            鱼巢_控制台输出(std::cerr << "自我环境初始化失败。\n");
+            return 4;
+        }
         if (!启动控制面板窗口()) {
             const int 诊断码 = 获取控制面板启动诊断码();
             项目运行错误日志("控制面板独立窗口启动失败 | 诊断码=" + std::to_string(诊断码));

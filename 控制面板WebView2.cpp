@@ -1143,16 +1143,14 @@ namespace {
             return 私有_生成相机播放HTML();
         }
 
-        if (!自我.已初始化()) {
-            (void)初始化自我环境();
-        }
-
         if (用途 == 枚举_WebView2窗口用途::自我场景) {
+            if (!自我.已初始化()) {
+                (void)初始化自我环境();
+            }
             const auto 快照 = 读取控制面板快照(10, 24);
             return 生成自我场景独立窗口HTML(快照);
         }
-        const auto 快照 = 读取控制面板主窗口快照(10, 24);
-        return 生成控制面板HTML(快照, 24);
+        return 生成SQL控制面板HTML();
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -1254,6 +1252,10 @@ namespace {
                                             }
                                             constexpr std::wstring_view 页面刷新前缀 = L"refresh-page:";
                                             if (消息.starts_with(页面刷新前缀)) {
+                                                auto* 上下文 = 私有_取窗口上下文(窗口);
+                                                if (上下文 && 上下文->用途 == 枚举_WebView2窗口用途::控制面板) {
+                                                    return S_OK;
+                                                }
                                                 const auto 页面 = 私有_宽字串转UTF8(
                                                     消息.substr(页面刷新前缀.size()));
                                                 私有_发送页面刷新到页面(窗口, 页面);
@@ -1310,6 +1312,9 @@ namespace {
                                             std::string 展开类型{};
                                             if (私有_解析展开消息(消息, &请求号, &展开类型, &节点指针, &附加参数)) {
                                                 auto* 上下文 = 私有_取窗口上下文(窗口);
+                                                if (上下文 && 上下文->用途 == 枚举_WebView2窗口用途::控制面板) {
+                                                    return S_OK;
+                                                }
                                                 if (上下文 && 上下文->WebView) {
                                                     const auto 子项JSON = 读取控制面板节点子项JSON(展开类型, 节点指针, 16, 附加参数);
                                                     const auto 宽子项JSON = 私有_UTF8转宽字串(子项JSON);
@@ -1326,6 +1331,9 @@ namespace {
 
                                             if (私有_解析详情消息(消息, &请求号, &展开类型, &节点指针)) {
                                                 auto* 上下文 = 私有_取窗口上下文(窗口);
+                                                if (上下文 && 上下文->用途 == 枚举_WebView2窗口用途::控制面板) {
+                                                    return S_OK;
+                                                }
                                                 if (上下文 && 上下文->WebView) {
                                                     const auto 详情JSON = 读取控制面板节点详情JSON(展开类型, 节点指针, 16);
                                                     const auto 宽详情JSON = 私有_UTF8转宽字串(详情JSON);

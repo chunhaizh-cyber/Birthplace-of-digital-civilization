@@ -96,6 +96,9 @@ public:
     std::int64_t 添加对应基础信息(const 语素入口节点类* 词节点, 基础信息节点类* 基础信息);
     std::string 获取词(const 语素入口节点类* 语素入口指针) const;
 
+    // 功能：把当前语素树本体重写到 SQL Server 查询投影。
+    bool 重写语素SQL投影(const char* 来源原因) const noexcept;
+
 private:
     void 私有_清理主信息_已加锁() noexcept;
     词节点类* 查找词_已加锁(const std::string& 词字符串) const;
