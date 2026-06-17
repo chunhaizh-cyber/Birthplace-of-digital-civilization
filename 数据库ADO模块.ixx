@@ -27,4 +27,5 @@ export bool 执行ADO查询(
 export bool 执行ADO命令(
     const std::string& 连接串,
     const std::string& SQL,
-    std::string& 错误);
+    std::string& 错误,
+    int 命令超时秒 = 30);

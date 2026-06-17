@@ -2,9 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <mutex>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "基础信息类.h"
@@ -41,24 +39,10 @@ struct 结构_两层因果构建结果 {
     bool 创建了动作致变关系 = false;
     bool 创建了证据实例 = false;
 
-    std::string 状态变化签名{};
-    std::string 动作致变签名{};
-
     // 功能：按函数名执行对应处理。
     bool 成功() const noexcept {
         return 状态变化关系 != nullptr || 动作致变关系 != nullptr || 证据实例 != nullptr;
     }
-};
-
-struct 结构_因果候选边 {
-    因果模板节点类* 原因 = nullptr;
-    因果模板节点类* 结果 = nullptr;
-    std::string 原因签名{};
-    std::string 结果签名{};
-    std::uint32_t 因果距离 = 0;
-
-    // 投影 / 查询输出中的派生分值，不是因果主信息持久字段。
-    std::int64_t 置信度 = 0;
 };
 
 enum class 枚举_自我动作组合反推状态 : std::uint8_t {
@@ -147,7 +131,6 @@ struct 结构_状态转换因果节点 {
     因果实例节点类* 来源因果实例 = nullptr;
     场景节点类* 来源场景 = nullptr;
     时间戳 状态时间 = 0;
-    std::string 节点签名{};
 };
 
 struct 结构_状态转换因果边 {
@@ -162,7 +145,6 @@ struct 结构_状态转换因果边 {
     std::int64_t 置信度 = 0;
     std::int64_t 稳定度 = 0;
     std::vector<动态节点类*> 副作用集合{};
-    std::string 边签名{};
 };
 
 struct 结构_目标投影路径 {
@@ -189,6 +171,20 @@ struct 结构_状态转换因果投影 {
     std::vector<结构_状态转换因果节点> 节点{};
     std::vector<结构_状态转换因果边> 边{};
     std::vector<结构_目标投影路径> 目标投影路径{};
+    std::vector<std::string> 缺失证据{};
+};
+
+struct 结构_因果链查询输入 {
+    状态节点类* 目标结果状态 = nullptr;
+    特征节点类* 目标结果特征 = nullptr;
+    std::uint32_t 最大深度 = 8;
+    bool 包含未验证路径 = true;
+};
+
+struct 结构_因果链查询结果 {
+    std::vector<结构_状态转换因果节点> 节点{};
+    std::vector<结构_状态转换因果边> 边{};
+    std::vector<因果模板节点类*> 来源因果模板{};
     std::vector<std::string> 缺失证据{};
 };
 
@@ -259,7 +255,7 @@ public:
     因果模板节点类* 创建因果模板(基础信息节点类* 父节点, 因果主信息类* 主信息);
     因果实例节点类* 创建因果实例(基础信息节点类* 父节点, 因果主信息类* 主信息);
 
-    // 兼容旧入口：按一个动态补全两层因果，并返回“动作致变关系”；若无动作，则返回“状态变化关系”。
+    // 功能：按动态自身生成因果信息；外部动作参数只补充已成立动作语义，不参与动作分类。
     因果模板节点类* 按动态创建因果信息(
         场景节点类* 场景,
         动态节点类* 动态节点,
@@ -268,7 +264,7 @@ public:
         const std::string& 动作语义键 = {},
         bool 设为主结果 = true);
 
-    // 新主入口：同一条动态会生成 / 命中两种抽象因果，并把动态挂作证据样本。
+    // 功能：同一条动态会按自身类别生成 / 命中抽象因果，并把动态挂作证据样本。
     结构_两层因果构建结果 按动态补全两层因果(
         场景节点类* 场景,
         动态节点类* 动态节点,
@@ -309,19 +305,18 @@ public:
         动态节点类* 证据动态);
     bool 追加证据实例(因果模板节点类* 节点, 因果实例节点类* 证据实例);
 
-    std::string 计算动态状态变化签名(const 动态节点类* 动态节点) const;
-    std::string 计算动态动作致变签名(
-        const 动态节点类* 动态节点,
-        基础信息节点类* 动作主体 = nullptr,
-        基础信息节点类* 动作语义 = nullptr,
+    // 功能：按条件特征查询抽象因果模板，不创建或修改因果节点。
+    std::vector<因果模板节点类*> 查询条件相关因果(特征节点类* 条件特征) const;
+
+    // 功能：按结果特征或结果状态查询抽象因果模板，不创建或修改因果节点。
+    std::vector<因果模板节点类*> 查询结果相关因果(
+        特征节点类* 结果特征,
+        状态节点类* 结果状态 = nullptr) const;
+
+    // 功能：按方法模板或动作语义键查询抽象因果模板，不创建或修改因果节点。
+    std::vector<因果模板节点类*> 查询动作相关因果(
+        const 方法节点类* 因方法,
         const std::string& 动作语义键 = {}) const;
-
-    std::string 计算模板状态变化签名(const 因果模板节点类* 节点) const;
-    std::string 计算模板动作致变签名(const 因果模板节点类* 节点) const;
-
-    std::vector<因果模板节点类*> 查找状态变化关系模板(const std::string& 状态变化签名) const;
-    std::vector<因果模板节点类*> 查找动作致变关系模板(const std::string& 动作致变签名) const;
-    std::vector<因果模板节点类*> 查找导致状态变化的动作关系(const std::string& 状态变化签名) const;
 
     // 只读反推接口：
     // 根据目标结果状态，从已沉淀的“动作 + 状态变化”因果模板中查找自我可能使用的动作组合。
@@ -335,6 +330,11 @@ public:
     // 本函数只返回普通结构体，不创建因果节点、不写任务树 / 需求树 / 世界树。
     结构_状态转换因果投影 生成状态转换因果投影(
         const 结构_状态转换因果投影输入& 输入 = {}) const;
+
+    // 只读链路查询接口：
+    // 从目标结果状态或目标结果特征回溯现有状态转换因果边，只返回查询视图，不写世界树。
+    结构_因果链查询结果 查询因果链(
+        const 结构_因果链查询输入& 输入) const;
 
     // 只读预判接口：
     // 在叶子任务业务动作 D0 生成前，尝试判断目标特征可能落入哪些目标投影、
@@ -368,13 +368,5 @@ public:
     std::string 生成抽象因果自然语言(const 因果模板节点类* 节点) const;
 
 private:
-    void 标记因果模板签名索引失效() const;
-    void 确保因果模板签名索引() const;
-    void 刷新因果模板签名索引项(因果模板节点类* 节点) const;
-
     基础信息类* 基础信息_ = nullptr;
-    mutable std::mutex 因果模板签名索引互斥_{};
-    mutable bool 因果模板签名索引有效_ = false;
-    mutable std::unordered_map<std::string, std::vector<因果模板节点类*>> 状态变化关系模板索引_{};
-    mutable std::unordered_map<std::string, std::vector<因果模板节点类*>> 动作致变关系模板索引_{};
 };

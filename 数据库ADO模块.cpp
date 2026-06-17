@@ -286,7 +286,8 @@ bool 执行ADO查询(
 bool 执行ADO命令(
     const std::string& 连接串,
     const std::string& SQL,
-    std::string& 错误)
+    std::string& 错误,
+    const int 命令超时秒)
 {
     错误.clear();
 
@@ -302,6 +303,9 @@ bool 执行ADO命令(
     }
 
     try {
+        if (命令超时秒 >= 0) {
+            连接->CommandTimeout = 命令超时秒;
+        }
         const auto 宽SQL = 私有_UTF8转宽字串(SQL);
         _variant_t 影响行数;
         连接->Execute(
