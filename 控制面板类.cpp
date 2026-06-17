@@ -7309,6 +7309,7 @@ ORDER BY row_index;
     :root{color-scheme:light;font-family:"Microsoft YaHei UI","Segoe UI",sans-serif;--bg:#f4f6f8;--surface:#fff;--line:#d8dee7;--ink:#172026;--muted:#5d6977;--accent:#0f766e;--blue:#2563eb}
     *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink)}
     header{padding:20px 28px;background:#18212f;color:#fff} h1{margin:0 0 8px;font-size:24px;letter-spacing:0} header p{margin:4px 0;color:#d7deea}
+    .top-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.top-actions button{border:1px solid rgba(255,255,255,.35);background:#fff;color:#172026;border-radius:6px;padding:8px 12px;cursor:pointer}.top-actions button.secondary{background:#263244;color:#fff}.top-actions span{align-self:center;color:#d7deea;font-size:13px}
     .panel-shell{display:grid;grid-template-columns:240px minmax(0,1fr);gap:0;min-height:calc(100vh - 108px)}
     .menu-bar{background:#fff;border-right:1px solid var(--line);padding:14px 12px;position:sticky;top:0;height:calc(100vh - 108px);overflow:auto}
     .menu-group{display:grid;gap:6px}.menu-title{font-size:12px;color:var(--muted);margin:10px 8px 4px}.menu-bar button{width:100%;border:1px solid transparent;background:#fff;border-radius:6px;padding:9px 10px;text-align:left;color:var(--ink);cursor:pointer}.menu-bar button:hover{background:#eef6f5}.menu-bar button.active{background:#0f766e;border-color:#0f766e;color:#fff}
@@ -7330,26 +7331,29 @@ ORDER BY row_index;
         输出 << "<header><h1>鱼巢控制面板</h1>"
             << "<p>数据来源：ADO / SQL Server <code>.\\SQLEXPRESS</code> / <code>FishnestProjection</code> / <code>fishnest</code> SQL 投影视图</p>"
             << "<p>批次：<code>" << 私有_转义HTML(批次ID) << "</code>；创建时间：" << 私有_转义HTML(创建时间)
-            << "；工作区：" << 私有_转义HTML(工作区) << "</p></header>\n"
+            << "；工作区：" << 私有_转义HTML(工作区) << "</p>"
+            << "<div class=\"top-actions\"><button id=\"refreshPanel\" type=\"button\">刷新</button>"
+            << "<button id=\"openCameraWindow\" class=\"secondary\" type=\"button\">打开相机窗口</button>"
+            << "<span id=\"refreshStatus\">自动刷新：10 秒</span></div></header>\n"
             << "<div class=\"panel-shell\"><aside class=\"menu-bar\"><nav class=\"menu-group\" aria-label=\"控制面板菜单\">"
             << "<div class=\"menu-title\">运行</div>"
-            << "<button class=\"active\" data-target=\"metrics\">面板指标</button>"
-            << "<button data-target=\"threads\">线程信息</button>"
-            << "<button data-target=\"threadEvents\">线程事件</button>"
-            << "<button data-target=\"actions\">动作动态</button>"
+            << "<button class=\"active\" data-menu-index=\"1\" data-target=\"metrics\">1. 面板指标</button>"
+            << "<button data-menu-index=\"2\" data-target=\"threads\">2. 线程信息</button>"
+            << "<button data-menu-index=\"3\" data-target=\"threadEvents\">3. 线程事件</button>"
+            << "<button data-menu-index=\"4\" data-target=\"actions\">4. 动作动态</button>"
             << "<div class=\"menu-title\">治理</div>"
-            << "<button data-target=\"causalInfo\">因果信息</button>"
-            << "<button data-target=\"causalChain\">因果链查询</button>"
-            << "<button data-target=\"causal\">因果边</button>"
-            << "<button data-target=\"demandTree\">需求树</button>"
-            << "<button data-target=\"taskTree\">任务树</button>"
-            << "<button data-target=\"methodTree\">方法树</button>"
-            << "<button data-target=\"worldTree\">世界树</button>"
-            << "<button data-target=\"worldRelations\">世界关系</button>"
-            << "<button data-target=\"lexemeTree\">语素树</button>"
+            << "<button data-menu-index=\"5\" data-target=\"causalInfo\">5. 因果信息</button>"
+            << "<button data-menu-index=\"6\" data-target=\"causalChain\">6. 因果链查询</button>"
+            << "<button data-menu-index=\"7\" data-target=\"causal\">7. 因果边</button>"
+            << "<button data-menu-index=\"8\" data-target=\"demandTree\">8. 需求树</button>"
+            << "<button data-menu-index=\"9\" data-target=\"taskTree\">9. 任务树</button>"
+            << "<button data-menu-index=\"10\" data-target=\"methodTree\">10. 方法树</button>"
+            << "<button data-menu-index=\"11\" data-target=\"worldTree\">11. 世界树</button>"
+            << "<button data-menu-index=\"12\" data-target=\"worldRelations\">12. 世界关系</button>"
+            << "<button data-menu-index=\"13\" data-target=\"lexemeTree\">13. 语素树</button>"
             << "<div class=\"menu-title\">基础</div>"
-            << "<button data-target=\"features\">特征类型</button>"
-            << "<button data-target=\"catalog\">字段目录</button>"
+            << "<button data-menu-index=\"14\" data-target=\"features\">14. 特征类型</button>"
+            << "<button data-menu-index=\"15\" data-target=\"catalog\">15. 字段目录</button>"
             << "</nav></aside><main class=\"content\">\n"
             << "<input id=\"filter\" type=\"search\" placeholder=\"过滤当前页表格和世界树文本\">\n"
             << "<section id=\"metrics\" class=\"active\"><h2>面板指标</h2>\n"
@@ -7530,9 +7534,14 @@ const chainResult=document.getElementById('chainResult');
 const causalInfoHost=document.getElementById('causalInfoTreeView');
 const causalInfoDetail=document.getElementById('causalInfoDetail');
 const worldTreeHost=document.getElementById('worldTreeView');
+const refreshButton=document.getElementById('refreshPanel');
+const openCameraButton=document.getElementById('openCameraWindow');
+const refreshStatus=document.getElementById('refreshStatus');
 let causalInfoRoots=[];
 let worldTreeRoots=[];
 let selectedCausalInfoKey='';
+let menuNumberBuffer='';
+let menuNumberTimer=0;
 const causalInfoByKey=new Map(causalInfoRows.map(row=>[row.key,row]));
 const causalRelationsByOwner=new Map();
 causalInfoRelations.forEach(rel=>{
@@ -7829,12 +7838,59 @@ function queryCausalChain(){
   }
   renderChain([],`没有在 ${causalEdges.length} 条 SQL 因果边内找到路径。`);
 }
-buttons.forEach(button=>button.addEventListener('click',()=>{
+)HTML";
+        输出 << R"HTML(
+function activateMenuButton(button){
+  if(!button)return;
   buttons.forEach(item=>item.classList.toggle('active',item===button));
   sections.forEach(section=>section.classList.toggle('active',section.id===button.dataset.target));
+  try{localStorage.setItem('fishnest.panel.activeTarget',button.dataset.target||'');}catch(_){}
   applyFilter();
-}));
+}
+function selectMenuByNumber(text){
+  const index=Number(text);
+  if(!Number.isInteger(index)||index<=0)return false;
+  const button=buttons.find(item=>Number(item.dataset.menuIndex||0)===index);
+  if(!button)return false;
+  activateMenuButton(button);
+  return true;
+}
+function refreshPanel(){
+  try{localStorage.setItem('fishnest.panel.activeTarget',document.querySelector('button[data-target].active')?.dataset.target||'');}catch(_){}
+  if(window.chrome&&window.chrome.webview){
+    if(refreshStatus)refreshStatus.textContent='正在刷新...';
+    window.chrome.webview.postMessage('refresh');
+  }else{
+    location.reload();
+  }
+}
+function openCameraWindow(){
+  if(window.chrome&&window.chrome.webview){
+    window.chrome.webview.postMessage('camera:open-window');
+  }else if(refreshStatus){
+    refreshStatus.textContent='静态 HTML 预览不能打开相机窗口。';
+  }
+}
+buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button)));
 filter.addEventListener('input',applyFilter);
+if(refreshButton)refreshButton.addEventListener('click',refreshPanel);
+if(openCameraButton)openCameraButton.addEventListener('click',openCameraWindow);
+document.addEventListener('keydown',event=>{
+  if(event.target&&['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName))return;
+  if(/^[0-9]$/.test(event.key)){
+    menuNumberBuffer+=event.key;
+    clearTimeout(menuNumberTimer);
+    if(menuNumberBuffer==='1'){
+      menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer);menuNumberBuffer='';},650);
+      return;
+    }
+    if(selectMenuByNumber(menuNumberBuffer)){
+      menuNumberBuffer='';
+      return;
+    }
+    menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer);menuNumberBuffer='';},650);
+  }
+});
 document.getElementById('chainQuery').addEventListener('click',queryCausalChain);
 causeInput.addEventListener('keydown',event=>{if(event.key==='Enter')queryCausalChain();});
 effectInput.addEventListener('keydown',event=>{if(event.key==='Enter')queryCausalChain();});
@@ -7845,6 +7901,17 @@ document.getElementById('worldTreeCollapse').addEventListener('click',()=>setWor
 document.getElementById('worldTreeShowCausal').addEventListener('click',()=>{filter.value='因果';applyFilter();});
 buildCausalInfoTree();
 buildWorldTree();
+try{
+  const savedTarget=localStorage.getItem('fishnest.panel.activeTarget');
+  const savedButton=savedTarget?buttons.find(item=>item.dataset.target===savedTarget):null;
+  if(savedButton)activateMenuButton(savedButton);
+}catch(_){}
+window.__panelApplyCameraWindowState=function(data){
+  if(refreshStatus&&data&&typeof data==='object'){
+    refreshStatus.textContent=data.message||(data.ok?'相机窗口已打开。':'相机窗口打开失败。');
+  }
+};
+window.setInterval(refreshPanel,10000);
 window.__panelApplyPageRefresh=function(){};
 window.__panelApplyExpand=function(){};
 window.__panelApplyDetail=function(){};
@@ -13889,14 +13956,19 @@ std::string 私有_生成控制面板HTML(
       }
     });
 
-    document.getElementById('refresh-page').addEventListener('click', () => {
+    function 刷新当前控制面板页() {
       if (window.chrome && window.chrome.webview) {
         const 当前页面 = 页面列表.find((item) => item.classList.contains('active')) || 页面列表[0];
         window.chrome.webview.postMessage(`refresh-page:${当前页面?.dataset.page || 'thread-status'}`);
       } else {
         location.reload();
       }
-    });
+    }
+
+    document.getElementById('refresh-page').addEventListener('click', 刷新当前控制面板页);
+    if (!自我场景窗口模式) {
+      window.setInterval(刷新当前控制面板页, 10000);
+    }
 
     document.getElementById('copy-page').addEventListener('click', async () => {
       const 当前页面 = 页面列表.find((item) => item.classList.contains('active')) || 页面列表[0];
@@ -14018,6 +14090,12 @@ bool 启动控制面板窗口() noexcept
     return 启动控制面板WebView2窗口();
 }
 
+// 功能：启动控制面板相机播放独立窗口。
+bool 启动控制面板相机窗口() noexcept
+{
+    return 启动控制面板相机播放窗口();
+}
+
 // 功能：等待线程、任务、外设或条件变化。
 void 等待控制面板窗口关闭() noexcept
 {
@@ -14066,6 +14144,9 @@ std::filesystem::path 默认控制面板HTML路径()
         }
         else if (参数 == "--panel" || 参数 == "--panel-open") {
             输出 = 枚举_控制面板命令::打开窗口;
+        }
+        else if (参数 == "--panel-camera" || 参数 == "--camera-window" || 参数 == "--d455-window") {
+            输出 = 枚举_控制面板命令::打开相机窗口;
         }
     }
     return 输出;
