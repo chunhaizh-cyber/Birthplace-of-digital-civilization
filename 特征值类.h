@@ -81,6 +81,45 @@ public:
         return 获取或创建句柄(std::move(v), dim);
     }
 
+    static VecU句柄 生成句柄(const 节点类* n) noexcept {
+        VecU句柄 h{};
+        h.主信息指针 = n ? reinterpret_cast<std::uintptr_t>(&n->主信息) : 0;
+        return h;
+    }
+
+    节点类* 取节点(VecU句柄 h) const {
+        if (!h.有效()) return nullptr;
+        写锁守卫 lk(this->链表锁);
+        auto* 目标主信息 = reinterpret_cast<const 特征值主信息类*>(h.主信息指针);
+        if (!目标主信息 || !this->根指针) return nullptr;
+        for (auto* it = this->根指针->链下; it && it != this->根指针; it = it->链下) {
+            if (&it->主信息 == 目标主信息) return it;
+        }
+        return nullptr;
+    }
+
+    节点类* 创建值节点(VecIU64 v, 枚举_轮廓维度 dim = 枚举_轮廓维度::未定义) {
+        写锁守卫 lk(this->链表锁);
+        私有_确保缓存_已加锁();
+        特征值主信息类 mi(std::move(v));
+        mi.内容哈希 = 哈希VecIU64(mi.值);
+        return 添加_分层_已加锁(std::move(mi), dim);
+    }
+
+    节点类* 创建子值节点(节点类* 父节点, VecIU64 v) {
+        if (!父节点) return nullptr;
+        写锁守卫 lk(this->链表锁);
+        私有_确保缓存_已加锁();
+
+        特征值主信息类 mi(std::move(v));
+        mi.内容哈希 = 哈希VecIU64(mi.值);
+        auto* node = this->添加子节点_已加锁(父节点, std::move(mi));
+        if (node) {
+            哈希到候选_[node->主信息.内容哈希].push_back(node);
+        }
+        return node;
+    }
+
     // 功能：按函数名执行对应处理。
     const VecIU64* 取VecU只读指针(VecU句柄 h) const noexcept {
         if (!h.有效()) return nullptr;

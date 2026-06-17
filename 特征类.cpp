@@ -1,6 +1,7 @@
 #include "特征类.h"
 
 #include <algorithm>
+#include <bit>
 #include <cstddef>
 #include <initializer_list>
 #include <limits>
@@ -11,11 +12,17 @@
 #include "本能方法类.h"
 #include "方法主信息类.h"
 #include "任务主信息类.h"
+#include "特征值类.h"
 #include "语素类.h"
 
 
 namespace {
     constexpr I64 私有_默认不同值 = 10000;
+    constexpr std::uint32_t 私有_三维体素顶层边长 = 4;
+    constexpr std::uint64_t 私有_三维体素VecUMagic = 0x31584F5655435953ull; // SYCUVOX1
+    constexpr std::uint64_t 私有_三维体素VecU_根 = 1;
+    constexpr std::uint64_t 私有_三维体素VecU_节点 = 2;
+    constexpr std::uint32_t 私有_三维体素最大细分层数 = 19;
 
     static_assert(static_cast<I64>(枚举_任务状态::未定义) == 0);
     static_assert(static_cast<I64>(枚举_任务状态::未启动) == 1);
@@ -260,6 +267,95 @@ namespace {
     const 语素入口节点类* 私有_空间极值轮廓特征类型()
     {
         return 语素集.添加信息入口词("空间极值轮廓", 枚举_信息入口类型::特征模板入口);
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    bool 私有_是否三维体素特征类型(const 语素入口节点类* 特征类型)
+    {
+        if (!特征类型) return false;
+        return 语素入口同一(
+            特征类型,
+            语素集.添加信息入口词("三维体素模型", 枚举_信息入口类型::特征模板入口))
+            || 语素入口同一(
+                特征类型,
+                语素集.添加信息入口词("局部三维模型", 枚举_信息入口类型::特征模板入口))
+            || 语素入口同一(
+                特征类型,
+                语素集.添加信息入口词("三维体素信息", 枚举_信息入口类型::特征模板入口));
+    }
+
+    // 功能：计算权重、状态、差值或派生结果。
+    std::uint64_t 私有_三维体素总数(std::uint64_t 边长) noexcept
+    {
+        if (边长 == 0 || 边长 > (std::numeric_limits<std::uint64_t>::max)() / 边长) return 0;
+        const auto 面 = 边长 * 边长;
+        if (边长 > (std::numeric_limits<std::uint64_t>::max)() / 面) return 0;
+        return 面 * 边长;
+    }
+
+    // 功能：计算权重、状态、差值或派生结果。
+    std::uint64_t 私有_统计三维体素占据数(const VecIU64& 占据位块) noexcept
+    {
+        std::uint64_t 数量 = 0;
+        for (const auto 块 : 占据位块) {
+            数量 += static_cast<std::uint64_t>(std::popcount(块));
+        }
+        return 数量;
+    }
+
+    // 功能：计算权重、状态、差值或派生结果。
+    枚举_三维体素链节点状态 私有_统计三维体素块状态(
+        const VecIU64& 占据位块,
+        const std::uint32_t 细分层数,
+        const std::uint32_t x0,
+        const std::uint32_t y0,
+        const std::uint32_t z0,
+        const std::uint32_t 边长,
+        std::uint64_t& 输出占据数) noexcept
+    {
+        输出占据数 = 0;
+        const auto 总数 = 私有_三维体素总数(边长);
+        if (总数 == 0) return 枚举_三维体素链节点状态::空;
+
+        for (std::uint32_t z = z0; z < z0 + 边长; ++z) {
+            for (std::uint32_t y = y0; y < y0 + 边长; ++y) {
+                for (std::uint32_t x = x0; x < x0 + 边长; ++x) {
+                    if (特征类::读取三维体素占据位(占据位块, 细分层数, x, y, z)) {
+                        ++输出占据数;
+                    }
+                }
+            }
+        }
+
+        if (输出占据数 == 0) return 枚举_三维体素链节点状态::空;
+        if (输出占据数 == 总数) return 枚举_三维体素链节点状态::满;
+        return 枚举_三维体素链节点状态::混合;
+    }
+
+    // 功能：按条件查找目标对象、方法或事实。
+    特征值类::节点类* 私有_查找三维体素子节点(
+        const 特征值类::节点类* 父节点,
+        const std::uint32_t x,
+        const std::uint32_t y,
+        const std::uint32_t z,
+        const std::uint32_t 目标层级)
+    {
+        if (!父节点 || !父节点->子) return nullptr;
+        auto* 首节点 = 父节点->子;
+        auto* 当前 = 首节点;
+        do {
+            结构_三维体素链节点信息 信息{};
+            if (特征类::解析三维体素链节点VecU(当前->主信息.值, 信息)
+                && !信息.是根
+                && 信息.层级 == 目标层级
+                && x >= 信息.x && x < 信息.x + 信息.边长
+                && y >= 信息.y && y < 信息.y + 信息.边长
+                && z >= 信息.z && z < 信息.z + 信息.边长) {
+                return 当前;
+            }
+            当前 = 当前->下;
+        } while (当前 && 当前 != 首节点);
+        return nullptr;
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -2540,6 +2636,34 @@ bool 特征类::写入特征值_指针句柄(特征节点类* 节点, 指针句�
     return 写入特征值(节点, 特征值{ 值 }, now);
 }
 
+// 功能：把处理结果写入指定对象、场景或日志。
+bool 特征类::写入三维体素特征值(特征节点类* 节点, VecU句柄 值, 时间戳 now)
+{
+    return 值.有效() && 写入特征值_VecU句柄(节点, 值, now);
+}
+
+// 功能：从指定来源读取数据或状态。
+bool 特征类::读取三维体素特征值(const 特征节点类* 节点, VecU句柄& 输出值) const
+{
+    输出值 = {};
+    const auto 值 = 读取特征值(节点);
+    const auto* 句柄 = std::get_if<VecU句柄>(&值);
+    if (!句柄 || !句柄->有效()) return false;
+    输出值 = *句柄;
+    return true;
+}
+
+// 功能：清理缓存、临时状态或运行资源。
+bool 特征类::清空三维体素特征值(特征节点类* 节点, 时间戳 now)
+{
+    auto* 主信息 = 取特征主信息(节点);
+    if (!主信息) return false;
+    主信息->当前值 = 特征值{};
+    主信息->当前稳态索引 = -1;
+    主信息->统计.记录观测(now != 0 ? now : 结构体_时间戳::当前_微秒());
+    return true;
+}
+
 // 功能：从指定来源读取数据或状态。
 特征值 特征类::读取特征值(const 特征节点类* 节点) const
 {
@@ -2823,7 +2947,305 @@ bool 特征类::求值组合抽象特征(
         };
     }
 
+    if (私有_是否三维体素特征类型(特征类型)) {
+        return {
+            枚举_VecU解释规则::VecIU64_三维体素_4x4x4顶层二分层,
+            0,
+            false
+        };
+    }
+
     return {};
+}
+
+// 功能：计算权重、状态、差值或派生结果。
+std::uint64_t 特征类::三维体素最终边长(const std::uint32_t 细分层数) noexcept
+{
+    if (细分层数 > 私有_三维体素最大细分层数) return 0;
+    return static_cast<std::uint64_t>(私有_三维体素顶层边长) << 细分层数;
+}
+
+// 功能：计算权重、状态、差值或派生结果。
+std::uint64_t 特征类::三维体素占据位块数量(const std::uint32_t 细分层数) noexcept
+{
+    const auto 边长 = 三维体素最终边长(细分层数);
+    const auto 总数 = 私有_三维体素总数(边长);
+    return 总数 == 0 ? 0 : (总数 + 63ull) / 64ull;
+}
+
+// 功能：创建并返回或登记对应对象。
+VecIU64 特征类::创建三维体素占据位块(const std::uint32_t 细分层数)
+{
+    const auto 块数 = 三维体素占据位块数量(细分层数);
+    if (块数 == 0 || 块数 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())) {
+        return {};
+    }
+    return VecIU64(static_cast<std::size_t>(块数), 0);
+}
+
+// 功能：从指定来源读取数据或状态。
+bool 特征类::读取三维体素占据位(
+    const VecIU64& 占据位块,
+    const std::uint32_t 细分层数,
+    const std::uint32_t x,
+    const std::uint32_t y,
+    const std::uint32_t z) noexcept
+{
+    const auto 边长 = 三维体素最终边长(细分层数);
+    if (边长 == 0 || x >= 边长 || y >= 边长 || z >= 边长) return false;
+
+    const auto 索引 = (static_cast<std::uint64_t>(z) * 边长 + y) * 边长 + x;
+    const auto 块索引 = 索引 / 64ull;
+    const auto 位索引 = 索引 % 64ull;
+    if (块索引 >= 占据位块.size()) return false;
+    return (占据位块[static_cast<std::size_t>(块索引)] & (1ull << 位索引)) != 0;
+}
+
+// 功能：把处理结果写入指定对象、场景或日志。
+bool 特征类::写入三维体素占据位(
+    VecIU64& 占据位块,
+    const std::uint32_t 细分层数,
+    const std::uint32_t x,
+    const std::uint32_t y,
+    const std::uint32_t z,
+    const bool 有存在) noexcept
+{
+    const auto 边长 = 三维体素最终边长(细分层数);
+    if (边长 == 0 || x >= 边长 || y >= 边长 || z >= 边长) return false;
+
+    const auto 索引 = (static_cast<std::uint64_t>(z) * 边长 + y) * 边长 + x;
+    const auto 块索引 = 索引 / 64ull;
+    const auto 位索引 = 索引 % 64ull;
+    if (块索引 >= 占据位块.size()) return false;
+
+    auto& 块 = 占据位块[static_cast<std::size_t>(块索引)];
+    const auto 掩码 = 1ull << 位索引;
+    if (有存在) {
+        块 |= 掩码;
+    } else {
+        块 &= ~掩码;
+    }
+    return true;
+}
+
+// 功能：创建并返回或登记对应对象。
+VecIU64 特征类::创建三维体素根节点VecU(
+    const std::uint32_t 细分层数,
+    const std::uint32_t 最小体素边长_mm,
+    const std::uint64_t 占据体素数量)
+{
+    const auto 边长 = 三维体素最终边长(细分层数);
+    const auto 总数 = 私有_三维体素总数(边长);
+    const auto 状态 = 占据体素数量 == 0
+        ? 枚举_三维体素链节点状态::空
+        : (占据体素数量 == 总数 ? 枚举_三维体素链节点状态::满 : 枚举_三维体素链节点状态::混合);
+    return {
+        私有_三维体素VecUMagic,
+        私有_三维体素VecU_根,
+        0,
+        static_cast<std::uint64_t>(细分层数),
+        0,
+        0,
+        0,
+        边长,
+        static_cast<std::uint64_t>(状态),
+        占据体素数量,
+        static_cast<std::uint64_t>(最小体素边长_mm)
+    };
+}
+
+// 功能：创建并返回或登记对应对象。
+VecIU64 特征类::创建三维体素链节点VecU(
+    const std::uint32_t 层级,
+    const std::uint32_t 最大层级,
+    const std::uint32_t x,
+    const std::uint32_t y,
+    const std::uint32_t z,
+    const std::uint32_t 边长,
+    const 枚举_三维体素链节点状态 状态,
+    const std::uint64_t 占据体素数量,
+    const std::uint32_t 最小体素边长_mm)
+{
+    return {
+        私有_三维体素VecUMagic,
+        私有_三维体素VecU_节点,
+        static_cast<std::uint64_t>(层级),
+        static_cast<std::uint64_t>(最大层级),
+        static_cast<std::uint64_t>(x),
+        static_cast<std::uint64_t>(y),
+        static_cast<std::uint64_t>(z),
+        static_cast<std::uint64_t>(边长),
+        static_cast<std::uint64_t>(状态),
+        占据体素数量,
+        static_cast<std::uint64_t>(最小体素边长_mm)
+    };
+}
+
+// 功能：从指定来源读取数据或状态。
+bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三维体素链节点信息& 输出信息)
+{
+    输出信息 = {};
+    if (值.size() < 11 || 值[0] != 私有_三维体素VecUMagic) return false;
+    if (值[1] != 私有_三维体素VecU_根 && 值[1] != 私有_三维体素VecU_节点) return false;
+    if (值[3] > 私有_三维体素最大细分层数 || 值[7] > static_cast<std::uint64_t>((std::numeric_limits<std::uint32_t>::max)())) {
+        return false;
+    }
+    if (值[8] > static_cast<std::uint64_t>(枚举_三维体素链节点状态::混合)) return false;
+
+    输出信息.有效 = true;
+    输出信息.是根 = 值[1] == 私有_三维体素VecU_根;
+    输出信息.层级 = static_cast<std::uint32_t>(值[2]);
+    输出信息.最大层级 = static_cast<std::uint32_t>(值[3]);
+    输出信息.x = static_cast<std::uint32_t>(值[4]);
+    输出信息.y = static_cast<std::uint32_t>(值[5]);
+    输出信息.z = static_cast<std::uint32_t>(值[6]);
+    输出信息.边长 = static_cast<std::uint32_t>(值[7]);
+    输出信息.状态 = static_cast<枚举_三维体素链节点状态>(值[8]);
+    输出信息.占据体素数量 = 值[9];
+    输出信息.最小体素边长_mm = static_cast<std::uint32_t>(值[10]);
+    if (输出信息.边长 == 0) {
+        输出信息 = {};
+        return false;
+    }
+    return true;
+}
+
+// 功能：把处理结果写入指定对象、场景或日志。
+结构_三维体素链写入结果 特征类::写入三维体素二分层链(
+    特征值类& 值池,
+    特征节点类* 节点,
+    const VecIU64& 占据位块,
+    const std::uint32_t 细分层数,
+    const std::uint32_t 最小体素边长_mm,
+    时间戳 now)
+{
+    结构_三维体素链写入结果 结果{};
+    const auto 最终边长 = 三维体素最终边长(细分层数);
+    const auto 期望块数 = 三维体素占据位块数量(细分层数);
+    if (!节点 || 最终边长 == 0 || 期望块数 == 0 || 占据位块.size() < 期望块数) {
+        return 结果;
+    }
+
+    const auto 占据总数 = 私有_统计三维体素占据数(占据位块);
+    auto* 根节点 = 值池.创建值节点(创建三维体素根节点VecU(细分层数, 最小体素边长_mm, 占据总数));
+    if (!根节点) return 结果;
+
+    结果.根句柄 = 特征值类::生成句柄(根节点);
+    结果.摘要.有效 = true;
+    结果.摘要.顶层边长 = 私有_三维体素顶层边长;
+    结果.摘要.细分层数 = 细分层数;
+    结果.摘要.最终边长 = 最终边长;
+    结果.摘要.最小体素边长_mm = 最小体素边长_mm;
+    结果.摘要.节点数量 = 1;
+    结果.摘要.占据体素数量 = 占据总数;
+
+    const auto 创建子树 = [&](auto&& 自身,
+        特征值类::节点类* 父节点,
+        const std::uint32_t 层级,
+        const std::uint32_t x0,
+        const std::uint32_t y0,
+        const std::uint32_t z0,
+        const std::uint32_t 边长) -> void {
+        std::uint64_t 当前占据数 = 0;
+        const auto 状态 = 私有_统计三维体素块状态(占据位块, 细分层数, x0, y0, z0, 边长, 当前占据数);
+        auto* 当前节点 = 值池.创建子值节点(
+            父节点,
+            创建三维体素链节点VecU(
+                层级,
+                细分层数,
+                x0,
+                y0,
+                z0,
+                边长,
+                状态,
+                当前占据数,
+                最小体素边长_mm));
+        if (!当前节点) return;
+
+        ++结果.摘要.节点数量;
+        const bool 是叶子 = 状态 != 枚举_三维体素链节点状态::混合 || 层级 >= 细分层数 || 边长 <= 1;
+        if (是叶子) {
+            结果.叶子句柄.push_back(特征值类::生成句柄(当前节点));
+            return;
+        }
+
+        const std::uint32_t 子边长 = 边长 / 2;
+        if (子边长 == 0) return;
+        for (std::uint32_t dz = 0; dz < 2; ++dz) {
+            for (std::uint32_t dy = 0; dy < 2; ++dy) {
+                for (std::uint32_t dx = 0; dx < 2; ++dx) {
+                    自身(
+                        自身,
+                        当前节点,
+                        层级 + 1,
+                        x0 + dx * 子边长,
+                        y0 + dy * 子边长,
+                        z0 + dz * 子边长,
+                        子边长);
+                }
+            }
+        }
+    };
+
+    const std::uint32_t 顶层块边长 = static_cast<std::uint32_t>(最终边长 / 私有_三维体素顶层边长);
+    for (std::uint32_t z = 0; z < 私有_三维体素顶层边长; ++z) {
+        for (std::uint32_t y = 0; y < 私有_三维体素顶层边长; ++y) {
+            for (std::uint32_t x = 0; x < 私有_三维体素顶层边长; ++x) {
+                创建子树(
+                    创建子树,
+                    根节点,
+                    0,
+                    x * 顶层块边长,
+                    y * 顶层块边长,
+                    z * 顶层块边长,
+                    顶层块边长);
+            }
+        }
+    }
+
+    结果.成功 = 写入三维体素特征值(节点, 结果.根句柄, now);
+    return 结果;
+}
+
+// 功能：按条件查找目标对象、方法或事实。
+结构_三维体素链查询结果 特征类::查询三维体素二分层链(
+    const 特征值类& 值池,
+    VecU句柄 根句柄,
+    const std::uint32_t x,
+    const std::uint32_t y,
+    const std::uint32_t z,
+    const std::uint32_t 查询层级)
+{
+    结构_三维体素链查询结果 结果{};
+    auto* 根节点 = 值池.取节点(根句柄);
+    if (!根节点) return 结果;
+
+    结构_三维体素链节点信息 根信息{};
+    if (!解析三维体素链节点VecU(根节点->主信息.值, 根信息) || !根信息.是根) return 结果;
+    if (x >= 根信息.边长 || y >= 根信息.边长 || z >= 根信息.边长) return 结果;
+
+    const std::uint32_t 目标层级 = std::min(查询层级, 根信息.最大层级);
+    auto* 当前节点 = 私有_查找三维体素子节点(根节点, x, y, z, 0);
+    if (!当前节点) return 结果;
+
+    结构_三维体素链节点信息 当前信息{};
+    if (!解析三维体素链节点VecU(当前节点->主信息.值, 当前信息)) return 结果;
+
+    while (当前信息.层级 < 目标层级
+        && 当前信息.状态 == 枚举_三维体素链节点状态::混合
+        && 当前节点->子) {
+        auto* 子节点 = 私有_查找三维体素子节点(当前节点, x, y, z, 当前信息.层级 + 1);
+        if (!子节点) break;
+        结构_三维体素链节点信息 子信息{};
+        if (!解析三维体素链节点VecU(子节点->主信息.值, 子信息)) break;
+        当前节点 = 子节点;
+        当前信息 = 子信息;
+    }
+
+    结果.命中 = true;
+    结果.节点句柄 = 特征值类::生成句柄(当前节点);
+    结果.节点 = 当前信息;
+    return 结果;
 }
 
 // 功能：按函数名执行对应处理。

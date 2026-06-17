@@ -8,6 +8,8 @@
 
 #include "基础信息类.h"
 
+class 特征值类;
+
 struct 特征比较明细 {
     const 语素入口节点类* 类型 = nullptr;
     I64 差异度 = 0;
@@ -73,6 +75,7 @@ enum class 枚举_VecU解释规则 : std::uint8_t {
     原始VecIU64 = 1,
     VecIU64_ZigZag_I64_二维坐标链 = 2,
     VecIU64_ZigZag_I64_三维坐标链 = 3,
+    VecIU64_三维体素_4x4x4顶层二分层 = 4,
 };
 
 struct 结构_VecU特征解释规则 {
@@ -109,6 +112,49 @@ struct 结构_轮廓比较结果 {
 
     // 功能：比较当前值、目标值或历史基准。
     bool 可比较() const noexcept { return 状态 == 枚举_轮廓比较状态::可比较; }
+};
+
+struct 结构_三维体素二分层摘要 {
+    bool 有效 = false;
+    std::uint32_t 顶层边长 = 4;
+    std::uint32_t 细分层数 = 0;
+    std::uint64_t 最终边长 = 0;
+    std::uint64_t 最小体素边长_mm = 0;
+    std::uint64_t 节点数量 = 0;
+    std::uint64_t 占据体素数量 = 0;
+};
+
+enum class 枚举_三维体素链节点状态 : std::uint8_t {
+    空 = 0,
+    满 = 1,
+    混合 = 2,
+};
+
+struct 结构_三维体素链节点信息 {
+    bool 有效 = false;
+    bool 是根 = false;
+    std::uint32_t 层级 = 0;
+    std::uint32_t 最大层级 = 0;
+    std::uint32_t x = 0;
+    std::uint32_t y = 0;
+    std::uint32_t z = 0;
+    std::uint32_t 边长 = 0;
+    枚举_三维体素链节点状态 状态 = 枚举_三维体素链节点状态::空;
+    std::uint64_t 占据体素数量 = 0;
+    std::uint32_t 最小体素边长_mm = 0;
+};
+
+struct 结构_三维体素链写入结果 {
+    bool 成功 = false;
+    VecU句柄 根句柄{};
+    std::vector<VecU句柄> 叶子句柄{};
+    结构_三维体素二分层摘要 摘要{};
+};
+
+struct 结构_三维体素链查询结果 {
+    bool 命中 = false;
+    VecU句柄 节点句柄{};
+    结构_三维体素链节点信息 节点{};
 };
 
 struct 常用抽象特征初始化结果 {
@@ -189,6 +235,9 @@ public:
     bool 写入特征值_I64(特征节点类* 节点, I64 值, 时间戳 now = 结构体_时间戳::当前_微秒());
     bool 写入特征值_VecU句柄(特征节点类* 节点, VecU句柄 值, 时间戳 now = 结构体_时间戳::当前_微秒());
     bool 写入特征值_指针句柄(特征节点类* 节点, 指针句柄 值, 时间戳 now = 结构体_时间戳::当前_微秒());
+    bool 写入三维体素特征值(特征节点类* 节点, VecU句柄 值, 时间戳 now = 结构体_时间戳::当前_微秒());
+    bool 读取三维体素特征值(const 特征节点类* 节点, VecU句柄& 输出值) const;
+    bool 清空三维体素特征值(特征节点类* 节点, 时间戳 now = 结构体_时间戳::当前_微秒());
     特征值 读取特征值(const 特征节点类* 节点) const;
     std::vector<抽象特征节点类*> 枚举命中抽象状态(const 特征节点类* 实例特征) const;
     抽象特征节点类* 解析实例特征命中抽象特征(特征节点类* 实例特征);
@@ -212,6 +261,53 @@ public:
         const 特征节点主信息类* 右特征主信息 = nullptr) const;
     static 结构_VecU特征解释规则 VecU解释规则_按特征类型(const 语素入口节点类* 特征类型);
     static std::optional<std::uint32_t> 轮廓坐标维度_按特征类型(const 语素入口节点类* 特征类型);
+    static std::uint64_t 三维体素最终边长(std::uint32_t 细分层数) noexcept;
+    static std::uint64_t 三维体素占据位块数量(std::uint32_t 细分层数) noexcept;
+    static VecIU64 创建三维体素占据位块(std::uint32_t 细分层数);
+    static bool 读取三维体素占据位(
+        const VecIU64& 占据位块,
+        std::uint32_t 细分层数,
+        std::uint32_t x,
+        std::uint32_t y,
+        std::uint32_t z) noexcept;
+    static bool 写入三维体素占据位(
+        VecIU64& 占据位块,
+        std::uint32_t 细分层数,
+        std::uint32_t x,
+        std::uint32_t y,
+        std::uint32_t z,
+        bool 有存在) noexcept;
+    static VecIU64 创建三维体素根节点VecU(
+        std::uint32_t 细分层数,
+        std::uint32_t 最小体素边长_mm,
+        std::uint64_t 占据体素数量);
+    static VecIU64 创建三维体素链节点VecU(
+        std::uint32_t 层级,
+        std::uint32_t 最大层级,
+        std::uint32_t x,
+        std::uint32_t y,
+        std::uint32_t z,
+        std::uint32_t 边长,
+        枚举_三维体素链节点状态 状态,
+        std::uint64_t 占据体素数量,
+        std::uint32_t 最小体素边长_mm);
+    static bool 解析三维体素链节点VecU(
+        const VecIU64& 值,
+        结构_三维体素链节点信息& 输出信息);
+    结构_三维体素链写入结果 写入三维体素二分层链(
+        特征值类& 值池,
+        特征节点类* 节点,
+        const VecIU64& 占据位块,
+        std::uint32_t 细分层数,
+        std::uint32_t 最小体素边长_mm = 0,
+        时间戳 now = 结构体_时间戳::当前_微秒());
+    static 结构_三维体素链查询结果 查询三维体素二分层链(
+        const 特征值类& 值池,
+        VecU句柄 根句柄,
+        std::uint32_t x,
+        std::uint32_t y,
+        std::uint32_t z,
+        std::uint32_t 查询层级);
     static bool 校验坐标链VecI64(const VecI64& 值, std::uint32_t 坐标维度) noexcept;
     static bool 校验平面轮廓VecI64(const VecI64& 值) noexcept;
     static bool 校验空间极值轮廓VecI64(const VecI64& 值) noexcept;
