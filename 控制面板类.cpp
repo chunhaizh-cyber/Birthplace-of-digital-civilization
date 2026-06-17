@@ -7242,7 +7242,7 @@ ORDER BY row_index;
             {
                 "世界树关系",
                 R"SQL(
-SELECT TOP (500)
+SELECT TOP (2000)
     COALESCE(owner_key, N'') AS owner_key,
     COALESCE(relation_name, N'') AS relation_name,
     COALESCE(target_kind, N'') AS target_kind,
@@ -7395,7 +7395,8 @@ ORDER BY row_index;
     input{width:min(720px,100%);padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;margin-bottom:12px}
     section{display:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}section.active{display:block}h2{font-size:18px;margin:0 0 12px}
     .table-wrap{overflow:auto;max-height:68vh;border:1px solid #e5e7eb}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #e5e7eb;padding:8px 10px;text-align:left;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;background:#f8fafc;z-index:1}
-    .world-tree-grid{display:grid;grid-template-columns:minmax(340px,0.95fr) minmax(0,1.05fr);gap:12px;align-items:start}.tree-panel{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;overflow:hidden}.tree-toolbar{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #e5e7eb;background:#f8fafc}.tree-toolbar button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer}.tree-view{max-height:68vh;overflow:auto;padding:10px;font-size:13px}.tree-node{margin:2px 0}.tree-node summary{cursor:pointer;list-style:none}.tree-node summary::-webkit-details-marker{display:none}.tree-node summary::before{content:"▸";display:inline-block;width:16px;color:#64748b}.tree-node[open]>summary::before{content:"▾"}.tree-leaf{padding-left:16px}.tree-line{display:flex;gap:6px;align-items:center;min-height:26px;padding:3px 6px;border-radius:5px}.tree-line:hover{background:#eef6f5}.tree-key{font-family:Consolas,monospace;color:#1d4ed8}.tree-kind{color:#0f766e}.tree-muted{color:#64748b}.tree-children{margin-left:18px;border-left:1px solid #dbe4ee;padding-left:8px}
+    .world-tree-grid{display:grid;grid-template-columns:minmax(340px,0.95fr) minmax(0,1.05fr);gap:12px;align-items:start}.tree-panel{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;overflow:hidden}.tree-toolbar{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #e5e7eb;background:#f8fafc}.tree-toolbar button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer}.tree-view{max-height:68vh;overflow:auto;padding:10px;font-size:13px}.tree-node{margin:2px 0}.tree-node summary{cursor:pointer;list-style:none}.tree-node summary::-webkit-details-marker{display:none}.tree-node summary::before{content:"▸";display:inline-block;width:16px;color:#64748b}.tree-node[open]>summary::before{content:"▾"}.tree-leaf{padding-left:16px}.tree-line{display:flex;gap:6px;align-items:center;min-height:26px;padding:3px 6px;border-radius:5px}.tree-line:hover{background:#eef6f5}.tree-line.selected{background:#dff2ef;outline:1px solid #8fc9c1}.tree-key{font-family:Consolas,monospace;color:#1d4ed8}.tree-kind{color:#0f766e}.tree-muted{color:#64748b}.tree-children{margin-left:18px;border-left:1px solid #dbe4ee;padding-left:8px}
+    .causal-detail{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;min-height:420px;max-height:68vh;overflow:auto;padding:12px}.causal-detail-empty{color:var(--muted);font-size:14px}.detail-head{display:grid;gap:4px;border-bottom:1px solid #e5e7eb;padding-bottom:10px;margin-bottom:10px}.detail-head strong{font-size:16px}.detail-block{border:1px solid #dbe4ee;border-radius:8px;background:#fff;margin:10px 0;padding:10px}.detail-block h3{margin:0 0 8px;font-size:15px}.detail-item{border-top:1px solid #edf2f7;padding:9px 0}.detail-item:first-of-type{border-top:0}.detail-item-title{font-weight:600;margin-bottom:6px}.detail-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;font-size:13px;line-height:1.5}.detail-row span{color:var(--muted)}.detail-row b{font-weight:400;word-break:break-all}.detail-sub{margin:8px 0 0 10px;border-left:2px solid #bfdcd8;padding-left:10px}.detail-sub-title{font-size:12px;color:var(--muted);margin-bottom:5px}.detail-sub-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;font-size:12px;line-height:1.5;padding:3px 0}.detail-sub-row b{font-weight:500}.detail-sub-row span{word-break:break-all}
     .chain-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:start;margin-bottom:12px}.chain-grid label{display:grid;gap:5px;font-size:13px;color:var(--muted)}.chain-grid input{width:100%;margin:0}.chain-grid button{height:39px;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:0 14px;cursor:pointer}.chain-result{margin:8px 0 12px;color:var(--muted)}
     @media(max-width:960px){.panel-shell{grid-template-columns:1fr}.menu-bar{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}.menu-group{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.menu-title{grid-column:1/-1}.world-tree-grid{grid-template-columns:1fr}}
     @media(max-width:760px){main.content{padding:14px}.chain-grid{grid-template-columns:1fr}.chain-grid button{width:100%}}
@@ -7468,17 +7469,7 @@ ORDER BY row_index;
             << "<span class=\"note\">SQL 因果节点：" << 数据.因果信息.size()
             << "；引用关系：" << 数据.因果信息关系.size() << "</span></div>"
             << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div>"
-            << "<div class=\"table-wrap\"><table data-filterable><thead><tr>"
-            << "<th>节点</th><th>父节点</th><th>深度</th><th>类别</th><th>显示</th><th>类型</th><th>值类</th><th>值</th><th>辅助</th>"
-            << "</tr></thead><tbody>\n";
-        for (const auto& 行 : 数据.因果信息) {
-            输出 << "<tr>";
-            for (std::size_t i = 0; i < 9; ++i) {
-                输出 << "<td>" << 私有_转义HTML(私有_SQL字段(行, i)) << "</td>";
-            }
-            输出 << "</tr>\n";
-        }
-        输出 << "</tbody></table></div></div></section>\n";
+            << "<div id=\"causalInfoDetail\" class=\"causal-detail\"><div class=\"causal-detail-empty\">未选择因果信息</div></div></div></section>\n";
         私有_追加SQL控制面板表(输出, "因果边", "causal", { "来源类", "来源键", "目标类", "目标键", "关系", "日志", "行" }, 数据.因果边);
         私有_追加SQL控制面板表(输出, "需求树", "demandTree", { "节点", "父节点", "深度", "结构角色", "目标语义", "目标特征", "任务" }, 数据.需求树);
         私有_追加SQL控制面板表(输出, "任务树", "taskTree", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
@@ -7585,6 +7576,26 @@ ORDER BY row_index;
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 8));
             输出 << '}';
         }
+        输出 << "];\nconst worldTreeRelations=[";
+        for (std::size_t i = 0; i < 数据.世界树关系.size(); ++i) {
+            if (i > 0) {
+                输出 << ',';
+            }
+            const auto& 行 = 数据.世界树关系[i];
+            输出 << "{\"owner\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 0));
+            输出 << ",\"relation\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 1));
+            输出 << ",\"targetKind\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 2));
+            输出 << ",\"targetKey\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 3));
+            输出 << ",\"targetText\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 4));
+            输出 << ",\"ordinal\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 5));
+            输出 << '}';
+        }
         输出 << "];\n";
         输出 << R"HTML(
 const buttons=Array.from(document.querySelectorAll('button[data-target]'));
@@ -7595,19 +7606,139 @@ const effectInput=document.getElementById('effectInput');
 const chainRows=document.getElementById('chainRows');
 const chainResult=document.getElementById('chainResult');
 const causalInfoHost=document.getElementById('causalInfoTreeView');
+const causalInfoDetail=document.getElementById('causalInfoDetail');
 const worldTreeHost=document.getElementById('worldTreeView');
 let causalInfoRoots=[];
 let worldTreeRoots=[];
+let selectedCausalInfoKey='';
+const causalInfoByKey=new Map(causalInfoRows.map(row=>[row.key,row]));
+const causalRelationsByOwner=new Map();
+causalInfoRelations.forEach(rel=>{
+  if(!causalRelationsByOwner.has(rel.owner))causalRelationsByOwner.set(rel.owner,[]);
+  causalRelationsByOwner.get(rel.owner).push(rel);
+});
+const worldNodeByKey=new Map(worldTreeRows.map(row=>[row.key,row]));
+const worldRelationsByOwner=new Map();
+worldTreeRelations.forEach(rel=>{
+  if(!worldRelationsByOwner.has(rel.owner))worldRelationsByOwner.set(rel.owner,[]);
+  worldRelationsByOwner.get(rel.owner).push(rel);
+});
 function escapeHtml(text){
   return String(text??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
 function applyFilter(){
   const query=filter.value.trim().toLowerCase();
   const active=document.querySelector('section.active table[data-filterable]');
-  if(!active)return;
-  for(const row of active.tBodies[0].rows){row.style.display=!query||row.textContent.toLowerCase().includes(query)?'':'none';}
+  if(active){
+    for(const row of active.tBodies[0].rows){row.style.display=!query||row.textContent.toLowerCase().includes(query)?'':'none';}
+  }
   filterCausalInfo(query);
   filterWorldTree(query);
+}
+function fieldText(value){
+  const text=String(value??'').trim();
+  return text||'未记录';
+}
+function featureValueText(node){
+  if(!node)return '未记录';
+  const kind=String(node.valueKind??'').trim();
+  const value=String(node.value??'').trim();
+  if(!kind&&!value)return '未记录';
+  return `${kind} ${value}`.trim();
+}
+function parseAuxFields(text){
+  const fields=new Map();
+  String(text??'').split(/\s*[|；;]\s*/).forEach(part=>{
+    const index=part.indexOf('=');
+    if(index<0)return;
+    const key=part.slice(0,index).trim();
+    const value=part.slice(index+1).trim();
+    if(key)fields.set(key,value);
+  });
+  return fields;
+}
+function isConditionRelation(name){
+  return /条件|因比较/.test(String(name??''));
+}
+function isResultRelation(name){
+  return /主果|果比较/.test(String(name??''));
+}
+function isActionRelation(name){
+  return /因动作|动作|因方法|方法模板/.test(String(name??''));
+}
+function renderDetailRows(rows){
+  return rows.map(([label,value])=>`<div class="detail-row"><span>${escapeHtml(label)}</span><b>${escapeHtml(fieldText(value))}</b></div>`).join('');
+}
+function renderOneLayerChildren(ownerKey){
+  const relations=worldRelationsByOwner.get(ownerKey)||[];
+  if(!relations.length)return '';
+  const visible=relations.slice(0,24).map(rel=>{
+    const node=worldNodeByKey.get(rel.targetKey);
+    const target=node?(node.display||node.type||node.value||node.key):(rel.targetText||rel.targetKey);
+    const detail=node?`特征类型=${fieldText(node.type)}；特征值范围/具体值=${featureValueText(node)}；类别=${fieldText(node.kind)}`:fieldText(rel.targetText);
+    return `<div class="detail-sub-row"><b>${escapeHtml(fieldText(rel.relation))}</b><span>${escapeHtml(fieldText(rel.targetKind))}:${escapeHtml(fieldText(rel.targetKey))} ${escapeHtml(target)} | ${escapeHtml(detail)}</span></div>`;
+  }).join('');
+  const more=relations.length>24?`<div class="detail-sub-row"><b>其余</b><span>${relations.length-24} 条</span></div>`:'';
+  return `<div class="detail-sub"><div class="detail-sub-title">子特征一层 ${relations.length}</div>${visible}${more}</div>`;
+}
+function renderFeatureReference(rel){
+  const node=worldNodeByKey.get(rel.targetKey);
+  const title=node?(node.display||node.type||node.value||node.key):(rel.targetText||rel.targetKey);
+  return `<div class="detail-item"><div class="detail-item-title">${escapeHtml(fieldText(rel.relation))} | ${escapeHtml(title)}</div>${renderDetailRows([
+    ['目标', `${rel.targetKind||''}:${rel.targetKey||''}`],
+    ['特征类型', node?node.type:rel.targetText],
+    ['特征值范围/具体值', node?featureValueText(node):'未记录'],
+    ['节点类别', node?node.kind:rel.targetKind],
+    ['显示', node?node.display:rel.targetText],
+    ['辅助', node?node.aux:'']
+  ])}${node?renderOneLayerChildren(node.key):''}</div>`;
+}
+function renderReferenceBlock(title,relations){
+  const body=relations.length?relations.map(renderFeatureReference).join(''):'<div class="causal-detail-empty">未记录</div>';
+  return `<div class="detail-block"><h3>${escapeHtml(title)}</h3>${body}</div>`;
+}
+function renderActionBlock(row,relations){
+  const fields=parseAuxFields(row.aux);
+  const actionCode=fields.get('因动作语义键')||fields.get('因动作')||fields.get('动作编码')||'';
+  const actionName=fields.get('因动作名称')||fields.get('动作名称')||'';
+  const methodTemplate=fields.get('因方法模板')||'';
+  const relationHtml=relations.length?relations.map(rel=>`<div class="detail-item">${renderDetailRows([
+    ['关系', rel.relation],
+    ['目标', `${rel.targetKind||''}:${rel.targetKey||''}`],
+    ['名称', rel.targetText],
+    ['序号', rel.ordinal]
+  ])}</div>`).join(''):'';
+  return `<div class="detail-block"><h3>动作</h3><div class="detail-item">${renderDetailRows([
+    ['动作编码', actionCode],
+    ['动作名称', actionName],
+    ['因方法模板', methodTemplate]
+  ])}</div>${relationHtml}</div>`;
+}
+function visitTreeRows(rows,visitor){
+  rows.forEach(row=>{
+    visitor(row);
+    if(row.children)visitTreeRows(row.children,visitor);
+  });
+}
+function updateCausalSelection(){
+  visitTreeRows(causalInfoRoots,row=>{
+    if(row.lineEl)row.lineEl.classList.toggle('selected',row.selectKey===selectedCausalInfoKey);
+  });
+}
+function selectCausalInfo(key){
+  selectedCausalInfoKey=key;
+  const row=causalInfoByKey.get(key);
+  if(!row||!causalInfoDetail){
+    if(causalInfoDetail)causalInfoDetail.innerHTML='<div class="causal-detail-empty">未选择因果信息</div>';
+    updateCausalSelection();
+    return;
+  }
+  const relations=causalRelationsByOwner.get(key)||[];
+  const conditionRelations=relations.filter(rel=>isConditionRelation(rel.relation));
+  const resultRelations=relations.filter(rel=>isResultRelation(rel.relation));
+  const actionRelations=relations.filter(rel=>isActionRelation(rel.relation)&&!isConditionRelation(rel.relation)&&!isResultRelation(rel.relation));
+  causalInfoDetail.innerHTML=`<div class="detail-head"><strong>${escapeHtml(row.display||row.type||row.key)}</strong><span><span class="tree-key">${escapeHtml(row.key)}</span> ${escapeHtml(row.kind||'因果')}</span><span class="tree-muted">${escapeHtml(row.aux||'')}</span></div>${renderReferenceBlock('条件',conditionRelations)}${renderActionBlock(row,actionRelations)}${renderReferenceBlock('结果',resultRelations)}`;
+  updateCausalSelection();
 }
 function treeLabel(row){
   const title=row.display||row.type||row.value||row.kind||row.key;
@@ -7629,6 +7760,12 @@ function renderTreeNode(row, labelFn){
   const line=document.createElement(lineTag);
   line.className='tree-line';
   line.innerHTML=labelFn(row);
+  row.lineEl=line;
+  if(row.onSelect){
+    line.tabIndex=0;
+    line.addEventListener('click',event=>{event.stopPropagation();row.onSelect(row);});
+    line.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();row.onSelect(row);}});
+  }
   wrapper.appendChild(line);
   if(hasChildren){
     const children=document.createElement('div');
@@ -7661,16 +7798,12 @@ function causalInfoLabel(row){
 }
 function buildCausalInfoTree(){
   if(!causalInfoHost)return;
-  const relationsByOwner=new Map();
-  causalInfoRelations.forEach(rel=>{
-    if(!relationsByOwner.has(rel.owner))relationsByOwner.set(rel.owner,[]);
-    relationsByOwner.get(rel.owner).push(rel);
-  });
   causalInfoRoots=causalInfoRows.map(row=>{
-    const copy={...row,children:[]};
+    const copy={...row,children:[],selectKey:row.key};
     copy.depth='1';
+    copy.onSelect=()=>selectCausalInfo(copy.key);
     copy.searchText=[copy.key,copy.parent,copy.kind,copy.display,copy.type,copy.valueKind,copy.value,copy.aux].join(' ').toLowerCase();
-    for(const rel of relationsByOwner.get(copy.key)||[]){
+    for(const rel of causalRelationsByOwner.get(copy.key)||[]){
       const child={
         key:`${copy.key}:${rel.relation}:${rel.targetKey}:${rel.ordinal}`,
         parent:copy.key,
@@ -7681,7 +7814,9 @@ function buildCausalInfoTree(){
         valueKind:'',
         value:'',
         aux:`序号=${rel.ordinal||0}`,
-        children:[]
+        children:[],
+        selectKey:copy.key,
+        onSelect:()=>selectCausalInfo(copy.key)
       };
       child.searchText=[child.key,child.parent,child.kind,child.display,child.type,child.aux].join(' ').toLowerCase();
       copy.children.push(child);
@@ -7692,6 +7827,7 @@ function buildCausalInfoTree(){
   const root={key:'CAUSAL_INFO_ROOT',depth:'0',kind:'因果信息',display:`因果信息 ${causalInfoRoots.length}`,children:causalInfoRoots};
   root.searchText='因果信息 '+causalInfoRoots.map(row=>row.searchText).join(' ');
   causalInfoHost.appendChild(renderTreeNode(root,causalInfoLabel));
+  updateCausalSelection();
 }
 function filterCausalInfo(query){
   if(!causalInfoHost||!causalInfoRoots.length)return;
