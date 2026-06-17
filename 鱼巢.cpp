@@ -49,14 +49,44 @@ import 自检线程模块;
 import 外设线程_D455深度相机;
 
 #if 鱼巢_开关_启用控制台输出
+namespace {
+    void 私有_输出启动说明(std::string_view 文本);
+}
+
 #define 鱼巢_控制台输出(表达式) do { 表达式; } while (false)
-#define 鱼巢_启动说明(文本) do { std::cout << "启动说明 | 当前正在启动: " << 文本 << '\n'; } while (false)
+#define 鱼巢_启动说明(文本) do { 私有_输出启动说明(文本); } while (false)
 #else
 #define 鱼巢_控制台输出(表达式) do { } while (false)
 #define 鱼巢_启动说明(文本) do { } while (false)
 #endif
 
 namespace {
+#if 鱼巢_开关_启用控制台输出
+    // 功能：输出控制台启动说明并追加启动项间隔和累计用时。
+    void 私有_输出启动说明(std::string_view 文本)
+    {
+        static std::mutex 互斥{};
+        static const auto 启动基准时间 = std::chrono::steady_clock::now();
+        static auto 上次启动项时间 = 启动基准时间;
+        static bool 已输出 = false;
+
+        std::lock_guard<std::mutex> 锁{ 互斥 };
+        const auto 当前时间 = std::chrono::steady_clock::now();
+        const auto 距上一启动项毫秒 = 已输出
+            ? std::chrono::duration_cast<std::chrono::milliseconds>(当前时间 - 上次启动项时间).count()
+            : 0;
+        const auto 启动累计毫秒 = std::chrono::duration_cast<std::chrono::milliseconds>(
+            当前时间 - 启动基准时间).count();
+
+        std::cout << "启动说明 | 当前正在启动: " << 文本
+            << " | 距上一启动项=" << 距上一启动项毫秒 << "ms"
+            << " | 启动累计=" << 启动累计毫秒 << "ms"
+            << '\n';
+        上次启动项时间 = 当前时间;
+        已输出 = true;
+    }
+#endif
+
     bool 私有_确保自我环境已初始化(const std::string& 标记);
     bool 私有_确保自我线程已启动(const std::string& 标记);
     void 私有_刷新启动需求树SQL投影(const std::string& 标记) noexcept;
