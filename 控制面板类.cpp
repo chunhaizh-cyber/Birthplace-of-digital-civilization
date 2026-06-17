@@ -7026,40 +7026,73 @@ ORDER BY id DESC;
             {
                 "因果信息",
                 R"SQL(
-SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind, N'') AS node_kind,
-    COALESCE(display_text, N'') AS display_text,
-    COALESCE(type_text, N'') AS type_text,
-    COALESCE(value_kind, N'') AS value_kind,
-    COALESCE(value_text, N'') AS value_text,
-    COALESCE(auxiliary_text, N'') AS auxiliary_text
-FROM fishnest.v_current_world_tree_nodes
-WHERE node_kind = N'因果' OR main_type_text = N'因果'
-ORDER BY display_text, node_key;
+WITH causal_nodes AS (
+    SELECT target_key AS causal_key
+        , 1 AS incoming_count
+        , 0 AS outgoing_count
+        , id AS latest_edge_id
+    FROM fishnest.v_latest_causal_edges
+    WHERE target_kind = N'因果' AND NULLIF(target_key, N'') IS NOT NULL
+    UNION ALL
+    SELECT source_key AS causal_key
+        , 0 AS incoming_count
+        , 1 AS outgoing_count
+        , id AS latest_edge_id
+    FROM fishnest.v_latest_causal_edges
+    WHERE source_kind = N'因果' AND NULLIF(source_key, N'') IS NOT NULL
+),
+causal_stats AS (
+    SELECT
+        causal_key,
+        SUM(incoming_count) AS incoming_count,
+        SUM(outgoing_count) AS outgoing_count,
+        MAX(latest_edge_id) AS latest_edge_id
+    FROM causal_nodes n
+    GROUP BY causal_key
+)
+SELECT TOP (2000)
+    COALESCE(causal_key, N'') AS node_key,
+    N'' AS parent_key,
+    N'1' AS depth,
+    N'因果' AS node_kind,
+    N'因果 ' + COALESCE(causal_key, N'') AS display_text,
+    N'SQL因果边投影' AS type_text,
+    N'引用边数' AS value_kind,
+    CONVERT(nvarchar(20), COALESCE(incoming_count, 0) + COALESCE(outgoing_count, 0)) AS value_text,
+    N'来源=v_latest_causal_edges | 入边='
+        + CONVERT(nvarchar(20), COALESCE(incoming_count, 0))
+        + N' | 出边='
+        + CONVERT(nvarchar(20), COALESCE(outgoing_count, 0)) AS auxiliary_text
+FROM causal_stats
+ORDER BY latest_edge_id DESC, causal_key;
 )SQL",
                 &结构_SQL控制面板数据::因果信息
             },
             {
                 "因果信息关系",
                 R"SQL(
-SELECT
-    COALESCE(r.owner_key, N'') AS owner_key,
-    COALESCE(r.relation_name, N'') AS relation_name,
-    COALESCE(r.target_kind, N'') AS target_kind,
-    COALESCE(r.target_key, N'') AS target_key,
-    COALESCE(r.target_text, N'') AS target_text,
-    CONVERT(nvarchar(20), COALESCE(r.ordinal_index, 0)) AS ordinal_index
-FROM fishnest.v_current_world_tree_relations r
-WHERE EXISTS (
-    SELECT 1
-    FROM fishnest.v_current_world_tree_nodes n
-    WHERE (n.node_kind = N'因果' OR n.main_type_text = N'因果')
-      AND r.owner_key COLLATE Latin1_General_100_BIN2 = n.node_key COLLATE Latin1_General_100_BIN2
+WITH causal_relations AS (
+    SELECT TOP (8000)
+        e.id,
+        CASE WHEN e.target_kind = N'因果' THEN e.target_key ELSE e.source_key END AS owner_key,
+        COALESCE(e.relation_type, N'') AS relation_name,
+        CASE WHEN e.target_kind = N'因果' THEN e.source_kind ELSE e.target_kind END AS target_kind,
+        CASE WHEN e.target_kind = N'因果' THEN e.source_key ELSE e.target_key END AS target_key,
+        COALESCE(e.log_file, N'') + N':' + CONVERT(nvarchar(20), COALESCE(e.line_no, 0)) AS target_text
+    FROM fishnest.v_latest_causal_edges e
+    WHERE (e.target_kind = N'因果' AND NULLIF(e.target_key, N'') IS NOT NULL)
+       OR (e.source_kind = N'因果' AND NULLIF(e.source_key, N'') IS NOT NULL)
+    ORDER BY e.id DESC
 )
-ORDER BY r.owner_key, r.row_index;
+SELECT
+    COALESCE(owner_key, N'') AS owner_key,
+    COALESCE(relation_name, N'') AS relation_name,
+    COALESCE(target_kind, N'') AS target_kind,
+    COALESCE(target_key, N'') AS target_key,
+    COALESCE(target_text, N'') AS target_text,
+    CONVERT(nvarchar(20), ROW_NUMBER() OVER (PARTITION BY owner_key ORDER BY id DESC)) AS ordinal_index
+FROM causal_relations
+ORDER BY owner_key, id DESC;
 )SQL",
                 &结构_SQL控制面板数据::因果信息关系
             },
