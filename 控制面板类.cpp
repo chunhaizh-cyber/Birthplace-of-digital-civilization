@@ -7182,7 +7182,7 @@ ORDER BY row_index;
             {
                 "世界树",
                 R"SQL(
-SELECT TOP (500)
+SELECT
     COALESCE(node_key, N'') AS node_key,
     COALESCE(parent_key, N'') AS parent_key,
     CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
@@ -7344,14 +7344,18 @@ ORDER BY row_index;
     :root{color-scheme:light;font-family:"Microsoft YaHei UI","Segoe UI",sans-serif;--bg:#f4f6f8;--surface:#fff;--line:#d8dee7;--ink:#172026;--muted:#5d6977;--accent:#0f766e;--blue:#2563eb}
     *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink)}
     header{padding:20px 28px;background:#18212f;color:#fff} h1{margin:0 0 8px;font-size:24px;letter-spacing:0} header p{margin:4px 0;color:#d7deea}
-    main{padding:18px 28px 36px}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0 0 16px}
+    .panel-shell{display:grid;grid-template-columns:240px minmax(0,1fr);gap:0;min-height:calc(100vh - 108px)}
+    .menu-bar{background:#fff;border-right:1px solid var(--line);padding:14px 12px;position:sticky;top:0;height:calc(100vh - 108px);overflow:auto}
+    .menu-group{display:grid;gap:6px}.menu-title{font-size:12px;color:var(--muted);margin:10px 8px 4px}.menu-bar button{width:100%;border:1px solid transparent;background:#fff;border-radius:6px;padding:9px 10px;text-align:left;color:var(--ink);cursor:pointer}.menu-bar button:hover{background:#eef6f5}.menu-bar button.active{background:#0f766e;border-color:#0f766e;color:#fff}
+    main.content{padding:18px 28px 36px;min-width:0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0 0 16px}
     .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}.card b{display:block;font-size:22px;margin-bottom:4px}
-    .tabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.tabs button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:8px 11px;cursor:pointer}.tabs button.active{background:var(--blue);border-color:var(--blue);color:#fff}
     input{width:min(720px,100%);padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;margin-bottom:12px}
     section{display:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}section.active{display:block}h2{font-size:18px;margin:0 0 12px}
     .table-wrap{overflow:auto;max-height:68vh;border:1px solid #e5e7eb}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #e5e7eb;padding:8px 10px;text-align:left;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;background:#f8fafc;z-index:1}
+    .world-tree-grid{display:grid;grid-template-columns:minmax(340px,0.95fr) minmax(0,1.05fr);gap:12px;align-items:start}.tree-panel{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;overflow:hidden}.tree-toolbar{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #e5e7eb;background:#f8fafc}.tree-toolbar button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer}.tree-view{max-height:68vh;overflow:auto;padding:10px;font-size:13px}.tree-node{margin:2px 0}.tree-node summary{cursor:pointer;list-style:none}.tree-node summary::-webkit-details-marker{display:none}.tree-node summary::before{content:"▸";display:inline-block;width:16px;color:#64748b}.tree-node[open]>summary::before{content:"▾"}.tree-leaf{padding-left:16px}.tree-line{display:flex;gap:6px;align-items:center;min-height:26px;padding:3px 6px;border-radius:5px}.tree-line:hover{background:#eef6f5}.tree-key{font-family:Consolas,monospace;color:#1d4ed8}.tree-kind{color:#0f766e}.tree-muted{color:#64748b}.tree-children{margin-left:18px;border-left:1px solid #dbe4ee;padding-left:8px}
     .chain-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:start;margin-bottom:12px}.chain-grid label{display:grid;gap:5px;font-size:13px;color:var(--muted)}.chain-grid input{width:100%;margin:0}.chain-grid button{height:39px;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:0 14px;cursor:pointer}.chain-result{margin:8px 0 12px;color:var(--muted)}
-    @media(max-width:760px){.chain-grid{grid-template-columns:1fr}.chain-grid button{width:100%}}
+    @media(max-width:960px){.panel-shell{grid-template-columns:1fr}.menu-bar{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}.menu-group{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.menu-title{grid-column:1/-1}.world-tree-grid{grid-template-columns:1fr}}
+    @media(max-width:760px){main.content{padding:14px}.chain-grid{grid-template-columns:1fr}.chain-grid button{width:100%}}
     .note{color:var(--muted);font-size:13px;line-height:1.6}code{background:#eef2f7;color:#172026;padding:1px 4px;border-radius:4px}
   </style>
 </head>
@@ -7360,7 +7364,26 @@ ORDER BY row_index;
         输出 << "<header><h1>鱼巢控制面板</h1>"
             << "<p>数据来源：ADO / SQL Server <code>.\\SQLEXPRESS</code> / <code>FishnestProjection</code> / <code>fishnest</code> SQL 投影视图</p>"
             << "<p>批次：<code>" << 私有_转义HTML(批次ID) << "</code>；创建时间：" << 私有_转义HTML(创建时间)
-            << "；工作区：" << 私有_转义HTML(工作区) << "</p></header><main>\n"
+            << "；工作区：" << 私有_转义HTML(工作区) << "</p></header>\n"
+            << "<div class=\"panel-shell\"><aside class=\"menu-bar\"><nav class=\"menu-group\" aria-label=\"控制面板菜单\">"
+            << "<div class=\"menu-title\">运行</div>"
+            << "<button class=\"active\" data-target=\"metrics\">面板指标</button>"
+            << "<button data-target=\"threads\">线程信息</button>"
+            << "<button data-target=\"threadEvents\">线程事件</button>"
+            << "<button data-target=\"actions\">动作动态</button>"
+            << "<div class=\"menu-title\">治理</div>"
+            << "<button data-target=\"causalChain\">因果链查询</button>"
+            << "<button data-target=\"causal\">因果边</button>"
+            << "<button data-target=\"demandTree\">需求树</button>"
+            << "<button data-target=\"taskTree\">任务树</button>"
+            << "<button data-target=\"methodTree\">方法树</button>"
+            << "<button data-target=\"worldTree\">世界树</button>"
+            << "<button data-target=\"worldRelations\">世界关系</button>"
+            << "<button data-target=\"lexemeTree\">语素树</button>"
+            << "<div class=\"menu-title\">基础</div>"
+            << "<button data-target=\"features\">特征类型</button>"
+            << "<button data-target=\"catalog\">字段目录</button>"
+            << "</nav></aside><main class=\"content\">\n"
             << "<p class=\"note\">本页面通过 ADO 读取 SQL 投影，不读取 live 控制面板快照，也不是世界树、任务树或动作动态链的写入口。"
             << 私有_转义HTML(来源说明) << "</p>\n"
             << "<div class=\"cards\">";
@@ -7370,23 +7393,7 @@ ORDER BY row_index;
                 << "</span><div class=\"note\">" << 私有_转义HTML(私有_SQL字段(行, 1))
                 << "</div></div>";
         }
-        输出 << "</div><input id=\"filter\" type=\"search\" placeholder=\"过滤当前页表格文本\">"
-            << "<div class=\"tabs\">"
-            << "<button class=\"active\" data-target=\"metrics\">面板指标</button>"
-            << "<button data-target=\"threads\">线程信息</button>"
-            << "<button data-target=\"threadEvents\">线程事件</button>"
-            << "<button data-target=\"actions\">动作动态</button>"
-            << "<button data-target=\"causalChain\">因果链查询</button>"
-            << "<button data-target=\"causal\">因果边</button>"
-            << "<button data-target=\"demandTree\">需求树</button>"
-            << "<button data-target=\"taskTree\">任务树</button>"
-            << "<button data-target=\"methodTree\">方法树</button>"
-            << "<button data-target=\"worldTree\">世界树</button>"
-            << "<button data-target=\"worldRelations\">世界关系</button>"
-            << "<button data-target=\"lexemeTree\">语素树</button>"
-            << "<button data-target=\"features\">特征类型</button>"
-            << "<button data-target=\"catalog\">字段目录</button>"
-            << "</div>\n";
+        输出 << "</div><input id=\"filter\" type=\"search\" placeholder=\"过滤当前页表格和世界树文本\">\n";
 
         私有_追加SQL控制面板表(输出, "面板指标", "metrics", { "指标", "分组", "值", "来源", "文件" }, 数据.指标);
         私有_追加SQL控制面板表(输出, "线程信息", "threads", { "逻辑ID", "线程名", "生命周期", "运行状态", "健康", "模块", "最近原因" }, 数据.线程);
@@ -7403,13 +7410,53 @@ ORDER BY row_index;
         私有_追加SQL控制面板表(输出, "需求树", "demandTree", { "节点", "父节点", "深度", "结构角色", "目标语义", "目标特征", "任务" }, 数据.需求树);
         私有_追加SQL控制面板表(输出, "任务树", "taskTree", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
         私有_追加SQL控制面板表(输出, "方法树", "methodTree", { "节点", "父节点", "深度", "节点种类", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
-        私有_追加SQL控制面板表(输出, "世界树", "worldTree", { "节点", "父节点", "深度", "类别", "显示", "类型", "值类", "值" }, 数据.世界树);
+        输出 << "<section id=\"worldTree\"><h2>世界树</h2>"
+            << "<div class=\"world-tree-grid\"><div class=\"tree-panel\">"
+            << "<div class=\"tree-toolbar\"><button id=\"worldTreeExpand\" type=\"button\">展开三层</button>"
+            << "<button id=\"worldTreeCollapse\" type=\"button\">收起</button>"
+            << "<span class=\"note\">SQL 当前节点数：" << 数据.世界树.size() << "</span></div>"
+            << "<div id=\"worldTreeView\" class=\"tree-view\"></div></div>"
+            << "<div class=\"table-wrap\"><table data-filterable><thead><tr>"
+            << "<th>节点</th><th>父节点</th><th>深度</th><th>类别</th><th>显示</th><th>类型</th><th>值类</th><th>值</th>"
+            << "</tr></thead><tbody>\n";
+        for (const auto& 行 : 数据.世界树) {
+            输出 << "<tr>";
+            for (std::size_t i = 0; i < 8; ++i) {
+                输出 << "<td>" << 私有_转义HTML(私有_SQL字段(行, i)) << "</td>";
+            }
+            输出 << "</tr>\n";
+        }
+        输出 << "</tbody></table></div></div></section>\n";
         私有_追加SQL控制面板表(输出, "世界树关系", "worldRelations", { "宿主", "关系", "目标类", "目标", "目标显示", "序号" }, 数据.世界树关系);
         私有_追加SQL控制面板表(输出, "语素树", "lexemeTree", { "节点", "父节点", "深度", "类别", "词面", "入口类型", "主信息类型", "基础信息" }, 数据.语素树);
         私有_追加SQL控制面板表(输出, "特征类型", "features", { "特征", "来源", "符号", "文件", "行" }, 数据.特征);
         私有_追加SQL控制面板表(输出, "控制面板字段目录", "catalog", { "字段", "分组", "C++类型", "结构", "文件", "行" }, 数据.字段目录);
 
-        输出 << "</main>\n<script>\nconst causalEdges=" << 私有_生成SQL因果边JSON(数据.因果边) << ";\n";
+        输出 << "</main></div>\n<script>\nconst causalEdges=" << 私有_生成SQL因果边JSON(数据.因果边) << ";\nconst worldTreeRows=[";
+        for (std::size_t i = 0; i < 数据.世界树.size(); ++i) {
+            if (i > 0) {
+                输出 << ',';
+            }
+            const auto& 行 = 数据.世界树[i];
+            输出 << "{\"key\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 0));
+            输出 << ",\"parent\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 1));
+            输出 << ",\"depth\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 2));
+            输出 << ",\"kind\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 3));
+            输出 << ",\"display\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 4));
+            输出 << ",\"type\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 5));
+            输出 << ",\"valueKind\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 6));
+            输出 << ",\"value\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 7));
+            输出 << '}';
+        }
+        输出 << "];\n";
         输出 << R"HTML(
 const buttons=Array.from(document.querySelectorAll('button[data-target]'));
 const sections=Array.from(document.querySelectorAll('section'));
@@ -7418,6 +7465,8 @@ const causeInput=document.getElementById('causeInput');
 const effectInput=document.getElementById('effectInput');
 const chainRows=document.getElementById('chainRows');
 const chainResult=document.getElementById('chainResult');
+const worldTreeHost=document.getElementById('worldTreeView');
+let worldTreeRoots=[];
 function escapeHtml(text){
   return String(text??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
@@ -7426,6 +7475,65 @@ function applyFilter(){
   const active=document.querySelector('section.active table[data-filterable]');
   if(!active)return;
   for(const row of active.tBodies[0].rows){row.style.display=!query||row.textContent.toLowerCase().includes(query)?'':'none';}
+  filterWorldTree(query);
+}
+function worldTreeLabel(row){
+  const title=row.display||row.type||row.value||row.kind||row.key;
+  const parts=[`<span class="tree-key">${escapeHtml(row.key)}</span>`];
+  if(row.kind)parts.push(`<span class="tree-kind">${escapeHtml(row.kind)}</span>`);
+  parts.push(`<span>${escapeHtml(title)}</span>`);
+  if(row.valueKind||row.value)parts.push(`<span class="tree-muted">${escapeHtml(row.valueKind)} ${escapeHtml(row.value)}</span>`);
+  return parts.join('');
+}
+function buildWorldTree(){
+  if(!worldTreeHost)return;
+  const map=new Map();
+  worldTreeRows.forEach(row=>{row.children=[];row.searchText=[row.key,row.parent,row.kind,row.display,row.type,row.valueKind,row.value].join(' ').toLowerCase();map.set(row.key,row);});
+  worldTreeRoots=[];
+  worldTreeRows.forEach(row=>{
+    const parent=map.get(row.parent);
+    if(parent&&parent!==row)parent.children.push(row);else worldTreeRoots.push(row);
+  });
+  worldTreeHost.innerHTML='';
+  const fragment=document.createDocumentFragment();
+  worldTreeRoots.forEach(row=>fragment.appendChild(renderWorldTreeNode(row)));
+  worldTreeHost.appendChild(fragment);
+}
+function renderWorldTreeNode(row){
+  const hasChildren=row.children.length>0;
+  const wrapper=document.createElement(hasChildren?'details':'div');
+  wrapper.className=hasChildren?'tree-node':'tree-node tree-leaf';
+  wrapper.dataset.search=row.searchText;
+  row.el=wrapper;
+  if(hasChildren&&Number(row.depth)<2)wrapper.open=true;
+  const lineTag=hasChildren?'summary':'div';
+  const line=document.createElement(lineTag);
+  line.className='tree-line';
+  line.innerHTML=worldTreeLabel(row);
+  wrapper.appendChild(line);
+  if(hasChildren){
+    const children=document.createElement('div');
+    children.className='tree-children';
+    row.children.forEach(child=>children.appendChild(renderWorldTreeNode(child)));
+    wrapper.appendChild(children);
+  }
+  return wrapper;
+}
+function filterWorldTree(query){
+  if(!worldTreeHost||!worldTreeRoots.length)return;
+  function visit(row){
+    const selfMatch=!query||row.searchText.includes(query);
+    let childMatch=false;
+    row.children.forEach(child=>{childMatch=visit(child)||childMatch;});
+    const visible=selfMatch||childMatch;
+    if(row.el){row.el.style.display=visible?'':'none';if(query&&childMatch&&row.el.tagName==='DETAILS')row.el.open=true;}
+    return visible;
+  }
+  worldTreeRoots.forEach(visit);
+}
+function setWorldTreeDepth(depth){
+  if(!worldTreeHost)return;
+  worldTreeRows.forEach(row=>{if(row.el&&row.el.tagName==='DETAILS')row.el.open=Number(row.depth)<depth;});
 }
 function nodeId(kind,key){return `${kind||''}|${key||''}`;}
 function nodeText(kind,key){return `${kind||''}:${key||''}`;}
@@ -7488,6 +7596,9 @@ filter.addEventListener('input',applyFilter);
 document.getElementById('chainQuery').addEventListener('click',queryCausalChain);
 causeInput.addEventListener('keydown',event=>{if(event.key==='Enter')queryCausalChain();});
 effectInput.addEventListener('keydown',event=>{if(event.key==='Enter')queryCausalChain();});
+document.getElementById('worldTreeExpand').addEventListener('click',()=>setWorldTreeDepth(3));
+document.getElementById('worldTreeCollapse').addEventListener('click',()=>setWorldTreeDepth(1));
+buildWorldTree();
 window.__panelApplyPageRefresh=function(){};
 window.__panelApplyExpand=function(){};
 window.__panelApplyDetail=function(){};
