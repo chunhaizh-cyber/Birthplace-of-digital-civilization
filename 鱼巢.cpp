@@ -50,8 +50,10 @@ import 外设线程_D455深度相机;
 
 #if 鱼巢_开关_启用控制台输出
 #define 鱼巢_控制台输出(表达式) do { 表达式; } while (false)
+#define 鱼巢_启动说明(文本) do { std::cout << "启动说明 | 当前正在启动: " << 文本 << '\n'; } while (false)
 #else
 #define 鱼巢_控制台输出(表达式) do { } while (false)
+#define 鱼巢_启动说明(文本) do { } while (false)
 #endif
 
 namespace {
@@ -356,23 +358,27 @@ namespace {
         }
 
         if (命令 == 枚举_命令行相机命令::状态) {
+            鱼巢_启动说明("D455相机状态检查");
             const auto 结果 = 双目相机本能适配器::检查();
             私有_输出并记录相机结果("状态", 结果);
             return 结果.原因 == 双目相机本能适配器::失败原因::无 ? 0 : 2;
         }
 
         if (命令 == 枚举_命令行相机命令::打开) {
+            鱼巢_启动说明("D455相机打开");
             const auto 结果 = 双目相机本能适配器::打开();
             私有_输出并记录相机结果("打开", 结果);
             return 结果.成功 ? 0 : 2;
         }
 
         if (命令 == 枚举_命令行相机命令::释放) {
+            鱼巢_启动说明("D455相机释放");
             const auto 结果 = 双目相机本能适配器::释放();
             私有_输出并记录相机结果("释放", 结果);
             return 结果.成功 ? 0 : 2;
         }
 
+        鱼巢_启动说明("D455单帧采集");
         const auto 打开结果 = 双目相机本能适配器::打开();
         私有_输出并记录相机结果("单帧采集/打开", 打开结果);
         if (!打开结果.成功) {
@@ -1208,6 +1214,7 @@ namespace {
     bool 私有_确保自我环境已初始化(const std::string& 标记)
     {
         (void)标记;
+        鱼巢_启动说明("自我环境初始化");
         const auto 开始 = std::chrono::steady_clock::now();
         const bool 已初始化 = 初始化自我环境();
         const auto 初始化耗时 = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -1218,6 +1225,7 @@ namespace {
             + " | 成功=" + 私有_布尔文本(已初始化)
             + " | 耗时ms=" + std::to_string(初始化耗时));
         if (已初始化) {
+            鱼巢_启动说明("本能函数闭环注册与SQL投影刷新");
             (void)自我动作实现模块::注册本能函数执行闭环();
             (void)自我动作实现模块::确认默认本能方法专属规格集(自我);
             私有_刷新启动需求树SQL投影(标记);
@@ -1238,6 +1246,7 @@ namespace {
     bool 私有_确保自我线程已启动(const std::string& 标记)
     {
         (void)标记;
+        鱼巢_启动说明("自我线程启动前环境初始化");
         const auto 初始化开始 = std::chrono::steady_clock::now();
         const bool 已初始化 = 初始化自我环境();
         const auto 初始化耗时 = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -1248,6 +1257,7 @@ namespace {
             + " | 成功=" + 私有_布尔文本(已初始化)
             + " | 耗时ms=" + std::to_string(初始化耗时));
         if (已初始化) {
+            鱼巢_启动说明("自我线程启动前本能函数闭环注册与SQL投影刷新");
             (void)自我动作实现模块::注册本能函数执行闭环();
             (void)自我动作实现模块::确认默认本能方法专属规格集(自我);
             私有_刷新启动需求树SQL投影(标记);
@@ -1264,6 +1274,7 @@ namespace {
         }
 
         const auto 启动开始 = std::chrono::steady_clock::now();
+        鱼巢_启动说明("自我线程");
         const bool 已启动 = 启动自我线程();
         const auto 启动耗时 = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - 启动开始).count();
@@ -1290,6 +1301,7 @@ namespace {
     // 功能：确保目标结构、状态或前置条件存在并可用。
     bool 私有_确保自检线程已启动()
     {
+        鱼巢_启动说明("自检线程");
         return 启动自检线程();
     }
 
@@ -1851,6 +1863,7 @@ namespace {
         }
 
         if (命令 == 枚举_控制面板命令::生成HTML) {
+            鱼巢_启动说明("控制面板SQL HTML生成");
             if (!私有_确保自我环境已初始化("鱼巢::main/控制面板/生成SQL HTML")) {
                 鱼巢_控制台输出(std::cerr << "自我环境初始化失败。\n");
                 return 4;
@@ -1866,10 +1879,12 @@ namespace {
             return 0;
         }
 
+        鱼巢_启动说明("控制面板独立窗口");
         if (!私有_确保自我环境已初始化("鱼巢::main/控制面板/打开SQL面板")) {
             鱼巢_控制台输出(std::cerr << "自我环境初始化失败。\n");
             return 4;
         }
+        鱼巢_启动说明("控制面板WebView2窗口");
         if (!启动控制面板窗口()) {
             const int 诊断码 = 获取控制面板启动诊断码();
             项目运行错误日志("控制面板独立窗口启动失败 | 诊断码=" + std::to_string(诊断码));
@@ -1891,11 +1906,14 @@ int main(int argc, char** argv)
     私有_自我线程守卫 自我线程守卫{};
 
     try {
+        鱼巢_启动说明("鱼巢主流程");
+        鱼巢_启动说明("项目日志初始化");
         私有_初始化日志();
         项目运行日志("程序启动");
 
         for (int i = 1; i < argc; ++i) {
             if (std::string_view(argv[i]) == "--self-check-log") {
+                鱼巢_启动说明("自我实现检查日志命令");
                 if (!私有_确保自我线程已启动("鱼巢::main/命令行/自我实现检查")) {
                     项目运行错误日志("自我线程启动失败");
                     鱼巢_控制台输出(std::cerr << "自我线程启动失败。\n");
@@ -1922,17 +1940,20 @@ int main(int argc, char** argv)
 
         const auto 相机命令 = 私有_解析命令行相机命令(argc, argv);
         if (相机命令 != 枚举_命令行相机命令::无) {
+            鱼巢_启动说明("命令行D455相机入口");
             return 私有_执行命令行相机命令(相机命令);
         }
 
         if (私有_命令行包含参数(argc, argv, "--demand-tree-growth-summary-live")
             || 私有_命令行包含参数(argc, argv, "--demand-growth-summary-live")
             || 私有_命令行包含参数(argc, argv, "--need-tree-growth-summary-live")) {
+            鱼巢_启动说明("需求树生长摘要live命令");
             return 私有_执行需求树生长摘要Live();
         }
 
         const auto 命令 = 解析控制面板命令行(argc, argv);
         if (命令 != 枚举_控制面板命令::无) {
+            鱼巢_启动说明("控制面板命令入口");
             if (命令 == 枚举_控制面板命令::打开窗口) {
                 if (!私有_确保自我线程已启动("鱼巢::main/命令行/启动自我线程")) {
                     项目运行错误日志("自我线程启动失败");
@@ -1950,6 +1971,7 @@ int main(int argc, char** argv)
             return 私有_执行控制面板命令(命令, 命令 == 枚举_控制面板命令::打开窗口);
         }
 
+        鱼巢_启动说明("默认控制台命令模式");
         if (!私有_确保自我线程已启动("鱼巢::main/自动启动自我线程")) {
             项目运行错误日志("自我线程启动失败");
             鱼巢_控制台输出(std::cerr << "自我线程启动失败。\n");
@@ -1964,6 +1986,7 @@ int main(int argc, char** argv)
         }
 
         鱼巢_控制台输出(std::cout << "控制台命令模式已启动。\n");
+        鱼巢_启动说明("默认控制面板自动启动");
         if (const int 自动启动结果 = 私有_执行控制面板命令(枚举_控制面板命令::打开窗口); 自动启动结果 != 0) {
             项目运行警告日志("控制面板自动启动失败");
             鱼巢_控制台输出(std::cerr << "控制面板自动启动失败，可稍后在控制台再次输入“启动控制面板”。\n");
