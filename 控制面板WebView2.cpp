@@ -4,6 +4,7 @@ module;
 #include <algorithm>
 #include <cstdint>
 #include <exception>
+#include <fstream>
 #include <filesystem>
 #include <future>
 #include <iomanip>
@@ -58,6 +59,7 @@ namespace {
         HMODULE 加载器模块 = nullptr;
         ComPtr<ICoreWebView2Controller> 控制器{};
         ComPtr<ICoreWebView2> WebView{};
+        std::filesystem::path 当前HTML临时路径{};
     };
 
     std::mutex 私有_窗口互斥{};
@@ -70,6 +72,7 @@ namespace {
     std::atomic_bool 私有_自我场景窗口启动中{ false };
     std::atomic<int> 私有_启动诊断码{ 0 };
     std::atomic_bool 私有_相机窗口启动过外设线程{ false };
+    constexpr std::size_t 私有_NavigateToString安全字节数 = 1024u * 1024u;
 
     struct 结构_相机帧JSON {
         bool 成功 = false;
@@ -156,6 +159,103 @@ namespace {
             输出.pop_back();
         }
         return 输出;
+    }
+
+    // 功能：把本地 HTML 文件路径转换为 WebView2 可导航的 file URI。
+    std::wstring 私有_文件路径转URI(const std::filesystem::path& 路径)
+    {
+        auto 文本 = std::filesystem::absolute(路径).wstring();
+        std::replace(文本.begin(), 文本.end(), L'\\', L'/');
+        if (文本.rfind(L"//", 0) == 0) {
+            return L"file:" + 文本;
+        }
+        return L"file:///" + 文本;
+    }
+
+    // 功能：生成当前 WebView2 窗口复用的临时 HTML 文件路径。
+    std::filesystem::path 私有_控制面板HTML临时路径(
+        HWND 窗口,
+        枚举_WebView2窗口用途 用途)
+    {
+        auto 目录 = std::filesystem::temp_directory_path() / L"fishnest_control_panel_webview2";
+        std::filesystem::create_directories(目录);
+
+        std::wstring 文件名 = L"panel_";
+        文件名 += std::to_wstring(GetCurrentProcessId());
+        文件名 += L"_";
+        文件名 += std::to_wstring(reinterpret_cast<std::uintptr_t>(窗口));
+        文件名 += L"_";
+        文件名 += std::to_wstring(static_cast<std::uintptr_t>(用途));
+        文件名 += L".html";
+        return 目录 / 文件名;
+    }
+
+    // 功能：把 UTF-8 HTML 写入 WebView2 临时文件。
+    bool 私有_写入控制面板HTML临时文件(
+        const std::filesystem::path& 路径,
+        const std::string& HTML) noexcept
+    {
+        try {
+            std::ofstream 输出(路径, std::ios::binary | std::ios::trunc);
+            if (!输出) {
+                return false;
+            }
+            输出.write(HTML.data(), static_cast<std::streamsize>(HTML.size()));
+            return static_cast<bool>(输出);
+        }
+        catch (...) {
+            return false;
+        }
+    }
+
+    // 功能：在 HTML 过大或内存导航失败时改用临时文件导航。
+    bool 私有_用临时HTML文件导航(
+        HWND 窗口,
+        结构_WebView2窗口上下文& 上下文,
+        const std::string& HTML) noexcept
+    {
+        try {
+            if (上下文.当前HTML临时路径.empty()) {
+                上下文.当前HTML临时路径 = 私有_控制面板HTML临时路径(窗口, 上下文.用途);
+            }
+            if (!私有_写入控制面板HTML临时文件(上下文.当前HTML临时路径, HTML)) {
+                私有_记录WebView2诊断(
+                    "临时HTML写入失败",
+                    31,
+                    S_OK,
+                    GetLastError(),
+                    "路径=" + 私有_路径UTF8(上下文.当前HTML临时路径)
+                        + " | HTML字节=" + std::to_string(HTML.size()));
+                return false;
+            }
+
+            const auto URI = 私有_文件路径转URI(上下文.当前HTML临时路径);
+            const HRESULT 导航结果 = 上下文.WebView->Navigate(URI.c_str());
+            if (FAILED(导航结果)) {
+                私有_记录WebView2诊断(
+                    "临时HTML导航失败",
+                    32,
+                    导航结果,
+                    GetLastError(),
+                    "路径=" + 私有_路径UTF8(上下文.当前HTML临时路径)
+                        + " | HTML字节=" + std::to_string(HTML.size()));
+                return false;
+            }
+            return true;
+        }
+        catch (const std::exception& e) {
+            私有_记录WebView2诊断(
+                "临时HTML导航异常",
+                33,
+                S_OK,
+                GetLastError(),
+                std::string("原因=") + e.what());
+            return false;
+        }
+        catch (...) {
+            私有_记录WebView2诊断("临时HTML导航未知异常", 34, S_OK, GetLastError());
+            return false;
+        }
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -1162,9 +1262,35 @@ namespace {
         }
 
         const auto HTML = 私有_生成页面HTML(上下文->用途);
+        if (HTML.empty()) {
+            私有_记录WebView2诊断("刷新页面HTML为空", 30);
+            return;
+        }
+        if (HTML.size() > 私有_NavigateToString安全字节数) {
+            (void)私有_用临时HTML文件导航(窗口, *上下文, HTML);
+            return;
+        }
+
         const auto 宽HTML = 私有_UTF8转宽字串(HTML);
-        if (!宽HTML.empty()) {
-            (void)上下文->WebView->NavigateToString(宽HTML.c_str());
+        if (宽HTML.empty()) {
+            私有_记录WebView2诊断(
+                "刷新页面HTML转宽字串失败",
+                35,
+                S_OK,
+                GetLastError(),
+                "HTML字节=" + std::to_string(HTML.size()));
+            return;
+        }
+
+        const HRESULT 导航结果 = 上下文->WebView->NavigateToString(宽HTML.c_str());
+        if (FAILED(导航结果)) {
+            私有_记录WebView2诊断(
+                "NavigateToString失败转临时HTML",
+                36,
+                导航结果,
+                GetLastError(),
+                "HTML字节=" + std::to_string(HTML.size()));
+            (void)私有_用临时HTML文件导航(窗口, *上下文, HTML);
         }
     }
 
@@ -1426,6 +1552,10 @@ namespace {
                 (void)私有_停止相机播放();
             }
             if (上下文) {
+                if (!上下文->当前HTML临时路径.empty()) {
+                    std::error_code 删除错误{};
+                    std::filesystem::remove(上下文->当前HTML临时路径, 删除错误);
+                }
                 上下文->WebView.Reset();
                 上下文->控制器.Reset();
                 if (上下文->加载器模块) {
