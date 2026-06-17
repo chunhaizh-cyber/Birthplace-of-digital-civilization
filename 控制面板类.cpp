@@ -6954,6 +6954,8 @@ namespace {
         std::vector<std::vector<std::string>> 线程事件{};
         std::vector<std::vector<std::string>> 动作动态{};
         std::vector<std::vector<std::string>> 因果边{};
+        std::vector<std::vector<std::string>> 因果信息{};
+        std::vector<std::vector<std::string>> 因果信息关系{};
         std::vector<std::vector<std::string>> 特征{};
         std::vector<std::vector<std::string>> 字段目录{};
         std::vector<std::vector<std::string>> 需求树{};
@@ -7100,6 +7102,46 @@ ORDER BY id DESC;
                 &结构_SQL控制面板数据::因果边
             },
             {
+                "因果信息",
+                R"SQL(
+SELECT
+    COALESCE(node_key, N'') AS node_key,
+    COALESCE(parent_key, N'') AS parent_key,
+    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+    COALESCE(node_kind, N'') AS node_kind,
+    COALESCE(display_text, N'') AS display_text,
+    COALESCE(type_text, N'') AS type_text,
+    COALESCE(value_kind, N'') AS value_kind,
+    COALESCE(value_text, N'') AS value_text,
+    COALESCE(auxiliary_text, N'') AS auxiliary_text
+FROM fishnest.v_current_world_tree_nodes
+WHERE node_kind = N'因果' OR main_type_text = N'因果'
+ORDER BY display_text, node_key;
+)SQL",
+                &结构_SQL控制面板数据::因果信息
+            },
+            {
+                "因果信息关系",
+                R"SQL(
+SELECT
+    COALESCE(r.owner_key, N'') AS owner_key,
+    COALESCE(r.relation_name, N'') AS relation_name,
+    COALESCE(r.target_kind, N'') AS target_kind,
+    COALESCE(r.target_key, N'') AS target_key,
+    COALESCE(r.target_text, N'') AS target_text,
+    CONVERT(nvarchar(20), COALESCE(r.ordinal_index, 0)) AS ordinal_index
+FROM fishnest.v_current_world_tree_relations r
+WHERE EXISTS (
+    SELECT 1
+    FROM fishnest.v_current_world_tree_nodes n
+    WHERE (n.node_kind = N'因果' OR n.main_type_text = N'因果')
+      AND r.owner_key COLLATE Latin1_General_100_BIN2 = n.node_key COLLATE Latin1_General_100_BIN2
+)
+ORDER BY r.owner_key, r.row_index;
+)SQL",
+                &结构_SQL控制面板数据::因果信息关系
+            },
+            {
                 "特征类型",
                 R"SQL(
 SELECT TOP (120)
@@ -7190,7 +7232,8 @@ SELECT
     COALESCE(display_text, N'') AS display_text,
     COALESCE(type_text, N'') AS type_text,
     COALESCE(value_kind, N'') AS value_kind,
-    COALESCE(value_text, N'') AS value_text
+    COALESCE(value_text, N'') AS value_text,
+    COALESCE(auxiliary_text, N'') AS auxiliary_text
 FROM fishnest.v_current_world_tree_nodes
 ORDER BY row_index;
 )SQL",
@@ -7372,6 +7415,7 @@ ORDER BY row_index;
             << "<button data-target=\"threadEvents\">线程事件</button>"
             << "<button data-target=\"actions\">动作动态</button>"
             << "<div class=\"menu-title\">治理</div>"
+            << "<button data-target=\"causalInfo\">因果信息</button>"
             << "<button data-target=\"causalChain\">因果链查询</button>"
             << "<button data-target=\"causal\">因果边</button>"
             << "<button data-target=\"demandTree\">需求树</button>"
@@ -7406,22 +7450,48 @@ ORDER BY row_index;
             << "<button id=\"chainQuery\" type=\"button\">查询</button>"
             << "</div><div id=\"chainResult\" class=\"chain-result\">输入因和果后查询中间链接。</div>"
             << "<div class=\"table-wrap\"><table><thead><tr><th>#</th><th>因</th><th>关系</th><th>果</th><th>证据</th></tr></thead><tbody id=\"chainRows\"></tbody></table></div></section>\n";
+        输出 << "<section id=\"causalInfo\"><h2>因果信息</h2>"
+            << "<div class=\"world-tree-grid\"><div class=\"tree-panel\">"
+            << "<div class=\"tree-toolbar\"><button id=\"causalInfoExpand\" type=\"button\">展开两层</button>"
+            << "<button id=\"causalInfoCollapse\" type=\"button\">收起</button>"
+            << "<span class=\"note\">SQL 因果节点：" << 数据.因果信息.size()
+            << "；引用关系：" << 数据.因果信息关系.size() << "</span></div>"
+            << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div>"
+            << "<div class=\"table-wrap\"><table data-filterable><thead><tr>"
+            << "<th>节点</th><th>父节点</th><th>深度</th><th>类别</th><th>显示</th><th>类型</th><th>值类</th><th>值</th><th>辅助</th>"
+            << "</tr></thead><tbody>\n";
+        for (const auto& 行 : 数据.因果信息) {
+            输出 << "<tr>";
+            for (std::size_t i = 0; i < 9; ++i) {
+                输出 << "<td>" << 私有_转义HTML(私有_SQL字段(行, i)) << "</td>";
+            }
+            输出 << "</tr>\n";
+        }
+        输出 << "</tbody></table></div></div></section>\n";
         私有_追加SQL控制面板表(输出, "因果边", "causal", { "来源类", "来源键", "目标类", "目标键", "关系", "日志", "行" }, 数据.因果边);
         私有_追加SQL控制面板表(输出, "需求树", "demandTree", { "节点", "父节点", "深度", "结构角色", "目标语义", "目标特征", "任务" }, 数据.需求树);
         私有_追加SQL控制面板表(输出, "任务树", "taskTree", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
         私有_追加SQL控制面板表(输出, "方法树", "methodTree", { "节点", "父节点", "深度", "节点种类", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
+        std::size_t 世界树因果节点数 = 0;
+        for (const auto& 行 : 数据.世界树) {
+            if (私有_SQL字段(行, 3) == "因果") {
+                ++世界树因果节点数;
+            }
+        }
         输出 << "<section id=\"worldTree\"><h2>世界树</h2>"
             << "<div class=\"world-tree-grid\"><div class=\"tree-panel\">"
             << "<div class=\"tree-toolbar\"><button id=\"worldTreeExpand\" type=\"button\">展开三层</button>"
             << "<button id=\"worldTreeCollapse\" type=\"button\">收起</button>"
-            << "<span class=\"note\">SQL 当前节点数：" << 数据.世界树.size() << "</span></div>"
+            << "<button id=\"worldTreeShowCausal\" type=\"button\">显示因果</button>"
+            << "<span class=\"note\">SQL 当前节点数：" << 数据.世界树.size()
+            << "；因果节点：" << 世界树因果节点数 << "</span></div>"
             << "<div id=\"worldTreeView\" class=\"tree-view\"></div></div>"
             << "<div class=\"table-wrap\"><table data-filterable><thead><tr>"
-            << "<th>节点</th><th>父节点</th><th>深度</th><th>类别</th><th>显示</th><th>类型</th><th>值类</th><th>值</th>"
+            << "<th>节点</th><th>父节点</th><th>深度</th><th>类别</th><th>显示</th><th>类型</th><th>值类</th><th>值</th><th>辅助</th>"
             << "</tr></thead><tbody>\n";
         for (const auto& 行 : 数据.世界树) {
             输出 << "<tr>";
-            for (std::size_t i = 0; i < 8; ++i) {
+            for (std::size_t i = 0; i < 9; ++i) {
                 输出 << "<td>" << 私有_转义HTML(私有_SQL字段(行, i)) << "</td>";
             }
             输出 << "</tr>\n";
@@ -7432,7 +7502,53 @@ ORDER BY row_index;
         私有_追加SQL控制面板表(输出, "特征类型", "features", { "特征", "来源", "符号", "文件", "行" }, 数据.特征);
         私有_追加SQL控制面板表(输出, "控制面板字段目录", "catalog", { "字段", "分组", "C++类型", "结构", "文件", "行" }, 数据.字段目录);
 
-        输出 << "</main></div>\n<script>\nconst causalEdges=" << 私有_生成SQL因果边JSON(数据.因果边) << ";\nconst worldTreeRows=[";
+        输出 << "</main></div>\n<script>\nconst causalEdges=" << 私有_生成SQL因果边JSON(数据.因果边) << ";\nconst causalInfoRows=[";
+        for (std::size_t i = 0; i < 数据.因果信息.size(); ++i) {
+            if (i > 0) {
+                输出 << ',';
+            }
+            const auto& 行 = 数据.因果信息[i];
+            输出 << "{\"key\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 0));
+            输出 << ",\"parent\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 1));
+            输出 << ",\"depth\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 2));
+            输出 << ",\"kind\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 3));
+            输出 << ",\"display\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 4));
+            输出 << ",\"type\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 5));
+            输出 << ",\"valueKind\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 6));
+            输出 << ",\"value\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 7));
+            输出 << ",\"aux\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 8));
+            输出 << '}';
+        }
+        输出 << "];\nconst causalInfoRelations=[";
+        for (std::size_t i = 0; i < 数据.因果信息关系.size(); ++i) {
+            if (i > 0) {
+                输出 << ',';
+            }
+            const auto& 行 = 数据.因果信息关系[i];
+            输出 << "{\"owner\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 0));
+            输出 << ",\"relation\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 1));
+            输出 << ",\"targetKind\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 2));
+            输出 << ",\"targetKey\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 3));
+            输出 << ",\"targetText\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 4));
+            输出 << ",\"ordinal\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 5));
+            输出 << '}';
+        }
+        输出 << "];\nconst worldTreeRows=[";
         for (std::size_t i = 0; i < 数据.世界树.size(); ++i) {
             if (i > 0) {
                 输出 << ',';
@@ -7454,6 +7570,8 @@ ORDER BY row_index;
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 6));
             输出 << ",\"value\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 7));
+            输出 << ",\"aux\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 8));
             输出 << '}';
         }
         输出 << "];\n";
@@ -7465,7 +7583,9 @@ const causeInput=document.getElementById('causeInput');
 const effectInput=document.getElementById('effectInput');
 const chainRows=document.getElementById('chainRows');
 const chainResult=document.getElementById('chainResult');
+const causalInfoHost=document.getElementById('causalInfoTreeView');
 const worldTreeHost=document.getElementById('worldTreeView');
+let causalInfoRoots=[];
 let worldTreeRoots=[];
 function escapeHtml(text){
   return String(text??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -7475,20 +7595,101 @@ function applyFilter(){
   const active=document.querySelector('section.active table[data-filterable]');
   if(!active)return;
   for(const row of active.tBodies[0].rows){row.style.display=!query||row.textContent.toLowerCase().includes(query)?'':'none';}
+  filterCausalInfo(query);
   filterWorldTree(query);
 }
-function worldTreeLabel(row){
+function treeLabel(row){
   const title=row.display||row.type||row.value||row.kind||row.key;
   const parts=[`<span class="tree-key">${escapeHtml(row.key)}</span>`];
   if(row.kind)parts.push(`<span class="tree-kind">${escapeHtml(row.kind)}</span>`);
   parts.push(`<span>${escapeHtml(title)}</span>`);
   if(row.valueKind||row.value)parts.push(`<span class="tree-muted">${escapeHtml(row.valueKind)} ${escapeHtml(row.value)}</span>`);
+  if(row.aux)parts.push(`<span class="tree-muted">${escapeHtml(row.aux)}</span>`);
   return parts.join('');
+}
+function renderTreeNode(row, labelFn){
+  const hasChildren=Array.isArray(row.children)&&row.children.length>0;
+  const wrapper=document.createElement(hasChildren?'details':'div');
+  wrapper.className=hasChildren?'tree-node':'tree-node tree-leaf';
+  wrapper.dataset.search=row.searchText||'';
+  row.el=wrapper;
+  if(hasChildren&&Number(row.depth||0)<2)wrapper.open=true;
+  const lineTag=hasChildren?'summary':'div';
+  const line=document.createElement(lineTag);
+  line.className='tree-line';
+  line.innerHTML=labelFn(row);
+  wrapper.appendChild(line);
+  if(hasChildren){
+    const children=document.createElement('div');
+    children.className='tree-children';
+    row.children.forEach(child=>children.appendChild(renderTreeNode(child,labelFn)));
+    wrapper.appendChild(children);
+  }
+  return wrapper;
+}
+function filterTreeRows(roots,query){
+  if(!roots.length)return;
+  function visit(row){
+    const selfMatch=!query||(row.searchText||'').includes(query);
+    let childMatch=false;
+    (row.children||[]).forEach(child=>{childMatch=visit(child)||childMatch;});
+    const visible=selfMatch||childMatch;
+    if(row.el){row.el.style.display=visible?'':'none';if(query&&childMatch&&row.el.tagName==='DETAILS')row.el.open=true;}
+    return visible;
+  }
+  roots.forEach(visit);
+}
+function setTreeDepth(rows,depth){
+  rows.forEach(row=>{if(row.el&&row.el.tagName==='DETAILS')row.el.open=Number(row.depth||0)<depth;});
+}
+function worldTreeLabel(row){
+  return treeLabel(row);
+}
+function causalInfoLabel(row){
+  return treeLabel(row);
+}
+function buildCausalInfoTree(){
+  if(!causalInfoHost)return;
+  const relationsByOwner=new Map();
+  causalInfoRelations.forEach(rel=>{
+    if(!relationsByOwner.has(rel.owner))relationsByOwner.set(rel.owner,[]);
+    relationsByOwner.get(rel.owner).push(rel);
+  });
+  causalInfoRoots=causalInfoRows.map(row=>{
+    const copy={...row,children:[]};
+    copy.depth='1';
+    copy.searchText=[copy.key,copy.parent,copy.kind,copy.display,copy.type,copy.valueKind,copy.value,copy.aux].join(' ').toLowerCase();
+    for(const rel of relationsByOwner.get(copy.key)||[]){
+      const child={
+        key:`${copy.key}:${rel.relation}:${rel.targetKey}:${rel.ordinal}`,
+        parent:copy.key,
+        depth:'2',
+        kind:rel.relation,
+        display:`${rel.targetKind||''}:${rel.targetKey||''}`,
+        type:rel.targetText||'',
+        valueKind:'',
+        value:'',
+        aux:`序号=${rel.ordinal||0}`,
+        children:[]
+      };
+      child.searchText=[child.key,child.parent,child.kind,child.display,child.type,child.aux].join(' ').toLowerCase();
+      copy.children.push(child);
+    }
+    return copy;
+  });
+  causalInfoHost.innerHTML='';
+  const root={key:'CAUSAL_INFO_ROOT',depth:'0',kind:'因果信息',display:`因果信息 ${causalInfoRoots.length}`,children:causalInfoRoots};
+  root.searchText='因果信息 '+causalInfoRoots.map(row=>row.searchText).join(' ');
+  causalInfoHost.appendChild(renderTreeNode(root,causalInfoLabel));
+}
+function filterCausalInfo(query){
+  if(!causalInfoHost||!causalInfoRoots.length)return;
+  filterTreeRows(causalInfoRoots,query);
 }
 function buildWorldTree(){
   if(!worldTreeHost)return;
   const map=new Map();
-  worldTreeRows.forEach(row=>{row.children=[];row.searchText=[row.key,row.parent,row.kind,row.display,row.type,row.valueKind,row.value].join(' ').toLowerCase();map.set(row.key,row);});
+  worldTreeRows.forEach(row=>{row.children=[];row.searchText=[row.key,row.parent,row.kind,row.display,row.type,row.valueKind,row.value,row.aux].join(' ').toLowerCase();map.set(row.key,row);});
   worldTreeRoots=[];
   worldTreeRows.forEach(row=>{
     const parent=map.get(row.parent);
@@ -7496,44 +7697,16 @@ function buildWorldTree(){
   });
   worldTreeHost.innerHTML='';
   const fragment=document.createDocumentFragment();
-  worldTreeRoots.forEach(row=>fragment.appendChild(renderWorldTreeNode(row)));
+  worldTreeRoots.forEach(row=>fragment.appendChild(renderTreeNode(row,worldTreeLabel)));
   worldTreeHost.appendChild(fragment);
-}
-function renderWorldTreeNode(row){
-  const hasChildren=row.children.length>0;
-  const wrapper=document.createElement(hasChildren?'details':'div');
-  wrapper.className=hasChildren?'tree-node':'tree-node tree-leaf';
-  wrapper.dataset.search=row.searchText;
-  row.el=wrapper;
-  if(hasChildren&&Number(row.depth)<2)wrapper.open=true;
-  const lineTag=hasChildren?'summary':'div';
-  const line=document.createElement(lineTag);
-  line.className='tree-line';
-  line.innerHTML=worldTreeLabel(row);
-  wrapper.appendChild(line);
-  if(hasChildren){
-    const children=document.createElement('div');
-    children.className='tree-children';
-    row.children.forEach(child=>children.appendChild(renderWorldTreeNode(child)));
-    wrapper.appendChild(children);
-  }
-  return wrapper;
 }
 function filterWorldTree(query){
   if(!worldTreeHost||!worldTreeRoots.length)return;
-  function visit(row){
-    const selfMatch=!query||row.searchText.includes(query);
-    let childMatch=false;
-    row.children.forEach(child=>{childMatch=visit(child)||childMatch;});
-    const visible=selfMatch||childMatch;
-    if(row.el){row.el.style.display=visible?'':'none';if(query&&childMatch&&row.el.tagName==='DETAILS')row.el.open=true;}
-    return visible;
-  }
-  worldTreeRoots.forEach(visit);
+  filterTreeRows(worldTreeRoots,query);
 }
 function setWorldTreeDepth(depth){
   if(!worldTreeHost)return;
-  worldTreeRows.forEach(row=>{if(row.el&&row.el.tagName==='DETAILS')row.el.open=Number(row.depth)<depth;});
+  setTreeDepth(worldTreeRows,depth);
 }
 function nodeId(kind,key){return `${kind||''}|${key||''}`;}
 function nodeText(kind,key){return `${kind||''}:${key||''}`;}
@@ -7596,8 +7769,12 @@ filter.addEventListener('input',applyFilter);
 document.getElementById('chainQuery').addEventListener('click',queryCausalChain);
 causeInput.addEventListener('keydown',event=>{if(event.key==='Enter')queryCausalChain();});
 effectInput.addEventListener('keydown',event=>{if(event.key==='Enter')queryCausalChain();});
+document.getElementById('causalInfoExpand').addEventListener('click',()=>setTreeDepth(causalInfoRoots,3));
+document.getElementById('causalInfoCollapse').addEventListener('click',()=>setTreeDepth(causalInfoRoots,1));
 document.getElementById('worldTreeExpand').addEventListener('click',()=>setWorldTreeDepth(3));
 document.getElementById('worldTreeCollapse').addEventListener('click',()=>setWorldTreeDepth(1));
+document.getElementById('worldTreeShowCausal').addEventListener('click',()=>{filter.value='因果';applyFilter();});
+buildCausalInfoTree();
 buildWorldTree();
 window.__panelApplyPageRefresh=function(){};
 window.__panelApplyExpand=function(){};
