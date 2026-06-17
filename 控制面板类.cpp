@@ -7027,62 +7027,162 @@ ORDER BY id DESC;
                 "因果信息",
                 R"SQL(
 WITH causal_nodes AS (
-    SELECT target_key AS causal_key
-        , 1 AS incoming_count
-        , 0 AS outgoing_count
-        , id AS latest_edge_id
-    FROM fishnest.v_latest_causal_edges
-    WHERE target_kind = N'因果' AND NULLIF(target_key, N'') IS NOT NULL
-    UNION ALL
-    SELECT source_key AS causal_key
-        , 0 AS incoming_count
-        , 1 AS outgoing_count
-        , id AS latest_edge_id
-    FROM fishnest.v_latest_causal_edges
-    WHERE source_kind = N'因果' AND NULLIF(source_key, N'') IS NOT NULL
+    SELECT e.event_seq, e.causal_key, e.method_name, e.fields_json
+    FROM fishnest.runtime_event e
+    WHERE e.run_id = (SELECT run_id FROM fishnest.v_latest_run)
+      AND e.event_name = N'自我线程/初始因果模板入账'
 ),
-causal_stats AS (
+event_fields AS (
     SELECT
-        causal_key,
-        SUM(incoming_count) AS incoming_count,
-        SUM(outgoing_count) AS outgoing_count,
-        MAX(latest_edge_id) AS latest_edge_id
-    FROM causal_nodes n
-    GROUP BY causal_key
+        e.event_seq,
+        e.causal_key,
+        e.method_name,
+        j.[key] AS field_key,
+        CONVERT(nvarchar(max), j.[value]) AS field_value
+    FROM causal_nodes e
+    CROSS APPLY OPENJSON(e.fields_json) j
+    WHERE j.[key] IN (N'因果', N'名称', N'因比较', N'因方法', N'主果比较')
+),
+causal_template_events AS (
+    SELECT
+        event_seq,
+        COALESCE(MAX(CASE WHEN field_key = N'因果' THEN field_value END), MAX(causal_key), N'') COLLATE Latin1_General_100_BIN2 AS causal_key,
+        COALESCE(NULLIF(MAX(CASE WHEN field_key = N'名称' THEN field_value END), N''), N'') AS causal_name,
+        NULLIF(MAX(CASE WHEN field_key = N'因比较' THEN field_value END), N'') COLLATE Latin1_General_100_BIN2 AS condition_key,
+        COALESCE(NULLIF(MAX(CASE WHEN field_key = N'因方法' THEN field_value END), N''), MAX(method_name), N'') COLLATE Latin1_General_100_BIN2 AS action_key,
+        NULLIF(MAX(CASE WHEN field_key = N'主果比较' THEN field_value END), N'') COLLATE Latin1_General_100_BIN2 AS result_key
+    FROM event_fields
+    GROUP BY event_seq
+    HAVING MAX(CASE WHEN field_key = N'因比较' THEN field_value END) IS NOT NULL
+       AND MAX(CASE WHEN field_key = N'主果比较' THEN field_value END) IS NOT NULL
+),
+causal_combos AS (
+    SELECT
+        condition_key,
+        action_key,
+        result_key,
+        COUNT(*) AS evidence_count,
+        COUNT(DISTINCT causal_key) AS causal_id_count,
+        MAX(event_seq) AS latest_event_seq,
+        MAX(causal_key) AS sample_causal_key,
+        MAX(causal_name) AS sample_causal_name
+    FROM causal_template_events
+    GROUP BY condition_key, action_key, result_key
 )
-SELECT TOP (2000)
-    COALESCE(causal_key, N'') AS node_key,
+SELECT
+    N'条件=' + COALESCE(condition_key, N'')
+        + N' | 动作=' + COALESCE(action_key, N'')
+        + N' | 结果=' + COALESCE(result_key, N'') AS node_key,
     N'' AS parent_key,
     N'1' AS depth,
     N'因果' AS node_kind,
-    N'因果 ' + COALESCE(causal_key, N'') AS display_text,
-    N'SQL因果边投影' AS type_text,
-    N'引用边数' AS value_kind,
-    CONVERT(nvarchar(20), COALESCE(incoming_count, 0) + COALESCE(outgoing_count, 0)) AS value_text,
-    N'来源=v_latest_causal_edges | 入边='
-        + CONVERT(nvarchar(20), COALESCE(incoming_count, 0))
-        + N' | 出边='
-        + CONVERT(nvarchar(20), COALESCE(outgoing_count, 0)) AS auxiliary_text
-FROM causal_stats
-ORDER BY latest_edge_id DESC, causal_key;
+    N'因果组合 条件=' + COALESCE(condition_key, N'')
+        + N' 动作=' + COALESCE(action_key, N'')
+        + N' 结果=' + COALESCE(result_key, N'') AS display_text,
+    N'条件+动作+结果唯一组合' AS type_text,
+    N'证据事件数' AS value_kind,
+    CONVERT(nvarchar(20), COALESCE(evidence_count, 0)) AS value_text,
+    N'来源=runtime_event/初始因果模板入账 | 因果ID数='
+        + CONVERT(nvarchar(20), COALESCE(causal_id_count, 0))
+        + N' | 样例因果=' + COALESCE(sample_causal_key, N'')
+        + N' | 样例名称=' + COALESCE(sample_causal_name, N'') AS auxiliary_text
+FROM causal_combos
+ORDER BY latest_event_seq DESC, condition_key, action_key, result_key;
 )SQL",
                 &结构_SQL控制面板数据::因果信息
             },
             {
                 "因果信息关系",
                 R"SQL(
-WITH causal_relations AS (
-    SELECT TOP (8000)
-        e.id,
-        CASE WHEN e.target_kind = N'因果' THEN e.target_key ELSE e.source_key END AS owner_key,
-        COALESCE(e.relation_type, N'') AS relation_name,
-        CASE WHEN e.target_kind = N'因果' THEN e.source_kind ELSE e.target_kind END AS target_kind,
-        CASE WHEN e.target_kind = N'因果' THEN e.source_key ELSE e.target_key END AS target_key,
-        COALESCE(e.log_file, N'') + N':' + CONVERT(nvarchar(20), COALESCE(e.line_no, 0)) AS target_text
-    FROM fishnest.v_latest_causal_edges e
-    WHERE (e.target_kind = N'因果' AND NULLIF(e.target_key, N'') IS NOT NULL)
-       OR (e.source_kind = N'因果' AND NULLIF(e.source_key, N'') IS NOT NULL)
-    ORDER BY e.id DESC
+WITH causal_nodes AS (
+    SELECT e.event_seq, e.causal_key, e.method_name, e.fields_json
+    FROM fishnest.runtime_event e
+    WHERE e.run_id = (SELECT run_id FROM fishnest.v_latest_run)
+      AND e.event_name = N'自我线程/初始因果模板入账'
+),
+event_fields AS (
+    SELECT
+        e.event_seq,
+        e.causal_key,
+        e.method_name,
+        j.[key] AS field_key,
+        CONVERT(nvarchar(max), j.[value]) AS field_value
+    FROM causal_nodes e
+    CROSS APPLY OPENJSON(e.fields_json) j
+    WHERE j.[key] IN (N'因果', N'名称', N'因比较', N'因方法', N'主果比较')
+),
+causal_template_events AS (
+    SELECT
+        event_seq,
+        COALESCE(MAX(CASE WHEN field_key = N'因果' THEN field_value END), MAX(causal_key), N'') COLLATE Latin1_General_100_BIN2 AS causal_key,
+        COALESCE(NULLIF(MAX(CASE WHEN field_key = N'名称' THEN field_value END), N''), N'') AS causal_name,
+        NULLIF(MAX(CASE WHEN field_key = N'因比较' THEN field_value END), N'') COLLATE Latin1_General_100_BIN2 AS condition_key,
+        COALESCE(NULLIF(MAX(CASE WHEN field_key = N'因方法' THEN field_value END), N''), MAX(method_name), N'') COLLATE Latin1_General_100_BIN2 AS action_key,
+        NULLIF(MAX(CASE WHEN field_key = N'主果比较' THEN field_value END), N'') COLLATE Latin1_General_100_BIN2 AS result_key
+    FROM event_fields
+    GROUP BY event_seq
+    HAVING MAX(CASE WHEN field_key = N'因比较' THEN field_value END) IS NOT NULL
+       AND MAX(CASE WHEN field_key = N'主果比较' THEN field_value END) IS NOT NULL
+),
+causal_combos AS (
+    SELECT
+        condition_key,
+        action_key,
+        result_key,
+        COUNT(*) AS evidence_count,
+        COUNT(DISTINCT causal_key) AS causal_id_count,
+        MAX(event_seq) AS latest_event_seq,
+        MAX(causal_key) AS sample_causal_key,
+        MAX(causal_name) AS sample_causal_name
+    FROM causal_template_events
+    GROUP BY condition_key, action_key, result_key
+),
+causal_relations AS (
+    SELECT
+        N'条件=' + COALESCE(condition_key, N'')
+            + N' | 动作=' + COALESCE(action_key, N'')
+            + N' | 结果=' + COALESCE(result_key, N'') AS owner_key,
+        N'条件比较模板' AS relation_name,
+        N'条件' AS target_kind,
+        condition_key AS target_key,
+        N'条件比较模板=' + COALESCE(condition_key, N'') AS target_text,
+        1 AS ordinal_index
+    FROM causal_combos
+    UNION ALL
+    SELECT
+        N'条件=' + COALESCE(condition_key, N'')
+            + N' | 动作=' + COALESCE(action_key, N'')
+            + N' | 结果=' + COALESCE(result_key, N'') AS owner_key,
+        N'因方法模板' AS relation_name,
+        N'动作' AS target_kind,
+        action_key AS target_key,
+        N'因方法模板=' + COALESCE(action_key, N'') AS target_text,
+        2 AS ordinal_index
+    FROM causal_combos
+    UNION ALL
+    SELECT
+        N'条件=' + COALESCE(condition_key, N'')
+            + N' | 动作=' + COALESCE(action_key, N'')
+            + N' | 结果=' + COALESCE(result_key, N'') AS owner_key,
+        N'主果比较模板' AS relation_name,
+        N'结果' AS target_kind,
+        result_key AS target_key,
+        N'主果比较模板=' + COALESCE(result_key, N'') AS target_text,
+        3 AS ordinal_index
+    FROM causal_combos
+    UNION ALL
+    SELECT
+        N'条件=' + COALESCE(condition_key, N'')
+            + N' | 动作=' + COALESCE(action_key, N'')
+            + N' | 结果=' + COALESCE(result_key, N'') AS owner_key,
+        N'证据因果ID样例' AS relation_name,
+        N'因果' AS target_kind,
+        sample_causal_key AS target_key,
+        N'样例因果=' + COALESCE(sample_causal_key, N'')
+            + N' | 因果ID数=' + CONVERT(nvarchar(20), COALESCE(causal_id_count, 0))
+            + N' | 证据事件数=' + CONVERT(nvarchar(20), COALESCE(evidence_count, 0)) AS target_text,
+        4 AS ordinal_index
+    FROM causal_combos
 )
 SELECT
     COALESCE(owner_key, N'') AS owner_key,
@@ -7090,9 +7190,9 @@ SELECT
     COALESCE(target_kind, N'') AS target_kind,
     COALESCE(target_key, N'') AS target_key,
     COALESCE(target_text, N'') AS target_text,
-    CONVERT(nvarchar(20), ROW_NUMBER() OVER (PARTITION BY owner_key ORDER BY id DESC)) AS ordinal_index
+    CONVERT(nvarchar(20), ordinal_index) AS ordinal_index
 FROM causal_relations
-ORDER BY owner_key, id DESC;
+ORDER BY owner_key, ordinal_index;
 )SQL",
                 &结构_SQL控制面板数据::因果信息关系
             },
@@ -7425,8 +7525,8 @@ ORDER BY row_index;
             << "<div class=\"world-tree-grid\"><div class=\"tree-panel\">"
             << "<div class=\"tree-toolbar\"><button id=\"causalInfoExpand\" type=\"button\">展开两层</button>"
             << "<button id=\"causalInfoCollapse\" type=\"button\">收起</button>"
-            << "<span class=\"note\">SQL 因果节点：" << 数据.因果信息.size()
-            << "；引用关系：" << 数据.因果信息关系.size() << "</span></div>"
+            << "<span class=\"note\">SQL 因果组合：" << 数据.因果信息.size()
+            << "；组成关系：" << 数据.因果信息关系.size() << "</span></div>"
             << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div>"
             << "<div id=\"causalInfoDetail\" class=\"causal-detail\"><div class=\"causal-detail-empty\">未选择因果信息</div></div></div></section>\n";
         私有_追加SQL控制面板表(输出, "因果边", "causal", { "来源类", "来源键", "目标类", "目标键", "关系", "日志", "行" }, 数据.因果边);
