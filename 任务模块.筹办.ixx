@@ -478,52 +478,6 @@ namespace {
     }
 
     // 功能：按函数名执行对应处理。
-    bool 状态节点I64区间(const 状态节点类* 状态节点, I64区间& 输出区间) noexcept
-    {
-        输出区间 = I64区间{ 0, -1 };
-        const auto* 主信息 = 状态主信息(状态节点);
-        if (!主信息 || !主信息->状态特征.指针) {
-            return false;
-        }
-
-        const auto* 特征主信息 =
-            dynamic_cast<const 特征节点主信息类*>(主信息->状态特征.指针->主信息);
-        if (!特征主信息) {
-            return false;
-        }
-
-        if (特征主信息->局部区间覆盖.has_value()
-            && 特征主信息->局部区间覆盖->有效()) {
-            输出区间 = *特征主信息->局部区间覆盖;
-            return true;
-        }
-        if (特征主信息->区间.has_value()
-            && 特征主信息->区间->有效()) {
-            输出区间 = *特征主信息->区间;
-            return true;
-        }
-
-        const auto 读取抽象区间 =
-            [&](const 基础信息节点类* 抽象节点, I64区间& 区间) noexcept -> bool {
-            const auto* 抽象主信息 = 抽象节点
-                ? dynamic_cast<const 抽象特征主信息类*>(抽象节点->主信息)
-                : nullptr;
-            if (抽象主信息
-                && 抽象主信息->区间.has_value()
-                && 抽象主信息->区间->有效()) {
-                区间 = *抽象主信息->区间;
-                return true;
-            }
-            return false;
-        };
-
-        if (读取抽象区间(特征主信息->当前命中抽象特征.指针, 输出区间)) {
-            return true;
-        }
-        return 读取抽象区间(特征主信息->抽象特征.指针, 输出区间);
-    }
-
-    // 功能：按函数名执行对应处理。
     std::int32_t 需求目标方向编码(const 需求节点* 来源需求) noexcept
     {
         if (!来源需求) {
