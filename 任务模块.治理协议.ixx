@@ -413,21 +413,6 @@ public:
         结构_任务管理单步决策* 输出 = nullptr) noexcept = 0;
 };
 
-struct 结构_任务管理显式事件控制 {
-    bool 启用 = false;
-    枚举_任务管理触发事件类型 事件类型 = 枚举_任务管理触发事件类型::未定义;
-    std::uintptr_t 事件类型抽象特征指针 = 0;
-    I64 事件类型值 = 0;
-    枚举_任务管理触发来源 触发来源 = 枚举_任务管理触发来源::自然运行态;
-    std::uintptr_t 触发来源抽象特征指针 = 0;
-    I64 触发来源值 = 0;
-    std::uint64_t 来源最小原语位图 = 0;
-    std::string 来源主观察特征{};
-    std::string 影子验证状态{};
-    bool 允许正式资产提交 = false;
-    std::string 事件摘要{};
-};
-
 struct 结构_任务管理控制承接记录 {
     std::string 控制请求主键{};
     std::string 目标线程主键{};
@@ -655,16 +640,6 @@ struct 结构_任务管理方法需求位特征面 {
     std::uint32_t 价值证据次数 = 0;
 };
 
-struct 结构_任务管理最小原语签名 {
-    枚举_任务管理最小原语ID 原语ID = 枚举_任务管理最小原语ID::未定义;
-    std::uintptr_t 原语ID抽象特征指针 = 0;
-    I64 原语ID值 = 0;
-    const char* 原语名 = "";
-    const char* 输入签名 = "";
-    const char* 输出签名 = "";
-    const char* 合法承载对象摘要 = "";
-};
-
 // P0.5：桥接补层输出面。
 // 只描述“需求位命中后还缺哪些最小原语/派生能力”，不直接代表缺口承接结果。
 struct 结构_任务管理本能能力缺口面 {
@@ -701,24 +676,6 @@ struct 结构_任务管理本能能力缺口面 {
     std::string 原语账本摘要{};
     std::string 派生规则摘要{};
     std::string 缺口摘要{};
-};
-
-struct 结构_任务管理正式原语资产概览 {
-    bool 已具备确保单承载存在 = false;
-    bool 已具备读取单特征当前值 = false;
-    bool 已具备写入单特征当前值 = false;
-    bool 已具备写入单挂点指针 = false;
-    bool 已具备记录动作开始 = false;
-    bool 已具备记录动作结束 = false;
-
-    std::uint64_t 所需原语位图 = 0;
-    std::uint64_t 已具备原语位图 = 0;
-    std::uint64_t 缺失原语位图 = 0;
-
-    bool 已全部具备 = false;
-    std::string 已具备摘要{};
-    std::string 缺失摘要{};
-    std::string 摘要{};
 };
 
 struct 结构_任务管理上下文 {
