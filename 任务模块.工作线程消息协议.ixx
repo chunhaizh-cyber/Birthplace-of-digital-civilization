@@ -182,13 +182,6 @@ struct 结构_任务管理关键中间状态变化项 {
     bool 已恢复 = false;
 };
 
-struct 结构_任务管理未满足项 {
-    std::string 未满足项类型{};
-    std::string 作用主体主键{};
-    bool 是否关键阻塞 = false;
-    bool 是否建议线程重判 = false;
-};
-
 struct 结构_任务管理线程补充特征 {
     枚举_任务管理线程补充特征类型 特征类型 = 枚举_任务管理线程补充特征类型::未定义;
     std::string 文本值{};
@@ -339,7 +332,6 @@ struct 结构_任务管理结果状态消息 {
 
     bool 是否存在关键中间状态 = false;
     bool 是否仍有未满足项 = false;
-    std::string 未满足项类型文本{};
     bool 是否需要外部支撑 = false;
     bool 是否需要父任务处理 = false;
     bool 是否需要自我线程重判 = false;
@@ -348,7 +340,6 @@ struct 结构_任务管理结果状态消息 {
 
     std::vector<结构_任务管理状态变化项> 服务对象状态变化集{};
     std::vector<结构_任务管理关键中间状态变化项> 关键中间状态变化集{};
-    std::vector<结构_任务管理未满足项> 未满足项集{};
     std::uintptr_t 结果状态抽象特征指针 = 0;
     I64 结果状态值 = 0;
 };
