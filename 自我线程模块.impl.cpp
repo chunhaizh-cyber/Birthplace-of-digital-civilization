@@ -87,12 +87,7 @@ std::string 私有_安全词(const 语素入口节点类* 词) noexcept
         return {};
     }
 
-    try {
-        return 语素集.获取词(词);
-    }
-    catch (...) {
-        return {};
-    }
+    return 语素_安全获取词(词);
 }
 
 // 功能：服务所在模块的内部辅助流程。

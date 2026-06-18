@@ -118,3 +118,18 @@ public:
 };
 
 extern 语素类 语素集;
+
+// 功能：安全读取语素入口词面；入口为空或读取异常时返回空文本。
+inline std::string 语素_安全获取词(const 语素入口节点类* 词) noexcept
+{
+    if (!词) {
+        return {};
+    }
+
+    try {
+        return 语素集.获取词(词);
+    }
+    catch (...) {
+        return {};
+    }
+}
