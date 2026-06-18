@@ -13,17 +13,6 @@
 // 2) 动态 / 运行结果 / 场景中的具体发生，只作为证据样本。
 // 3) 因果树不强绑特征树；它只解释状态变化，并可投影为需求候选。
 
-struct 结构_因果表达单元 {
-    bool 是因果模板 = false;
-    std::string 锚点名称{};
-    std::vector<std::string> 条件短语{};
-    std::string 动作短语{};
-    std::vector<std::string> 结果短语{};
-    std::string 主结果短语{};
-    std::uint64_t 成立次数 = 0;
-    std::uint64_t 失败次数 = 0;
-};
-
 struct 结构_因果信息生成结果 {
     因果模板节点类* 状态变化关系 = nullptr;
     因果模板节点类* 动作致变关系 = nullptr;
@@ -261,8 +250,7 @@ public:
         const std::vector<二次特征节点类*>& 条件候选,
         const std::vector<二次特征节点类*>& 结果候选) const;
 
-    bool 生成抽象因果表达单元(const 因果模板节点类* 节点, 结构_因果表达单元& 输出) const;
-
+    // 功能：把因果模板转换为基础命名显示使用的自然语言。
     std::string 生成抽象因果自然语言(const 因果模板节点类* 节点) const;
 
 private:
