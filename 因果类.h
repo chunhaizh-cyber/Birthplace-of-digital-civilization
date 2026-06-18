@@ -23,15 +23,6 @@ struct 结构_状态转换因果节点 {
     时间戳 状态时间 = 0;
 };
 
-struct 结构_目标投影路径 {
-    基础信息节点类* 目标宿主 = nullptr;
-    特征节点类* 目标特征类型 = nullptr;
-    const 语素入口节点类* 目标特征类型词 = nullptr;
-    std::vector<std::string> 缺失证据{};
-    std::uint32_t 结算贡献层级 = 0;
-    std::uint32_t 因果距离层级 = 0;
-};
-
 struct 结构_状态转换因果投影输入 {
     bool 包含未验证路径 = true;
 };
@@ -39,7 +30,7 @@ struct 结构_状态转换因果投影输入 {
 struct 结构_状态转换因果投影 {
     std::vector<结构_状态转换因果节点> 节点{};
     std::size_t 边数量 = 0;
-    std::vector<结构_目标投影路径> 目标投影路径{};
+    std::size_t 目标投影数量 = 0;
     std::vector<std::string> 缺失证据{};
 };
 
@@ -67,7 +58,9 @@ struct 结构_叶子任务因果投影输入 {
 };
 
 struct 结构_叶子任务因果投影预判 {
-    std::vector<结构_目标投影路径> 候选投影路径{};
+    std::size_t 候选投影数量 = 0;
+    std::vector<std::uint32_t> 结算贡献层级集{};
+    std::vector<std::uint32_t> 因果距离层级集{};
     std::vector<std::string> 缺失证据{};
     bool 是否允许形成D0 = false;
 };
@@ -83,7 +76,9 @@ struct 结构_自检原子目标因果投影输入 {
 };
 
 struct 结构_自检原子目标因果投影结果 {
-    std::vector<结构_目标投影路径> 候选投影路径{};
+    std::size_t 候选投影数量 = 0;
+    std::vector<std::uint32_t> 结算贡献层级集{};
+    std::vector<std::uint32_t> 因果距离层级集{};
     std::vector<std::string> 来源因果主键集{};
     std::vector<std::string> 缺失证据{};
 };
@@ -146,7 +141,7 @@ public:
 
     // 只读预判接口：
     // 在叶子任务业务动作 D0 生成前，尝试判断目标特征可能落入哪些目标投影、
-    // 对应哪个结算贡献层级。本函数只给出候选和缺失证据，不执行结算。
+    // 对应哪个结算贡献层级。本函数只给出候选数量、层级集和缺失证据，不执行结算。
     结构_叶子任务因果投影预判 查询叶子任务目标投影层级(
         const 结构_叶子任务因果投影输入& 输入) const;
 
