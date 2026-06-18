@@ -444,22 +444,6 @@ public:
         return nullptr;
     }
 
-    // 功能：按函数名执行对应处理。
-    const 结构_方法结果包* 取能力结果包() const noexcept {
-        const auto* 首节点 = 取首节点信息();
-        return 首节点 ? &首节点->能力.结果包 : nullptr;
-    }
-
-    // 功能：按函数名执行对应处理。
-    bool 有最小出生锚点() const noexcept {
-        return 有方法动作() || 有结果能力();
-    }
-
-    // 功能：按函数名执行对应处理。
-    bool 是仅结果特征需求位() const noexcept {
-        return 有结果能力() && !有方法动作();
-    }
-
     // 功能：比较当前值、目标值或历史基准。
     std::int64_t 比较(const 方法主信息类* 对象, 枚举_比较字段 字段) const {
         return 生成比较量(对象, 字段);
