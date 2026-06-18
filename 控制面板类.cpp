@@ -8769,11 +8769,8 @@ window.__panelApplyDetail=function(){};
         std::lock_guard<std::recursive_mutex> 需求树锁{
             需求类::借用需求树全局互斥()
         };
-        struct 结构_重复目标诊断 {
-            std::size_t 数量 = 0;
-            std::vector<std::string> 样本需求主键{};
-        };
-        std::unordered_map<std::string, 结构_重复目标诊断> 活动目标计数{};
+        std::unordered_map<std::string, std::size_t> 活动目标计数{};
+        std::unordered_map<std::string, std::vector<std::string>> 活动目标样本{};
         路径集合 已统计需求地址{};
         std::size_t 重复需求地址数 = 0;
         std::vector<std::string> 重复需求地址样本{};
@@ -8993,10 +8990,10 @@ window.__panelApplyDetail=function(){};
                         + "|宿主=" + 目标宿主主键
                         + "|特征=" + 目标特征主键
                         + "|方向=" + std::to_string(方向);
-                    auto& 诊断 = 活动目标计数[键];
-                    ++诊断.数量;
-                    if (诊断.样本需求主键.size() < 5) {
-                        诊断.样本需求主键.push_back(
+                    ++活动目标计数[键];
+                    auto& 样本需求主键 = 活动目标样本[键];
+                    if (样本需求主键.size() < 5) {
+                        样本需求主键.push_back(
                             私有_节点主键_控制面板(节点));
                     }
                 }
@@ -9027,20 +9024,25 @@ window.__panelApplyDetail=function(){};
 
         std::size_t 已输出重复目标样本数 = 0;
         for (const auto& 项 : 活动目标计数) {
-            if (项.second.数量 > 1) {
+            if (项.second > 1) {
                 ++快照.需求树重复目标组数;
-                快照.需求树重复目标需求数 += 项.second.数量;
+                快照.需求树重复目标需求数 += 项.second;
                 if (已输出重复目标样本数 < 8) {
+                    const auto 样本迭代 = 活动目标样本.find(项.first);
+                    const auto* 样本需求主键 = 样本迭代 != 活动目标样本.end()
+                        ? &样本迭代->second
+                        : nullptr;
                     std::ostringstream 日志;
                     日志 << "控制面板/需求树重复目标诊断"
                         << " | 键=" << 项.first
-                        << " | 数量=" << 项.second.数量
+                        << " | 数量=" << 项.second
                         << " | 样本需求=";
-                    for (std::size_t 索引 = 0; 索引 < 项.second.样本需求主键.size(); ++索引) {
+                    const auto 样本数量 = 样本需求主键 ? 样本需求主键->size() : 0;
+                    for (std::size_t 索引 = 0; 索引 < 样本数量; ++索引) {
                         if (索引 > 0) {
                             日志 << ",";
                         }
-                        日志 << 项.second.样本需求主键[索引];
+                        日志 << (*样本需求主键)[索引];
                     }
                     项目运行日志(日志.str());
                     ++已输出重复目标样本数;
