@@ -2764,36 +2764,6 @@ export namespace 自我动作实现模块::服务模块 {
         return 差距 >= 0.0L ? 差距 : -差距;
     }
 
-    // 功能：计算权重、状态、差值或派生结果。
-    inline I64 计算数值目标完成度评分(I64 服务前值, I64 服务后值, I64 目标值) noexcept
-    {
-        const long double 服务前差距 = 服务绝对差距(服务前值, 目标值);
-        const long double 服务后差距 = 服务绝对差距(服务后值, 目标值);
-        if (服务前差距 <= 0.0L) {
-            return 服务后差距 <= 0.0L
-                ? static_cast<I64>(枚举_服务离散评分::满)
-                : static_cast<I64>(枚举_服务离散评分::零);
-        }
-
-        const long double 改善比例 =
-            (服务前差距 - 服务后差距) / 服务前差距;
-        if (改善比例 <= 0.0L) {
-            return static_cast<I64>(枚举_服务离散评分::零);
-        }
-        const auto 原始分值 = static_cast<I64>(改善比例 * 服务评分_满分 + 0.5L);
-        return 量化为服务离散评分(原始分值);
-    }
-
-    // 功能：计算权重、状态、差值或派生结果。
-    inline I64 计算枚举布尔目标完成度评分(
-        bool 目标达成,
-        bool 阶段性改善) noexcept
-    {
-        if (目标达成) return static_cast<I64>(枚举_服务离散评分::满);
-        if (阶段性改善) return static_cast<I64>(枚举_服务离散评分::二分之一);
-        return static_cast<I64>(枚举_服务离散评分::零);
-    }
-
     // 功能：按函数名执行对应处理。
     inline I64 有效性评分(枚举_服务有效性档位 档位) noexcept
     {
