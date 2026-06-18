@@ -446,15 +446,6 @@ namespace 自我动作实现模块::扫描模块 {
         inline const 语素入口节点类* 特征_运行ID() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::运行ID); }
 
         // 功能：按函数名执行对应处理。
-        inline const 语素入口节点类* 特征_来源需求ID() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::来源需求ID); }
-
-        // 功能：按函数名执行对应处理。
-        inline const 语素入口节点类* 特征_来源任务ID() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::来源任务ID); }
-
-        // 功能：按函数名执行对应处理。
-        inline const 语素入口节点类* 特征_来源方法ID() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::来源方法ID); }
-
-        // 功能：按函数名执行对应处理。
         inline const 语素入口节点类* 特征_当前场景引用() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::当前场景引用); }
 
         // 功能：按函数名执行对应处理。
@@ -468,9 +459,6 @@ namespace 自我动作实现模块::扫描模块 {
 
         // 功能：按函数名执行对应处理。
         inline const 语素入口节点类* 特征_来源帧ID() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::来源帧ID); }
-
-        // 功能：按函数名执行对应处理。
-        inline const 语素入口节点类* 特征_来源外设ID状态() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::来源外设ID状态); }
 
         // 功能：执行扫描相关材料获取、比较或提交逻辑。
         inline const 语素入口节点类* 特征_扫描范围状态() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::扫描范围状态); }
@@ -543,9 +531,6 @@ namespace 自我动作实现模块::扫描模块 {
 
         // 功能：把处理结果写入指定对象、场景或日志。
         inline const 语素入口节点类* 特征_写入失败数量() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::写入失败数量); }
-
-        // 功能：把处理结果写入指定对象、场景或日志。
-        inline const 语素入口节点类* 特征_写入事务ID() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::写入事务ID); }
 
         // 功能：按函数名执行对应处理。
         inline const 语素入口节点类* 特征_信息缺口集合() noexcept { return 扫描特征词(枚举_扫描特征绑定ID::信息缺口集合); }
