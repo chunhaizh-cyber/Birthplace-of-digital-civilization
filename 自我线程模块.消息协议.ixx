@@ -217,13 +217,6 @@ struct 结构_关键中间状态变化项 {
     bool 已恢复 = false;
 };
 
-struct 结构_结果回流提示段 {
-    bool 可能存在反向推进 = false;
-    bool 可能形成阻塞 = false;
-    bool 可能影响父任务 = false;
-    bool 可能形成否定项候选 = false;
-};
-
 struct 结构_任务结果回流消息 {
     std::uint64_t 任务主键 = 0;
     std::uint64_t 父任务主键 = 0;
@@ -232,7 +225,6 @@ struct 结构_任务结果回流消息 {
     I64 最终结果状态值 = 0;
     特征值 最终结果值{};
     std::vector<结构_关键中间状态变化项> 关键中间变化集{};
-    结构_结果回流提示段 提示段{};
 };
 
 struct 结构_执行尝试对账结果 {
@@ -1900,7 +1892,6 @@ export using 自我线程消息协议::枚举_执行尝试对账结论;
 export using 自我线程消息协议::结构_治理消息头;
 export using 自我线程消息协议::结构_特征变化项;
 export using 自我线程消息协议::结构_关键中间状态变化项;
-export using 自我线程消息协议::结构_结果回流提示段;
 export using 自我线程消息协议::结构_任务结果回流消息;
 export using 自我线程消息协议::结构_执行尝试对账结果;
 export using 自我线程消息协议::结构_执行尝试汇总;
