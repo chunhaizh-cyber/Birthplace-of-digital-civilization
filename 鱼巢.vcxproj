@@ -154,7 +154,6 @@
     <ClCompile Include="双目相机本能适配器.cpp" Condition="'$(Platform)'=='x64'" />
     <ClCompile Include="日志模块.ixx" />
     <ClCompile Include="动作闭环特征定义.ixx" />
-    <ClCompile Include="动作验证报告类.ixx" />
     <ClCompile Include="线程生命周期消息模块.ixx" />
     <ClCompile Include="数据库ADO模块.ixx" />
     <ClCompile Include="数据库ADO模块.cpp" />

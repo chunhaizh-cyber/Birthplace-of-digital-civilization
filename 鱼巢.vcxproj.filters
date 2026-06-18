@@ -57,9 +57,6 @@
     <ClCompile Include="动作闭环特征定义.ixx">
       <Filter>源文件\基础模块</Filter>
     </ClCompile>
-    <ClCompile Include="动作验证报告类.ixx">
-      <Filter>源文件\基础模块</Filter>
-    </ClCompile>
     <ClCompile Include="线程生命周期消息模块.ixx">
       <Filter>源文件\基础模块</Filter>
     </ClCompile>
