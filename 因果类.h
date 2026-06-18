@@ -23,18 +23,10 @@ struct 结构_状态转换因果节点 {
     时间戳 状态时间 = 0;
 };
 
-struct 结构_状态转换因果边 {
-    状态节点类* 原因状态 = nullptr;
-    状态节点类* 结果状态 = nullptr;
-    动态节点类* 动作动态 = nullptr;
-    因果模板节点类* 因果模板 = nullptr;
-};
-
 struct 结构_目标投影路径 {
     基础信息节点类* 目标宿主 = nullptr;
     特征节点类* 目标特征类型 = nullptr;
     const 语素入口节点类* 目标特征类型词 = nullptr;
-    std::vector<结构_状态转换因果边> 证据路径{};
     std::vector<std::string> 缺失证据{};
     std::uint32_t 结算贡献层级 = 0;
     std::uint32_t 因果距离层级 = 0;
@@ -46,7 +38,7 @@ struct 结构_状态转换因果投影输入 {
 
 struct 结构_状态转换因果投影 {
     std::vector<结构_状态转换因果节点> 节点{};
-    std::vector<结构_状态转换因果边> 边{};
+    std::size_t 边数量 = 0;
     std::vector<结构_目标投影路径> 目标投影路径{};
     std::vector<std::string> 缺失证据{};
 };
@@ -60,7 +52,7 @@ struct 结构_因果链查询输入 {
 
 struct 结构_因果链查询结果 {
     std::vector<结构_状态转换因果节点> 节点{};
-    std::vector<结构_状态转换因果边> 边{};
+    std::size_t 边数量 = 0;
     std::vector<因果模板节点类*> 来源因果模板{};
     std::vector<std::string> 缺失证据{};
 };
