@@ -5,6 +5,7 @@ module;
 #include <chrono>
 #include <cstdint>
 #include <deque>
+#include <limits>
 #include <mutex>
 #include <optional>
 #include <sstream>
@@ -13,6 +14,7 @@ module;
 #include <vector>
 
 #include "双目相机本能适配器.h"
+#include "特征类.h"
 
 export module 外设观察报告队列;
 
@@ -720,6 +722,15 @@ export struct 结构_D455控制面板视频快照 {
     std::vector<std::uint8_t> 分割RGB{};
 };
 
+export struct 结构_D455三维体素轮廓视角读取结果 {
+    bool 成功 = false;
+    std::string 失败原因{};
+    std::uint64_t 报告ID = 0;
+    std::int64_t 候选编号 = -1;
+    std::int64_t 有效像素数量 = 0;
+    结构_三维体素轮廓图视角 视角{};
+};
+
 export const char* 外设观察运行模式文本(枚举_外设观察运行模式 类型) noexcept;
 export const char* 外设分割处理模式文本(枚举_外设分割处理模式 类型) noexcept;
 export const char* 外设Tracker轨迹状态文本(枚举_外设Tracker轨迹状态 类型) noexcept;
@@ -739,6 +750,8 @@ export bool 提交D455短期观察材料页(
     const 双目相机本能适配器::调用结果& 来源,
     const 结构_外设观察报告队列项& 报告项);
 export 结构_D455观察材料句柄摘要 解析D455观察材料句柄(const std::string& 句柄);
+export 结构_D455三维体素轮廓视角读取结果 读取D455簇三维体素轮廓视角(
+    const 结构_外设观察像素簇摘要& 簇);
 export 结构_D455控制面板视频快照 读取最新D455控制面板视频快照();
 export std::uint64_t 提交外设观察等待项(结构_外设观察等待项 等待项);
 export bool 完成外设观察等待项(std::uint64_t 等待项ID);
@@ -2741,6 +2754,185 @@ bool 提交D455短期观察材料页(
     摘要.资源类型 = 资源类型;
     摘要.失败原因 = "未找到D455短期观察材料句柄";
     return 摘要;
+}
+
+// 功能：从 D455 簇句柄对应短期材料页只读重建三维体素轮廓图视角。
+结构_D455三维体素轮廓视角读取结果 读取D455簇三维体素轮廓视角(
+    const 结构_外设观察像素簇摘要& 簇)
+{
+    结构_D455三维体素轮廓视角读取结果 输出{};
+
+    auto 失败 = [&](std::string 原因) {
+        输出.成功 = false;
+        输出.失败原因 = std::move(原因);
+        return 输出;
+    };
+
+    std::vector<std::string> 句柄集合{};
+    auto 追加句柄 = [&](const std::string& 句柄) {
+        if (!句柄.empty()) {
+            句柄集合.push_back(句柄);
+        }
+    };
+    追加句柄(簇.点集引用);
+    追加句柄(簇.深度轮廓局部图句柄);
+    追加句柄(簇.像素集合掩码句柄);
+    追加句柄(簇.空间候选引用);
+    追加句柄(簇.彩色轮廓局部图句柄);
+    if (句柄集合.empty()) {
+        return 失败("D455簇缺少可回查局部体素材料句柄");
+    }
+
+    auto 构造视角 = [&](const 结构_D455短期观察材料页& 页,
+        const 双目相机本能适配器::空间候选摘要& 候选,
+        const 结构_D455观察材料句柄摘要& 摘要) {
+        if (!D455_帧像素数量有效(页.来源)) {
+            return 失败("D455帧像素材料未就绪");
+        }
+        if (!D455_深度帧材料有效(页.来源)) {
+            return 失败("D455深度材料未就绪");
+        }
+        if (!D455_空间坐标材料有效(页.来源)) {
+            return 失败("D455空间点材料未就绪");
+        }
+        if (候选.像素索引集合.empty()) {
+            return 失败("D455簇缺少像素索引集合");
+        }
+        if (候选.投影最大X < 候选.投影最小X || 候选.投影最大Y < 候选.投影最小Y) {
+            return 失败("D455簇投影范围非法");
+        }
+        const auto 局部宽64 = static_cast<std::uint64_t>(候选.投影最大X - 候选.投影最小X + 1);
+        const auto 局部高64 = static_cast<std::uint64_t>(候选.投影最大Y - 候选.投影最小Y + 1);
+        if (局部宽64 == 0
+            || 局部高64 == 0
+            || 局部宽64 > static_cast<std::uint64_t>((std::numeric_limits<std::uint32_t>::max)())
+            || 局部高64 > static_cast<std::uint64_t>((std::numeric_limits<std::uint32_t>::max)())
+            || 局部宽64 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)()) / 局部高64) {
+            return 失败("D455簇局部图尺寸超出平台限制");
+        }
+
+        const auto 局部像素数64 = 局部宽64 * 局部高64;
+        if (局部像素数64 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())) {
+            return 失败("D455簇局部图像素数超出平台限制");
+        }
+        const auto 局部像素数 = static_cast<std::size_t>(局部像素数64);
+        const auto 帧像素数 = static_cast<std::size_t>(页.来源.预期像素数量);
+
+        const std::vector<std::int64_t>* 深度_mm = nullptr;
+        if (页.来源.融合深度毫米.size() == 帧像素数) {
+            深度_mm = &页.来源.融合深度毫米;
+        } else if (页.来源.补全深度毫米.size() == 帧像素数) {
+            深度_mm = &页.来源.补全深度毫米;
+        } else if (页.来源.滤波深度毫米.size() == 帧像素数) {
+            深度_mm = &页.来源.滤波深度毫米;
+        } else if (页.来源.原始深度毫米.size() == 帧像素数) {
+            深度_mm = &页.来源.原始深度毫米;
+        }
+        if (!深度_mm) {
+            return 失败("D455深度数组尺寸与帧尺寸不一致");
+        }
+
+        输出 = {};
+        输出.报告ID = 摘要.报告ID;
+        输出.候选编号 = 摘要.候选编号;
+        输出.视角.宽度 = static_cast<std::uint32_t>(局部宽64);
+        输出.视角.高度 = static_cast<std::uint32_t>(局部高64);
+        输出.视角.视角序号 = 0;
+        输出.视角.轮廓掩码.assign(局部像素数, 0);
+        输出.视角.深度_mm.assign(局部像素数, 0);
+        输出.视角.空间点_mm.assign(局部像素数, {});
+        const bool 有颜色 = D455_颜色帧材料有效(页.来源);
+        if (有颜色) {
+            输出.视角.颜色_RGBA.assign(局部像素数, 0);
+        }
+
+        const auto 帧宽 = static_cast<std::size_t>(页.来源.宽度);
+        std::int64_t 有效像素数 = 0;
+        for (const auto 像素索引U32 : 候选.像素索引集合) {
+            const auto 像素索引 = static_cast<std::size_t>(像素索引U32);
+            if (像素索引 >= 帧像素数 || 帧宽 == 0) {
+                continue;
+            }
+            const auto 全局X = static_cast<std::int64_t>(像素索引 % 帧宽);
+            const auto 全局Y = static_cast<std::int64_t>(像素索引 / 帧宽);
+            if (全局X < 候选.投影最小X
+                || 全局X > 候选.投影最大X
+                || 全局Y < 候选.投影最小Y
+                || 全局Y > 候选.投影最大Y) {
+                continue;
+            }
+
+            const auto 深度值 = (*深度_mm)[像素索引];
+            const auto& 点 = 页.来源.空间坐标毫米XYZ[像素索引];
+            if (深度值 <= 0 || 点.Z <= 0) {
+                continue;
+            }
+
+            const auto 局部X = static_cast<std::size_t>(全局X - 候选.投影最小X);
+            const auto 局部Y = static_cast<std::size_t>(全局Y - 候选.投影最小Y);
+            const auto 局部索引 = 局部Y * static_cast<std::size_t>(输出.视角.宽度) + 局部X;
+            if (局部索引 >= 局部像素数) {
+                continue;
+            }
+            if (输出.视角.轮廓掩码[局部索引] == 0) {
+                ++有效像素数;
+            }
+            输出.视角.轮廓掩码[局部索引] = 1;
+            输出.视角.深度_mm[局部索引] = 深度值;
+            输出.视角.空间点_mm[局部索引] = 结构_三维体素空间点毫米{ 点.X, 点.Y, 点.Z };
+            if (有颜色) {
+                const auto& 颜色 = 页.来源.颜色RGB[像素索引];
+                输出.视角.颜色_RGBA[局部索引] =
+                    0xff000000u
+                    | (static_cast<std::uint32_t>(颜色.R) << 16)
+                    | (static_cast<std::uint32_t>(颜色.G) << 8)
+                    | static_cast<std::uint32_t>(颜色.B);
+            }
+        }
+
+        if (有效像素数 <= 0) {
+            return 失败("D455簇局部图内没有有效深度空间点");
+        }
+        输出.成功 = true;
+        输出.失败原因.clear();
+        输出.有效像素数量 = 有效像素数;
+        return 输出;
+    };
+
+    auto& 状态 = 外设观察队列状态();
+    const auto 当前时间 = 外设观察当前时间毫秒();
+    std::lock_guard<std::mutex> 锁(状态.互斥);
+    D455_清理短期材料页_已加锁(状态, 当前时间);
+
+    std::string 最近失败原因{};
+    for (auto 迭代器 = 状态.D455材料页队列.rbegin();
+        迭代器 != 状态.D455材料页队列.rend();
+        ++迭代器) {
+        for (const auto& 句柄 : 句柄集合) {
+            const auto 资源类型 = D455_句柄资源类型(句柄);
+            if (资源类型.empty()) {
+                continue;
+            }
+            结构_D455观察材料句柄摘要 摘要{};
+            if (!D455_尝试匹配簇句柄(*迭代器, 句柄, 资源类型, &摘要)) {
+                continue;
+            }
+            if (!摘要.成功) {
+                最近失败原因 = 摘要.失败原因;
+                continue;
+            }
+            const auto* 候选 = D455_查找材料页空间候选(*迭代器, 摘要.候选编号);
+            if (!候选) {
+                最近失败原因 = "D455簇句柄命中但未找到来源空间候选";
+                continue;
+            }
+            return 构造视角(*迭代器, *候选, 摘要);
+        }
+    }
+
+    return 失败(最近失败原因.empty()
+        ? "未找到D455簇三维体素轮廓材料页"
+        : 最近失败原因);
 }
 
 // 功能：从指定来源读取数据或状态。
