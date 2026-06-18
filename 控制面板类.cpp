@@ -15,6 +15,7 @@ module;
 #include <string_view>
 #include <system_error>
 #include <thread>
+#include <tuple>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -7067,11 +7068,7 @@ namespace {
         std::vector<std::vector<std::string>> 语素树{};
     };
 
-    struct 结构_SQL控制面板查询 {
-        std::string_view 名称{};
-        std::string_view SQL{};
-        std::vector<std::vector<std::string>> 结构_SQL控制面板数据::* 目标行集 = nullptr;
-    };
+    using SQL控制面板目标行集 = std::vector<std::vector<std::string>> 结构_SQL控制面板数据::*;
 
     // 功能：生成控制面板 SQL 读模型 ADO 连接串。
     std::string 私有_SQL控制面板ADO连接串()
@@ -7123,7 +7120,7 @@ FROM fishnest.v_latest_run;
         }
         数据.批次 = std::move(批次结果.行集.front());
 
-        const std::vector<结构_SQL控制面板查询> 查询集{
+        const std::vector<std::tuple<std::string_view, std::string_view, SQL控制面板目标行集>> 查询集{
             {
                 "面板指标",
                 R"SQL(
@@ -7507,17 +7504,17 @@ ORDER BY row_index;
             },
         };
 
-        for (const auto& 查询 : 查询集) {
+        for (const auto& [名称, SQL, 目标行集] : 查询集) {
             结构_ADO查询结果 查询结果{};
             if (!私有_执行ADO控制面板查询(
                 连接串,
-                查询.名称,
-                查询.SQL,
+                名称,
+                SQL,
                 查询结果,
                 错误)) {
                 return false;
             }
-            数据.*(查询.目标行集) = std::move(查询结果.行集);
+            (数据.*目标行集) = std::move(查询结果.行集);
         }
         return true;
     }
