@@ -1138,12 +1138,6 @@ struct 结构_任务管理结果 {
     bool 允许正式资产提交 = false;
 };
 
-struct 结构_治理实例堆快照 {
-    std::size_t 总数 = 0;
-    std::string 最近摘要{};
-    std::vector<结构_任务管理结果> 实例列表{};
-};
-
 enum class 枚举_治理恢复事件处理方式 : std::uint8_t {
     未定义 = 0,
     仅内存态 = 1,
