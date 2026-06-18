@@ -38,11 +38,6 @@ struct 结构_状态转换因果边 {
     状态节点类* 结果状态 = nullptr;
     动态节点类* 动作动态 = nullptr;
     因果模板节点类* 因果模板 = nullptr;
-
-    // 由因果主信息的基础计数临时派生，供投影排序和诊断展示使用。
-    std::int64_t 置信度 = 0;
-    std::int64_t 稳定度 = 0;
-    std::vector<动态节点类*> 副作用集合{};
 };
 
 struct 结构_目标投影路径 {
@@ -54,13 +49,9 @@ struct 结构_目标投影路径 {
     std::vector<std::string> 缺失证据{};
     std::uint32_t 结算贡献层级 = 0;
     std::uint32_t 因果距离层级 = 0;
-    std::uint32_t 投影显示层级 = 0;
-    bool 是否可结算 = false;
-    bool 是否仅为候选 = true;
 };
 
 struct 结构_状态转换因果投影输入 {
-    std::uint32_t 最大深度 = 8;
     bool 包含未验证路径 = true;
 };
 
@@ -90,21 +81,15 @@ struct 结构_叶子任务因果投影输入 {
     需求节点类* 来源需求 = nullptr;
     基础信息节点类* 目标宿主 = nullptr;
     特征节点类* 目标特征类型 = nullptr;
-    方法类::节点类* 候选方法 = nullptr;
     std::uint32_t 最大深度 = 8;
     bool 允许未验证路径 = true;
 };
 
 struct 结构_叶子任务因果投影预判 {
-    任务节点类* 叶子任务 = nullptr;
-    需求节点类* 来源需求 = nullptr;
-    基础信息节点类* 目标宿主 = nullptr;
-    特征节点类* 目标特征类型 = nullptr;
     std::vector<结构_目标投影路径> 候选投影路径{};
     std::vector<枚举_目标权重类型> 候选权重类型集{};
     std::vector<std::string> 缺失证据{};
     bool 是否允许形成D0 = false;
-    bool 是否允许进入结算候选 = false;
 };
 
 struct 结构_自检原子目标因果投影输入 {
@@ -118,16 +103,10 @@ struct 结构_自检原子目标因果投影输入 {
 };
 
 struct 结构_自检原子目标因果投影结果 {
-    任务节点类* 固定来源任务 = nullptr;
-    需求节点类* 固定来源需求 = nullptr;
-    基础信息节点类* 目标宿主 = nullptr;
-    特征节点类* 目标特征类型 = nullptr;
-    const 语素入口节点类* 目标特征类型词 = nullptr;
     std::vector<结构_目标投影路径> 候选投影路径{};
     std::vector<枚举_目标权重类型> 候选权重类型集{};
     std::vector<std::string> 来源因果主键集{};
     std::vector<std::string> 缺失证据{};
-    bool 是否只有候选规则投影 = false;
 };
 
 class 因果类 {
