@@ -3773,10 +3773,10 @@ namespace {
         I64& 输出值) noexcept
     {
         输出值 = 0;
-        const 特征值* 目标值 = 结果项.关系模板.有目标值
+        const auto* 目标值 = 结果项.关系模板.有目标值
             ? &结果项.关系模板.目标值
-            : &结果项.目标值;
-        if (const auto* 标量 = std::get_if<I64>(目标值)) {
+            : nullptr;
+        if (const auto* 标量 = 目标值 ? std::get_if<I64>(目标值) : nullptr) {
             输出值 = *标量;
             return true;
         }
