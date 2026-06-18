@@ -539,12 +539,7 @@ namespace {
         if (!私有_节点属于独立树(语素根, 词)) {
             return {};
         }
-        try {
-            return 语素集.获取词(词);
-        }
-        catch (...) {
-            return {};
-        }
+        return 语素_安全获取词(词);
     }
 
     enum class 枚举_自我根特征类型_自检 : std::uint8_t {
