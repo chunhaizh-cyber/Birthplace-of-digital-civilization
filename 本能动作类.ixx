@@ -142,18 +142,6 @@ public:
     };
 
 public:
-    // 功能：按函数名执行对应处理。
-    static inline void 回执_拼接诊断(std::string& 输入输出, const std::string& 追加)
-    {
-        if (追加.empty()) {
-            return;
-        }
-        if (!输入输出.empty() && 输入输出.back() != ';') {
-            输入输出.push_back(';');
-        }
-        输入输出 += 追加;
-    }
-
     template<class T方法节点>
     static inline bool 方法首节点_确保条件参数类型(
         基础信息类& 基础信息,
