@@ -147,7 +147,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="基础数据类型.ixx" />
     <ClCompile Include="全局共享函数类.ixx" />
     <ClCompile Include="相机接口类.ixx" />
     <ClCompile Include="D455相机类.ixx" Condition="'$(Platform)'=='x64'" />

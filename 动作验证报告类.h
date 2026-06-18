@@ -1,11 +1,11 @@
 #pragma once
 
-#include "基础数据类型.h"
-
 #include <cstdint>
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include "基础数据类型.h"
 
 namespace 动作验证报告 {
     enum class 枚举_动作验证状态 : std::uint8_t {

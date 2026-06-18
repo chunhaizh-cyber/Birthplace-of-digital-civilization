@@ -3,10 +3,11 @@ module;
 #include <memory>
 #include <vector>
 
+#include "基础数据类型.h"
+
 export module D455相机模块;
 
 import 相机接口模块;
-import 基础数据类型模块;
 
 export class D455_相机实现 : public 抽象深度相机接口 {
 public:

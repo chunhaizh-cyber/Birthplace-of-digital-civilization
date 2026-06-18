@@ -10,11 +10,10 @@ module;
 #include <unordered_map>
 #include <vector>
 
+#include "基础数据类型.h"
 #include "日志接入.h"
 
 export module 度量模板注册表模块;
-
-import 基础数据类型模块;
 
 export {
 

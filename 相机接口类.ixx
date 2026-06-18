@@ -1,8 +1,8 @@
 module;
 
-export module 相机接口模块;
+#include "基础数据类型.h"
 
-import 基础数据类型模块;
+export module 相机接口模块;
 
 export class 抽象深度相机接口 {
 public:

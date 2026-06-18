@@ -15,11 +15,11 @@ module;
 #include <utility>
 #include <vector>
 
+#include "基础数据类型.h"
 #include "预处理开关变量.h"
 
 module D455相机模块;
 
-import 基础数据类型模块;
 import 相机接口模块;
 
 #if 鱼巢_开关_启用控制台输出

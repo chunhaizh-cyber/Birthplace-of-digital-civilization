@@ -5,9 +5,9 @@ module;
 #include <string>
 #include <vector>
 
-export module 动作验证报告类;
+#include "基础数据类型.h"
 
-import 基础数据类型模块;
+export module 动作验证报告类;
 
 export namespace 动作验证报告 {
     enum class 枚举_动作验证状态 : std::uint8_t {

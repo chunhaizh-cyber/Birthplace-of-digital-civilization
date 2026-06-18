@@ -13,10 +13,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include "基础数据类型.h"
 #include "双目相机本能适配器.h"
 
 import D455相机模块;
-import 基础数据类型模块;
 
 namespace {
     HMODULE g_RealSense运行时模块 = nullptr;
