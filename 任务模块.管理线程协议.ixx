@@ -184,23 +184,6 @@ struct 结构_任务价值结算完成通知 {
     std::string 事件摘要{};
 };
 
-struct 结构_任务执行前许可请求 {
-    任务节点类* 任务信息节点 = nullptr;
-    需求节点类* 来源需求 = nullptr;
-    方法类::节点类* 当前方法 = nullptr;
-    std::uint64_t 请求ID = 0;
-    std::uint64_t 工作项ID = 0;
-    时间戳 当前时间 = 0;
-    I64 预计安全变化量 = 0;
-    I64 预计服务变化量 = 0;
-    bool 禁止项接口已预留 = true;
-    bool 禁止项命中 = false;
-    bool 方向证据已提供 = false;
-    bool 方向不一致 = false;
-    // 仅供日志展示，不作为机器审批语义。
-    std::string 请求摘要{};
-};
-
 struct 结构_任务执行前许可结果 {
     任务节点类* 任务信息节点 = nullptr;
     需求节点类* 来源需求 = nullptr;
