@@ -1,6 +1,5 @@
 module;
 
-#include <algorithm>
 #include <atomic>
 #include <condition_variable>
 #include <cstdint>
@@ -71,11 +70,6 @@ struct 结构_动作执行结果 {
 
     std::vector<结构_动作步骤结果> 步骤结果{};
 
-    // 功能：按函数名执行对应处理。
-    [[nodiscard]] std::uint64_t 总耗时_us() const noexcept
-    {
-        return (结束_us >= 开始_us) ? (结束_us - 开始_us) : 0;
-    }
 };
 
 using 结构体_动作执行结果 = 结构_动作执行结果;
@@ -211,46 +205,11 @@ public:
     }
 
     // 功能：注册方法、模板、对象或运行入口。
-    void 取消注册(枚举_本能方法ID 动作ID)
-    {
-        const auto 索引键 = static_cast<std::uint32_t>(动作ID);
-
-        std::lock_guard<std::mutex> 锁(注册表写锁_);
-        auto 当前快照 = 注册表快照_.load(std::memory_order_acquire);
-        if (!当前快照 || 当前快照->empty()) {
-            return;
-        }
-
-        auto 新快照 = std::make_shared<注册表>(*当前快照);
-        新快照->erase(索引键);
-        注册表快照_.store(std::const_pointer_cast<const 注册表>(新快照), std::memory_order_release);
-    }
-
-    // 功能：注册方法、模板、对象或运行入口。
     [[nodiscard]] bool 已注册(枚举_本能方法ID 动作ID) const
     {
         const auto 索引键 = static_cast<std::uint32_t>(动作ID);
         auto 当前快照 = 注册表快照_.load(std::memory_order_acquire);
         return 当前快照 && 当前快照->find(索引键) != 当前快照->end();
-    }
-
-    // 功能：注册方法、模板、对象或运行入口。
-    [[nodiscard]] std::vector<枚举_本能方法ID> 列出已注册动作() const
-    {
-        std::vector<枚举_本能方法ID> 输出{};
-        auto 当前快照 = 注册表快照_.load(std::memory_order_acquire);
-        if (!当前快照 || 当前快照->empty()) {
-            return 输出;
-        }
-
-        输出.reserve(当前快照->size());
-        for (const auto& [键, _] : *当前快照) {
-            输出.push_back(static_cast<枚举_本能方法ID>(键));
-        }
-        std::sort(输出.begin(), 输出.end(), [](const auto 左, const auto 右) {
-            return static_cast<std::uint32_t>(左) < static_cast<std::uint32_t>(右);
-        });
-        return 输出;
     }
 
     // 功能：注册方法、模板、对象或运行入口。
