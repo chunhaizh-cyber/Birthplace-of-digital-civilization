@@ -34,16 +34,6 @@ enum class 枚举_任务执行记账结果 : std::uint8_t {
     失败 = 2,
 };
 
-struct 结构_方法上下文 {
-    时间戳 now = 0;
-    场景节点类* 输入观测包场景 = nullptr;
-    场景节点类* 任务条件场景 = nullptr;
-    场景节点类* 调用覆盖场景 = nullptr;
-    方法类::节点类* 方法首节点 = nullptr;
-    const 场景节点类* 当前场景 = nullptr;
-    const 场景节点类* 条件场景 = nullptr;
-};
-
 struct 结构_任务步骤执行结果_最小 {
     bool 有效 = false;
     枚举_任务执行记账结果 记账结果 = 枚举_任务执行记账结果::未定义;
