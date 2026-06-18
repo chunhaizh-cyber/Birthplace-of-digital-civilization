@@ -1314,12 +1314,6 @@ inline 枚举_存在观测缓冲 operator|(枚举_存在观测缓冲 a, 枚举_�
     return (枚举_存在观测缓冲)((std::uint32_t)a | (std::uint32_t)b);
 }
 
-// 功能：按函数名执行对应处理。
-inline bool Has(枚举_存在观测缓冲 mask, 枚举_存在观测缓冲 bit) {
-    return (((std::uint32_t)mask) & ((std::uint32_t)bit)) != 0;
-}
-
-
 // ===== 点索引 / 点簇 =====
 struct 点索引 {
     int u = 0;
