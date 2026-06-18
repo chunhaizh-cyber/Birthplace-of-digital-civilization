@@ -56,12 +56,6 @@ public:
         // 功能：设置对象字段、状态或运行参数。
         void 设置主键(const std::string& 主键_) { 主键 = 主键_; }
 
-        // 功能：按函数名执行对应处理。
-        bool 是否叶子() const { return 子 == nullptr; }
-
-        // 功能：按函数名执行对应处理。
-        bool 是否同层孤立() const { return 上 == this && 下 == this; }
-
         // 功能：初始化相关对象、状态或运行上下文。
         void 初始化同层自环()
         {
