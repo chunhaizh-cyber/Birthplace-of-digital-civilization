@@ -62,14 +62,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    bool 私有_轻引用相同(const 基础信息节点类* 节点, const 结构_基础信息轻引用& 引用)
-    {
-        if (!节点 || !引用.有效()) return false;
-        if (引用.指针 != 0 && reinterpret_cast<const 基础信息节点类*>(引用.指针) == 节点) return true;
-        return !引用.主键.empty() && 引用.主键 == 节点->获取主键();
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     std::vector<基础信息节点类*> 私有_直接基础信息子节点(
         const 基础信息类& 基础信息,
         const 基础信息节点类* 父节点)
