@@ -302,17 +302,7 @@ namespace 自我动作实现模块::扫描模块 {
             bool 主动因果信息已生成 = false;
         };
 
-        struct 结构_扫描特征绑定 {
-            枚举_扫描特征绑定ID ID = 枚举_扫描特征绑定ID::运行ID;
-            const char* 名称 = "";
-        };
-
-        struct 结构_扫描存在类型绑定 {
-            枚举_扫描存在类型绑定ID ID = 枚举_扫描存在类型绑定ID::扫描方法运行虚拟存在;
-            const char* 名称 = "";
-        };
-
-        constexpr 结构_扫描特征绑定 扫描特征绑定表[] = {
+        constexpr std::pair<枚举_扫描特征绑定ID, const char*> 扫描特征绑定表[] = {
             { 枚举_扫描特征绑定ID::运行ID, "运行ID" },
             { 枚举_扫描特征绑定ID::来源需求ID, "来源需求ID" },
             { 枚举_扫描特征绑定ID::来源任务ID, "来源任务ID" },
@@ -412,7 +402,7 @@ namespace 自我动作实现模块::扫描模块 {
             { 枚举_扫描特征绑定ID::后续承接入口状态, "后续承接入口状态" },
         };
 
-        constexpr 结构_扫描存在类型绑定 扫描存在类型绑定表[] = {
+        constexpr std::pair<枚举_扫描存在类型绑定ID, const char*> 扫描存在类型绑定表[] = {
             { 枚举_扫描存在类型绑定ID::扫描方法运行虚拟存在, "扫描方法运行虚拟存在" },
             { 枚举_扫描存在类型绑定ID::扫描信息缺口, "扫描信息缺口" },
             { 枚举_扫描存在类型绑定ID::扫描数据项处理记录, "扫描数据项处理记录" },
@@ -426,7 +416,7 @@ namespace 自我动作实现模块::扫描模块 {
         inline const char* 扫描特征绑定名称(枚举_扫描特征绑定ID ID) noexcept
         {
             for (const auto& 绑定 : 扫描特征绑定表) {
-                if (绑定.ID == ID) return 绑定.名称;
+                if (绑定.first == ID) return 绑定.second;
             }
             return "扫描未绑定特征";
         }
@@ -435,7 +425,7 @@ namespace 自我动作实现模块::扫描模块 {
         inline const char* 扫描存在类型绑定名称(枚举_扫描存在类型绑定ID ID) noexcept
         {
             for (const auto& 绑定 : 扫描存在类型绑定表) {
-                if (绑定.ID == ID) return 绑定.名称;
+                if (绑定.first == ID) return 绑定.second;
             }
             return "扫描未绑定存在类型";
         }
