@@ -135,13 +135,6 @@ namespace {
     inline constexpr I64 已归属存在基准差异状态_已生成 = 1;
     inline constexpr I64 已归属存在基准差异状态_证据不足 = 2;
     inline constexpr I64 已归属存在基准差异状态_冲突 = 3;
-    inline constexpr I64 目标存在特征值域状态_未读取 = 0;
-    inline constexpr I64 目标存在特征值域状态_值域内 = 1;
-    inline constexpr I64 目标存在特征值域状态_冲突 = 2;
-    inline constexpr I64 目标存在特征值域状态_证据不足 = 3;
-    inline constexpr I64 已归属存在特征值域冲突状态_无冲突 = 0;
-    inline constexpr I64 已归属存在特征值域冲突状态_有冲突 = 1;
-    inline constexpr I64 已归属存在特征值域冲突状态_证据不足 = 2;
     inline constexpr I64 未知区域识别状态_无未知区域 = 0;
     inline constexpr I64 未知区域识别状态_待识别 = 1;
     inline constexpr I64 外设提交包组织状态_未组织 = 0;
@@ -4599,37 +4592,9 @@ namespace {
     }
 
     // 功能：执行扫描相关材料获取、比较或提交逻辑。
-    inline const 语素入口节点类* 特征_最近扫描时间() noexcept
-    {
-        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("最近扫描时间", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
-    // 功能：执行扫描相关材料获取、比较或提交逻辑。
-    inline const 语素入口节点类* 特征_扫描稳定计数() noexcept
-    {
-        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("扫描稳定计数", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
-    // 功能：执行扫描相关材料获取、比较或提交逻辑。
     inline const 语素入口节点类* 特征_下一轮扫描基准观察存在() noexcept
     {
         static const 语素入口节点类* s_词 = 语素集.添加信息入口词("下一轮扫描基准观察存在", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline const 语素入口节点类* 特征_目标存在特征值域状态() noexcept
-    {
-        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("目标存在特征值域状态", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline const 语素入口节点类* 特征_已归属存在特征值域冲突状态() noexcept
-    {
-        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("已归属存在特征值域冲突状态", 枚举_信息入口类型::特征模板入口);
         return s_词;
     }
 
