@@ -66,34 +66,6 @@ namespace {
         return 引用.指针 ? 引用.指针->获取主键() : std::string{};
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    bool 私有_场景状态语义等价(const 场景节点类* 左, const 场景节点类* 右) noexcept
-    {
-        if (!左 || !右) return false;
-        const auto 左状态集 = 世界树.状态().获取场景状态(左);
-        const auto 右状态集 = 世界树.状态().获取场景状态(右);
-        if (左状态集.empty() && 右状态集.empty()) {
-            return 左 == 右 || 左->获取主键() == 右->获取主键();
-        }
-        if (左状态集.size() != 右状态集.size()) {
-            return false;
-        }
-        for (const auto* 左状态 : 左状态集) {
-            bool 已匹配 = false;
-            for (const auto* 右状态 : 右状态集) {
-                const auto 比较 = 世界树.特征().比较状态(左状态, 右状态);
-                if (比较.可比较 && 比较.关系 == 枚举_三向关系::等于) {
-                    已匹配 = true;
-                    break;
-                }
-            }
-            if (!已匹配) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     template<class T节点>
     bool 私有_引用已存在(const std::vector<可解析引用<T节点>>& 列表, T节点* 节点)
     {
@@ -1380,6 +1352,34 @@ namespace {
     }
 }
 
+// 功能：比较两个场景的状态语义是否等价。
+bool 方法类::场景状态语义等价(const 场景节点类* 左, const 场景节点类* 右) noexcept
+{
+    if (!左 || !右) return false;
+    const auto 左状态集 = 世界树.状态().获取场景状态(左);
+    const auto 右状态集 = 世界树.状态().获取场景状态(右);
+    if (左状态集.empty() && 右状态集.empty()) {
+        return 左 == 右 || 左->获取主键() == 右->获取主键();
+    }
+    if (左状态集.size() != 右状态集.size()) {
+        return false;
+    }
+    for (const auto* 左状态 : 左状态集) {
+        bool 已匹配 = false;
+        for (const auto* 右状态 : 右状态集) {
+            const auto 比较 = 世界树.特征().比较状态(左状态, 右状态);
+            if (比较.可比较 && 比较.关系 == 枚举_三向关系::等于) {
+                已匹配 = true;
+                break;
+            }
+        }
+        if (!已匹配) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // 功能：把当前方法树本体重写到 SQL Server 查询投影。
 bool 方法类::重写方法树SQL投影(
     const 节点类* 方法根节点,
@@ -2004,7 +2004,7 @@ bool 方法类::初始化方法虚拟存在信息(
                 || 条件信息->条件场景模板主键 == 条件模板主键)) {
             return true;
         }
-        if (条件场景模板 && 私有_场景状态语义等价(条件信息->条件场景.指针, 条件场景模板)) {
+        if (条件场景模板 && 场景状态语义等价(条件信息->条件场景.指针, 条件场景模板)) {
             return true;
         }
         return !条件索引.empty() && 私有_二次特征引用集合相等(条件信息->条件判定索引, 条件索引);
@@ -2098,7 +2098,7 @@ bool 方法类::初始化方法虚拟存在信息(
         if (!结果主键.empty() && 结果信息->结果主键 == 结果主键) {
             return true;
         }
-        if (结果场景模板 && 私有_场景状态语义等价(结果信息->结果场景.指针, 结果场景模板)) {
+        if (结果场景模板 && 场景状态语义等价(结果信息->结果场景.指针, 结果场景模板)) {
             return true;
         }
         return false;

@@ -74,6 +74,11 @@ public:
         场景节点类* 结果场景模板 = nullptr,
         const std::vector<可解析引用<二次特征节点类>>& 结果方向索引 = {});
 
+    // 功能：比较两个场景的状态语义是否等价。
+    static bool 场景状态语义等价(
+        const 场景节点类* 左,
+        const 场景节点类* 右) noexcept;
+
 private:
     static 节点类* 查找或创建_本能方法首节点(
         存在节点类* 宿主存在,
