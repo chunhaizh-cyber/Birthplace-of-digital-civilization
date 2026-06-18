@@ -11301,7 +11301,7 @@ export namespace 自我动作实现模块 {
         const 任务类::节点类* 任务,
         时间戳 now) noexcept
     {
-        auto* 结果状态 = 任务 ? 任务->主信息.结果状态信息.指针 : nullptr;
+        auto* 结果状态 = 任务 ? 任务->主信息.实际结果状态.指针 : nullptr;
         auto* 目标状态 = 任务 ? 任务->主信息.目标状态.指针 : nullptr;
         if (!任务 || !结果状态 || !目标状态) {
             std::ostringstream 输出;
@@ -11379,7 +11379,7 @@ export namespace 自我动作实现模块 {
         任务类::节点类* 任务,
         时间戳 now) noexcept
     {
-        auto* 结果状态 = 任务 ? 任务->主信息.结果状态信息.指针 : nullptr;
+        auto* 结果状态 = 任务 ? 任务->主信息.实际结果状态.指针 : nullptr;
         auto* 目标状态 = 任务 ? 任务->主信息.目标状态.指针 : nullptr;
         if (!任务 || !结果状态 || !目标状态) {
             return;
@@ -13277,7 +13277,7 @@ export namespace 自我动作实现模块 {
         auto* 来源需求 = 需求指针 ? reinterpret_cast<需求类::节点类*>(需求指针) : nullptr;
         auto* 实际结果状态 = 实际结果状态指针
             ? reinterpret_cast<状态节点类*>(实际结果状态指针)
-            : (任务 ? 任务类::解析任务结果状态摘要_兼容(任务) : nullptr);
+            : (任务 ? 任务类::解析任务实际结果状态(任务) : nullptr);
         const bool 任务存在匹配 =
             任务 && 任务存在 && 任务->主信息.任务虚拟存在.指针 == 任务存在;
         const bool 输入任务状态已结算 =

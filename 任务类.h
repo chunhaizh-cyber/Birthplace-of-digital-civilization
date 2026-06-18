@@ -86,14 +86,14 @@ public:
         时间戳 now = 结构体_时间戳::当前_微秒());
 
     static bool 任务状态已终结(枚举_任务状态 状态) noexcept;
-    static const 可解析引用<状态节点类>& 读取任务结果状态摘要_兼容(
+    static const 可解析引用<状态节点类>& 读取任务实际结果状态(
         const 节点类* 任务节点) noexcept;
-    static 状态节点类* 解析任务结果状态摘要_兼容(
+    static 状态节点类* 解析任务实际结果状态(
         const 节点类* 任务节点) noexcept;
-    static bool 写入任务结果状态摘要_兼容(
+    static bool 写入任务实际结果状态(
         节点类* 任务节点,
         const 可解析引用<状态节点类>& 状态引用) noexcept;
-    static bool 写入任务结果状态摘要_兼容(
+    static bool 写入任务实际结果状态(
         节点类* 任务节点,
         状态节点类* 状态节点) noexcept;
     static bool 绑定对应需求(
