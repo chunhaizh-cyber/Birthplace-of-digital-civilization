@@ -150,38 +150,6 @@ struct 结构_任务管理消息头 {
     bool 允许正式资产提交 = false;
 };
 
-struct 结构_任务管理状态变化项 {
-    std::string 变化主体主键{};
-    std::string 变化主体类型文本{};
-    std::string 特征类型文本{};
-    std::string 特征标签{};
-    特征值 变化前值{};
-    特征值 变化后值{};
-    bool 已确认生效 = false;
-    bool 是否关键中间状态 = false;
-    bool 已恢复 = false;
-    std::string 变化原因键{};
-};
-
-struct 结构_任务管理关键中间状态变化项 {
-    std::string 动作主体主键{};
-    std::string 动作主体类型文本{};
-    std::string 动作语义键{};
-    std::string 输入场景主键{};
-    std::string 输出场景主键{};
-    std::string 变化主体主键{};
-    std::string 变化主体类型文本{};
-    std::string 特征类型文本{};
-    特征值 变化前值{};
-    特征值 变化后值{};
-    时间戳 发生时间 = 0;
-    bool 执行成功 = false;
-    I64 错误码 = 0;
-    std::uint64_t 路径签名 = 0;
-    bool 已确认生效 = false;
-    bool 已恢复 = false;
-};
-
 struct 结构_任务管理线程补充特征 {
     枚举_任务管理线程补充特征类型 特征类型 = 枚举_任务管理线程补充特征类型::未定义;
     std::string 文本值{};
@@ -338,8 +306,6 @@ struct 结构_任务管理结果状态消息 {
     bool 是否疑似需要新任务入口 = false;
     bool 可能影响父任务 = false;
 
-    std::vector<结构_任务管理状态变化项> 服务对象状态变化集{};
-    std::vector<结构_任务管理关键中间状态变化项> 关键中间状态变化集{};
     std::uintptr_t 结果状态抽象特征指针 = 0;
     I64 结果状态值 = 0;
 };
