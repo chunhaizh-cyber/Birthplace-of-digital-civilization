@@ -522,7 +522,14 @@ namespace {
             << "    depth int NOT NULL,\n"
             << "    sibling_index int NOT NULL,\n"
             << "    direct_child_count int NOT NULL,\n"
-            << "    path_text nvarchar(1000) NULL,\n"
+            << "    path_text nvarchar(1000) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'fishnest.lexeme_main_info', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.lexeme_main_info (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    node_key nvarchar(80) NOT NULL,\n"
+            << "    node_row_index int NOT NULL,\n"
             << "    node_kind nvarchar(40) NULL,\n"
             << "    word_text nvarchar(400) NULL,\n"
             << "    display_text nvarchar(400) NULL,\n"
@@ -536,19 +543,54 @@ namespace {
             << "    is_bound_basic bit NOT NULL\n"
             << ");\n"
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_lexeme_node_key' AND object_id = OBJECT_ID(N'fishnest.lexeme_node'))\n"
-            << "    CREATE INDEX IX_lexeme_node_key ON fishnest.lexeme_node(node_key, parent_key);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_lexeme_node_word' AND object_id = OBJECT_ID(N'fishnest.lexeme_node'))\n"
-            << "    CREATE INDEX IX_lexeme_node_word ON fishnest.lexeme_node(word_text, node_kind);\n";
+            << "    CREATE INDEX IX_lexeme_node_key ON fishnest.lexeme_node(snapshot_id, node_key, parent_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_lexeme_node_row' AND object_id = OBJECT_ID(N'fishnest.lexeme_node'))\n"
+            << "    CREATE INDEX IX_lexeme_node_row ON fishnest.lexeme_node(snapshot_id, row_index);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_lexeme_main_info_node' AND object_id = OBJECT_ID(N'fishnest.lexeme_main_info'))\n"
+            << "    CREATE INDEX IX_lexeme_main_info_node ON fishnest.lexeme_main_info(snapshot_id, node_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_lexeme_main_info_row' AND object_id = OBJECT_ID(N'fishnest.lexeme_main_info'))\n"
+            << "    CREATE INDEX IX_lexeme_main_info_row ON fishnest.lexeme_main_info(snapshot_id, node_row_index);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_lexeme_main_info_word' AND object_id = OBJECT_ID(N'fishnest.lexeme_main_info'))\n"
+            << "    CREATE INDEX IX_lexeme_main_info_word ON fishnest.lexeme_main_info(snapshot_id, word_text, node_kind);\n";
         return SQL.str();
     }
 
     std::string 私有_语素SQL视图脚本()
     {
         std::ostringstream SQL;
-        SQL << "CREATE OR ALTER VIEW fishnest.v_current_lexeme_nodes AS\n"
-            << "SELECT n.*\n"
+        SQL << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_lexeme_main_info AS\n"
+            << "SELECT m.*\n"
+            << "FROM fishnest.lexeme_main_info m\n"
+            << "WHERE m.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.lexeme_snapshot ORDER BY captured_at DESC);');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_lexeme_nodes AS\n"
+            << "SELECT\n"
+            << "    n.id,\n"
+            << "    n.snapshot_id,\n"
+            << "    n.row_index,\n"
+            << "    n.node_key,\n"
+            << "    n.parent_key,\n"
+            << "    n.depth,\n"
+            << "    n.sibling_index,\n"
+            << "    n.direct_child_count,\n"
+            << "    n.path_text,\n"
+            << "    m.id AS main_info_id,\n"
+            << "    m.node_row_index,\n"
+            << "    m.node_kind,\n"
+            << "    m.word_text,\n"
+            << "    m.display_text,\n"
+            << "    m.human_pos_value,\n"
+            << "    m.human_pos_text,\n"
+            << "    m.entry_type_value,\n"
+            << "    m.entry_type_text,\n"
+            << "    m.mapped_main_type_value,\n"
+            << "    m.mapped_main_type_text,\n"
+            << "    m.bound_basic_key,\n"
+            << "    m.is_bound_basic\n"
             << "FROM fishnest.lexeme_node n\n"
-            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.lexeme_snapshot ORDER BY captured_at DESC);\n";
+            << "LEFT JOIN fishnest.lexeme_main_info m\n"
+            << "    ON m.snapshot_id = n.snapshot_id\n"
+            << "    AND m.node_row_index = n.row_index\n"
+            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.lexeme_snapshot ORDER BY captured_at DESC);');\n";
         return SQL.str();
     }
 
@@ -560,6 +602,31 @@ namespace {
         SQL << "SET NOCOUNT ON;\n"
             << "SET XACT_ABORT ON;\n"
             << "BEGIN TRANSACTION;\n"
+            << "IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_lexeme_node_word' AND object_id = OBJECT_ID(N'fishnest.lexeme_node'))\n"
+            << "    DROP INDEX IX_lexeme_node_word ON fishnest.lexeme_node;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'node_kind') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN node_kind;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'word_text') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN word_text;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'display_text') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN display_text;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'human_pos_value') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN human_pos_value;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'human_pos_text') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN human_pos_text;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'entry_type_value') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN entry_type_value;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'entry_type_text') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN entry_type_text;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'mapped_main_type_value') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN mapped_main_type_value;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'mapped_main_type_text') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN mapped_main_type_text;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'bound_basic_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN bound_basic_key;\n"
+            << "IF COL_LENGTH(N'fishnest.lexeme_node', N'is_bound_basic') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.lexeme_node DROP COLUMN is_bound_basic;\n"
+            << "DELETE FROM fishnest.lexeme_main_info;\n"
             << "DELETE FROM fishnest.lexeme_node;\n"
             << "DELETE FROM fishnest.lexeme_snapshot;\n"
             << "DECLARE @snapshot_id uniqueidentifier = NEWID();\n"
@@ -570,14 +637,17 @@ namespace {
             << 行集.size()
             << ");\n";
         for (const auto& 行 : 行集) {
-            SQL << "INSERT INTO fishnest.lexeme_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_kind, word_text, display_text, human_pos_value, human_pos_text, entry_type_value, entry_type_text, mapped_main_type_value, mapped_main_type_text, bound_basic_key, is_bound_basic) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO fishnest.lexeme_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text) VALUES (@snapshot_id, "
                 << 行.行号 << ", "
                 << 私有_SQL字符串(行.节点主键, false) << ", "
                 << 私有_SQL字符串(行.父节点主键) << ", "
                 << 行.深度 << ", "
                 << 行.同层序号 << ", "
                 << 行.直接子数量 << ", "
-                << 私有_SQL字符串(行.路径) << ", "
+                << 私有_SQL字符串(行.路径) << ");\n";
+            SQL << "INSERT INTO fishnest.lexeme_main_info (snapshot_id, node_key, node_row_index, node_kind, word_text, display_text, human_pos_value, human_pos_text, entry_type_value, entry_type_text, mapped_main_type_value, mapped_main_type_text, bound_basic_key, is_bound_basic) VALUES (@snapshot_id, "
+                << 私有_SQL字符串(行.节点主键, false) << ", "
+                << 行.行号 << ", "
                 << 私有_SQL字符串(行.节点类型) << ", "
                 << 私有_SQL字符串(行.词面) << ", "
                 << 私有_SQL字符串(行.显示文本) << ", "
@@ -590,6 +660,14 @@ namespace {
                 << 私有_SQL字符串(行.对应基础信息主键) << ", "
                 << 私有_SQL布尔(行.已绑定基础信息) << ");\n";
         }
+        SQL << "IF EXISTS (\n"
+            << "    SELECT 1\n"
+            << "    FROM fishnest.lexeme_main_info info\n"
+            << "    LEFT JOIN fishnest.lexeme_node node\n"
+            << "        ON node.snapshot_id = info.snapshot_id AND node.row_index = info.node_row_index\n"
+            << "    WHERE info.snapshot_id = @snapshot_id AND node.row_index IS NULL\n"
+            << ")\n"
+            << "    THROW 51041, N'lexeme_main_info node_row_index invalid', 1;\n";
         SQL << "COMMIT TRANSACTION;\n";
         return SQL.str();
     }
