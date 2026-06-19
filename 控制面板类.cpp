@@ -6743,7 +6743,6 @@ namespace {
         std::vector<std::vector<std::string>> 线程{};
         std::vector<std::vector<std::string>> 线程事件{};
         std::vector<std::vector<std::string>> 动作动态{};
-        std::vector<std::vector<std::string>> 因果边{};
         std::vector<std::vector<std::string>> 因果信息{};
         std::vector<std::vector<std::string>> 因果信息关系{};
         std::vector<std::vector<std::string>> 特征{};
@@ -6870,22 +6869,6 @@ FROM fishnest.v_latest_action_dynamics
 ORDER BY log_time DESC, event_seq DESC;
 )SQL",
                 &结构_SQL控制面板数据::动作动态
-            },
-            {
-                "因果边",
-                R"SQL(
-SELECT TOP (2000)
-    COALESCE(source_kind, N'') AS source_kind,
-    COALESCE(source_key, N'') AS source_key,
-    COALESCE(target_kind, N'') AS target_kind,
-    COALESCE(target_key, N'') AS target_key,
-    COALESCE(relation_type, N'') AS relation_type,
-    COALESCE(log_file, N'') AS log_file,
-    CONVERT(nvarchar(20), COALESCE(line_no, 0)) AS line_no
-FROM fishnest.v_latest_causal_edges
-ORDER BY id DESC;
-)SQL",
-                &结构_SQL控制面板数据::因果边
             },
             {
                 "因果信息",
@@ -7162,37 +7145,6 @@ ORDER BY row_index;
         输出 << '"';
     }
 
-    // 功能：把 SQL 因果边转换为前端查询用 JSON。
-    std::string 私有_生成SQL因果边JSON(const std::vector<std::vector<std::string>>& 因果边)
-    {
-        std::ostringstream 输出;
-        输出 << '[';
-        bool 首项 = true;
-        for (const auto& 行 : 因果边) {
-            if (!首项) {
-                输出 << ',';
-            }
-            首项 = false;
-            输出 << "{\"sourceKind\":";
-            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 0));
-            输出 << ",\"sourceKey\":";
-            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 1));
-            输出 << ",\"targetKind\":";
-            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 2));
-            输出 << ",\"targetKey\":";
-            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 3));
-            输出 << ",\"relation\":";
-            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 4));
-            输出 << ",\"logFile\":";
-            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 5));
-            输出 << ",\"lineNo\":";
-            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 6));
-            输出 << '}';
-        }
-        输出 << ']';
-        return 输出.str();
-    }
-
     // 功能：根据 SQL 控制面板数据生成静态 HTML。
     std::string 私有_生成SQL控制面板HTML(const 结构_SQL控制面板数据& 数据)
     {
@@ -7247,16 +7199,15 @@ ORDER BY row_index;
             << "<div class=\"menu-title\">治理</div>"
             << "<button data-menu-index=\"5\" data-target=\"causalInfo\">5. 因果信息</button>"
             << "<button data-menu-index=\"6\" data-target=\"causalChain\">6. 因果链查询</button>"
-            << "<button data-menu-index=\"7\" data-target=\"causal\">7. 因果边</button>"
-            << "<button data-menu-index=\"8\" data-target=\"demandTree\">8. 需求树</button>"
-            << "<button data-menu-index=\"9\" data-target=\"taskTree\">9. 任务树</button>"
-            << "<button data-menu-index=\"10\" data-target=\"methodTree\">10. 方法树</button>"
-            << "<button data-menu-index=\"11\" data-target=\"worldTree\">11. 世界树</button>"
-            << "<button data-menu-index=\"12\" data-target=\"worldRelations\">12. 世界关系</button>"
-            << "<button data-menu-index=\"13\" data-target=\"lexemeTree\">13. 语素树</button>"
+            << "<button data-menu-index=\"7\" data-target=\"demandTree\">7. 需求树</button>"
+            << "<button data-menu-index=\"8\" data-target=\"taskTree\">8. 任务树</button>"
+            << "<button data-menu-index=\"9\" data-target=\"methodTree\">9. 方法树</button>"
+            << "<button data-menu-index=\"10\" data-target=\"worldTree\">10. 世界树</button>"
+            << "<button data-menu-index=\"11\" data-target=\"worldRelations\">11. 世界关系</button>"
+            << "<button data-menu-index=\"12\" data-target=\"lexemeTree\">12. 语素树</button>"
             << "<div class=\"menu-title\">基础</div>"
-            << "<button data-menu-index=\"14\" data-target=\"features\">14. 特征类型</button>"
-            << "<button data-menu-index=\"15\" data-target=\"catalog\">15. 字段目录</button>"
+            << "<button data-menu-index=\"13\" data-target=\"features\">13. 特征类型</button>"
+            << "<button data-menu-index=\"14\" data-target=\"catalog\">14. 字段目录</button>"
             << "</nav></aside><main class=\"content\">\n"
             << "<input id=\"filter\" type=\"search\" placeholder=\"过滤当前页表格和世界树文本\">\n"
             << "<section id=\"metrics\" class=\"active\" data-section-title=\"面板指标\"><h2>面板指标</h2>\n"
@@ -7286,10 +7237,10 @@ ORDER BY row_index;
         私有_追加SQL控制面板表(输出, "动作动态", "actions", { "时间", "类", "事件", "方法", "特征", "动作动态", "来源动态" }, 数据.动作动态);
         输出 << "<section id=\"causalChain\"><h2>因果链查询</h2>"
             << "<div class=\"chain-grid\">"
-            << "<label>因<input id=\"causeInput\" type=\"search\" placeholder=\"输入因的主键或类别\"></label>"
-            << "<label>果<input id=\"effectInput\" type=\"search\" placeholder=\"输入果的主键或类别\"></label>"
+            << "<label>因<input id=\"causeInput\" type=\"search\" placeholder=\"输入因果节点或目标主键\"></label>"
+            << "<label>果<input id=\"effectInput\" type=\"search\" placeholder=\"输入目标主键或类别\"></label>"
             << "<button id=\"chainQuery\" type=\"button\">查询</button>"
-            << "</div><div id=\"chainResult\" class=\"chain-result\">输入因和果后查询中间链接。</div>"
+            << "</div><div id=\"chainResult\" class=\"chain-result\">输入因和果后查询世界树因果关系链接。</div>"
             << "<div class=\"table-wrap\"><table><thead><tr><th>#</th><th>因</th><th>关系</th><th>果</th><th>证据</th></tr></thead><tbody id=\"chainRows\"></tbody></table></div></section>\n";
         输出 << "<section id=\"causalInfo\"><h2>因果信息</h2>"
             << "<div class=\"world-tree-grid\"><div class=\"tree-panel\">"
@@ -7298,7 +7249,6 @@ ORDER BY row_index;
             << "<span class=\"note\">SQL 世界树因果节点：" << 数据.因果信息.size()
             << "；组成关系：" << 数据.因果信息关系.size() << "</span></div>"
             << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div></div></section>\n";
-        私有_追加SQL控制面板表(输出, "因果边", "causal", { "来源类", "来源键", "目标类", "目标键", "关系", "日志", "行" }, 数据.因果边);
         私有_追加SQL控制面板表(
             输出,
             "需求树",
@@ -7350,7 +7300,7 @@ ORDER BY row_index;
 
         输出 << "</main><aside class=\"node-detail-pane\" aria-label=\"节点信息\">"
             << "<div id=\"sqlNodeDetail\" class=\"causal-detail\"><div class=\"causal-detail-empty\">请选择中间树节点查看信息</div></div>"
-            << "</aside></div>\n<script>\nconst causalEdges=" << 私有_生成SQL因果边JSON(数据.因果边) << ";\nconst causalInfoRows=[";
+            << "</aside></div>\n<script>\nconst causalInfoRows=[";
         for (std::size_t i = 0; i < 数据.因果信息.size(); ++i) {
             if (i > 0) {
                 输出 << ',';
@@ -7473,6 +7423,14 @@ causalInfoRelations.forEach(rel=>{
   if(!causalRelationsByOwner.has(rel.owner))causalRelationsByOwner.set(rel.owner,[]);
   causalRelationsByOwner.get(rel.owner).push(rel);
 });
+const causalRelationEdges=causalInfoRelations.map(rel=>({
+  sourceKind:'因果',
+  sourceKey:rel.owner,
+  targetKind:rel.targetKind,
+  targetKey:rel.targetKey,
+  relation:rel.relation,
+  evidence:rel.targetText||`序号=${rel.ordinal||0}`
+}));
 const worldNodeByKey=new Map(worldTreeRows.map(row=>[row.key,row]));
 const worldRelationsByOwner=new Map();
 worldTreeRelations.forEach(rel=>{
@@ -7873,7 +7831,7 @@ function renderChain(path,message){
   chainResult.textContent=message;
   path.forEach((edge,index)=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${index+1}</td><td>${escapeHtml(nodeText(edge.sourceKind,edge.sourceKey))}</td><td>${escapeHtml(edge.relation)}</td><td>${escapeHtml(nodeText(edge.targetKind,edge.targetKey))}</td><td>${escapeHtml(edge.logFile)}:${escapeHtml(edge.lineNo)}</td>`;
+    tr.innerHTML=`<td>${index+1}</td><td>${escapeHtml(nodeText(edge.sourceKind,edge.sourceKey))}</td><td>${escapeHtml(edge.relation)}</td><td>${escapeHtml(nodeText(edge.targetKind,edge.targetKey))}</td><td>${escapeHtml(edge.evidence)}</td>`;
     chainRows.appendChild(tr);
   });
 }
@@ -7884,7 +7842,7 @@ function queryCausalChain(){
   const adjacency=new Map();
   const starts=new Set();
   const targetMatches=new Set();
-  for(const edge of causalEdges){
+  for(const edge of causalRelationEdges){
     const src=nodeId(edge.sourceKind,edge.sourceKey);
     const dst=nodeId(edge.targetKind,edge.targetKey);
     if(!adjacency.has(src))adjacency.set(src,[]);
@@ -7912,7 +7870,7 @@ function queryCausalChain(){
       if(path.length<64)queue.push({node:next.dst,path});
     }
   }
-  renderChain([],`没有在 ${causalEdges.length} 条 SQL 因果边内找到路径。`);
+  renderChain([],`没有在 ${causalRelationEdges.length} 条世界树因果关系内找到路径。`);
 }
 function firstSelectableNode(roots){
   let found=null;
@@ -7939,10 +7897,10 @@ function selectDefaultForSection(target){
     return;
   }
   if(target==='causalChain'){
-    showNodeDetail('因果链查询','输入因和果后生成中间链接',[
+    showNodeDetail('因果链查询','输入因和果后生成世界树因果关系链接',[
       ['因',causeInput?.value||''],
       ['果',effectInput?.value||''],
-      ['SQL 因果边',String(causalEdges.length)]
+      ['SQL 因果关系',String(causalRelationEdges.length)]
     ]);
   }
 }

@@ -465,14 +465,13 @@ def latest_run_logs(root: Path, count: int) -> list[Path]:
     return logs[:count]
 
 
-def extract_runtime_events(root: Path, logs: list[Path], max_events: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def extract_runtime_events(root: Path, logs: list[Path], max_events: int) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
-    edges: list[dict[str, Any]] = []
     for log_path in logs:
         with log_path.open("r", encoding="utf-8", errors="replace") as handle:
             for line_no, line in enumerate(handle, 1):
                 if max_events and len(events) >= max_events:
-                    return events, edges
+                    return events
                 line = line.rstrip("\n")
                 if not is_interesting_log(line):
                     continue
@@ -511,46 +510,7 @@ def extract_runtime_events(root: Path, logs: list[Path], max_events: int) -> tup
                     "raw_text": line,
                 }
                 events.append(row)
-                if source_action_dynamic and action_dynamic:
-                    edges.append(
-                        {
-                            "source_kind": "动作动态",
-                            "source_key": source_action_dynamic,
-                            "target_kind": "动作动态",
-                            "target_key": action_dynamic,
-                            "relation_type": "来源动作动态",
-                            "event_seq": event_id,
-                            "log_file": row["log_file"],
-                            "line_no": line_no,
-                        }
-                    )
-                if source_causal_key:
-                    edges.append(
-                        {
-                            "source_kind": "因果",
-                            "source_key": source_causal_key,
-                            "target_kind": "运行事件",
-                            "target_key": str(event_id),
-                            "relation_type": "来源因果",
-                            "event_seq": event_id,
-                            "log_file": row["log_file"],
-                            "line_no": line_no,
-                        }
-                    )
-                if causal_key:
-                    edges.append(
-                        {
-                            "source_kind": "运行事件",
-                            "source_key": str(event_id),
-                            "target_kind": "因果",
-                            "target_key": causal_key,
-                            "relation_type": "事件引用因果",
-                            "event_seq": event_id,
-                            "log_file": row["log_file"],
-                            "line_no": line_no,
-                        }
-                    )
-    return events, edges
+    return events
 
 
 def extract_control_panel_thread_info(root: Path) -> list[dict[str, Any]]:
@@ -701,7 +661,6 @@ def build_panel_runtime_metrics(
     add_panel_metric(rows, "特征关系记录数", "基础信息", summary["feature_relation_count"], "sql_projection_summary")
     add_panel_metric(rows, "运行事件记录数", "运行事实", summary["event_count"], "runtime_log_projection")
     add_panel_metric(rows, "动作动态事件数", "运行事实", summary["action_dynamic_count"], "runtime_log_projection")
-    add_panel_metric(rows, "因果边记录数", "因果", summary["causal_edge_count"], "runtime_log_projection")
     add_panel_metric(rows, "线程信息项数", "线程", len(thread_info), "message_middleware_thread_cache", "消息中间件/control_panel_thread_info_table.cache")
     add_panel_metric(rows, "线程生命周期事件数", "线程", len(thread_events), "message_middleware_lifecycle_messages", "消息中间件")
 
@@ -778,6 +737,13 @@ def build_sql(database: str, run_id: str, root: Path, payload: dict[str, Any]) -
         "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');",
         "GO",
         """
+IF OBJECT_ID(N'fishnest.v_latest_causal_edges', N'V') IS NOT NULL
+    DROP VIEW fishnest.v_latest_causal_edges;
+IF OBJECT_ID(N'fishnest.causal_edge', N'U') IS NOT NULL
+    DROP TABLE fishnest.causal_edge;
+""",
+        "GO",
+        """
 IF OBJECT_ID(N'fishnest.projection_run', N'U') IS NULL
 CREATE TABLE fishnest.projection_run (
     run_id uniqueidentifier NOT NULL PRIMARY KEY,
@@ -834,19 +800,6 @@ CREATE TABLE fishnest.runtime_event (
     source_report_id nvarchar(120) NULL,
     fields_json nvarchar(max) NULL,
     raw_text nvarchar(max) NULL
-);
-IF OBJECT_ID(N'fishnest.causal_edge', N'U') IS NULL
-CREATE TABLE fishnest.causal_edge (
-    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    run_id uniqueidentifier NOT NULL,
-    source_kind nvarchar(80) NOT NULL,
-    source_key nvarchar(120) NOT NULL,
-    target_kind nvarchar(80) NOT NULL,
-    target_key nvarchar(120) NOT NULL,
-    relation_type nvarchar(80) NOT NULL,
-    event_seq int NULL,
-    log_file nvarchar(500) NULL,
-    line_no int NULL
 );
 IF OBJECT_ID(N'fishnest.panel_metric_catalog', N'U') IS NULL
 CREATE TABLE fishnest.panel_metric_catalog (
@@ -956,8 +909,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_run_cla
     CREATE INDEX IX_runtime_event_run_class ON fishnest.runtime_event(run_id, event_class, log_time);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_action_dynamic' AND object_id = OBJECT_ID(N'fishnest.runtime_event'))
     CREATE INDEX IX_runtime_event_action_dynamic ON fishnest.runtime_event(run_id, action_dynamic) WHERE action_dynamic IS NOT NULL;
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_causal_edge_run_source' AND object_id = OBJECT_ID(N'fishnest.causal_edge'))
-    CREATE INDEX IX_causal_edge_run_source ON fishnest.causal_edge(run_id, source_kind, source_key);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_metric_catalog_run_key' AND object_id = OBJECT_ID(N'fishnest.panel_metric_catalog'))
     CREATE INDEX IX_panel_metric_catalog_run_key ON fishnest.panel_metric_catalog(run_id, metric_key);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_runtime_metric_run_key' AND object_id = OBJECT_ID(N'fishnest.panel_runtime_metric'))
@@ -1015,13 +966,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_lifecycl
             "raw_text",
         ],
         payload["events"],
-        run_id,
-    )
-    write_insert_lines(
-        lines,
-        "fishnest.causal_edge",
-        ["run_id", "source_kind", "source_key", "target_kind", "target_key", "relation_type", "event_seq", "log_file", "line_no"],
-        payload["causal_edges"],
         run_id,
     )
     write_insert_lines(
@@ -1136,13 +1080,6 @@ WHERE e.run_id = (SELECT run_id FROM fishnest.v_latest_run)
 """,
             "GO",
             """
-CREATE OR ALTER VIEW fishnest.v_latest_causal_edges AS
-SELECT c.*
-FROM fishnest.causal_edge c
-WHERE c.run_id = (SELECT run_id FROM fishnest.v_latest_run);
-""",
-            "GO",
-            """
 CREATE OR ALTER VIEW fishnest.v_latest_features AS
 SELECT f.*
 FROM fishnest.feature_type f
@@ -1201,7 +1138,6 @@ def write_html(path: Path, payload: dict[str, Any], run_id: str, database: str, 
     features = payload["features"][:1500]
     relations = payload["feature_relations"][:1500]
     events = payload["events"][-2500:]
-    edges = payload["causal_edges"][:1500]
     panel_metrics = payload["panel_runtime_metrics"][:1500]
     panel_catalog = payload["panel_metric_catalog"][:2000]
     thread_info = payload["panel_thread_info"][:1000]
@@ -1249,13 +1185,12 @@ def write_html(path: Path, payload: dict[str, Any], run_id: str, database: str, 
       <div class="metric"><b>{summary['feature_relation_count']}</b><span>特征关系记录</span></div>
       <div class="metric"><b>{summary['event_count']}</b><span>运行事件记录</span></div>
       <div class="metric"><b>{summary['action_dynamic_count']}</b><span>动作动态事件</span></div>
-      <div class="metric"><b>{summary['causal_edge_count']}</b><span>因果边记录</span></div>
       <div class="metric"><b>{summary['panel_metric_catalog_count']}</b><span>控制面板字段目录</span></div>
       <div class="metric"><b>{summary['panel_runtime_metric_count']}</b><span>控制面板运行指标</span></div>
       <div class="metric"><b>{summary['panel_thread_info_count']}</b><span>线程信息项</span></div>
       <div class="metric"><b>{summary['panel_thread_event_count']}</b><span>线程生命周期事件</span></div>
     </div>
-    <p class="note">常用 SQL 视图：<code>fishnest.v_latest_features</code>、<code>fishnest.v_latest_feature_relations</code>、<code>fishnest.v_latest_action_dynamics</code>、<code>fishnest.v_latest_causal_edges</code>、<code>fishnest.v_latest_panel_runtime_metrics</code>、<code>fishnest.v_latest_panel_thread_info</code>。</p>
+    <p class="note">常用 SQL 视图：<code>fishnest.v_latest_features</code>、<code>fishnest.v_latest_feature_relations</code>、<code>fishnest.v_latest_action_dynamics</code>、<code>fishnest.v_latest_panel_runtime_metrics</code>、<code>fishnest.v_latest_panel_thread_info</code>。</p>
     <input id="filter" type="search" placeholder="过滤当前页表格文本">
     <div class="tabs">
       <button class="active" data-target="panelMetrics">面板指标</button>
@@ -1263,7 +1198,6 @@ def write_html(path: Path, payload: dict[str, Any], run_id: str, database: str, 
       <button data-target="threadEvents">线程事件</button>
       <button data-target="panelCatalog">字段目录</button>
       <button data-target="events">运行事件</button>
-      <button data-target="edges">因果边</button>
       <button data-target="features">特征类型</button>
       <button data-target="relations">特征关系</button>
     </div>
@@ -1290,11 +1224,6 @@ def write_html(path: Path, payload: dict[str, Any], run_id: str, database: str, 
     <section id="events">
       <div class="table-wrap"><table data-filterable><thead><tr><th>时间</th><th>类</th><th>事件</th><th>方法</th><th>任务</th><th>需求</th><th>特征</th><th>动作动态</th><th>来源动态</th><th>日志</th><th>行</th></tr></thead><tbody>
       {html_table_rows(events, ['log_time','event_class','event_name','method_name','task_key','demand_key','feature_key','action_dynamic','source_action_dynamic','log_file','line_no'])}
-      </tbody></table></div>
-    </section>
-    <section id="edges">
-      <div class="table-wrap"><table data-filterable><thead><tr><th>来源类</th><th>来源键</th><th>目标类</th><th>目标键</th><th>关系</th><th>事件序号</th><th>日志</th><th>行</th></tr></thead><tbody>
-      {html_table_rows(edges, ['source_kind','source_key','target_kind','target_key','relation_type','event_seq','log_file','line_no'])}
       </tbody></table></div>
     </section>
     <section id="features">
@@ -1339,7 +1268,7 @@ def build_payload(root: Path, logs: list[Path], max_events: int, max_thread_even
     extract_feature_accessors(root, features, feature_seen)
     feature_relations = extract_feature_dictionary(root, features, feature_seen)
     feature_relations.extend(extract_feature_tree(root, features, feature_seen))
-    events, causal_edges = extract_runtime_events(root, logs, max_events)
+    events = extract_runtime_events(root, logs, max_events)
     panel_metric_catalog = extract_panel_metric_catalog(root)
     panel_thread_info = extract_control_panel_thread_info(root)
     panel_thread_lifecycle_events = extract_thread_lifecycle_events(root, max_thread_events)
@@ -1348,7 +1277,6 @@ def build_payload(root: Path, logs: list[Path], max_events: int, max_thread_even
         "feature_relation_count": len(feature_relations),
         "event_count": len(events),
         "action_dynamic_count": sum(1 for row in events if row.get("action_dynamic")),
-        "causal_edge_count": len(causal_edges),
         "panel_metric_catalog_count": len(panel_metric_catalog),
         "panel_thread_info_count": len(panel_thread_info),
         "panel_thread_event_count": len(panel_thread_lifecycle_events),
@@ -1372,7 +1300,6 @@ def build_payload(root: Path, logs: list[Path], max_events: int, max_thread_even
         "features": features,
         "feature_relations": feature_relations,
         "events": events,
-        "causal_edges": causal_edges,
         "panel_metric_catalog": panel_metric_catalog,
         "panel_runtime_metrics": panel_runtime_metrics,
         "panel_thread_info": panel_thread_info,
