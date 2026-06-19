@@ -4712,22 +4712,6 @@ namespace {
     }
 
     // 功能：按函数名执行对应处理。
-    inline bool 语素入口可作为特征类型(const 语素入口节点类* 入口) noexcept
-    {
-        const auto* 主信息 = 入口
-            ? dynamic_cast<const 语素入口主信息类*>(入口->主信息)
-            : nullptr;
-        if (!主信息) return false;
-        if (主信息->对应基础信息类型 == 枚举_主信息类型::抽象特征
-            || 主信息->对应基础信息类型 == 枚举_主信息类型::特征) {
-            return true;
-        }
-        const auto 映射类型 = 语素_取信息入口主信息类型(主信息->信息入口类型);
-        return 映射类型 == 枚举_主信息类型::抽象特征
-            || 映射类型 == 枚举_主信息类型::特征;
-    }
-
-    // 功能：按函数名执行对应处理。
     inline void 吸收条件项指针值(结构_条件项视图& 项, const void* 指针) noexcept
     {
         if (!指针) return;
