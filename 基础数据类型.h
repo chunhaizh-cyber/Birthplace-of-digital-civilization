@@ -29,9 +29,6 @@ struct I64区间 {
     constexpr bool 有效() const noexcept { return 低值 <= 高值; }
 
     // 功能：按函数名执行对应处理。
-    constexpr bool 是否点() const noexcept { return 低值 == 高值; }
-
-    // 功能：按函数名执行对应处理。
     constexpr std::int64_t 点值() const noexcept { return 低值; }
 
     // 功能：按函数名执行对应处理。
@@ -1409,17 +1406,6 @@ struct 结构体_存在观测 {
     // 功能：===== 轻量工具函数 =====
     inline void 重新计算距离() { 距离 = std::sqrt(中心坐标.x * 中心坐标.x + 中心坐标.y * 中心坐标.y + 中心坐标.z * 中心坐标.z); }
 
-    // 功能：清理缓存、临时状态或运行资源。
-    inline void 清理大缓冲() {
-        缓冲掩码 = 枚举_存在观测缓冲::无;
-        裁剪BGR.清空();
-        裁剪掩膜.清空();
-        边缘图.清空();
-        置信度图.清空();
-        法线图.清空();
-        融合权重图.清空();
-    }
-
     std::int64_t 跟踪ID = -1;
 };
 
@@ -1857,11 +1843,6 @@ struct 结构_特征使用统计 {
         return !特征类型主键.empty();
     }
 
-    // 功能：按函数名执行对应处理。
-    bool 存在有效治理边() const noexcept
-    {
-        return 结果改变次数 > 0;
-    }
 };
 
 // 功能：按函数名执行对应处理。
