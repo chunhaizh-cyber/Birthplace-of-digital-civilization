@@ -251,6 +251,13 @@ public:
 
     特征节点主信息类* 取特征主信息(特征节点类* 节点) const noexcept;
     const 特征节点主信息类* 取特征主信息(const 特征节点类* 节点) const noexcept;
+
+    // 功能：按主键查找并解析特征节点，不创建或修改节点。
+    特征节点类* 按主键解析特征节点(const std::string& 主键) const noexcept;
+
+    // 功能：读取特征语义类型，不创建或修改节点。
+    const 语素入口节点类* 读取特征语义类型(const 特征节点类* 特征) const noexcept;
+
     抽象特征主信息类* 取抽象特征主信息(抽象特征节点类* 节点) const noexcept;
     const 抽象特征主信息类* 取抽象特征主信息(const 抽象特征节点类* 节点) const noexcept;
 

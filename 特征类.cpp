@@ -533,6 +533,23 @@ const 特征节点主信息类* 特征类::取特征主信息(const 特征节点
     return 基础信息_ ? 基础信息_->取主信息<特征节点主信息类>(节点) : nullptr;
 }
 
+// 功能：按主键查找并解析特征节点，不创建或修改节点。
+特征节点类* 特征类::按主键解析特征节点(const std::string& 主键) const noexcept
+{
+    if (!基础信息_ || 主键.empty()) {
+        return nullptr;
+    }
+    auto* 节点 = 基础信息_->查找主键(主键);
+    return 取特征主信息(节点) ? reinterpret_cast<特征节点类*>(节点) : nullptr;
+}
+
+// 功能：读取特征语义类型，不创建或修改节点。
+const 语素入口节点类* 特征类::读取特征语义类型(const 特征节点类* 特征) const noexcept
+{
+    const auto* 主信息 = 取特征主信息(特征);
+    return 主信息 ? 主信息->类型 : nullptr;
+}
+
 // 功能：按函数名执行对应处理。
 抽象特征主信息类* 特征类::取抽象特征主信息(抽象特征节点类* 节点) const noexcept
 {

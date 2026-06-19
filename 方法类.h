@@ -2,6 +2,7 @@
 
 #include "方法主信息类.h"
 
+class 基础信息类;
 enum class 枚举_本能方法ID : std::uint32_t;
 
 class 方法类 : public 链表模板<方法主信息类> {
@@ -13,6 +14,11 @@ public:
     using 节点类 = 基类::节点类;
 
 public:
+    // 功能：按主键查找并解析方法节点，不创建或修改节点。
+    方法节点类* 按主键解析方法节点(const std::string& 主键) noexcept;
+    const 方法节点类* 按主键解析方法节点(const std::string& 主键) const noexcept;
+    static 方法节点类* 按主键解析方法节点(基础信息类* 基础信息, const std::string& 主键) noexcept;
+
     static 节点类* 查找方法首节点_按动作句柄(
         节点类* 方法根节点,
         const 结构体_动作句柄& 动作句柄) noexcept;

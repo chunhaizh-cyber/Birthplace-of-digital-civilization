@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <utility>
 
+#include "基础信息类.h"
 #include "日志接入.h"
 #include "场景索引同步.h"
 #include "世界树类.h"
@@ -1454,6 +1455,33 @@ namespace {
         }
         return true;
     }
+}
+
+// 功能：按主键查找并解析方法节点，不创建或修改节点。
+方法节点类* 方法类::按主键解析方法节点(const std::string& 主键) noexcept
+{
+    if (主键.empty()) {
+        return nullptr;
+    }
+    return reinterpret_cast<方法节点类*>(this->查找主键(主键));
+}
+
+// 功能：按主键查找并解析方法节点，不创建或修改节点。
+const 方法节点类* 方法类::按主键解析方法节点(const std::string& 主键) const noexcept
+{
+    if (主键.empty()) {
+        return nullptr;
+    }
+    return reinterpret_cast<const 方法节点类*>(this->查找主键(主键));
+}
+
+// 功能：按基础信息主键查找并解析方法节点，不创建或修改节点。
+方法节点类* 方法类::按主键解析方法节点(基础信息类* 基础信息, const std::string& 主键) noexcept
+{
+    if (!基础信息 || 主键.empty()) {
+        return nullptr;
+    }
+    return reinterpret_cast<方法节点类*>(基础信息->查找主键(主键));
 }
 
 // 功能：判断方法首节点是否明确生产目标特征类型。
