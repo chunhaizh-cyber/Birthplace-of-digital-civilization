@@ -34,7 +34,6 @@ namespace {
         int 同层序号 = 0;
         int 直接子数量 = 0;
         std::string 路径{};
-        std::string 结构角色{};
         std::string 目标语义{};
         std::string 逻辑组织类型{};
         bool 已截止 = false;
@@ -83,19 +82,6 @@ namespace {
     std::string 私有_SQL布尔(const bool 值)
     {
         return 值 ? "1" : "0";
-    }
-
-    std::string 私有_需求结构角色文本(const 枚举_需求结构角色 角色)
-    {
-        switch (角色) {
-        case 枚举_需求结构角色::管理需求:
-            return "管理需求";
-        case 枚举_需求结构角色::执行需求:
-            return "执行需求";
-        case 枚举_需求结构角色::未定义:
-        default:
-            return "未定义";
-        }
     }
 
     template<class T节点>
@@ -160,7 +146,6 @@ namespace {
         行.同层序号 = 同层序号;
         行.直接子数量 = static_cast<int>(私有_需求直接子数量(节点));
         行.路径 = 路径;
-        行.结构角色 = 私有_需求结构角色文本(节点->主信息.结构角色);
         行.目标语义 = 目标语义视图.语义名称 ? 目标语义视图.语义名称 : "";
         行.逻辑组织类型 = 需求类::逻辑组织需求类型文本(目标语义视图.逻辑组织类型);
         行.已截止 = 节点->主信息.需求有效截止 != 0;
@@ -239,7 +224,6 @@ namespace {
             << "    sibling_index int NOT NULL,\n"
             << "    direct_child_count int NOT NULL,\n"
             << "    path_text nvarchar(1000) NULL,\n"
-            << "    structure_role nvarchar(40) NULL,\n"
             << "    target_semantics nvarchar(120) NULL,\n"
             << "    logic_group_type nvarchar(120) NULL,\n"
             << "    is_closed bit NOT NULL,\n"
@@ -296,7 +280,7 @@ namespace {
             << 行集.size()
             << ");\n";
         for (const auto& 行 : 行集) {
-            SQL << "INSERT INTO fishnest.demand_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, structure_role, target_semantics, logic_group_type, is_closed, blocks_parent, subject_key, scene_key, target_host_key, current_state_key, target_state_key, target_feature_key, task_key, relation_mask, safety_weight, service_weight, safety_settled, service_settled, valid_until_us, derived_method_key, derived_causal_key) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO fishnest.demand_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, target_semantics, logic_group_type, is_closed, blocks_parent, subject_key, scene_key, target_host_key, current_state_key, target_state_key, target_feature_key, task_key, relation_mask, safety_weight, service_weight, safety_settled, service_settled, valid_until_us, derived_method_key, derived_causal_key) VALUES (@snapshot_id, "
                 << 行.行号 << ", "
                 << 私有_SQL字符串(行.节点主键, false) << ", "
                 << 私有_SQL字符串(行.父节点主键) << ", "
@@ -304,7 +288,6 @@ namespace {
                 << 行.同层序号 << ", "
                 << 行.直接子数量 << ", "
                 << 私有_SQL字符串(行.路径) << ", "
-                << 私有_SQL字符串(行.结构角色) << ", "
                 << 私有_SQL字符串(行.目标语义) << ", "
                 << 私有_SQL字符串(行.逻辑组织类型) << ", "
                 << 私有_SQL布尔(行.已截止) << ", "

@@ -3314,10 +3314,9 @@ namespace {
             return false;
         }
 
-        // 管理需求和根需求允许长期保留历史完成任务；这里的异常只用于捕捉
-        // “执行叶需求已经由当前任务完成，但需求仍未截止”的真实闭环断点。
-        if (节点->子
-            || 节点->主信息.结构角色 == 枚举_需求结构角色::管理需求) {
+        // 有子需求和根需求允许长期保留历史完成任务；这里的异常只用于捕捉
+        // “叶子需求已经由当前任务完成，但需求仍未截止”的真实闭环断点。
+        if (节点->子) {
             return false;
         }
 
@@ -4476,17 +4475,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    const char* 私有_需求结构角色文本(const 枚举_需求结构角色 角色) noexcept
-    {
-        switch (角色) {
-        case 枚举_需求结构角色::管理需求: return "管理需求";
-        case 枚举_需求结构角色::执行需求: return "执行需求";
-        case 枚举_需求结构角色::未定义:
-        default: return "未定义";
-        }
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_三向关系掩码文本(const 三向关系掩码 掩码)
     {
         std::vector<std::string> 片段{};
@@ -4751,7 +4739,6 @@ namespace {
         私有_追加等号字段(字段节点, "节点地址", 私有_十六进制指针(私有_地址(节点)));
         私有_追加等号字段(字段节点, "描述信息", 私有_自然句文本(节点->主信息.描述信息));
         私有_追加等号字段(字段节点, "显示名", 私有_需求显示名_控制面板(节点));
-        私有_追加等号字段(字段节点, "结构角色", 私有_需求结构角色文本(节点->主信息.结构角色));
         私有_追加等号字段(字段节点, "需求有效截止", 私有_时间文本(节点->主信息.需求有效截止));
         私有_追加等号字段(字段节点, "是否阻塞父任务执行", 节点->主信息.是否阻塞父任务执行);
         私有_追加等号字段(字段节点, "安全权重", 节点->主信息.安全权重);
@@ -7126,7 +7113,10 @@ SELECT TOP (400)
     COALESCE(node_key, N'') AS node_key,
     COALESCE(parent_key, N'') AS parent_key,
     CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(structure_role, N'') AS structure_role,
+    CASE WHEN COALESCE(direct_child_count, 0) > 0
+        THEN CONCAT(N'有子=', CONVERT(nvarchar(20), direct_child_count))
+        ELSE N'叶子'
+    END AS tree_shape,
     COALESCE(target_semantics, N'') AS target_semantics,
     COALESCE(target_feature_key, N'') AS target_feature_key,
     COALESCE(task_key, N'') AS task_key
@@ -7347,7 +7337,7 @@ ORDER BY row_index;
     input{width:min(720px,100%);padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;margin-bottom:12px}
     section{display:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}section.active{display:block}h2{font-size:18px;margin:0 0 12px}
     .table-wrap{overflow:auto;max-height:68vh;border:1px solid #e5e7eb}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #e5e7eb;padding:8px 10px;text-align:left;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;background:#f8fafc;z-index:1}
-    .table-wrap[hidden]{display:none}.world-tree-grid,.sql-section-tree{display:block}.tree-panel{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;overflow:hidden}.tree-toolbar{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #e5e7eb;background:#f8fafc}.tree-toolbar button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer}.tree-view{max-height:68vh;overflow:auto;padding:10px;font-size:13px}.tree-node{margin:2px 0}.tree-node summary{cursor:pointer;list-style:none}.tree-node summary::-webkit-details-marker{display:none}.tree-node summary::before{content:"▸";display:inline-block;width:16px;color:#64748b}.tree-node[open]>summary::before{content:"▾"}.tree-leaf{padding-left:16px}.tree-line{display:flex;gap:6px;align-items:center;min-height:26px;padding:3px 6px;border-radius:5px}.tree-line:hover{background:#eef6f5}.tree-line.selected{background:#dff2ef;outline:1px solid #8fc9c1}.tree-key{font-family:Consolas,monospace;color:#1d4ed8}.tree-kind{color:#0f766e}.tree-muted{color:#64748b}.tree-children{margin-left:18px;border-left:1px solid #dbe4ee;padding-left:8px}
+    .table-wrap[hidden]{display:none}.world-tree-grid,.sql-section-tree{display:block}.tree-panel{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;overflow:hidden}.tree-toolbar{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #e5e7eb;background:#f8fafc}.tree-toolbar button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer}.tree-view{max-height:68vh;overflow:auto;padding:10px;font-size:13px}.tree-node{margin:2px 0}.tree-node summary{cursor:pointer;list-style:none}.tree-node summary::-webkit-details-marker{display:none}.tree-node summary::before{content:"▸";display:inline-block;width:16px;color:#64748b}.tree-node[open]>summary::before{content:"▾"}.tree-leaf{padding-left:16px}.tree-line{display:flex;gap:8px;align-items:center;min-height:26px;padding:3px 6px;border-radius:5px;white-space:nowrap;overflow:hidden}.tree-line:hover{background:#eef6f5}.tree-line.selected{background:#dff2ef;outline:1px solid #8fc9c1}.tree-line span{min-width:0}.tree-key{flex:0 0 auto;font-family:Consolas,monospace;color:#1d4ed8}.tree-kind{flex:0 0 auto;color:#0f766e}.tree-title,.tree-muted{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tree-title{color:var(--ink)}.tree-muted{color:#64748b}.tree-children{margin-left:18px;border-left:1px solid #dbe4ee;padding-left:8px}
     .causal-detail{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;min-height:420px;max-height:68vh;overflow:auto;padding:12px}.causal-detail-empty{color:var(--muted);font-size:14px}.detail-head{display:grid;gap:4px;border-bottom:1px solid #e5e7eb;padding-bottom:10px;margin-bottom:10px}.detail-head strong{font-size:16px}.detail-block{border:1px solid #dbe4ee;border-radius:8px;background:#fff;margin:10px 0;padding:10px}.detail-block h3{margin:0 0 8px;font-size:15px}.detail-item{border-top:1px solid #edf2f7;padding:9px 0}.detail-item:first-of-type{border-top:0}.detail-item-title{font-weight:600;margin-bottom:6px}.detail-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;font-size:13px;line-height:1.5}.detail-row span{color:var(--muted)}.detail-row b{font-weight:400;word-break:break-all}.detail-sub{margin:8px 0 0 10px;border-left:2px solid #bfdcd8;padding-left:10px}.detail-sub-title{font-size:12px;color:var(--muted);margin-bottom:5px}.detail-sub-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;font-size:12px;line-height:1.5;padding:3px 0}.detail-sub-row b{font-weight:500}.detail-sub-row span{word-break:break-all}
     .chain-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:start;margin-bottom:12px}.chain-grid label{display:grid;gap:5px;font-size:13px;color:var(--muted)}.chain-grid input{width:100%;margin:0}.chain-grid button{height:39px;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:0 14px;cursor:pointer}.chain-result{margin:8px 0 12px;color:var(--muted)}
     @media(max-width:1100px){body{overflow:auto}.panel-shell{display:block;overflow:visible}.menu-bar,.node-detail-pane,main.content{overflow:visible}.menu-bar,.node-detail-pane{border-right:0;border-left:0;border-bottom:1px solid var(--line)}.menu-group{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.menu-title{grid-column:1/-1}}
@@ -7425,7 +7415,7 @@ ORDER BY row_index;
             << "；组成关系：" << 数据.因果信息关系.size() << "</span></div>"
             << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div></div></section>\n";
         私有_追加SQL控制面板表(输出, "因果边", "causal", { "来源类", "来源键", "目标类", "目标键", "关系", "日志", "行" }, 数据.因果边);
-        私有_追加SQL控制面板表(输出, "需求树", "demandTree", { "节点", "父节点", "深度", "结构角色", "目标语义", "目标特征", "任务" }, 数据.需求树);
+        私有_追加SQL控制面板表(输出, "需求树", "demandTree", { "节点", "父节点", "深度", "树形态", "目标语义", "目标特征", "任务" }, 数据.需求树);
         私有_追加SQL控制面板表(输出, "任务树", "taskTree", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
         私有_追加SQL控制面板表(输出, "方法树", "methodTree", { "节点", "父节点", "深度", "节点种类", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
         std::size_t 世界树因果节点数 = 0;
@@ -8894,17 +8884,11 @@ window.__panelApplyDetail=function(){};
                 ++快照.需求未满足数;
             }
 
-            switch (节点->主信息.结构角色) {
-            case 枚举_需求结构角色::管理需求:
-                ++快照.需求树管理需求数;
-                break;
-            case 枚举_需求结构角色::执行需求:
-                ++快照.需求树执行需求数;
-                break;
-            case 枚举_需求结构角色::未定义:
-            default:
-                ++快照.需求树角色未定义数;
-                break;
+            if (节点->子) {
+                ++快照.需求树有子节点数;
+            }
+            else {
+                ++快照.需求树叶子节点数;
             }
 
             if (节点->主信息.需求有效截止 != 0) {
@@ -8915,21 +8899,21 @@ window.__panelApplyDetail=function(){};
             }
 
             if (节点->主信息.需求有效截止 == 0
-                && 节点->主信息.结构角色 == 枚举_需求结构角色::执行需求) {
-                ++快照.需求树活动执行需求数;
+                && !节点->子) {
+                ++快照.需求树活动叶子需求数;
                 if (!节点->主信息.对应任务.有效()) {
-                    ++快照.需求树活动执行需求未任务化数;
-                    if (快照.需求树首个未任务化执行需求主键.empty()) {
-                        快照.需求树首个未任务化执行需求主键 =
+                    ++快照.需求树活动叶子需求未任务化数;
+                    if (快照.需求树首个未任务化叶子需求主键.empty()) {
+                        快照.需求树首个未任务化叶子需求主键 =
                             私有_节点主键_控制面板(节点);
-                        快照.需求树首个未任务化执行需求父主键 =
+                        快照.需求树首个未任务化叶子需求父主键 =
                             私有_节点主键_控制面板(reinterpret_cast<需求节点*>(节点->父));
-                        快照.需求树首个未任务化执行需求目标主体主键 =
+                        快照.需求树首个未任务化叶子需求目标主体主键 =
                             私有_需求目标宿主主键_控制面板(节点);
                         const auto* 目标特征类型 = 节点->主信息.目标特征类型缓存
                             ? 节点->主信息.目标特征类型缓存
                             : 私有_需求目标特征类型_控制面板(节点);
-                        快照.需求树首个未任务化执行需求目标特征主键 =
+                        快照.需求树首个未任务化叶子需求目标特征主键 =
                             私有_节点主键_控制面板(目标特征类型);
                     }
                 }
@@ -10214,8 +10198,8 @@ std::string 渲染控制面板摘要(
         << "  - 需求树: 总数=" << 快照.需求数
         << " | 已满足=" << 快照.需求已满足数
         << " | 未满足=" << 快照.需求未满足数
-        << " | 管理=" << 快照.需求树管理需求数
-        << " | 执行=" << 快照.需求树执行需求数
+        << " | 有子=" << 快照.需求树有子节点数
+        << " | 叶子=" << 快照.需求树叶子节点数
         << " | 活动阻塞=" << 快照.需求树活动阻塞需求数
         << " | 派生归因=" << 快照.需求树派生归因需求数
         << " | 派生来源因果=" << 快照.需求树派生来源因果需求数
@@ -10413,12 +10397,11 @@ std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
         << " | 状态已达未截止=" << 快照.需求状态已达未截止数
         << " | 未满足=" << 快照.需求未满足数
         << '\n'
-        << "  - 结构: 管理=" << 快照.需求树管理需求数
-        << " | 执行=" << 快照.需求树执行需求数
-        << " | 角色未定义=" << 快照.需求树角色未定义数
+        << "  - 结构: 有子=" << 快照.需求树有子节点数
+        << " | 叶子=" << 快照.需求树叶子节点数
         << " | 活动阻塞=" << 快照.需求树活动阻塞需求数
-        << " | 活动执行=" << 快照.需求树活动执行需求数
-        << " | 未任务化执行=" << 快照.需求树活动执行需求未任务化数
+        << " | 活动叶子=" << 快照.需求树活动叶子需求数
+        << " | 未任务化叶子=" << 快照.需求树活动叶子需求未任务化数
         << " | 非阻塞=" << 快照.需求树非阻塞需求数
         << " | 已截止=" << 快照.需求树已截止需求数
         << " | 派生归因=" << 快照.需求树派生归因需求数
@@ -10469,22 +10452,22 @@ std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
                 ? std::string("空")
                 : 快照.需求树首个目标绑定异常目标特征主键)
         << '\n'
-        << "  - 首个未任务化执行需求: 主键=" << 私有_页面摘要(
-            快照.需求树首个未任务化执行需求主键.empty()
+        << "  - 首个未任务化叶子需求: 主键=" << 私有_页面摘要(
+            快照.需求树首个未任务化叶子需求主键.empty()
                 ? std::string("无")
-                : 快照.需求树首个未任务化执行需求主键)
+                : 快照.需求树首个未任务化叶子需求主键)
         << " | 父=" << 私有_页面摘要(
-            快照.需求树首个未任务化执行需求父主键.empty()
+            快照.需求树首个未任务化叶子需求父主键.empty()
                 ? std::string("空")
-                : 快照.需求树首个未任务化执行需求父主键)
+                : 快照.需求树首个未任务化叶子需求父主键)
         << " | 目标宿主=" << 私有_页面摘要(
-            快照.需求树首个未任务化执行需求目标主体主键.empty()
+            快照.需求树首个未任务化叶子需求目标主体主键.empty()
                 ? std::string("空")
-                : 快照.需求树首个未任务化执行需求目标主体主键)
+                : 快照.需求树首个未任务化叶子需求目标主体主键)
         << " | 目标特征=" << 私有_页面摘要(
-            快照.需求树首个未任务化执行需求目标特征主键.empty()
+            快照.需求树首个未任务化叶子需求目标特征主键.empty()
                 ? std::string("空")
-                : 快照.需求树首个未任务化执行需求目标特征主键)
+                : 快照.需求树首个未任务化叶子需求目标特征主键)
         << '\n'
         << "  - 首个完成任务仍活动需求: 主键=" << 私有_页面摘要(
             快照.需求树首个完成任务仍活动需求主键.empty()
@@ -10661,8 +10644,8 @@ std::string 私有_生成控制面板HTML(
     const auto 需求树摘要 = 私有_转义HTML(
         "需求数=" + std::to_string(快照.需求数)
         + " | " + 私有_需求满足数量摘要(快照)
-        + " | 管理=" + std::to_string(快照.需求树管理需求数)
-        + " | 执行=" + std::to_string(快照.需求树执行需求数)
+        + " | 有子=" + std::to_string(快照.需求树有子节点数)
+        + " | 叶子=" + std::to_string(快照.需求树叶子节点数)
         + " | 活动阻塞=" + std::to_string(快照.需求树活动阻塞需求数));
     const auto 需求列表摘要 = 私有_转义HTML(
         "需求数=" + std::to_string(快照.需求数)
@@ -11890,7 +11873,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="真实父子关系、结构角色、目标状态与任务绑定。">
+        <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="真实父子关系、树形结构、目标状态与任务绑定。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
