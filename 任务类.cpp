@@ -213,18 +213,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    状态节点类* 私有_取首个有效状态(
-        const std::vector<可解析引用<状态节点类>>& 列表) noexcept
-    {
-        for (const auto& 引用 : 列表) {
-            if (auto* 状态 = 私有_解析状态引用(引用)) {
-                return 状态;
-            }
-        }
-        return nullptr;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     状态节点类* 私有_取需求目标状态(需求节点类* 来源需求) noexcept
     {
         if (!来源需求) {
