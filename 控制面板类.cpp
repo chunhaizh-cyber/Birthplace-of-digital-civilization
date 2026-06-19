@@ -5403,13 +5403,23 @@ namespace {
             true);
 
         std::vector<基础信息节点类*> 因果根节点{};
-        if (auto* 世界根节点 = 世界树.基础信息().世界根()) {
-            for (auto* 子节点 : 私有_枚举子节点(
-                     世界根节点,
-                     (std::numeric_limits<std::size_t>::max)())) {
-                if (世界树.基础信息().取主信息<因果主信息类>(子节点)) {
-                    因果根节点.push_back(子节点);
+        auto* 世界根节点 = 世界树.基础信息().世界根();
+        for (auto* 因果节点 : 世界树.基础信息().枚举节点_按类型<因果主信息类>()) {
+            bool 有因果父祖先 = false;
+            std::size_t 保护计数 = 0;
+            for (auto* 父节点 = 因果节点 ? static_cast<基础信息节点类*>(因果节点->父) : nullptr;
+                 父节点 && 父节点 != 世界根节点 && 保护计数 < 4096;
+                 父节点 = static_cast<基础信息节点类*>(父节点->父), ++保护计数) {
+                if (世界树.基础信息().取主信息<因果主信息类>(父节点)) {
+                    有因果父祖先 = true;
+                    break;
                 }
+                if (父节点 == static_cast<基础信息节点类*>(父节点->父)) {
+                    break;
+                }
+            }
+            if (!有因果父祖先) {
+                因果根节点.push_back(因果节点);
             }
         }
 
@@ -6838,9 +6848,15 @@ SELECT
     COALESCE(value_kind, N'') AS value_kind,
     COALESCE(value_text, N'') AS value_text,
     COALESCE(auxiliary_text, N'') AS auxiliary_text
-FROM fishnest.v_current_world_tree_nodes
-WHERE node_kind = N'因果'
-  AND COALESCE(parent_key, N'') = N'WORLD_ROOT'
+FROM fishnest.v_current_world_tree_nodes n
+WHERE n.node_kind = N'因果'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM fishnest.v_current_world_tree_nodes ancestor
+      WHERE ancestor.node_kind = N'因果'
+        AND ancestor.node_key <> n.node_key
+        AND n.path_text LIKE ancestor.path_text + N'/%'
+  )
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::因果信息
@@ -6858,9 +6874,15 @@ SELECT
 FROM fishnest.v_current_world_tree_relations
 WHERE owner_key IN (
     SELECT node_key
-    FROM fishnest.v_current_world_tree_nodes
-    WHERE node_kind = N'因果'
-      AND COALESCE(parent_key, N'') = N'WORLD_ROOT'
+    FROM fishnest.v_current_world_tree_nodes n
+    WHERE n.node_kind = N'因果'
+      AND NOT EXISTS (
+          SELECT 1
+          FROM fishnest.v_current_world_tree_nodes ancestor
+          WHERE ancestor.node_kind = N'因果'
+            AND ancestor.node_key <> n.node_key
+            AND n.path_text LIKE ancestor.path_text + N'/%'
+      )
 )
 ORDER BY owner_key, ordinal_index, relation_name;
 )SQL",
@@ -8571,6 +8593,17 @@ function requestSQLCausalInfoSubtree(row){
   if(panelStatus)panelStatus.textContent=`正在加载因果信息子节点：${row.key}`;
   window.chrome.webview.postMessage(`sql-subtree:${requestId}:causalInfo:${encodeURIComponent(row.key||'')}`);
 }
+function expandCausalInfoTwoLayers(){
+  if(!causalInfoRoots.length){
+    if(panelStatus)panelStatus.textContent='当前因果信息没有可展开的根节点。';
+    return;
+  }
+  causalInfoRoots.forEach(row=>{
+    row.open=true;
+    requestSQLCausalInfoSubtree(row);
+  });
+  setTreeDepth(causalInfoRoots,3);
+}
 function updateWorldSelection(){
   worldTreeRows.forEach(row=>{
     if(row.lineEl)row.lineEl.classList.toggle('selected',row===selectedWorldTreeNode);
@@ -8630,6 +8663,14 @@ function buildCausalInfoTree(){
   causalInfoHost.innerHTML='';
   const root={key:'CAUSAL_INFO_ROOT',depth:'0',kind:'因果信息',display:`因果信息 ${causalInfoRoots.length}`,children:causalInfoRoots};
   root.searchText='因果信息 '+causalInfoRoots.map(row=>row.searchText).join(' ');
+  root.onSelect=()=>{
+    showNodeDetail('因果信息','世界树因果根节点',[
+      ['当前根节点数',String(causalInfoRoots.length)],
+      ['加载口径','无因果父祖先的因果节点'],
+      ['展开方式','点击因果根节点加载一层子链']
+    ]);
+    if(!causalInfoRoots.length&&panelStatus)panelStatus.textContent='当前因果信息没有可展开的根节点。';
+  };
   causalInfoHost.appendChild(renderTreeNode(root,causalInfoLabel));
   updateCausalSelection();
 }
@@ -8795,7 +8836,7 @@ document.addEventListener('keydown',event=>{
 document.getElementById('chainQuery').addEventListener('click',queryCausalChain);
 causeInput.addEventListener('keydown',event=>{if(event.key==='Enter')queryCausalChain();});
 effectInput.addEventListener('keydown',event=>{if(event.key==='Enter')queryCausalChain();});
-document.getElementById('causalInfoExpand').addEventListener('click',()=>setTreeDepth(causalInfoRoots,3));
+document.getElementById('causalInfoExpand').addEventListener('click',expandCausalInfoTwoLayers);
 document.getElementById('causalInfoCollapse').addEventListener('click',()=>setTreeDepth(causalInfoRoots,1));
 document.getElementById('worldTreeExpand').addEventListener('click',()=>setWorldTreeDepth(3));
 document.getElementById('worldTreeCollapse').addEventListener('click',()=>setWorldTreeDepth(1));
