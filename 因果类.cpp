@@ -1120,6 +1120,85 @@ const 因果模板主信息类* 因果类::取模板主信息(const 因果模板
     return 取因果主信息(reinterpret_cast<const 因果节点类*>(节点));
 }
 
+// 功能：判断基础信息节点是否承载因果主信息，不创建或修改节点。
+bool 因果类::是因果节点(const 基础信息节点类* 节点) const noexcept
+{
+    return 节点 && dynamic_cast<const 因果主信息类*>(节点->主信息);
+}
+
+// 功能：把基础信息节点解析为因果节点，不创建或修改节点。
+因果节点类* 因果类::解析因果节点(基础信息节点类* 节点) const noexcept
+{
+    return 是因果节点(节点) ? reinterpret_cast<因果节点类*>(节点) : nullptr;
+}
+
+// 功能：把基础信息节点解析为因果节点，不创建或修改节点。
+const 因果节点类* 因果类::解析因果节点(const 基础信息节点类* 节点) const noexcept
+{
+    return 是因果节点(节点) ? reinterpret_cast<const 因果节点类*>(节点) : nullptr;
+}
+
+// 功能：按主键查找并解析因果节点，不创建或修改节点。
+因果节点类* 因果类::按主键解析因果节点(const std::string& 主键) noexcept
+{
+    auto* base = 基础信息_ ? 基础信息_ : &获取基础信息集();
+    if (!base || 主键.empty()) {
+        return nullptr;
+    }
+    return 解析因果节点(base->查找主键(主键));
+}
+
+// 功能：按主键查找并解析因果节点，不创建或修改节点。
+const 因果节点类* 因果类::按主键解析因果节点(const std::string& 主键) const noexcept
+{
+    auto* base = 基础信息_ ? 基础信息_ : &获取基础信息集();
+    if (!base || 主键.empty()) {
+        return nullptr;
+    }
+    return 解析因果节点(base->查找主键(主键));
+}
+
+// 功能：读取因果证据状态和基础计数判断，不创建或修改节点。
+void 因果类::读取因果证据状态(
+    const 因果节点类* 因果,
+    bool& 是初始模板,
+    bool& 已验证,
+    std::uint64_t& 证据动态样本数,
+    I64& 稳定度,
+    bool& 证据足够) const noexcept
+{
+    constexpr std::uint64_t 最小观察次数 = 3;
+    constexpr std::uint64_t 最小成立次数 = 1;
+
+    是初始模板 = false;
+    已验证 = false;
+    证据动态样本数 = 0;
+    稳定度 = 0;
+    证据足够 = false;
+
+    const auto* 主信息 = 取因果主信息(因果);
+    if (!主信息) {
+        return;
+    }
+
+    是初始模板 = !主信息->已验证 && 主信息->证据动态样本.empty();
+    已验证 = 主信息->已验证;
+    证据动态样本数 = static_cast<std::uint64_t>(主信息->证据动态样本.size());
+    稳定度 = 主信息->计算稳定度();
+
+    if (是初始模板 || 已验证) {
+        证据足够 = true;
+        return;
+    }
+    if (主信息->观察次数 < 最小观察次数) {
+        return;
+    }
+    if (主信息->成立次数 < 最小成立次数) {
+        return;
+    }
+    证据足够 = 主信息->失败次数 <= 主信息->成立次数;
+}
+
 // 功能：创建并返回或登记对应对象。
 因果模板节点类* 因果类::创建因果模板(基础信息节点类* 父节点, 因果主信息类* 主信息)
 {

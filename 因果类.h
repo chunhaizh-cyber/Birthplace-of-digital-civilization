@@ -25,6 +25,26 @@ public:
     因果模板主信息类* 取模板主信息(因果模板节点类* 节点) const noexcept;
     const 因果模板主信息类* 取模板主信息(const 因果模板节点类* 节点) const noexcept;
 
+    // 功能：判断基础信息节点是否承载因果主信息，不创建或修改节点。
+    bool 是因果节点(const 基础信息节点类* 节点) const noexcept;
+
+    // 功能：把基础信息节点解析为因果节点，不创建或修改节点。
+    因果节点类* 解析因果节点(基础信息节点类* 节点) const noexcept;
+    const 因果节点类* 解析因果节点(const 基础信息节点类* 节点) const noexcept;
+
+    // 功能：按主键查找并解析因果节点，不创建或修改节点。
+    因果节点类* 按主键解析因果节点(const std::string& 主键) noexcept;
+    const 因果节点类* 按主键解析因果节点(const std::string& 主键) const noexcept;
+
+    // 功能：读取因果证据状态和基础计数判断，不创建或修改节点。
+    void 读取因果证据状态(
+        const 因果节点类* 因果,
+        bool& 是初始模板,
+        bool& 已验证,
+        std::uint64_t& 证据动态样本数,
+        I64& 稳定度,
+        bool& 证据足够) const noexcept;
+
     // 功能：按动态信息生成或命中因果信息；已有相同条件、动作和结果时只追加证据动态并返回现有因果。
     因果模板节点类* 生成因果信息(
         动态节点类* 动态信息,
