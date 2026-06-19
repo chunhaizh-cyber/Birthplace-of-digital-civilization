@@ -49,7 +49,6 @@ import 任务模块.治理协议;
 import 自我线程模块;
 import 自检线程模块;
 import 外设线程_D455深度相机;
-import 数据库ADO模块;
 
 #if 鱼巢_开关_启用控制台输出
 namespace {
@@ -1267,43 +1266,6 @@ namespace {
     // 功能：刷新控制面板 SQL 查询所需的治理读模型投影。
     void 私有_刷新治理SQL投影集(const std::string& 标记, const bool 仅首次) noexcept
     {
-        const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");
-        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "FishnestProjection");
-        std::string ADO错误{};
-        if (!执行ADO命令(
-            主库连接串,
-            "IF DB_ID(N'FishnestProjection') IS NULL CREATE DATABASE [FishnestProjection];",
-            ADO错误)) {
-            项目运行错误日志(
-                "控制面板SQL投影旧因果边清理失败"
-                " | 阶段=确保投影库"
-                " | 标记=" + 标记
-                + " | 错误=" + ADO错误);
-            return;
-        }
-
-        const char* 清理旧因果边SQL = R"sql(
-IF OBJECT_ID(N'fishnest.v_latest_causal_edges', N'V') IS NOT NULL
-    DROP VIEW fishnest.v_latest_causal_edges;
-IF OBJECT_ID(N'fishnest.causal_edge', N'U') IS NOT NULL
-    DROP TABLE fishnest.causal_edge;
-IF OBJECT_ID(N'fishnest.panel_runtime_metric', N'U') IS NOT NULL
-    DELETE FROM fishnest.panel_runtime_metric
-    WHERE metric_key = N'因果边记录数' OR metric_key LIKE N'%causal_edge%';
-IF OBJECT_ID(N'fishnest.panel_metric_catalog', N'U') IS NOT NULL
-    DELETE FROM fishnest.panel_metric_catalog
-    WHERE metric_key = N'因果边记录数' OR metric_key LIKE N'%causal_edge%';
-)sql";
-        if (!执行ADO命令(投影库连接串, 清理旧因果边SQL, ADO错误)) {
-            项目运行错误日志(
-                "控制面板SQL投影旧因果边清理失败"
-                " | 阶段=删除旧对象"
-                " | 标记=" + 标记
-                + " | 错误=" + ADO错误);
-            return;
-        }
-        项目运行日志("控制面板SQL投影旧因果边清理完成 | 标记=" + 标记);
-
         私有_刷新世界树SQL投影(标记, 仅首次);
         私有_刷新任务树SQL投影(标记, 仅首次);
         私有_刷新方法树SQL投影(标记, 仅首次);

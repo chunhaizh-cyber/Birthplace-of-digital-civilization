@@ -737,13 +737,6 @@ def build_sql(database: str, run_id: str, root: Path, payload: dict[str, Any]) -
         "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');",
         "GO",
         """
-IF OBJECT_ID(N'fishnest.v_latest_causal_edges', N'V') IS NOT NULL
-    DROP VIEW fishnest.v_latest_causal_edges;
-IF OBJECT_ID(N'fishnest.causal_edge', N'U') IS NOT NULL
-    DROP TABLE fishnest.causal_edge;
-""",
-        "GO",
-        """
 IF OBJECT_ID(N'fishnest.projection_run', N'U') IS NULL
 CREATE TABLE fishnest.projection_run (
     run_id uniqueidentifier NOT NULL PRIMARY KEY,
