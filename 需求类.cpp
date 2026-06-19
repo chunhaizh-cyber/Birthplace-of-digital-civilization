@@ -30,6 +30,7 @@ namespace {
         int 行号 = 0;
         std::string 节点主键{};
         std::string 父节点主键{};
+        int 父节点行号 = 0;
         int 深度 = 0;
         int 同层序号 = 0;
         int 直接子数量 = 0;
@@ -37,6 +38,10 @@ namespace {
         std::string 节点名称{};
         std::string 目标语义{};
         std::string 逻辑组织类型{};
+        std::string 描述信息主键{};
+        std::int64_t 统计创建时间 = 0;
+        std::int64_t 统计最后观测时间 = 0;
+        std::uint64_t 统计命中次数 = 0;
         bool 已截止 = false;
         bool 阻塞父任务执行 = false;
         std::string 需求主体主键{};
@@ -52,6 +57,8 @@ namespace {
         std::int64_t 累计安全结算 = 0;
         std::int64_t 累计服务结算 = 0;
         std::int64_t 需求有效截止 = 0;
+        std::string 最近结算任务主键{};
+        std::int64_t 最近结算时间 = 0;
     };
 
     std::mutex& 私有_需求树SQL投影互斥() noexcept
@@ -121,6 +128,7 @@ namespace {
     void 私有_收集需求树SQL行(
         const 需求类::节点类* 节点,
         const std::string& 父节点主键,
+        const int 父节点行号,
         const int 深度,
         const int 同层序号,
         const std::string& 父路径,
@@ -154,6 +162,7 @@ namespace {
         行.行号 = static_cast<int>(行集.size() + 1);
         行.节点主键 = 节点主键;
         行.父节点主键 = 父节点主键;
+        行.父节点行号 = 父节点行号;
         行.深度 = 深度;
         行.同层序号 = 同层序号;
         行.直接子数量 = static_cast<int>(私有_需求直接子数量(节点));
@@ -161,6 +170,12 @@ namespace {
         行.节点名称 = std::move(节点名称);
         行.目标语义 = 目标语义视图.语义名称 ? 目标语义视图.语义名称 : "";
         行.逻辑组织类型 = 需求类::逻辑组织需求类型文本(目标语义视图.逻辑组织类型);
+        行.描述信息主键 = 节点->主信息.描述信息
+            ? 节点->主信息.描述信息->获取主键()
+            : std::string{};
+        行.统计创建时间 = static_cast<std::int64_t>(节点->主信息.统计.创建时间);
+        行.统计最后观测时间 = static_cast<std::int64_t>(节点->主信息.统计.最后观测时间);
+        行.统计命中次数 = 节点->主信息.统计.命中次数;
         行.已截止 = 节点->主信息.需求有效截止 != 0;
         行.阻塞父任务执行 = 节点->主信息.是否阻塞父任务执行;
         行.需求主体主键 = 私有_引用主键(节点->主信息.需求主体);
@@ -178,6 +193,8 @@ namespace {
         行.累计安全结算 = 节点->主信息.累计安全结算;
         行.累计服务结算 = 节点->主信息.累计服务结算;
         行.需求有效截止 = static_cast<std::int64_t>(节点->主信息.需求有效截止);
+        行.最近结算任务主键 = 节点->主信息.最近结算任务主键;
+        行.最近结算时间 = static_cast<std::int64_t>(节点->主信息.最近结算时间);
         行集.push_back(std::move(行));
 
         if (!节点->子) {
@@ -191,6 +208,7 @@ namespace {
             私有_收集需求树SQL行(
                 当前子节点,
                 节点主键,
+                行.行号,
                 深度 + 1,
                 子序号,
                 路径,
@@ -215,6 +233,9 @@ namespace {
         std::ostringstream SQL;
         SQL << "SET NOCOUNT ON;\n"
             << "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');\n"
+            << "IF OBJECT_ID(N'fishnest.v_current_demand_panel_nodes', N'V') IS NOT NULL DROP VIEW fishnest.v_current_demand_panel_nodes;\n"
+            << "IF OBJECT_ID(N'fishnest.v_current_demand_tree_nodes', N'V') IS NOT NULL DROP VIEW fishnest.v_current_demand_tree_nodes;\n"
+            << "IF OBJECT_ID(N'fishnest.v_current_demand_main_info', N'V') IS NOT NULL DROP VIEW fishnest.v_current_demand_main_info;\n"
             << "IF OBJECT_ID(N'fishnest.demand_tree_snapshot', N'U') IS NULL\n"
             << "CREATE TABLE fishnest.demand_tree_snapshot (\n"
             << "    snapshot_id uniqueidentifier NOT NULL PRIMARY KEY,\n"
@@ -231,13 +252,25 @@ namespace {
             << "    row_index int NOT NULL,\n"
             << "    node_key nvarchar(80) NOT NULL,\n"
             << "    parent_key nvarchar(80) NULL,\n"
+            << "    parent_row_index int NULL,\n"
             << "    depth int NOT NULL,\n"
             << "    sibling_index int NOT NULL,\n"
             << "    direct_child_count int NOT NULL,\n"
             << "    path_text nvarchar(1000) NULL,\n"
             << "    node_name nvarchar(200) NULL,\n"
             << "    target_semantics nvarchar(120) NULL,\n"
-            << "    logic_group_type nvarchar(120) NULL,\n"
+            << "    logic_group_type nvarchar(120) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'fishnest.demand_main_info', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.demand_main_info (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    node_key nvarchar(80) NOT NULL,\n"
+            << "    node_row_index int NOT NULL CONSTRAINT DF_demand_main_info_node_row_index DEFAULT(0),\n"
+            << "    description_key nvarchar(80) NULL,\n"
+            << "    stat_created_time_us bigint NULL,\n"
+            << "    stat_last_observed_time_us bigint NULL,\n"
+            << "    stat_hit_count bigint NULL,\n"
             << "    is_closed bit NOT NULL,\n"
             << "    blocks_parent bit NOT NULL,\n"
             << "    subject_key nvarchar(80) NULL,\n"
@@ -252,26 +285,224 @@ namespace {
             << "    service_weight bigint NULL,\n"
             << "    safety_settled bigint NULL,\n"
             << "    service_settled bigint NULL,\n"
-            << "    valid_until_us bigint NULL\n"
+            << "    valid_until_us bigint NULL,\n"
+            << "    recent_settlement_task_key nvarchar(80) NULL,\n"
+            << "    recent_settlement_time_us bigint NULL\n"
             << ");\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'parent_row_index') IS NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node ADD parent_row_index int NULL;\n"
             << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'node_name') IS NULL\n"
             << "    ALTER TABLE fishnest.demand_tree_node ADD node_name nvarchar(200) NULL;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_main_info', N'description_key') IS NULL\n"
+            << "    ALTER TABLE fishnest.demand_main_info ADD description_key nvarchar(80) NULL;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_main_info', N'stat_created_time_us') IS NULL\n"
+            << "    ALTER TABLE fishnest.demand_main_info ADD stat_created_time_us bigint NULL;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_main_info', N'stat_last_observed_time_us') IS NULL\n"
+            << "    ALTER TABLE fishnest.demand_main_info ADD stat_last_observed_time_us bigint NULL;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_main_info', N'stat_hit_count') IS NULL\n"
+            << "    ALTER TABLE fishnest.demand_main_info ADD stat_hit_count bigint NULL;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_main_info', N'recent_settlement_task_key') IS NULL\n"
+            << "    ALTER TABLE fishnest.demand_main_info ADD recent_settlement_task_key nvarchar(80) NULL;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_main_info', N'recent_settlement_time_us') IS NULL\n"
+            << "    ALTER TABLE fishnest.demand_main_info ADD recent_settlement_time_us bigint NULL;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'structure_role') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN structure_role;\n"
             << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'derived_method_key') IS NOT NULL\n"
             << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN derived_method_key;\n"
             << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'derived_causal_key') IS NOT NULL\n"
             << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN derived_causal_key;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'is_closed') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN is_closed;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'blocks_parent') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN blocks_parent;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'subject_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN subject_key;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'scene_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN scene_key;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'target_host_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN target_host_key;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'current_state_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN current_state_key;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'target_state_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN target_state_key;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'target_feature_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN target_feature_key;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'task_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN task_key;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'relation_mask') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN relation_mask;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'safety_weight') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN safety_weight;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'service_weight') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN service_weight;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'safety_settled') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN safety_settled;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'service_settled') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN service_settled;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'valid_until_us') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN valid_until_us;\n"
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_demand_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.demand_tree_node'))\n"
-            << "    CREATE INDEX IX_demand_tree_node_key ON fishnest.demand_tree_node(node_key, parent_key);\n";
+            << "    CREATE INDEX IX_demand_tree_node_key ON fishnest.demand_tree_node(node_key, parent_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_demand_tree_node_snapshot_key' AND object_id = OBJECT_ID(N'fishnest.demand_tree_node'))\n"
+            << "    CREATE INDEX IX_demand_tree_node_snapshot_key ON fishnest.demand_tree_node(snapshot_id, node_key, parent_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_demand_tree_node_parent_row' AND object_id = OBJECT_ID(N'fishnest.demand_tree_node'))\n"
+            << "    CREATE INDEX IX_demand_tree_node_parent_row ON fishnest.demand_tree_node(snapshot_id, parent_row_index, row_index);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_demand_main_info_node' AND object_id = OBJECT_ID(N'fishnest.demand_main_info'))\n"
+            << "    CREATE INDEX IX_demand_main_info_node ON fishnest.demand_main_info(snapshot_id, node_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_demand_main_info_node_row' AND object_id = OBJECT_ID(N'fishnest.demand_main_info'))\n"
+            << "    CREATE INDEX IX_demand_main_info_node_row ON fishnest.demand_main_info(snapshot_id, node_row_index);\n";
         return SQL.str();
     }
 
     std::string 私有_需求树SQL视图脚本()
     {
         std::ostringstream SQL;
-        SQL << "CREATE OR ALTER VIEW fishnest.v_current_demand_tree_nodes AS\n"
-            << "SELECT n.*\n"
+        SQL << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_demand_main_info AS\n"
+            << "SELECT m.*\n"
+            << "FROM fishnest.demand_main_info m\n"
+            << "WHERE m.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.demand_tree_snapshot ORDER BY captured_at DESC);');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_demand_tree_nodes AS\n"
+            << "SELECT\n"
+            << "    n.id,\n"
+            << "    n.snapshot_id,\n"
+            << "    n.row_index,\n"
+            << "    n.node_key,\n"
+            << "    n.parent_key,\n"
+            << "    n.parent_row_index,\n"
+            << "    n.depth,\n"
+            << "    n.sibling_index,\n"
+            << "    n.direct_child_count,\n"
+            << "    n.path_text,\n"
+            << "    n.node_name,\n"
+            << "    n.target_semantics,\n"
+            << "    n.logic_group_type,\n"
+            << "    m.id AS main_info_id,\n"
+            << "    m.node_row_index,\n"
+            << "    m.description_key,\n"
+            << "    m.stat_created_time_us,\n"
+            << "    m.stat_last_observed_time_us,\n"
+            << "    m.stat_hit_count,\n"
+            << "    m.is_closed,\n"
+            << "    m.blocks_parent,\n"
+            << "    m.subject_key,\n"
+            << "    m.scene_key,\n"
+            << "    m.target_host_key,\n"
+            << "    m.current_state_key,\n"
+            << "    m.target_state_key,\n"
+            << "    m.target_feature_key,\n"
+            << "    m.task_key,\n"
+            << "    m.relation_mask,\n"
+            << "    m.safety_weight,\n"
+            << "    m.service_weight,\n"
+            << "    m.safety_settled,\n"
+            << "    m.service_settled,\n"
+            << "    m.valid_until_us,\n"
+            << "    m.recent_settlement_task_key,\n"
+            << "    m.recent_settlement_time_us\n"
             << "FROM fishnest.demand_tree_node n\n"
-            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.demand_tree_snapshot ORDER BY captured_at DESC);\n";
+            << "LEFT JOIN fishnest.demand_main_info m\n"
+            << "    ON m.snapshot_id = n.snapshot_id\n"
+            << "    AND m.node_row_index = n.row_index\n"
+            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.demand_tree_snapshot ORDER BY captured_at DESC);');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_demand_panel_nodes AS\n"
+            << "WITH demand_rows AS (\n"
+            << "    SELECT *\n"
+            << "    FROM fishnest.v_current_demand_tree_nodes\n"
+            << "), enriched AS (\n"
+            << "    SELECT\n"
+            << "        d.*,\n"
+            << "        COALESCE(NULLIF(subject.display_text, N''''), NULLIF(subject.name_text, N''''), d.subject_key) AS subject_display_name,\n"
+            << "        COALESCE(NULLIF(subject.type_text, N''''), NULLIF(subject.main_type_text, N''''), NULLIF(subject.node_kind, N'''')) AS subject_type_name,\n"
+            << "        COALESCE(NULLIF(scene.display_text, N''''), NULLIF(scene.name_text, N''''), d.scene_key) AS scene_display_name,\n"
+            << "        COALESCE(NULLIF(scene.type_text, N''''), NULLIF(scene.main_type_text, N''''), NULLIF(scene.node_kind, N'''')) AS scene_type_name,\n"
+            << "        COALESCE(NULLIF(target_host.display_text, N''''), NULLIF(target_host.name_text, N''''), d.target_host_key) AS target_host_display_name,\n"
+            << "        COALESCE(NULLIF(target_host.type_text, N''''), NULLIF(target_host.main_type_text, N''''), NULLIF(target_host.node_kind, N'''')) AS target_host_type_name,\n"
+            << "        COALESCE(NULLIF(current_state.display_text, N''''), NULLIF(current_state.name_text, N''''), d.current_state_key) AS current_state_display_name,\n"
+            << "        COALESCE(NULLIF(current_state.type_text, N''''), NULLIF(current_state.main_type_text, N''''), NULLIF(current_state.node_kind, N'''')) AS current_state_type_name,\n"
+            << "        COALESCE(NULLIF(target_state.display_text, N''''), NULLIF(target_state.name_text, N''''), d.target_state_key) AS target_state_display_name,\n"
+            << "        COALESCE(NULLIF(target_state.type_text, N''''), NULLIF(target_state.main_type_text, N''''), NULLIF(target_state.node_kind, N'''')) AS target_state_type_name,\n"
+            << "        COALESCE(NULLIF(target_feature.display_text, N''''), NULLIF(target_feature.word_text, N''''), d.target_feature_key) AS target_feature_display_name,\n"
+            << "        COALESCE(NULLIF(target_feature.entry_type_text, N''''), NULLIF(target_feature.mapped_main_type_text, N''''), NULLIF(target_feature.node_kind, N'''')) AS target_feature_type_name,\n"
+            << "        COALESCE(NULLIF(task.name_text, N''''), NULLIF(task.type_text, N''''), d.task_key) AS task_display_name,\n"
+            << "        COALESCE(NULLIF(task.type_text, N''''), NULLIF(task.node_kind_text, N''''), NULLIF(task.task_state_text, N'''')) AS task_type_name,\n"
+            << "        COALESCE(NULLIF(recent_task.name_text, N''''), NULLIF(recent_task.type_text, N''''), d.recent_settlement_task_key) AS recent_settlement_task_display_name,\n"
+            << "        COALESCE(NULLIF(recent_task.type_text, N''''), NULLIF(recent_task.node_kind_text, N''''), NULLIF(recent_task.task_state_text, N'''')) AS recent_settlement_task_type_name\n"
+            << "    FROM demand_rows d\n"
+            << "    LEFT JOIN fishnest.v_current_world_tree_nodes subject\n"
+            << "        ON subject.node_key COLLATE Latin1_General_BIN2 = d.subject_key COLLATE Latin1_General_BIN2\n"
+            << "    LEFT JOIN fishnest.v_current_world_tree_nodes scene\n"
+            << "        ON scene.node_key COLLATE Latin1_General_BIN2 = d.scene_key COLLATE Latin1_General_BIN2\n"
+            << "    LEFT JOIN fishnest.v_current_world_tree_nodes target_host\n"
+            << "        ON target_host.node_key COLLATE Latin1_General_BIN2 = d.target_host_key COLLATE Latin1_General_BIN2\n"
+            << "    LEFT JOIN fishnest.v_current_world_tree_nodes current_state\n"
+            << "        ON current_state.node_key COLLATE Latin1_General_BIN2 = d.current_state_key COLLATE Latin1_General_BIN2\n"
+            << "    LEFT JOIN fishnest.v_current_world_tree_nodes target_state\n"
+            << "        ON target_state.node_key COLLATE Latin1_General_BIN2 = d.target_state_key COLLATE Latin1_General_BIN2\n"
+            << "    LEFT JOIN fishnest.v_current_lexeme_nodes target_feature\n"
+            << "        ON target_feature.node_key COLLATE Latin1_General_BIN2 = d.target_feature_key COLLATE Latin1_General_BIN2\n"
+            << "    LEFT JOIN fishnest.v_current_task_tree_nodes task\n"
+            << "        ON task.node_key COLLATE Latin1_General_BIN2 = d.task_key COLLATE Latin1_General_BIN2\n"
+            << "    LEFT JOIN fishnest.v_current_task_tree_nodes recent_task\n"
+            << "        ON recent_task.node_key COLLATE Latin1_General_BIN2 = d.recent_settlement_task_key COLLATE Latin1_General_BIN2\n"
+            << ")\n"
+            << "SELECT\n"
+            << "    row_index,\n"
+            << "    node_key,\n"
+            << "    parent_key,\n"
+            << "    parent_row_index,\n"
+            << "    CONVERT(nvarchar(20), row_index) AS display_node_id,\n"
+            << "    CASE WHEN depth = 1 THEN NULL ELSE CONVERT(nvarchar(20), parent_row_index) END AS display_parent_id,\n"
+            << "    CASE WHEN depth > 0 THEN depth - 1 ELSE 0 END AS display_depth,\n"
+            << "    node_name,\n"
+            << "    CASE WHEN COALESCE(direct_child_count, 0) > 0\n"
+            << "        THEN CONCAT(N''有子='', CONVERT(nvarchar(20), direct_child_count))\n"
+            << "        ELSE N''叶子''\n"
+            << "    END AS tree_shape,\n"
+            << "    target_semantics,\n"
+            << "    logic_group_type,\n"
+            << "    target_feature_display_name AS target_feature_display,\n"
+            << "    target_feature_type_name AS target_feature_type,\n"
+            << "    task_display_name AS task_display,\n"
+            << "    task_type_name AS task_type,\n"
+            << "    description_key,\n"
+            << "    stat_created_time_us,\n"
+            << "    stat_last_observed_time_us,\n"
+            << "    stat_hit_count,\n"
+            << "    is_closed,\n"
+            << "    blocks_parent,\n"
+            << "    subject_key,\n"
+            << "    subject_display_name,\n"
+            << "    subject_type_name,\n"
+            << "    scene_key,\n"
+            << "    scene_display_name,\n"
+            << "    scene_type_name,\n"
+            << "    target_host_key,\n"
+            << "    target_host_display_name,\n"
+            << "    target_host_type_name,\n"
+            << "    current_state_key,\n"
+            << "    current_state_display_name,\n"
+            << "    current_state_type_name,\n"
+            << "    target_state_key,\n"
+            << "    target_state_display_name,\n"
+            << "    target_state_type_name,\n"
+            << "    target_feature_key,\n"
+            << "    target_feature_display_name,\n"
+            << "    target_feature_type_name,\n"
+            << "    task_key,\n"
+            << "    task_display_name,\n"
+            << "    task_type_name,\n"
+            << "    relation_mask,\n"
+            << "    safety_weight,\n"
+            << "    service_weight,\n"
+            << "    safety_settled,\n"
+            << "    service_settled,\n"
+            << "    valid_until_us,\n"
+            << "    recent_settlement_task_key,\n"
+            << "    recent_settlement_task_display_name,\n"
+            << "    recent_settlement_task_type_name,\n"
+            << "    recent_settlement_time_us\n"
+            << "FROM enriched\n"
+            << "WHERE depth > 0;');\n";
         return SQL.str();
     }
 
@@ -284,6 +515,7 @@ namespace {
         SQL << "SET NOCOUNT ON;\n"
             << "SET XACT_ABORT ON;\n"
             << "BEGIN TRANSACTION;\n"
+            << "DELETE FROM fishnest.demand_main_info;\n"
             << "DELETE FROM fishnest.demand_tree_node;\n"
             << "DELETE FROM fishnest.demand_tree_snapshot;\n"
             << "DECLARE @snapshot_id uniqueidentifier = NEWID();\n"
@@ -296,17 +528,25 @@ namespace {
             << 行集.size()
             << ");\n";
         for (const auto& 行 : 行集) {
-            SQL << "INSERT INTO fishnest.demand_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_name, target_semantics, logic_group_type, is_closed, blocks_parent, subject_key, scene_key, target_host_key, current_state_key, target_state_key, target_feature_key, task_key, relation_mask, safety_weight, service_weight, safety_settled, service_settled, valid_until_us) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO fishnest.demand_tree_node (snapshot_id, row_index, node_key, parent_key, parent_row_index, depth, sibling_index, direct_child_count, path_text, node_name, target_semantics, logic_group_type) VALUES (@snapshot_id, "
                 << 行.行号 << ", "
                 << 私有_SQL字符串(行.节点主键, false) << ", "
                 << 私有_SQL字符串(行.父节点主键) << ", "
+                << (行.父节点行号 > 0 ? std::to_string(行.父节点行号) : std::string("NULL")) << ", "
                 << 行.深度 << ", "
                 << 行.同层序号 << ", "
                 << 行.直接子数量 << ", "
                 << 私有_SQL字符串(行.路径) << ", "
                 << 私有_SQL字符串(行.节点名称) << ", "
                 << 私有_SQL字符串(行.目标语义) << ", "
-                << 私有_SQL字符串(行.逻辑组织类型) << ", "
+                << 私有_SQL字符串(行.逻辑组织类型) << ");\n";
+            SQL << "INSERT INTO fishnest.demand_main_info (snapshot_id, node_key, node_row_index, description_key, stat_created_time_us, stat_last_observed_time_us, stat_hit_count, is_closed, blocks_parent, subject_key, scene_key, target_host_key, current_state_key, target_state_key, target_feature_key, task_key, relation_mask, safety_weight, service_weight, safety_settled, service_settled, valid_until_us, recent_settlement_task_key, recent_settlement_time_us) VALUES (@snapshot_id, "
+                << 私有_SQL字符串(行.节点主键, false) << ", "
+                << 行.行号 << ", "
+                << 私有_SQL字符串(行.描述信息主键) << ", "
+                << 行.统计创建时间 << ", "
+                << 行.统计最后观测时间 << ", "
+                << 行.统计命中次数 << ", "
                 << 私有_SQL布尔(行.已截止) << ", "
                 << 私有_SQL布尔(行.阻塞父任务执行) << ", "
                 << 私有_SQL字符串(行.需求主体主键) << ", "
@@ -321,8 +561,28 @@ namespace {
                 << 行.服务权重 << ", "
                 << 行.累计安全结算 << ", "
                 << 行.累计服务结算 << ", "
-                << 行.需求有效截止 << ");\n";
+                << 行.需求有效截止 << ", "
+                << 私有_SQL字符串(行.最近结算任务主键) << ", "
+                << 行.最近结算时间 << ");\n";
         }
+        SQL << "IF EXISTS (\n"
+            << "    SELECT 1\n"
+            << "    FROM fishnest.demand_tree_node child\n"
+            << "    LEFT JOIN fishnest.demand_tree_node parent\n"
+            << "        ON parent.snapshot_id = child.snapshot_id AND parent.row_index = child.parent_row_index\n"
+            << "    WHERE child.snapshot_id = @snapshot_id\n"
+            << "        AND child.parent_row_index IS NOT NULL\n"
+            << "        AND parent.row_index IS NULL\n"
+            << ")\n"
+            << "    THROW 51002, N'demand_tree_node parent_row_index invalid', 1;\n"
+            << "IF EXISTS (\n"
+            << "    SELECT 1\n"
+            << "    FROM fishnest.demand_main_info info\n"
+            << "    LEFT JOIN fishnest.demand_tree_node node\n"
+            << "        ON node.snapshot_id = info.snapshot_id AND node.row_index = info.node_row_index\n"
+            << "    WHERE info.snapshot_id = @snapshot_id AND node.row_index IS NULL\n"
+            << ")\n"
+            << "    THROW 51001, N'demand_main_info node_row_index invalid', 1;\n";
         SQL << "COMMIT TRANSACTION;\n";
         return SQL.str();
     }
@@ -1722,6 +1982,7 @@ bool 需求类::重写需求树SQL投影(
             私有_收集需求树SQL行(
                 需求根节点,
                 {},
+                0,
                 0,
                 0,
                 {},

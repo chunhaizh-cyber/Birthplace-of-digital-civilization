@@ -6958,37 +6958,53 @@ ORDER BY data_group, metric_key;
             {
                 "需求树",
                 R"SQL(
-WITH demand_nodes AS (
-    SELECT *
-    FROM fishnest.v_current_demand_tree_nodes
-),
-display_nodes AS (
-    SELECT
-        row_index,
-        node_key,
-        CASE WHEN depth = 1 THEN NULL ELSE parent_key END AS parent_key,
-        CASE WHEN depth > 0 THEN depth - 1 ELSE 0 END AS display_depth,
-        node_name,
-        direct_child_count,
-        target_semantics,
-        target_feature_key,
-        task_key
-    FROM demand_nodes
-    WHERE depth > 0
-)
 SELECT TOP (400)
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
+    COALESCE(display_node_id, N'') AS display_node_id,
+    COALESCE(display_parent_id, N'') AS display_parent_id,
     CONVERT(nvarchar(20), COALESCE(display_depth, 0)) AS depth,
     COALESCE(node_name, N'') AS node_name,
-    CASE WHEN COALESCE(direct_child_count, 0) > 0
-        THEN CONCAT(N'有子=', CONVERT(nvarchar(20), direct_child_count))
-        ELSE N'叶子'
-    END AS tree_shape,
+    COALESCE(tree_shape, N'') AS tree_shape,
     COALESCE(target_semantics, N'') AS target_semantics,
+    COALESCE(target_feature_display, N'') AS target_feature_display,
+    COALESCE(task_display, N'') AS task_display,
+    COALESCE(node_key, N'') AS node_key,
+    COALESCE(logic_group_type, N'') AS logic_group_type,
+    COALESCE(target_feature_type, N'') AS target_feature_type,
     COALESCE(target_feature_key, N'') AS target_feature_key,
-    COALESCE(task_key, N'') AS task_key
-FROM display_nodes
+    COALESCE(task_type, N'') AS task_type,
+    COALESCE(task_key, N'') AS task_key,
+    COALESCE(subject_display_name, N'') AS subject_display_name,
+    COALESCE(subject_type_name, N'') AS subject_type_name,
+    COALESCE(subject_key, N'') AS subject_key,
+    COALESCE(scene_display_name, N'') AS scene_display_name,
+    COALESCE(scene_type_name, N'') AS scene_type_name,
+    COALESCE(scene_key, N'') AS scene_key,
+    COALESCE(target_host_display_name, N'') AS target_host_display_name,
+    COALESCE(target_host_type_name, N'') AS target_host_type_name,
+    COALESCE(target_host_key, N'') AS target_host_key,
+    COALESCE(current_state_display_name, N'') AS current_state_display_name,
+    COALESCE(current_state_type_name, N'') AS current_state_type_name,
+    COALESCE(current_state_key, N'') AS current_state_key,
+    COALESCE(target_state_display_name, N'') AS target_state_display_name,
+    COALESCE(target_state_type_name, N'') AS target_state_type_name,
+    COALESCE(target_state_key, N'') AS target_state_key,
+    CONVERT(nvarchar(20), COALESCE(relation_mask, 0)) AS relation_mask,
+    CONVERT(nvarchar(20), COALESCE(safety_weight, 0)) AS safety_weight,
+    CONVERT(nvarchar(20), COALESCE(service_weight, 0)) AS service_weight,
+    CONVERT(nvarchar(20), COALESCE(safety_settled, 0)) AS safety_settled,
+    CONVERT(nvarchar(20), COALESCE(service_settled, 0)) AS service_settled,
+    CONVERT(nvarchar(20), COALESCE(valid_until_us, 0)) AS valid_until_us,
+    COALESCE(recent_settlement_task_display_name, N'') AS recent_settlement_task_display_name,
+    COALESCE(recent_settlement_task_type_name, N'') AS recent_settlement_task_type_name,
+    COALESCE(recent_settlement_task_key, N'') AS recent_settlement_task_key,
+    CONVERT(nvarchar(20), COALESCE(recent_settlement_time_us, 0)) AS recent_settlement_time_us,
+    COALESCE(description_key, N'') AS description_key,
+    CONVERT(nvarchar(20), COALESCE(stat_created_time_us, 0)) AS stat_created_time_us,
+    CONVERT(nvarchar(20), COALESCE(stat_last_observed_time_us, 0)) AS stat_last_observed_time_us,
+    CONVERT(nvarchar(20), COALESCE(stat_hit_count, 0)) AS stat_hit_count,
+    CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
+    CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent
+FROM fishnest.v_current_demand_panel_nodes
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::需求树
@@ -7283,7 +7299,23 @@ ORDER BY row_index;
             << "；组成关系：" << 数据.因果信息关系.size() << "</span></div>"
             << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div></div></section>\n";
         私有_追加SQL控制面板表(输出, "因果边", "causal", { "来源类", "来源键", "目标类", "目标键", "关系", "日志", "行" }, 数据.因果边);
-        私有_追加SQL控制面板表(输出, "需求树", "demandTree", { "节点", "父节点", "深度", "名称", "树形态", "目标语义", "目标特征", "任务" }, 数据.需求树);
+        私有_追加SQL控制面板表(
+            输出,
+            "需求树",
+            "demandTree",
+            {
+                "节点序号", "父序号", "深度", "名称", "树形态", "目标语义", "目标特征", "任务",
+                "需求节点主键", "逻辑组织类型", "目标特征类型", "目标特征主键", "任务类型", "任务主键",
+                "需求主体名称", "需求主体类型", "需求主体主键",
+                "需求场景名称", "需求场景类型", "需求场景主键",
+                "目标宿主名称", "目标宿主类型", "目标宿主主键",
+                "当前状态名称", "当前状态类型", "当前状态主键",
+                "目标状态名称", "目标状态类型", "目标状态主键",
+                "满足关系掩码", "安全权重", "服务权重", "累计安全结算", "累计服务结算", "有效截止",
+                "最近结算任务名称", "最近结算任务类型", "最近结算任务主键", "最近结算时间",
+                "描述信息主键", "统计创建时间", "统计最后观测时间", "统计命中次数", "已截止", "阻塞父任务"
+            },
+            数据.需求树);
         私有_追加SQL控制面板表(输出, "任务树", "taskTree", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
         私有_追加SQL控制面板表(输出, "方法树", "methodTree", { "节点", "父节点", "深度", "节点种类", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
         std::size_t 世界树因果节点数 = 0;
