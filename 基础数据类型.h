@@ -1327,12 +1327,6 @@ struct 结构体_图像缓冲_u8 {
     }
 
     // 功能：按函数名执行对应处理。
-    inline std::size_t 期望字节数() const {
-        std::size_t stride = (stride_bytes > 0) ? (std::size_t)stride_bytes : (std::size_t)(w * c);
-        return stride * (std::size_t)h;
-    }
-
-    // 功能：按函数名执行对应处理。
     inline void 清空() { w = h = c = stride_bytes = 0; data.clear(); data.shrink_to_fit(); }
 };
 
@@ -1343,9 +1337,6 @@ struct 结构体_图像缓冲_f32 {
 
     // 功能：按函数名执行对应处理。
     inline bool 有效() const { return w > 0 && h > 0 && c > 0 && !data.empty(); }
-
-    // 功能：按函数名执行对应处理。
-    inline std::size_t 期望元素数() const { return (std::size_t)w * (std::size_t)h * (std::size_t)c; }
 
     // 功能：按函数名执行对应处理。
     inline void 清空() { w = h = c = 0; data.clear(); data.shrink_to_fit(); }
