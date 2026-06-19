@@ -10,19 +10,11 @@
 
 class 特征值类;
 
-struct 特征比较明细 {
-    const 语素入口节点类* 类型 = nullptr;
-    I64 差异度 = 0;
-    I64 权重 = 10000;
-    bool 缺失A = false;
-    bool 缺失B = false;
-};
-
 struct 存在比较结果 {
     I64 总差异度 = 0;
     I64 归一化差异度 = 0;
     int 命中特征数 = 0;
-    std::vector<特征比较明细> 明细{};
+    int 比较特征数 = 0;
 };
 
 struct 稳态策略 {
@@ -48,7 +40,6 @@ struct 特征写入结果 {
 };
 
 struct 集合比较参数 {
-    bool 输出明细 = true;
     I64 缺失惩罚 = 10000;
     bool 归一化 = true;
 };
