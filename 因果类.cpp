@@ -1316,29 +1316,38 @@ void 因果类::查询因果链(
 }
 
 // 功能：按函数名执行对应处理。
-结构_叶子任务因果投影预判 因果类::查询叶子任务目标投影层级(
+void 因果类::查询叶子任务目标投影层级(
     任务节点类* 叶子任务,
     需求节点类* 来源需求,
     基础信息节点类* 目标宿主,
     特征节点类* 目标特征类型,
-    bool 允许未验证路径) const
+    bool 允许未验证路径,
+    std::size_t& 候选投影数量,
+    std::vector<std::uint32_t>& 结算贡献层级集,
+    std::vector<std::uint32_t>& 因果距离层级集,
+    std::vector<std::string>& 缺失证据,
+    bool& 是否允许形成D0) const
 {
-    结构_叶子任务因果投影预判 out{};
+    候选投影数量 = 0;
+    结算贡献层级集.clear();
+    因果距离层级集.clear();
+    缺失证据.clear();
+    是否允许形成D0 = false;
 
     if (!叶子任务) {
-        out.缺失证据.push_back("缺叶子任务");
+        缺失证据.push_back("缺叶子任务");
     }
     if (!来源需求) {
-        out.缺失证据.push_back("缺来源需求");
+        缺失证据.push_back("缺来源需求");
     }
     if (!目标宿主) {
-        out.缺失证据.push_back("缺目标宿主");
+        缺失证据.push_back("缺目标宿主");
     }
     if (!目标特征类型) {
-        out.缺失证据.push_back("缺目标特征类型");
+        缺失证据.push_back("缺目标特征类型");
     }
 
-    out.是否允许形成D0 = 目标宿主 != nullptr && 目标特征类型 != nullptr;
+    是否允许形成D0 = 目标宿主 != nullptr && 目标特征类型 != nullptr;
 
     auto* base = 基础信息_ ? 基础信息_ : &获取基础信息集();
     auto 投影 = 私有_生成状态转换因果投影_内部(*this, base, 允许未验证路径);
@@ -1367,21 +1376,21 @@ void 因果类::查询因果链(
         }
     }
 
-    out.候选投影数量 = 候选投影路径.size();
+    候选投影数量 = 候选投影路径.size();
 
     if (候选投影路径.empty()) {
-        out.缺失证据.push_back("缺目标投影命中");
+        缺失证据.push_back("缺目标投影命中");
         for (const auto& 缺失 : 投影.缺失证据) {
-            out.缺失证据.push_back(缺失);
+            缺失证据.push_back(缺失);
         }
     }
 
     if (!候选投影路径.empty()) {
         auto 追加缺失证据 = [&](const std::string& 证据) {
             if (证据.empty()) return;
-            if (std::find(out.缺失证据.begin(), out.缺失证据.end(), 证据)
-                == out.缺失证据.end()) {
-                out.缺失证据.push_back(证据);
+            if (std::find(缺失证据.begin(), 缺失证据.end(), 证据)
+                == 缺失证据.end()) {
+                缺失证据.push_back(证据);
             }
         };
         auto 追加层级 = [](std::vector<std::uint32_t>& 集合, std::uint32_t 层级) {
@@ -1390,15 +1399,13 @@ void 因果类::查询因果链(
             }
         };
         for (const auto& 路径 : 候选投影路径) {
-            追加层级(out.结算贡献层级集, 路径.结算贡献层级);
-            追加层级(out.因果距离层级集, 路径.因果距离层级);
+            追加层级(结算贡献层级集, 路径.结算贡献层级);
+            追加层级(因果距离层级集, 路径.因果距离层级);
             for (const auto& 证据 : 路径.缺失证据) {
                 追加缺失证据(证据);
             }
         }
     }
-
-    return out;
 }
 
 // 功能：按函数名执行对应处理。
