@@ -28,13 +28,7 @@ import 本能动作管理模块;
 
 export {
 
-class 世界树类;
-class 三维场景管理类;
-
 struct 动作执行上下文 {
-    世界树类* 世界树 = nullptr;
-    三维场景管理类* 场景管理 = nullptr;
-
     任务主信息类* 任务 = nullptr;
     void* 任务节点 = nullptr;
 
@@ -107,19 +101,12 @@ private:
     static constexpr std::int64_t 错误_动作未注册 = -10001;
     static constexpr std::int64_t 错误_动作异常 = -10002;
     static constexpr std::int64_t 错误_动作未知异常 = -10003;
-    static constexpr std::int64_t 错误_队列已满 = -10004;
-
-    std::atomic<世界树类*> 世界树_{ nullptr };
-    std::atomic<三维场景管理类*> 场景管理_{ nullptr };
-
     mutable std::mutex 注册表写锁_{};
     std::atomic<std::shared_ptr<const 注册表>> 注册表快照_{ std::make_shared<const 注册表>() };
 
     std::mutex 队列锁_{};
     std::condition_variable 队列条件_{};
     std::queue<队列项> 队列_{};
-    std::atomic<std::size_t> 队列上限_{ 0 };
-
     std::atomic<bool> 停止请求_{ false };
     std::atomic<bool> 运行中_{ false };
     std::thread 工作线程_{};
@@ -136,31 +123,6 @@ public:
     动作线程类& operator=(const 动作线程类&) = delete;
 
 public:
-    // 功能：建立对象、任务、方法或因果之间的绑定关系。
-    void 绑定环境(世界树类* 世界树, 三维场景管理类* 场景管理) noexcept
-    {
-        世界树_.store(世界树, std::memory_order_release);
-        场景管理_.store(场景管理, std::memory_order_release);
-    }
-
-    // 功能：设置对象字段、状态或运行参数。
-    void 设置队列上限(std::size_t 上限) noexcept
-    {
-        队列上限_.store(上限, std::memory_order_release);
-    }
-
-    // 功能：按函数名执行对应处理。
-    [[nodiscard]] std::size_t 取队列上限() const noexcept
-    {
-        return 队列上限_.load(std::memory_order_acquire);
-    }
-
-    // 功能：按函数名执行对应处理。
-    [[nodiscard]] std::size_t 队列上限() const noexcept
-    {
-        return 取队列上限();
-    }
-
     // 功能：按函数名执行对应处理。
     std::size_t 取队列深度()
     {
@@ -331,8 +293,6 @@ public:
             return 立即返回失败_(请求.请求ID, 错误_未启动, "动作线程未启动或正在退出");
         }
 
-        const auto 队列上限 = 队列上限_.load(std::memory_order_acquire);
-
         队列项 项{};
         项.请求 = std::move(请求);
         auto future = 项.承诺.get_future();
@@ -342,10 +302,6 @@ public:
 
             if (停止请求_.load(std::memory_order_acquire)) {
                 return 立即返回失败_(项.请求.请求ID, 错误_未启动, "动作线程正在退出");
-            }
-
-            if (队列上限 > 0 && 队列_.size() >= 队列上限) {
-                return 立即返回失败_(项.请求.请求ID, 错误_队列已满, "动作队列已满");
             }
 
             队列_.push(std::move(项));
@@ -448,8 +404,6 @@ private:
             结果.开始_us = 结构体_时间戳::当前_微秒();
 
             动作执行上下文 上下文{};
-            上下文.世界树 = 世界树_.load(std::memory_order_acquire);
-            上下文.场景管理 = 场景管理_.load(std::memory_order_acquire);
             上下文.任务节点 = 项.请求.任务节点;
             上下文.输入场景 = 项.请求.输入场景 ? 项.请求.输入场景 : 项.请求.场景;
             上下文.输出场景 = 项.请求.输出场景 ? 项.请求.输出场景 : 上下文.输入场景;
