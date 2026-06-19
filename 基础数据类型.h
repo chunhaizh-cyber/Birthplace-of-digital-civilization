@@ -610,29 +610,11 @@ struct 结构体_时间戳 {
             );
     }
 
-    // 当前时间戳（纳秒，可选）
-
-    // 功能：当前时间戳（纳秒，可选）
-    static 时间戳 当前_纳秒() noexcept {
-        using clock = std::chrono::steady_clock;
-        using ns = std::chrono::nanoseconds;
-        return static_cast<时间戳>(
-            std::chrono::duration_cast<ns>(clock::now().time_since_epoch()).count()
-            );
-    }
-
     // 计算时间差（微秒，返回无符号；如果担心顺序，提供一个有符号版本更安全）
 
     // 功能：计算时间差（微秒，返回无符号；如果担心顺序，提供一个有符号版本更安全）
     static 时间戳 时间差_微秒(时间戳 t0, 时间戳 t1) noexcept {
         return (t1 >= t0) ? (t1 - t0) : (t0 - t1);
-    }
-
-    // 更推荐：有符号差值（允许 t1 < t0 的情况）
-
-    // 功能：更推荐：有符号差值（允许 t1 < t0 的情况）
-    static std::int64_t 时间差_微秒_有符号(时间戳 t0, 时间戳 t1) noexcept {
-        return static_cast<std::int64_t>(t1) - static_cast<std::int64_t>(t0);
     }
 };
 
