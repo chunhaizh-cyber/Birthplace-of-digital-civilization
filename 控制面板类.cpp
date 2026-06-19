@@ -4678,7 +4678,6 @@ namespace {
         const auto 令牌状态文本 = 私有_OR组令牌状态文本_控制面板(节点, 目标语义视图, 令牌记录);
         const auto 令牌激活路径文本 = 私有_OR组令牌当前激活路径文本_控制面板(节点, 目标语义视图, 令牌记录);
         私有_追加等号字段(字段节点, "结构形态", 私有_需求结构形态文本_控制面板(节点));
-        私有_追加等号字段(字段节点, "目标语义", 目标语义视图.语义名称);
         私有_追加等号字段(
             字段节点,
             "可进入普通候选方法筹办",
@@ -5534,7 +5533,6 @@ namespace {
         const auto 令牌状态文本 = 私有_OR组令牌状态文本_控制面板(节点, 目标语义视图, 令牌记录);
         const auto 令牌激活路径文本 = 私有_OR组令牌当前激活路径文本_控制面板(节点, 目标语义视图, 令牌记录);
         私有_追加叶字段(字段节点, "结构形态", 私有_需求结构形态文本_控制面板(节点));
-        私有_追加叶字段(字段节点, "目标语义", 目标语义视图.语义名称);
         私有_追加叶字段(字段节点, "可进入普通候选方法筹办", 目标语义视图.可进入普通候选方法筹办);
         私有_追加叶字段(
             字段节点,
@@ -7650,12 +7648,11 @@ function createGenericRowNode(sectionId,sectionTitle,headers,cells,index,treeLik
   if(sectionId==='demandTree'){
     const name=fieldText(cells[3]||cells[6]||key);
     const shape=fieldText(cells[4]||'');
-    const targetSemantics=fieldText(cells[5]||'');
     const targetFeature=fieldText(cells[6]||'');
     const task=fieldText(cells[7]||'');
     kind=name;
     display=shape;
-    summary=[targetSemantics&&`目标语义=${targetSemantics}`,targetFeature&&`目标特征=${targetFeature}`,task&&`任务=${task}`].filter(Boolean).join(' | ');
+    summary=[targetFeature&&`目标特征=${targetFeature}`,task&&`任务=${task}`].filter(Boolean).join(' | ');
     title=name||key;
     subtitle=`${sectionTitle} | 节点=${key}`;
   }
@@ -10359,10 +10356,6 @@ std::string 渲染需求树生长摘要(const 结构_控制面板快照& 快照)
             快照.需求树当前主需求结构形态.empty()
                 ? std::string("空")
                 : 快照.需求树当前主需求结构形态)
-        << " | 目标语义=" << 私有_页面摘要(
-            快照.需求树当前主需求目标语义.empty()
-                ? std::string("空")
-                : 快照.需求树当前主需求目标语义)
         << " | 普通筹办=" << 布尔文本_是或否(快照.需求树当前主需求可普通任务化)
         << " | 原因=" << 私有_页面摘要(
             快照.需求树当前主需求不可普通任务化原因.empty()
