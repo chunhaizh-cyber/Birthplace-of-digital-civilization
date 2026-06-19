@@ -4616,13 +4616,6 @@ namespace {
         bool 必需 = true;
     };
 
-    struct 结构_类型匹配结果 {
-        bool 成功 = false;
-        I64 抽象距离 = 0;
-        const 语素入口节点类* 失败原因 = nullptr;
-        std::vector<基础信息节点类*> 路径{};
-    };
-
     // 功能：按函数名执行对应处理。
     inline const 语素入口节点类* 基础节点类型词(const 基础信息节点类* 节点) noexcept
     {
