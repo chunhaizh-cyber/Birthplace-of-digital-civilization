@@ -34,6 +34,7 @@ namespace {
         int 同层序号 = 0;
         int 直接子数量 = 0;
         std::string 路径{};
+        std::string 节点名称{};
         std::string 目标语义{};
         std::string 逻辑组织类型{};
         bool 已截止 = false;
@@ -137,6 +138,19 @@ namespace {
             ? 节点主键
             : 父路径 + "/" + 节点主键;
         const auto 目标语义视图 = 需求类::需求目标语义视图(节点);
+        auto 节点名称 = 语素_安全获取词(需求类::读取需求目标特征类型(节点));
+        if (深度 == 0) {
+            节点名称 = "需求树";
+        }
+        else if (深度 == 1 && 节点名称 == "安全值") {
+            节点名称 = "安全";
+        }
+        else if (深度 == 1 && 节点名称 == "服务值") {
+            节点名称 = "服务";
+        }
+        else if (节点名称.empty()) {
+            节点名称 = "未命名需求";
+        }
 
         结构_需求树SQL行 行{};
         行.行号 = static_cast<int>(行集.size() + 1);
@@ -146,6 +160,7 @@ namespace {
         行.同层序号 = 同层序号;
         行.直接子数量 = static_cast<int>(私有_需求直接子数量(节点));
         行.路径 = 路径;
+        行.节点名称 = std::move(节点名称);
         行.目标语义 = 目标语义视图.语义名称 ? 目标语义视图.语义名称 : "";
         行.逻辑组织类型 = 需求类::逻辑组织需求类型文本(目标语义视图.逻辑组织类型);
         行.已截止 = 节点->主信息.需求有效截止 != 0;
@@ -224,6 +239,7 @@ namespace {
             << "    sibling_index int NOT NULL,\n"
             << "    direct_child_count int NOT NULL,\n"
             << "    path_text nvarchar(1000) NULL,\n"
+            << "    node_name nvarchar(200) NULL,\n"
             << "    target_semantics nvarchar(120) NULL,\n"
             << "    logic_group_type nvarchar(120) NULL,\n"
             << "    is_closed bit NOT NULL,\n"
@@ -244,6 +260,8 @@ namespace {
             << "    derived_method_key nvarchar(120) NULL,\n"
             << "    derived_causal_key nvarchar(120) NULL\n"
             << ");\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'node_name') IS NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node ADD node_name nvarchar(200) NULL;\n"
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_demand_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.demand_tree_node'))\n"
             << "    CREATE INDEX IX_demand_tree_node_key ON fishnest.demand_tree_node(node_key, parent_key);\n";
         return SQL.str();
@@ -280,7 +298,7 @@ namespace {
             << 行集.size()
             << ");\n";
         for (const auto& 行 : 行集) {
-            SQL << "INSERT INTO fishnest.demand_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, target_semantics, logic_group_type, is_closed, blocks_parent, subject_key, scene_key, target_host_key, current_state_key, target_state_key, target_feature_key, task_key, relation_mask, safety_weight, service_weight, safety_settled, service_settled, valid_until_us, derived_method_key, derived_causal_key) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO fishnest.demand_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_name, target_semantics, logic_group_type, is_closed, blocks_parent, subject_key, scene_key, target_host_key, current_state_key, target_state_key, target_feature_key, task_key, relation_mask, safety_weight, service_weight, safety_settled, service_settled, valid_until_us, derived_method_key, derived_causal_key) VALUES (@snapshot_id, "
                 << 行.行号 << ", "
                 << 私有_SQL字符串(行.节点主键, false) << ", "
                 << 私有_SQL字符串(行.父节点主键) << ", "
@@ -288,6 +306,7 @@ namespace {
                 << 行.同层序号 << ", "
                 << 行.直接子数量 << ", "
                 << 私有_SQL字符串(行.路径) << ", "
+                << 私有_SQL字符串(行.节点名称) << ", "
                 << 私有_SQL字符串(行.目标语义) << ", "
                 << 私有_SQL字符串(行.逻辑组织类型) << ", "
                 << 私有_SQL布尔(行.已截止) << ", "

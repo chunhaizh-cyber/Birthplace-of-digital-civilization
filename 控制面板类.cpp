@@ -7109,10 +7109,29 @@ ORDER BY data_group, metric_key;
             {
                 "需求树",
                 R"SQL(
+WITH demand_nodes AS (
+    SELECT *
+    FROM fishnest.v_current_demand_tree_nodes
+),
+display_nodes AS (
+    SELECT
+        row_index,
+        node_key,
+        CASE WHEN depth = 1 THEN NULL ELSE parent_key END AS parent_key,
+        CASE WHEN depth > 0 THEN depth - 1 ELSE 0 END AS display_depth,
+        node_name,
+        direct_child_count,
+        target_semantics,
+        target_feature_key,
+        task_key
+    FROM demand_nodes
+    WHERE depth > 0
+)
 SELECT TOP (400)
     COALESCE(node_key, N'') AS node_key,
     COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+    CONVERT(nvarchar(20), COALESCE(display_depth, 0)) AS depth,
+    COALESCE(node_name, N'') AS node_name,
     CASE WHEN COALESCE(direct_child_count, 0) > 0
         THEN CONCAT(N'有子=', CONVERT(nvarchar(20), direct_child_count))
         ELSE N'叶子'
@@ -7120,7 +7139,7 @@ SELECT TOP (400)
     COALESCE(target_semantics, N'') AS target_semantics,
     COALESCE(target_feature_key, N'') AS target_feature_key,
     COALESCE(task_key, N'') AS task_key
-FROM fishnest.v_current_demand_tree_nodes
+FROM display_nodes
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::需求树
@@ -7415,7 +7434,7 @@ ORDER BY row_index;
             << "；组成关系：" << 数据.因果信息关系.size() << "</span></div>"
             << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div></div></section>\n";
         私有_追加SQL控制面板表(输出, "因果边", "causal", { "来源类", "来源键", "目标类", "目标键", "关系", "日志", "行" }, 数据.因果边);
-        私有_追加SQL控制面板表(输出, "需求树", "demandTree", { "节点", "父节点", "深度", "树形态", "目标语义", "目标特征", "任务" }, 数据.需求树);
+        私有_追加SQL控制面板表(输出, "需求树", "demandTree", { "节点", "父节点", "深度", "名称", "树形态", "目标语义", "目标特征", "任务" }, 数据.需求树);
         私有_追加SQL控制面板表(输出, "任务树", "taskTree", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
         私有_追加SQL控制面板表(输出, "方法树", "methodTree", { "节点", "父节点", "深度", "节点种类", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
         std::size_t 世界树因果节点数 = 0;
@@ -7782,12 +7801,26 @@ function selectGenericNode(row){
   showNodeDetail(row.title||row.key,row.subtitle||row.kind||'SQL 行节点',rows);
   updateGenericSelection();
 }
-function createGenericRowNode(sectionTitle,headers,cells,index,treeLike){
+function createGenericRowNode(sectionId,sectionTitle,headers,cells,index,treeLike){
   const key=fieldText(cells[0]||`${sectionTitle}#${index+1}`);
-  const kind=treeLike?fieldText(cells[3]):fieldText(cells[1]||sectionTitle);
-  const display=treeLike?fieldText(cells[4]||cells[5]||cells[6]||''):fieldText(cells[2]||cells[1]||'');
-  const summary=headers.slice(1,4).map((header,i)=>`${header}=${fieldText(cells[i+1])}`).join(' | ');
-  const node={key,parent:treeLike?String(cells[1]||''):'',depth:treeLike?String(cells[2]||'1'):'1',kind,display,summary,headers,cells,children:[],title:key,subtitle:sectionTitle};
+  let kind=treeLike?fieldText(cells[3]):fieldText(cells[1]||sectionTitle);
+  let display=treeLike?fieldText(cells[4]||cells[5]||cells[6]||''):fieldText(cells[2]||cells[1]||'');
+  let summary=headers.slice(1,4).map((header,i)=>`${header}=${fieldText(cells[i+1])}`).join(' | ');
+  let title=key;
+  let subtitle=sectionTitle;
+  if(sectionId==='demandTree'){
+    const name=fieldText(cells[3]||cells[6]||key);
+    const shape=fieldText(cells[4]||'');
+    const targetSemantics=fieldText(cells[5]||'');
+    const targetFeature=fieldText(cells[6]||'');
+    const task=fieldText(cells[7]||'');
+    kind=name;
+    display=shape;
+    summary=[targetSemantics&&`目标语义=${targetSemantics}`,targetFeature&&`目标特征=${targetFeature}`,task&&`任务=${task}`].filter(Boolean).join(' | ');
+    title=name||key;
+    subtitle=`${sectionTitle} | 节点=${key}`;
+  }
+  const node={key,parent:treeLike?String(cells[1]||''):'',depth:treeLike?String(cells[2]||'1'):'1',kind,display,summary,headers,cells,children:[],title,subtitle};
   node.searchText=[sectionTitle,key,kind,display,summary,...cells].join(' ').toLowerCase();
   node.onSelect=()=>selectGenericNode(node);
   return node;
@@ -7816,7 +7849,7 @@ function buildTableTreeSections(){
     const headers=Array.from(table.tHead?.rows?.[0]?.cells||[]).map(cell=>cell.textContent.trim());
     const rows=Array.from(table.tBodies?.[0]?.rows||[]).map((tr,index)=>{
       const cells=Array.from(tr.cells).map(cell=>cell.textContent.trim());
-      return createGenericRowNode(section.dataset.sectionTitle||section.querySelector('h2')?.textContent||section.id,headers,cells,index,treeLikeSections.has(section.id));
+      return createGenericRowNode(section.id,section.dataset.sectionTitle||section.querySelector('h2')?.textContent||section.id,headers,cells,index,treeLikeSections.has(section.id));
     });
     const roots=treeLikeSections.has(section.id)?buildGenericHierarchy(rows):[{key:section.dataset.sectionTitle||section.id,depth:'0',kind:'页面',display:`${section.dataset.sectionTitle||section.id} ${rows.length}`,summary:'SQL 行节点',headers:['页面','数量'],cells:[section.dataset.sectionTitle||section.id,String(rows.length)],children:rows,searchText:rows.map(row=>row.searchText).join(' '),onSelect:null}];
     genericTreeRootsBySection.set(section.id,roots);
