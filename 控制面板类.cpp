@@ -7803,12 +7803,17 @@ function createGenericRowNode(sectionTitle,headers,cells,index,treeLike){
   return node;
 }
 function buildGenericHierarchy(nodes){
-  const map=new Map();
-  nodes.forEach(node=>map.set(node.key,node));
   const roots=[];
   nodes.forEach(node=>{
-    const parent=map.get(node.parent);
-    if(parent&&parent!==node)parent.children.push(node);else roots.push(node);
+    const depth=Number.parseInt(node.depth||'0',10);
+    node.depthValue=Number.isFinite(depth)&&depth>=0?depth:0;
+  });
+  const stack=[];
+  nodes.forEach(node=>{
+    while(stack.length&&stack[stack.length-1].depthValue>=node.depthValue)stack.pop();
+    const parent=stack.length?stack[stack.length-1]:null;
+    if(parent)parent.children.push(node);else roots.push(node);
+    stack.push(node);
   });
   return roots.length?roots:nodes;
 }
