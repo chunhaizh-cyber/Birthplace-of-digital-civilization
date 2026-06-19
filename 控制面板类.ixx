@@ -152,8 +152,6 @@ struct 结构_控制面板快照 {
     std::string 需求树首个目标绑定异常原因{};
     std::size_t 需求树非阻塞需求数 = 0;
     std::size_t 需求树已截止需求数 = 0;
-    std::size_t 需求树派生归因需求数 = 0;
-    std::size_t 需求树派生来源因果需求数 = 0;
     std::size_t 需求树逻辑组织需求数 = 0;
     std::size_t 需求树AND组需求数 = 0;
     std::size_t 需求树OR组需求数 = 0;

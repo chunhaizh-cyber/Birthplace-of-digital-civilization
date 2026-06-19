@@ -52,8 +52,6 @@ namespace {
         std::int64_t 累计安全结算 = 0;
         std::int64_t 累计服务结算 = 0;
         std::int64_t 需求有效截止 = 0;
-        std::string 派生来源方法主键{};
-        std::string 派生来源因果主键{};
     };
 
     std::mutex& 私有_需求树SQL投影互斥() noexcept
@@ -180,8 +178,6 @@ namespace {
         行.累计安全结算 = 节点->主信息.累计安全结算;
         行.累计服务结算 = 节点->主信息.累计服务结算;
         行.需求有效截止 = static_cast<std::int64_t>(节点->主信息.需求有效截止);
-        行.派生来源方法主键 = 节点->主信息.派生来源方法主键;
-        行.派生来源因果主键 = 节点->主信息.派生来源因果主键;
         行集.push_back(std::move(行));
 
         if (!节点->子) {
@@ -256,12 +252,14 @@ namespace {
             << "    service_weight bigint NULL,\n"
             << "    safety_settled bigint NULL,\n"
             << "    service_settled bigint NULL,\n"
-            << "    valid_until_us bigint NULL,\n"
-            << "    derived_method_key nvarchar(120) NULL,\n"
-            << "    derived_causal_key nvarchar(120) NULL\n"
+            << "    valid_until_us bigint NULL\n"
             << ");\n"
             << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'node_name') IS NULL\n"
             << "    ALTER TABLE fishnest.demand_tree_node ADD node_name nvarchar(200) NULL;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'derived_method_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN derived_method_key;\n"
+            << "IF COL_LENGTH(N'fishnest.demand_tree_node', N'derived_causal_key') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.demand_tree_node DROP COLUMN derived_causal_key;\n"
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_demand_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.demand_tree_node'))\n"
             << "    CREATE INDEX IX_demand_tree_node_key ON fishnest.demand_tree_node(node_key, parent_key);\n";
         return SQL.str();
@@ -298,7 +296,7 @@ namespace {
             << 行集.size()
             << ");\n";
         for (const auto& 行 : 行集) {
-            SQL << "INSERT INTO fishnest.demand_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_name, target_semantics, logic_group_type, is_closed, blocks_parent, subject_key, scene_key, target_host_key, current_state_key, target_state_key, target_feature_key, task_key, relation_mask, safety_weight, service_weight, safety_settled, service_settled, valid_until_us, derived_method_key, derived_causal_key) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO fishnest.demand_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_name, target_semantics, logic_group_type, is_closed, blocks_parent, subject_key, scene_key, target_host_key, current_state_key, target_state_key, target_feature_key, task_key, relation_mask, safety_weight, service_weight, safety_settled, service_settled, valid_until_us) VALUES (@snapshot_id, "
                 << 行.行号 << ", "
                 << 私有_SQL字符串(行.节点主键, false) << ", "
                 << 私有_SQL字符串(行.父节点主键) << ", "
@@ -323,9 +321,7 @@ namespace {
                 << 行.服务权重 << ", "
                 << 行.累计安全结算 << ", "
                 << 行.累计服务结算 << ", "
-                << 行.需求有效截止 << ", "
-                << 私有_SQL字符串(行.派生来源方法主键) << ", "
-                << 私有_SQL字符串(行.派生来源因果主键) << ");\n";
+                << 行.需求有效截止 << ");\n";
         }
         SQL << "COMMIT TRANSACTION;\n";
         return SQL.str();
@@ -1517,8 +1513,6 @@ const char* 需求类::需求结构形态文本(
     指令.需求名称 = 目标特征;
     指令.目标特征类型缓存 = 目标特征;
     指令.满足关系 = 输入.满足关系 != 0 ? 输入.满足关系 : 关系_等于;
-    指令.派生来源方法主键 = 输入.派生来源方法主键;
-    指令.派生来源因果主键 = 输入.派生来源因果主键;
     指令.使用新安全权重 = 输入.使用新安全权重;
     指令.新安全权重 = 输入.新安全权重;
     指令.使用新服务权重 = 输入.使用新服务权重;
@@ -1699,36 +1693,12 @@ const char* 需求类::枚举目标生产者分级文本(
         目标状态,
         指令.满足关系 != 0 ? 指令.满足关系 : 关系_等于);
 
-    if (校验.已检查
-        && 校验.是枚举目标
-        && !校验.有合法生产者
-        && !指令.派生来源因果主键.empty()) {
-        const auto 来源分级 = 私有_查询来源因果生产者分级(
-            指令.派生来源因果主键,
-            校验.目标特征类型);
-        if (私有_生产者分级已有生产者(来源分级)) {
-            校验.生产者分级 = 来源分级;
-            校验.有合法生产者 = true;
-            校验.合法 = 校验.比较符合法
-                && 校验.目标值属于值域
-                && 校验.有合法生产者;
-            校验.说明 = 校验.合法
-                ? "枚举目标通过来源因果方法模板生产者校验"
-                : "来源因果方法模板存在，但比较符或值域未通过";
-        } else if (来源分级 == 枚举_枚举目标生产者分级::待补齐) {
-            校验.生产者分级 = 来源分级;
-            校验.有合法生产者 = false;
-            校验.合法 = false;
-            校验.说明 = "枚举目标来源因果动作待补齐方法结果能力，不能进入普通执行目标";
-        }
-    }
     if (校验.已检查 && 校验.是枚举目标 && !校验.合法) {
         项目运行错误日志(
             "需求类/枚举目标入树校验拒绝 | "
             + 私有_构造枚举目标校验摘要(校验)
             + " | 当前状态=" + (当前状态 ? 当前状态->获取主键() : std::string("空"))
-            + " | 目标状态=" + (目标状态 ? 目标状态->获取主键() : std::string("空"))
-            + " | 来源因果=" + 指令.派生来源因果主键);
+            + " | 目标状态=" + (目标状态 ? 目标状态->获取主键() : std::string("空")));
     }
     return 校验;
 }
