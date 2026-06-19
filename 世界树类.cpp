@@ -8,6 +8,7 @@
 #include <mutex>
 #include <sstream>
 #include <type_traits>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
@@ -242,6 +243,7 @@ namespace {
 
     struct 结构_世界树SQL节点行 {
         int 行号 = 0;
+        const 基础信息节点类* 节点指针 = nullptr;
         std::string 节点主键{};
         std::string 父节点主键{};
         int 深度 = 0;
@@ -264,6 +266,9 @@ namespace {
 
     struct 结构_世界树SQL关系行 {
         int 行号 = 0;
+        int 宿主行号 = 0;
+        int 目标行号 = 0;
+        const 基础信息节点类* 基础目标指针 = nullptr;
         std::string 宿主主键{};
         std::string 关系名{};
         std::string 目标类别{};
@@ -317,16 +322,6 @@ namespace {
         catch (...) {
             return 入口->获取主键();
         }
-    }
-
-    std::string 私有_世界树SQL指针文本(const void* 指针)
-    {
-        if (!指针) {
-            return {};
-        }
-        std::ostringstream 输出;
-        输出 << "ptr:" << reinterpret_cast<std::uintptr_t>(指针);
-        return 输出.str();
     }
 
     const char* 私有_世界树SQL主信息类型文本(const 枚举_主信息类型 类型) noexcept
@@ -424,7 +419,7 @@ namespace {
             return 引用.指针 ? 引用.指针->获取主键() : std::string{};
         }
         else {
-            return 私有_世界树SQL指针文本(引用.指针);
+            return {};
         }
     }
 
@@ -432,6 +427,7 @@ namespace {
     void 私有_世界树SQL添加引用(
         std::vector<结构_世界树SQL关系行>& 关系集,
         const std::string& 宿主主键,
+        const int 宿主行号,
         const char* 关系名,
         const char* 目标类别,
         const 可解析引用<T节点>& 引用,
@@ -443,11 +439,13 @@ namespace {
         }
         结构_世界树SQL关系行 行{};
         行.行号 = static_cast<int>(关系集.size() + 1);
+        行.宿主行号 = 宿主行号;
         行.宿主主键 = 宿主主键;
         行.关系名 = 关系名 ? 关系名 : "";
         行.目标类别 = 目标类别 ? 目标类别 : "";
         行.目标主键 = 目标主键;
         if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 基础信息节点类>) {
+            行.基础目标指针 = 引用.指针;
             行.目标文本 = 私有_世界树SQL节点短标题(引用.指针);
         }
         else {
@@ -461,18 +459,20 @@ namespace {
     void 私有_世界树SQL添加引用集(
         std::vector<结构_世界树SQL关系行>& 关系集,
         const std::string& 宿主主键,
+        const int 宿主行号,
         const char* 关系名,
         const char* 目标类别,
         const std::vector<可解析引用<T节点>>& 引用集)
     {
         int 序号 = 0;
         for (const auto& 引用 : 引用集) {
-            私有_世界树SQL添加引用(关系集, 宿主主键, 关系名, 目标类别, 引用, 序号++);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, 关系名, 目标类别, 引用, 序号++);
         }
     }
 
     void 私有_世界树SQL收集关系(
         const 基础信息节点类* 节点,
+        const int 宿主行号,
         std::vector<结构_世界树SQL关系行>& 关系集)
     {
         if (!节点 || !节点->主信息) {
@@ -481,71 +481,68 @@ namespace {
         const auto 宿主主键 = 节点->获取主键();
         const auto* 主信息 = 节点->主信息;
         if (const auto* 指代 = dynamic_cast<const 指代节点主信息类*>(主信息)) {
-            私有_世界树SQL添加引用(关系集, 宿主主键, "指代对象", "基础信息", 指代->指代对象, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "指代对象", "基础信息", 指代->指代对象, 0);
         }
         if (const auto* 抽象 = dynamic_cast<const 抽象特征主信息类*>(主信息)) {
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "来源实例特征", "基础信息", 抽象->来源实例特征);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "来源实例特征", "基础信息", 抽象->来源实例特征);
         }
         if (const auto* 特征 = dynamic_cast<const 特征节点主信息类*>(主信息)) {
-            私有_世界树SQL添加引用(关系集, 宿主主键, "抽象特征", "基础信息", 特征->抽象特征, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "当前命中抽象特征", "基础信息", 特征->当前命中抽象特征, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "抽象特征", "基础信息", 特征->抽象特征, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "当前命中抽象特征", "基础信息", 特征->当前命中抽象特征, 0);
         }
         if (const auto* 存在 = dynamic_cast<const 存在节点主信息类*>(主信息)) {
-            私有_世界树SQL添加引用(关系集, 宿主主键, "概念模板", "基础信息", 存在->概念模板, 0);
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "概念集", "基础信息", 存在->概念集);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "内部世界", "基础信息", 存在->内部世界, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "概念模板", "基础信息", 存在->概念模板, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "概念集", "基础信息", 存在->概念集);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "内部世界", "基础信息", 存在->内部世界, 0);
             if (存在->需求根节点) {
-                const auto 主键 = 私有_世界树SQL指针文本(存在->需求根节点);
-                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主主键, "需求根节点", "需求", 主键, 主键, 0 });
+                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主行号, 1, nullptr, 宿主主键, "需求根节点", "需求", {}, "需求树根", 0 });
             }
             if (存在->任务根节点) {
-                const auto 主键 = 私有_世界树SQL指针文本(存在->任务根节点);
-                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主主键, "任务根节点", "任务", 主键, 主键, 0 });
+                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主行号, 1, nullptr, 宿主主键, "任务根节点", "任务", {}, "任务树根", 0 });
             }
             if (存在->方法根节点) {
-                const auto 主键 = 私有_世界树SQL指针文本(存在->方法根节点);
-                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主主键, "方法根节点", "方法", 主键, 主键, 0 });
+                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主行号, 1, nullptr, 宿主主键, "方法根节点", "方法", {}, "方法树根", 0 });
             }
         }
         if (const auto* 场景 = dynamic_cast<const 场景节点主信息类*>(主信息)) {
-            私有_世界树SQL添加引用(关系集, 宿主主键, "宿主存在", "基础信息", 场景->宿主存在, 0);
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "状态索引", "基础信息", 场景->状态索引);
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "动态索引", "基础信息", 场景->动态索引);
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "关系索引", "基础信息", 场景->关系索引);
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "二次特征索引", "基础信息", 场景->二次特征索引);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "宿主存在", "基础信息", 场景->宿主存在, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "状态索引", "基础信息", 场景->状态索引);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "动态索引", "基础信息", 场景->动态索引);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "关系索引", "基础信息", 场景->关系索引);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "二次特征索引", "基础信息", 场景->二次特征索引);
         }
         if (const auto* 状态 = dynamic_cast<const 状态节点主信息类*>(主信息)) {
-            私有_世界树SQL添加引用(关系集, 宿主主键, "状态主体", "基础信息", 状态->状态主体, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "状态特征", "基础信息", 状态->状态特征, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "对应信息节点", "基础信息", 状态->对应信息节点, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "状态主体", "基础信息", 状态->状态主体, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "状态特征", "基础信息", 状态->状态特征, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "对应信息节点", "基础信息", 状态->对应信息节点, 0);
         }
         if (const auto* 动态 = dynamic_cast<const 动态节点主信息类*>(主信息)) {
-            私有_世界树SQL添加引用(关系集, 宿主主键, "初始状态", "基础信息", 动态->初始状态, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "结果状态", "基础信息", 动态->结果状态, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "动态主体", "基础信息", 动态->动态主体, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "动态特征", "基础信息", 动态->动态特征, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "来源输入场景", "基础信息", 动态->来源输入场景, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "来源输出场景", "基础信息", 动态->来源输出场景, 0);
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "来源低层动态", "基础信息", 动态->来源低层动态);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "初始状态", "基础信息", 动态->初始状态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "结果状态", "基础信息", 动态->结果状态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "动态主体", "基础信息", 动态->动态主体, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "动态特征", "基础信息", 动态->动态特征, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "来源输入场景", "基础信息", 动态->来源输入场景, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "来源输出场景", "基础信息", 动态->来源输出场景, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "来源低层动态", "基础信息", 动态->来源低层动态);
         }
         if (const auto* 二次 = dynamic_cast<const 二次特征主信息类*>(主信息)) {
-            私有_世界树SQL添加引用(关系集, 宿主主键, "概念模板", "基础信息", 二次->概念模板, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "所属场景", "基础信息", 二次->所属场景, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "来源起始状态", "基础信息", 二次->来源起始状态, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "来源结果状态", "基础信息", 二次->来源结果状态, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "来源动态", "基础信息", 二次->来源动态, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "来源场景", "基础信息", 二次->来源场景, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "主体", "基础信息", 二次->主体, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "客体", "基础信息", 二次->客体, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "左对象", "基础信息", 二次->左对象, 0);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "右对象", "基础信息", 二次->右对象, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "概念模板", "基础信息", 二次->概念模板, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "所属场景", "基础信息", 二次->所属场景, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "来源起始状态", "基础信息", 二次->来源起始状态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "来源结果状态", "基础信息", 二次->来源结果状态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "来源动态", "基础信息", 二次->来源动态, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "来源场景", "基础信息", 二次->来源场景, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "主体", "基础信息", 二次->主体, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "客体", "基础信息", 二次->客体, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "左对象", "基础信息", 二次->左对象, 0);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "右对象", "基础信息", 二次->右对象, 0);
         }
         if (const auto* 因果 = dynamic_cast<const 因果主信息类*>(主信息)) {
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "条件比较模板", "基础信息", 因果->条件比较模板);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "因方法模板", "方法", 因果->因方法模板, 0);
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "果比较模板", "基础信息", 因果->果比较模板);
-            私有_世界树SQL添加引用(关系集, 宿主主键, "主果比较模板", "基础信息", 因果->主果比较模板, 0);
-            私有_世界树SQL添加引用集(关系集, 宿主主键, "证据动态样本", "基础信息", 因果->证据动态样本);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "条件比较模板", "基础信息", 因果->条件比较模板);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "因方法模板", "方法", 因果->因方法模板, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "果比较模板", "基础信息", 因果->果比较模板);
+            私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "主果比较模板", "基础信息", 因果->主果比较模板, 0);
+            私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "证据动态样本", "基础信息", 因果->证据动态样本);
         }
     }
 
@@ -667,6 +664,7 @@ namespace {
         const auto 路径 = 父路径.empty() ? 节点主键 : 父路径 + "/" + 节点主键;
         结构_世界树SQL节点行 行{};
         行.行号 = static_cast<int>(节点集.size() + 1);
+        行.节点指针 = 节点;
         行.节点主键 = 节点主键;
         行.父节点主键 = 父节点主键;
         行.深度 = 深度;
@@ -674,8 +672,9 @@ namespace {
         行.直接子数量 = static_cast<int>(节点->子节点数量);
         行.路径 = 路径;
         私有_世界树SQL填充节点主信息(节点, 行);
+        const int 当前行号 = 行.行号;
         节点集.push_back(std::move(行));
-        私有_世界树SQL收集关系(节点, 关系集);
+        私有_世界树SQL收集关系(节点, 当前行号, 关系集);
 
         if (节点->子) {
             私有_收集世界树SQL同层(
@@ -687,6 +686,26 @@ namespace {
                 已访问,
                 节点集,
                 关系集);
+        }
+    }
+
+    void 私有_解析世界树SQL关系序号(
+        const std::vector<结构_世界树SQL节点行>& 节点集,
+        std::vector<结构_世界树SQL关系行>& 关系集)
+    {
+        std::unordered_map<const 基础信息节点类*, int> 节点序号{};
+        节点序号.reserve(节点集.size());
+        for (const auto& 行 : 节点集) {
+            if (行.节点指针) {
+                节点序号.emplace(行.节点指针, 行.行号);
+            }
+        }
+        for (auto& 行 : 关系集) {
+            if (行.基础目标指针) {
+                if (const auto it = 节点序号.find(行.基础目标指针); it != 节点序号.end()) {
+                    行.目标行号 = it->second;
+                }
+            }
         }
     }
 
@@ -740,6 +759,8 @@ namespace {
             << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
             << "    snapshot_id uniqueidentifier NOT NULL,\n"
             << "    row_index int NOT NULL,\n"
+            << "    owner_row_index int NOT NULL,\n"
+            << "    target_row_index int NULL,\n"
             << "    owner_key nvarchar(80) NOT NULL,\n"
             << "    relation_name nvarchar(120) NOT NULL,\n"
             << "    target_kind nvarchar(80) NULL,\n"
@@ -747,10 +768,87 @@ namespace {
             << "    target_text nvarchar(500) NULL,\n"
             << "    ordinal_index int NOT NULL\n"
             << ");\n"
+            << "IF OBJECT_ID(N'fishnest.world_tree_root_tree', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.world_tree_root_tree (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    root_key nvarchar(80) NOT NULL,\n"
+            << "    root_row_index int NOT NULL,\n"
+            << "    root_kind nvarchar(80) NULL,\n"
+            << "    root_display_text nvarchar(500) NULL,\n"
+            << "    root_depth int NOT NULL,\n"
+            << "    root_sibling_index int NOT NULL,\n"
+            << "    root_direct_child_count int NOT NULL,\n"
+            << "    root_path_text nvarchar(1000) NULL,\n"
+            << "    subtree_node_count int NOT NULL,\n"
+            << "    subtree_relation_count int NOT NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'fishnest.world_tree_root_tree_node', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.world_tree_root_tree_node (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    root_key nvarchar(80) NOT NULL,\n"
+            << "    root_relative_depth int NOT NULL,\n"
+            << "    row_index int NOT NULL,\n"
+            << "    node_key nvarchar(80) NOT NULL,\n"
+            << "    parent_key nvarchar(80) NULL,\n"
+            << "    depth int NOT NULL,\n"
+            << "    sibling_index int NOT NULL,\n"
+            << "    direct_child_count int NOT NULL,\n"
+            << "    path_text nvarchar(1000) NULL,\n"
+            << "    node_kind nvarchar(80) NULL,\n"
+            << "    display_text nvarchar(500) NULL,\n"
+            << "    main_type_value int NULL,\n"
+            << "    main_type_text nvarchar(80) NULL,\n"
+            << "    name_key nvarchar(80) NULL,\n"
+            << "    name_text nvarchar(300) NULL,\n"
+            << "    type_key nvarchar(80) NULL,\n"
+            << "    type_text nvarchar(300) NULL,\n"
+            << "    value_kind nvarchar(80) NULL,\n"
+            << "    value_text nvarchar(500) NULL,\n"
+            << "    auxiliary_text nvarchar(1000) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'fishnest.world_tree_root_tree_relation', N'U') IS NULL\n"
+            << "CREATE TABLE fishnest.world_tree_root_tree_relation (\n"
+            << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    snapshot_id uniqueidentifier NOT NULL,\n"
+            << "    root_key nvarchar(80) NOT NULL,\n"
+            << "    row_index int NOT NULL,\n"
+            << "    owner_row_index int NOT NULL,\n"
+            << "    target_row_index int NULL,\n"
+            << "    owner_key nvarchar(80) NOT NULL,\n"
+            << "    relation_name nvarchar(120) NOT NULL,\n"
+            << "    target_kind nvarchar(80) NULL,\n"
+            << "    target_key nvarchar(80) NULL,\n"
+            << "    target_text nvarchar(500) NULL,\n"
+            << "    ordinal_index int NOT NULL\n"
+            << ");\n"
+            << "IF COL_LENGTH(N'fishnest.world_tree_node_relation', N'owner_row_index') IS NULL\n"
+            << "    ALTER TABLE fishnest.world_tree_node_relation ADD owner_row_index int NOT NULL CONSTRAINT DF_world_tree_node_relation_owner_row_index DEFAULT(0);\n"
+            << "IF COL_LENGTH(N'fishnest.world_tree_node_relation', N'target_row_index') IS NULL\n"
+            << "    ALTER TABLE fishnest.world_tree_node_relation ADD target_row_index int NULL;\n"
+            << "IF COL_LENGTH(N'fishnest.world_tree_root_tree_relation', N'owner_row_index') IS NULL\n"
+            << "    ALTER TABLE fishnest.world_tree_root_tree_relation ADD owner_row_index int NOT NULL CONSTRAINT DF_world_tree_root_tree_relation_owner_row_index DEFAULT(0);\n"
+            << "IF COL_LENGTH(N'fishnest.world_tree_root_tree_relation', N'target_row_index') IS NULL\n"
+            << "    ALTER TABLE fishnest.world_tree_root_tree_relation ADD target_row_index int NULL;\n"
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.world_tree_node'))\n"
             << "    CREATE INDEX IX_world_tree_node_key ON fishnest.world_tree_node(snapshot_id, node_key, parent_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_node_parent' AND object_id = OBJECT_ID(N'fishnest.world_tree_node'))\n"
+            << "    CREATE INDEX IX_world_tree_node_parent ON fishnest.world_tree_node(snapshot_id, parent_key, node_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_node_path' AND object_id = OBJECT_ID(N'fishnest.world_tree_node'))\n"
+            << "    CREATE INDEX IX_world_tree_node_path ON fishnest.world_tree_node(snapshot_id, path_text);\n"
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_relation_owner' AND object_id = OBJECT_ID(N'fishnest.world_tree_node_relation'))\n"
-            << "    CREATE INDEX IX_world_tree_relation_owner ON fishnest.world_tree_node_relation(snapshot_id, owner_key, target_key);\n";
+            << "    CREATE INDEX IX_world_tree_relation_owner ON fishnest.world_tree_node_relation(snapshot_id, owner_key, target_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_relation_owner_row' AND object_id = OBJECT_ID(N'fishnest.world_tree_node_relation'))\n"
+            << "    CREATE INDEX IX_world_tree_relation_owner_row ON fishnest.world_tree_node_relation(snapshot_id, owner_row_index, target_row_index);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_key' AND object_id = OBJECT_ID(N'fishnest.world_tree_root_tree'))\n"
+            << "    CREATE INDEX IX_world_tree_root_tree_key ON fishnest.world_tree_root_tree(snapshot_id, root_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.world_tree_root_tree_node'))\n"
+            << "    CREATE INDEX IX_world_tree_root_tree_node_key ON fishnest.world_tree_root_tree_node(snapshot_id, root_key, node_key, parent_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_relation_owner' AND object_id = OBJECT_ID(N'fishnest.world_tree_root_tree_relation'))\n"
+            << "    CREATE INDEX IX_world_tree_root_tree_relation_owner ON fishnest.world_tree_root_tree_relation(snapshot_id, root_key, owner_key, target_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_relation_owner_row' AND object_id = OBJECT_ID(N'fishnest.world_tree_root_tree_relation'))\n"
+            << "    CREATE INDEX IX_world_tree_root_tree_relation_owner_row ON fishnest.world_tree_root_tree_relation(snapshot_id, root_key, owner_row_index, target_row_index);\n";
         return SQL.str();
     }
 
@@ -764,6 +862,18 @@ namespace {
             << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_world_tree_relations AS\n"
             << "SELECT r.*\n"
             << "FROM fishnest.world_tree_node_relation r\n"
+            << "WHERE r.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.world_tree_snapshot ORDER BY captured_at DESC);');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_world_tree_root_trees AS\n"
+            << "SELECT t.*\n"
+            << "FROM fishnest.world_tree_root_tree t\n"
+            << "WHERE t.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.world_tree_snapshot ORDER BY captured_at DESC);');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_world_tree_root_tree_nodes AS\n"
+            << "SELECT n.*\n"
+            << "FROM fishnest.world_tree_root_tree_node n\n"
+            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.world_tree_snapshot ORDER BY captured_at DESC);');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_world_tree_root_tree_relations AS\n"
+            << "SELECT r.*\n"
+            << "FROM fishnest.world_tree_root_tree_relation r\n"
             << "WHERE r.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.world_tree_snapshot ORDER BY captured_at DESC);');\n";
         return SQL.str();
     }
@@ -777,6 +887,9 @@ namespace {
         SQL << "SET NOCOUNT ON;\n"
             << "SET XACT_ABORT ON;\n"
             << "BEGIN TRANSACTION;\n"
+            << "DELETE FROM fishnest.world_tree_root_tree_relation;\n"
+            << "DELETE FROM fishnest.world_tree_root_tree_node;\n"
+            << "DELETE FROM fishnest.world_tree_root_tree;\n"
             << "DELETE FROM fishnest.world_tree_node_relation;\n"
             << "DELETE FROM fishnest.world_tree_node;\n"
             << "DELETE FROM fishnest.world_tree_snapshot;\n"
@@ -787,37 +900,85 @@ namespace {
             << ", " << 节点集.size()
             << ", " << 关系集.size()
             << ");\n";
-        for (const auto& 行 : 节点集) {
-            SQL << "INSERT INTO fishnest.world_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_kind, display_text, main_type_value, main_type_text, name_key, name_text, type_key, type_text, value_kind, value_text, auxiliary_text) VALUES (@snapshot_id, "
-                << 行.行号 << ", "
-                << 私有_世界树SQL字符串(行.节点主键, false) << ", "
-                << 私有_世界树SQL字符串(行.父节点主键) << ", "
-                << 行.深度 << ", "
-                << 行.同层序号 << ", "
-                << 行.直接子数量 << ", "
-                << 私有_世界树SQL字符串(行.路径) << ", "
-                << 私有_世界树SQL字符串(行.节点类别) << ", "
-                << 私有_世界树SQL字符串(行.显示文本) << ", "
-                << 私有_世界树SQL可空整数(行.有主信息类型, 行.主信息类型值) << ", "
-                << 私有_世界树SQL字符串(行.主信息类型文本) << ", "
-                << 私有_世界树SQL字符串(行.名称主键) << ", "
-                << 私有_世界树SQL字符串(行.名称文本) << ", "
-                << 私有_世界树SQL字符串(行.类型主键) << ", "
-                << 私有_世界树SQL字符串(行.类型文本) << ", "
-                << 私有_世界树SQL字符串(行.值类别) << ", "
-                << 私有_世界树SQL字符串(行.值文本) << ", "
-                << 私有_世界树SQL字符串(行.辅助文本) << ");\n";
+        constexpr std::size_t 插入批量大小 = 500;
+        for (std::size_t 起始 = 0; 起始 < 节点集.size(); 起始 += 插入批量大小) {
+            const auto 结束 = std::min(起始 + 插入批量大小, 节点集.size());
+            SQL << "INSERT INTO fishnest.world_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_kind, display_text, main_type_value, main_type_text, name_key, name_text, type_key, type_text, value_kind, value_text, auxiliary_text) VALUES\n";
+            for (std::size_t 索引 = 起始; 索引 < 结束; ++索引) {
+                const auto& 行 = 节点集[索引];
+                SQL << "(@snapshot_id, "
+                    << 行.行号 << ", "
+                    << 私有_世界树SQL字符串(行.节点主键, false) << ", "
+                    << 私有_世界树SQL字符串(行.父节点主键) << ", "
+                    << 行.深度 << ", "
+                    << 行.同层序号 << ", "
+                    << 行.直接子数量 << ", "
+                    << 私有_世界树SQL字符串(行.路径) << ", "
+                    << 私有_世界树SQL字符串(行.节点类别) << ", "
+                    << 私有_世界树SQL字符串(行.显示文本) << ", "
+                    << 私有_世界树SQL可空整数(行.有主信息类型, 行.主信息类型值) << ", "
+                    << 私有_世界树SQL字符串(行.主信息类型文本) << ", "
+                    << 私有_世界树SQL字符串(行.名称主键) << ", "
+                    << 私有_世界树SQL字符串(行.名称文本) << ", "
+                    << 私有_世界树SQL字符串(行.类型主键) << ", "
+                    << 私有_世界树SQL字符串(行.类型文本) << ", "
+                    << 私有_世界树SQL字符串(行.值类别) << ", "
+                    << 私有_世界树SQL字符串(行.值文本) << ", "
+                    << 私有_世界树SQL字符串(行.辅助文本) << ")"
+                    << (索引 + 1 == 结束 ? ";\n" : ",\n");
+            }
         }
-        for (const auto& 行 : 关系集) {
-            SQL << "INSERT INTO fishnest.world_tree_node_relation (snapshot_id, row_index, owner_key, relation_name, target_kind, target_key, target_text, ordinal_index) VALUES (@snapshot_id, "
-                << 行.行号 << ", "
-                << 私有_世界树SQL字符串(行.宿主主键, false) << ", "
-                << 私有_世界树SQL字符串(行.关系名, false) << ", "
-                << 私有_世界树SQL字符串(行.目标类别) << ", "
-                << 私有_世界树SQL字符串(行.目标主键) << ", "
-                << 私有_世界树SQL字符串(行.目标文本) << ", "
-                << 行.序号 << ");\n";
+        for (std::size_t 起始 = 0; 起始 < 关系集.size(); 起始 += 插入批量大小) {
+            const auto 结束 = std::min(起始 + 插入批量大小, 关系集.size());
+            SQL << "INSERT INTO fishnest.world_tree_node_relation (snapshot_id, row_index, owner_row_index, target_row_index, owner_key, relation_name, target_kind, target_key, target_text, ordinal_index) VALUES\n";
+            for (std::size_t 索引 = 起始; 索引 < 结束; ++索引) {
+                const auto& 行 = 关系集[索引];
+                SQL << "(@snapshot_id, "
+                    << 行.行号 << ", "
+                    << 行.宿主行号 << ", "
+                    << 私有_世界树SQL可空整数(行.目标行号 > 0, 行.目标行号) << ", "
+                    << 私有_世界树SQL字符串(行.宿主主键, false) << ", "
+                    << 私有_世界树SQL字符串(行.关系名, false) << ", "
+                    << 私有_世界树SQL字符串(行.目标类别) << ", "
+                    << 私有_世界树SQL字符串(行.目标主键) << ", "
+                    << 私有_世界树SQL字符串(行.目标文本) << ", "
+                    << 行.序号 << ")"
+                    << (索引 + 1 == 结束 ? ";\n" : ",\n");
+            }
         }
+        SQL << "WITH root_nodes AS (\n"
+            << "    SELECT n.snapshot_id, n.node_key AS root_key, n.depth AS root_depth, n.path_text AS root_path_text\n"
+            << "    FROM fishnest.world_tree_node n\n"
+            << "    WHERE n.snapshot_id = @snapshot_id AND n.parent_key = N'WORLD_ROOT'\n"
+            << ")\n"
+            << "INSERT INTO fishnest.world_tree_root_tree_node (snapshot_id, root_key, root_relative_depth, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text, node_kind, display_text, main_type_value, main_type_text, name_key, name_text, type_key, type_text, value_kind, value_text, auxiliary_text)\n"
+            << "SELECT n.snapshot_id, r.root_key, n.depth - r.root_depth, n.row_index, n.node_key, n.parent_key, n.depth, n.sibling_index, n.direct_child_count, n.path_text, n.node_kind, n.display_text, n.main_type_value, n.main_type_text, n.name_key, n.name_text, n.type_key, n.type_text, n.value_kind, n.value_text, n.auxiliary_text\n"
+            << "FROM root_nodes r\n"
+            << "JOIN fishnest.world_tree_node n ON n.snapshot_id = r.snapshot_id\n"
+            << "    AND (n.path_text = r.root_path_text OR n.path_text LIKE r.root_path_text + N'/%');\n"
+            << "INSERT INTO fishnest.world_tree_root_tree_relation (snapshot_id, root_key, row_index, owner_row_index, target_row_index, owner_key, relation_name, target_kind, target_key, target_text, ordinal_index)\n"
+            << "SELECT r.snapshot_id, n.root_key, r.row_index, r.owner_row_index, r.target_row_index, r.owner_key, r.relation_name, r.target_kind, r.target_key, r.target_text, r.ordinal_index\n"
+            << "FROM fishnest.world_tree_node_relation r\n"
+            << "JOIN fishnest.world_tree_root_tree_node n ON n.snapshot_id = r.snapshot_id AND n.row_index = r.owner_row_index\n"
+            << "WHERE r.snapshot_id = @snapshot_id;\n"
+            << "WITH node_counts AS (\n"
+            << "    SELECT snapshot_id, root_key, COUNT_BIG(*) AS subtree_node_count\n"
+            << "    FROM fishnest.world_tree_root_tree_node\n"
+            << "    WHERE snapshot_id = @snapshot_id\n"
+            << "    GROUP BY snapshot_id, root_key\n"
+            << "), relation_counts AS (\n"
+            << "    SELECT snapshot_id, root_key, COUNT_BIG(*) AS subtree_relation_count\n"
+            << "    FROM fishnest.world_tree_root_tree_relation\n"
+            << "    WHERE snapshot_id = @snapshot_id\n"
+            << "    GROUP BY snapshot_id, root_key\n"
+            << ")\n"
+            << "INSERT INTO fishnest.world_tree_root_tree (snapshot_id, root_key, root_row_index, root_kind, root_display_text, root_depth, root_sibling_index, root_direct_child_count, root_path_text, subtree_node_count, subtree_relation_count)\n"
+            << "SELECT root.snapshot_id, root.node_key, root.row_index, root.node_kind, root.display_text, root.depth, root.sibling_index, root.direct_child_count, root.path_text,\n"
+            << "    CONVERT(int, ISNULL(nc.subtree_node_count, 0)), CONVERT(int, ISNULL(rc.subtree_relation_count, 0))\n"
+            << "FROM fishnest.world_tree_node root\n"
+            << "LEFT JOIN node_counts nc ON nc.snapshot_id = root.snapshot_id AND nc.root_key = root.node_key\n"
+            << "LEFT JOIN relation_counts rc ON rc.snapshot_id = root.snapshot_id AND rc.root_key = root.node_key\n"
+            << "WHERE root.snapshot_id = @snapshot_id AND root.parent_key = N'WORLD_ROOT';\n";
         SQL << "COMMIT TRANSACTION;\n";
         return SQL.str();
     }
@@ -995,6 +1156,7 @@ bool 世界树类::重写世界树SQL投影(const char* 来源原因) const noex
                     关系集);
             }
         }
+        私有_解析世界树SQL关系序号(节点集, 关系集);
 
         const auto 原因文本 = 来源原因 ? std::string(来源原因) : std::string{};
         const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");

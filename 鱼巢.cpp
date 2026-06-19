@@ -2167,6 +2167,18 @@ int main(int argc, char** argv)
             }
         }
 
+        if (私有_命令行包含参数(argc, argv, "--refresh-sql-projection")
+            || 私有_命令行包含参数(argc, argv, "--sql-projection-refresh")) {
+            鱼巢_启动说明("SQL投影刷新命令");
+            if (!私有_确保自我环境已初始化("鱼巢::main/命令行/刷新SQL投影", true)) {
+                项目运行错误日志("SQL投影刷新失败 | 原因=自我环境初始化失败");
+                鱼巢_控制台输出(std::cerr << "自我环境初始化失败，SQL 投影未刷新。\n");
+                return 4;
+            }
+            鱼巢_控制台输出(std::cout << "SQL 投影已刷新。\n");
+            return 0;
+        }
+
         const auto 相机命令 = 私有_解析命令行相机命令(argc, argv);
         if (相机命令 != 枚举_命令行相机命令::无) {
             鱼巢_启动说明("命令行D455相机入口");
