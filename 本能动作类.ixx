@@ -223,20 +223,22 @@ public:
         }
 
         std::vector<基础信息节点类*> 已绑定输入节点栈{};
-        const auto 递归结果 = 递归匹配节点(输入场景根, 模式场景根, 参数, 输出, 已绑定输入节点栈);
-        输出.匹配成功 = 递归结果.ok;
-        输出.总分 = 递归结果.score;
-        输出.有歧义 = 输出.有歧义 || 递归结果.ambiguous;
+        I64 递归分数 = 0;
+        bool 递归有歧义 = false;
+        输出.匹配成功 = 递归匹配节点(
+            输入场景根,
+            模式场景根,
+            参数,
+            输出,
+            已绑定输入节点栈,
+            递归分数,
+            递归有歧义);
+        输出.总分 = 递归分数;
+        输出.有歧义 = 输出.有歧义 || 递归有歧义;
         return 输出;
     }
 
 private:
-    struct 局部结果 {
-        bool ok = true;
-        bool ambiguous = false;
-        I64 score = 0;
-    };
-
     // 功能：按函数名执行对应处理。
     static inline I64 差值(
         const 结构体_场景模式匹配参数& 参数,
@@ -299,24 +301,25 @@ private:
     }
 
     // 功能：建立对象、任务、方法或因果之间的绑定关系。
-    static inline 局部结果 挑选绑定(
+    static inline bool 挑选绑定(
         基础信息节点类* 输入父节点,
         const 基础信息节点类* 模式子节点,
         const 结构体_场景模式匹配参数& 参数,
         结构体_场景模式匹配结果& 输入输出,
-        std::vector<基础信息节点类*>& 已绑定输入节点栈)
+        std::vector<基础信息节点类*>& 已绑定输入节点栈,
+        I64& 输出分数,
+        bool& 输出有歧义)
     {
-        局部结果 输出{};
+        输出分数 = 0;
+        输出有歧义 = false;
         if (!输入父节点 || !模式子节点) {
-            输出.ok = false;
-            return 输出;
+            return false;
         }
 
         const auto* 类型 = 本能动作模块_detail::取类型(模式子节点);
         if (!类型) {
-            输出.ok = false;
             输入输出.未满足模式节点.push_back(模式子节点);
-            return 输出;
+            return false;
         }
 
         std::vector<std::pair<I64, 基础信息节点类*>> 候选{};
@@ -331,9 +334,8 @@ private:
         }
 
         if (候选.empty()) {
-            输出.ok = false;
             输入输出.未满足模式节点.push_back(模式子节点);
-            return 输出;
+            return false;
         }
 
         std::sort(候选.begin(), 候选.end(), [](
@@ -346,35 +348,37 @@ private:
         });
 
         已绑定输入节点栈.push_back(候选.front().second);
-        输出.score += 候选.front().first;
+        输出分数 += 候选.front().first;
 
         if (候选.size() >= 2) {
             const I64 分差 = 本能动作模块_detail::饱和绝对差(候选[0].first, 候选[1].first);
             if (分差 <= 参数.歧义分差阈值) {
-                输出.ambiguous = true;
+                输出有歧义 = true;
                 输入输出.有歧义 = true;
             }
         }
 
-        return 输出;
+        return true;
     }
 
     // 功能：按函数名执行对应处理。
-    static inline 局部结果 递归匹配节点(
+    static inline bool 递归匹配节点(
         基础信息节点类* 输入节点,
         const 基础信息节点类* 模式节点,
         const 结构体_场景模式匹配参数& 参数,
         结构体_场景模式匹配结果& 输入输出,
-        std::vector<基础信息节点类*>& 已绑定输入节点栈)
+        std::vector<基础信息节点类*>& 已绑定输入节点栈,
+        I64& 输出分数,
+        bool& 输出有歧义)
     {
-        局部结果 输出{};
+        输出分数 = 0;
+        输出有歧义 = false;
         if (!输入节点 || !模式节点) {
-            输出.ok = false;
-            return 输出;
+            return false;
         }
 
         if (!模式节点->子) {
-            return 输出;
+            return true;
         }
 
         return 递归匹配子节点(
@@ -383,19 +387,24 @@ private:
             本能动作模块_detail::是OR组(模式节点),
             参数,
             输入输出,
-            已绑定输入节点栈);
+            已绑定输入节点栈,
+            输出分数,
+            输出有歧义);
     }
 
     // 功能：按函数名执行对应处理。
-    static inline 局部结果 递归匹配子节点(
+    static inline bool 递归匹配子节点(
         基础信息节点类* 输入节点,
         const 基础信息节点类* 模式父节点,
         bool OR模式,
         const 结构体_场景模式匹配参数& 参数,
         结构体_场景模式匹配结果& 输入输出,
-        std::vector<基础信息节点类*>& 已绑定输入节点栈)
+        std::vector<基础信息节点类*>& 已绑定输入节点栈,
+        I64& 输出分数,
+        bool& 输出有歧义)
     {
-        局部结果 输出{};
+        输出分数 = 0;
+        输出有歧义 = false;
         const auto 模式子节点列表 = 本能动作模块_detail::枚举子节点_只读(模式父节点);
 
         if (OR模式) {
@@ -407,61 +416,90 @@ private:
             for (const auto* 模式子节点 : 模式子节点列表) {
                 auto 临时结果 = 输入输出;
                 auto 临时输入节点栈 = 已绑定输入节点栈;
-                auto 挑选结果 = 挑选绑定(输入节点, 模式子节点, 参数, 临时结果, 临时输入节点栈);
-                if (!挑选结果.ok) {
+                I64 挑选分数 = 0;
+                bool 挑选有歧义 = false;
+                if (!挑选绑定(
+                    输入节点,
+                    模式子节点,
+                    参数,
+                    临时结果,
+                    临时输入节点栈,
+                    挑选分数,
+                    挑选有歧义)) {
                     continue;
                 }
 
                 auto* 已绑定输入节点 = 临时输入节点栈.back();
-                auto 子结果 = 递归匹配节点(已绑定输入节点, 模式子节点, 参数, 临时结果, 临时输入节点栈);
-                if (!子结果.ok) {
+                I64 子分数 = 0;
+                bool 子有歧义 = false;
+                if (!递归匹配节点(
+                    已绑定输入节点,
+                    模式子节点,
+                    参数,
+                    临时结果,
+                    临时输入节点栈,
+                    子分数,
+                    子有歧义)) {
                     continue;
                 }
 
-                const I64 当前分数 = 挑选结果.score + 子结果.score;
+                const I64 当前分数 = 挑选分数 + 子分数;
                 if (!任一成功 || 当前分数 > 最佳分数) {
                     最佳分数 = 当前分数;
                     最佳结果 = std::move(临时结果);
                     最佳输入节点栈 = std::move(临时输入节点栈);
-                    输出.ambiguous = 输出.ambiguous || 挑选结果.ambiguous || 子结果.ambiguous;
+                    输出有歧义 = 输出有歧义 || 挑选有歧义 || 子有歧义;
                     任一成功 = true;
                 }
             }
 
             if (!任一成功) {
-                输出.ok = false;
                 输入输出.未满足模式节点.push_back(模式父节点);
-                return 输出;
+                return false;
             }
 
             输入输出 = std::move(最佳结果);
             已绑定输入节点栈 = std::move(最佳输入节点栈);
-            输出.score += 最佳分数;
-            return 输出;
+            输出分数 += 最佳分数;
+            return true;
         }
 
         for (const auto* 模式子节点 : 模式子节点列表) {
-            auto 挑选结果 = 挑选绑定(输入节点, 模式子节点, 参数, 输入输出, 已绑定输入节点栈);
-            if (!挑选结果.ok) {
-                输出.ok = false;
-                return 输出;
+            I64 挑选分数 = 0;
+            bool 挑选有歧义 = false;
+            if (!挑选绑定(
+                输入节点,
+                模式子节点,
+                参数,
+                输入输出,
+                已绑定输入节点栈,
+                挑选分数,
+                挑选有歧义)) {
+                return false;
             }
 
-            输出.score += 挑选结果.score;
-            输出.ambiguous = 输出.ambiguous || 挑选结果.ambiguous;
+            输出分数 += 挑选分数;
+            输出有歧义 = 输出有歧义 || 挑选有歧义;
 
             auto* 已绑定输入节点 = 已绑定输入节点栈.back();
-            auto 子结果 = 递归匹配节点(已绑定输入节点, 模式子节点, 参数, 输入输出, 已绑定输入节点栈);
-            if (!子结果.ok) {
-                输出.ok = false;
-                return 输出;
+            I64 子分数 = 0;
+            bool 子有歧义 = false;
+            if (!递归匹配节点(
+                已绑定输入节点,
+                模式子节点,
+                参数,
+                输入输出,
+                已绑定输入节点栈,
+                子分数,
+                子有歧义)) {
+                return false;
             }
 
-            输出.score += 子结果.score;
-            输出.ambiguous = 输出.ambiguous || 子结果.ambiguous;
+            输出分数 += 子分数;
+            输出有歧义 = 输出有歧义 || 子有歧义;
         }
 
-        return 输出;
+        return true;
     }
 };
 
