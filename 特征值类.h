@@ -29,15 +29,6 @@ public:
         私有_重建缓存_已加锁();
     }
 
-    // 功能：按函数名执行对应处理。
-    void 调试清空缓存() noexcept {
-        缓存已构建_ = false;
-        decltype(哈希到候选_){}.swap(哈希到候选_);
-        decltype(索引池_){}.swap(索引池_);
-        根2D_ = nullptr;
-        根3D_ = nullptr;
-    }
-
     // 功能：按条件查找目标对象、方法或事实。
     节点类* 查找(const 特征值主信息类& mi) const {
         return 查找(mi.值);
