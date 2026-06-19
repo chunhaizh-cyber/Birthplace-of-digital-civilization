@@ -96,18 +96,6 @@ inline constexpr 比较量 比较I64_三态(const I64 左, const I64 右) noexce
 }
 
 // 功能：比较当前值、目标值或历史基准。
-inline constexpr 比较量 比较U64_三态(const std::uint64_t 左, const std::uint64_t 右) noexcept
-{
-    return 左 < 右 ? -1 : (左 > 右 ? 1 : 0);
-}
-
-// 功能：比较当前值、目标值或历史基准。
-inline constexpr std::int8_t 比较符号(const 比较量 r) noexcept
-{
-    return static_cast<std::int8_t>((r > 0) - (r < 0));
-}
-
-// 功能：比较当前值、目标值或历史基准。
 inline constexpr 枚举_三向关系 比较量转三向关系(const 比较量 r) noexcept
 {
     return r < 0
@@ -119,14 +107,6 @@ inline constexpr 枚举_三向关系 比较量转三向关系(const 比较量 r)
 inline constexpr 三向关系掩码 比较量方向掩码(const 比较量 r) noexcept
 {
     return r < 0 ? 关系_小于 : (r > 0 ? 关系_大于 : 关系_等于);
-}
-
-// 功能：比较当前值、目标值或历史基准。
-inline constexpr bool 比较量命中三向关系(
-    const 比较量 r,
-    const 三向关系掩码 掩码) noexcept
-{
-    return (比较量方向掩码(r) & 掩码) != 0;
 }
 
 // 功能：比较当前值、目标值或历史基准。
