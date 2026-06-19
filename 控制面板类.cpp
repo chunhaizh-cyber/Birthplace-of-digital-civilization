@@ -7663,10 +7663,27 @@ function createGenericRowNode(sectionId,sectionTitle,headers,cells,index,treeLik
 }
 function buildGenericHierarchy(nodes){
   const roots=[];
+  const byKey=new Map();
   nodes.forEach(node=>{
+    node.children=[];
     const depth=Number.parseInt(node.depth||'0',10);
     node.depthValue=Number.isFinite(depth)&&depth>=0?depth:0;
+    if(node.key)byKey.set(String(node.key),node);
   });
+  let linkedByParent=false;
+  nodes.forEach(node=>{
+    const parentKey=String(node.parent||'').trim();
+    const parent=parentKey?byKey.get(parentKey):null;
+    if(parent&&parent!==node){
+      parent.children.push(node);
+      linkedByParent=true;
+    }else{
+      roots.push(node);
+    }
+  });
+  if(linkedByParent)return roots.length?roots:nodes;
+  roots.length=0;
+  nodes.forEach(node=>{node.children=[];});
   const stack=[];
   nodes.forEach(node=>{
     while(stack.length&&stack[stack.length-1].depthValue>=node.depthValue)stack.pop();
