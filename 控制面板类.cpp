@@ -7185,9 +7185,9 @@ ORDER BY row_index;
             << "<p>数据来源：ADO / SQL Server <code>.\\SQLEXPRESS</code> / <code>FishnestProjection</code> / <code>fishnest</code> SQL 投影视图</p>"
             << "<p>批次：<code>" << 私有_转义HTML(批次ID) << "</code>；创建时间：" << 私有_转义HTML(创建时间)
             << "；工作区：" << 私有_转义HTML(工作区) << "</p>"
-            << "<div class=\"top-actions\"><button id=\"refreshPanel\" type=\"button\">刷新</button>"
+            << "<div class=\"top-actions\">"
             << "<button id=\"openCameraWindow\" class=\"secondary\" type=\"button\">打开相机窗口</button>"
-            << "<span id=\"refreshStatus\">手动刷新：当前查看不会被定时重置</span></div></header>\n"
+            << "<span id=\"panelStatus\">点击菜单只刷新当前页面数据</span></div></header>\n"
             << "<div class=\"panel-shell\"><aside class=\"menu-bar\"><nav class=\"menu-group\" aria-label=\"控制面板菜单\">"
             << "<div class=\"menu-title\">运行</div>"
             << "<button class=\"active\" data-menu-index=\"1\" data-target=\"metrics\">1. 面板指标</button>"
@@ -7403,9 +7403,8 @@ const causalInfoHost=document.getElementById('causalInfoTreeView');
 const nodeDetail=document.getElementById('sqlNodeDetail');
 const causalInfoDetail=nodeDetail;
 const worldTreeHost=document.getElementById('worldTreeView');
-const refreshButton=document.getElementById('refreshPanel');
 const openCameraButton=document.getElementById('openCameraWindow');
-const refreshStatus=document.getElementById('refreshStatus');
+const panelStatus=document.getElementById('panelStatus');
 let causalInfoRoots=[];
 let worldTreeRoots=[];
 const genericTreeRootsBySection=new Map();
@@ -7936,25 +7935,15 @@ function selectMenuByNumber(text){
   activateMenuButton(button);
   return true;
 }
-function refreshPanel(){
-  try{localStorage.setItem('fishnest.panel.activeTarget',document.querySelector('button[data-target].active')?.dataset.target||'');}catch(_){}
-  if(window.chrome&&window.chrome.webview){
-    if(refreshStatus)refreshStatus.textContent='正在刷新...';
-    window.chrome.webview.postMessage('refresh');
-  }else{
-    location.reload();
-  }
-}
 function openCameraWindow(){
   if(window.chrome&&window.chrome.webview){
     window.chrome.webview.postMessage('camera:open-window');
-  }else if(refreshStatus){
-    refreshStatus.textContent='静态 HTML 预览不能打开相机窗口。';
+  }else if(panelStatus){
+    panelStatus.textContent='静态 HTML 预览不能打开相机窗口。';
   }
 }
 buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button)));
 filter.addEventListener('input',applyFilter);
-if(refreshButton)refreshButton.addEventListener('click',refreshPanel);
 if(openCameraButton)openCameraButton.addEventListener('click',openCameraWindow);
 document.addEventListener('keydown',event=>{
   if(event.target&&['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName))return;
@@ -7989,8 +7978,8 @@ try{
   if(savedButton)activateMenuButton(savedButton);else activateMenuButton(buttons[0]);
 }catch(_){activateMenuButton(buttons[0]);}
 window.__panelApplyCameraWindowState=function(data){
-  if(refreshStatus&&data&&typeof data==='object'){
-    refreshStatus.textContent=data.message||(data.ok?'相机窗口已打开。':'相机窗口打开失败。');
+  if(panelStatus&&data&&typeof data==='object'){
+    panelStatus.textContent=data.message||(data.ok?'相机窗口已打开。':'相机窗口打开失败。');
   }
 };
 window.__panelApplyPageRefresh=function(){};
@@ -11641,7 +11630,6 @@ std::string 私有_生成控制面板HTML(
           </div>
           <div class="toolbar-actions">
             <button class="toolbar-btn secondary" type="button" id="copy-page">复制当前页</button>
-            <button class="toolbar-btn" type="button" id="refresh-page">刷新</button>
           </div>
         </div>
 
@@ -14131,15 +14119,6 @@ std::string 私有_生成控制面板HTML(
       }
       return false;
     }
-
-    function 刷新当前控制面板页() {
-      const 当前页面 = 页面列表.find((item) => item.classList.contains('active')) || 页面列表[0];
-      if (!请求刷新控制面板页(当前页面?.dataset.page || 'thread-status')) {
-        location.reload();
-      }
-    }
-
-    document.getElementById('refresh-page').addEventListener('click', 刷新当前控制面板页);
 
     document.getElementById('copy-page').addEventListener('click', async () => {
       const 当前页面 = 页面列表.find((item) => item.classList.contains('active')) || 页面列表[0];
