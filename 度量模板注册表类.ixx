@@ -128,24 +128,6 @@ public:
         return nullptr;
     }
 
-    // 功能：根据当前输入生成目标数据、场景、动态或回执。
-    [[nodiscard]] std::string 生成链键_存在(枚举_模板族 模板族) const
-    {
-        结构_模板参数 参数{};
-        return 获取或抛(模板族).生成链键(参数);
-    }
-
-    // 功能：根据当前输入生成目标数据、场景、动态或回执。
-    [[nodiscard]] std::string 生成链键_特征(枚举_模板族 模板族, std::string_view 特征类型主键) const
-    {
-        结构_模板参数 参数{};
-        参数.特征类型主键 = std::string(特征类型主键);
-
-        const auto& 模板 = 获取或抛(模板族);
-        模板.校验参数(参数);
-        return 模板.生成链键(参数);
-    }
-
     [[nodiscard]] std::vector<结构_刻度片> 默认刻度_由链键(
         std::string_view 链键,
         std::string_view 特征类型主键 = {}) const
