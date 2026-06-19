@@ -7344,62 +7344,29 @@ ORDER BY row_index;
         return 输出;
     }
 
-    // 功能：按父节点键逐层读取 SQL 树完整后代子链。
-    bool 私有_按层读取SQL树子链(
+    // 功能：按父节点键读取 SQL 树直接子节点层。
+    bool 私有_读取SQL树直接子层(
         std::string_view 查询名,
         std::string_view 来源视图,
         std::string_view 父键字段,
         std::string_view 选择字段SQL,
-        std::string_view 根节点键,
+        std::string_view 父节点键,
         std::vector<std::vector<std::string>>& 行集,
         std::string& 错误)
     {
         行集.clear();
-        std::vector<std::string> 当前层{ std::string(根节点键) };
-        std::unordered_set<std::string> 已访问{ std::string(根节点键) };
-        constexpr std::size_t 单批键数量 = 80;
-        constexpr std::size_t 最大层数 = 256;
+        std::string SQL;
+        SQL += "SELECT ";
+        SQL += 选择字段SQL;
+        SQL += " FROM ";
+        SQL += 来源视图;
+        SQL += " WHERE COALESCE(";
+        SQL += 父键字段;
+        SQL += ", N'') = ";
+        SQL += 私有_SQL字符串字面量(父节点键);
+        SQL += " ORDER BY row_index;";
 
-        for (std::size_t 层 = 0; 层 < 最大层数 && !当前层.empty(); ++层) {
-            std::vector<std::string> 下一层{};
-            for (std::size_t 起点 = 0; 起点 < 当前层.size(); 起点 += 单批键数量) {
-                const std::string IN列表 = 私有_SQL字符串IN列表(当前层, 起点, 单批键数量);
-                if (IN列表.empty()) {
-                    continue;
-                }
-                std::string SQL;
-                SQL += "SELECT ";
-                SQL += 选择字段SQL;
-                SQL += " FROM ";
-                SQL += 来源视图;
-                SQL += " WHERE COALESCE(";
-                SQL += 父键字段;
-                SQL += ", N'') IN (";
-                SQL += IN列表;
-                SQL += ") ORDER BY row_index;";
-
-                std::vector<std::vector<std::string>> 本批行集{};
-                if (!私有_读取SQL控制面板子链行集(查询名, SQL, 本批行集, 错误)) {
-                    return false;
-                }
-                for (auto& 行 : 本批行集) {
-                    const std::string 子键 = 私有_SQL字段(行, 0);
-                    if (子键.empty() || 已访问.insert(子键).second) {
-                        if (!子键.empty()) {
-                            下一层.push_back(子键);
-                        }
-                        行集.push_back(std::move(行));
-                    }
-                }
-            }
-            当前层 = std::move(下一层);
-        }
-
-        if (!当前层.empty()) {
-            错误 = "SQL 树子链超过最大层数";
-            return false;
-        }
-        return true;
+        return 私有_读取SQL控制面板子链行集(查询名, SQL, 行集, 错误);
     }
 
     // 功能：按世界树节点键集合读取关系行。
@@ -7468,41 +7435,7 @@ WHERE owner_key IN ()SQL";
         return 输出.str();
     }
 
-    // 功能：执行指定 SQL 并生成普通树子链 JSON。
-    std::string 私有_SQL控制面板普通树子链JSON(
-        std::string_view 区段ID,
-        std::string_view 节点键,
-        std::string_view SQL,
-        const std::size_t 列数)
-    {
-        std::vector<std::vector<std::string>> 行集{};
-        std::string 错误{};
-        if (!私有_读取SQL控制面板子链行集(区段ID, std::string(SQL), 行集, 错误)) {
-            return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
-        }
-        return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 列数);
-    }
-
-    // 功能：执行指定 SQL 并生成世界树子链 JSON。
-    std::string 私有_SQL控制面板世界树子链JSON(
-        std::string_view 区段ID,
-        std::string_view 节点键,
-        const std::string& 节点SQL,
-        const std::string& 关系SQL)
-    {
-        std::vector<std::vector<std::string>> 节点行集{};
-        std::vector<std::vector<std::string>> 关系行集{};
-        std::string 错误{};
-        if (!私有_读取SQL控制面板子链行集("世界树子链节点", 节点SQL, 节点行集, 错误)) {
-            return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
-        }
-        if (!私有_读取SQL控制面板子链行集("世界树子链关系", 关系SQL, 关系行集, 错误)) {
-            return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
-        }
-        return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 节点行集, 关系行集);
-    }
-
-    // 功能：按 SQL 控制面板树节点读取整条后代子链。
+    // 功能：按 SQL 控制面板树节点读取一层直接子节点。
     std::string 私有_SQL控制面板子链JSON(
         std::string_view 区段ID,
         std::string_view 节点键)
@@ -7560,7 +7493,7 @@ CONVERT(nvarchar(20), COALESCE(stat_last_observed_time_us, 0)) AS stat_last_obse
 CONVERT(nvarchar(20), COALESCE(stat_hit_count, 0)) AS stat_hit_count,
 CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
 CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent)SQL";
-            if (!私有_按层读取SQL树子链("需求树子链", "fishnest.v_current_demand_panel_nodes", "display_parent_id", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("需求树子层", "fishnest.v_current_demand_panel_nodes", "display_parent_id", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 46);
@@ -7575,7 +7508,7 @@ COALESCE(task_state_text, N'') AS task_state_text,
 COALESCE(demand_key, N'') AS demand_key,
 COALESCE(target_state_key, N'') AS target_state_key,
 COALESCE(result_state_key, N'') AS result_state_key)SQL";
-            if (!私有_按层读取SQL树子链("任务树子链", "fishnest.v_current_task_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("任务树子层", "fishnest.v_current_task_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 8);
@@ -7591,7 +7524,7 @@ COALESCE(action_handle, N'') AS action_handle,
 COALESCE(source_text, N'') AS source_text,
 COALESCE(primary_result_feature_key, N'') AS primary_result_feature_key,
 CONVERT(nvarchar(20), COALESCE(result_item_count, 0)) AS result_item_count)SQL";
-            if (!私有_按层读取SQL树子链("方法树子链", "fishnest.v_current_method_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("方法树子层", "fishnest.v_current_method_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 9);
@@ -7606,7 +7539,7 @@ COALESCE(word_text, N'') AS word_text,
 COALESCE(entry_type_text, N'') AS entry_type_text,
 COALESCE(mapped_main_type_text, N'') AS mapped_main_type_text,
 COALESCE(bound_basic_key, N'') AS bound_basic_key)SQL";
-            if (!私有_按层读取SQL树子链("语素树子链", "fishnest.v_current_lexeme_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("语素树子层", "fishnest.v_current_lexeme_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 8);
@@ -7622,7 +7555,7 @@ COALESCE(type_text, N'') AS type_text,
 COALESCE(value_kind, N'') AS value_kind,
 COALESCE(value_text, N'') AS value_text,
 COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
-            if (!私有_按层读取SQL树子链("世界树子链", "fishnest.v_current_world_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("世界树子层", "fishnest.v_current_world_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             std::vector<std::vector<std::string>> 关系行集{};
@@ -7631,205 +7564,6 @@ COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
             }
             return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 行集, 关系行集);
         }
-        return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, "该区段不是按需树");
-
-        const std::string 键 = 私有_SQL字符串字面量(节点键);
-        if (区段ID == "demandTree") {
-            const std::string SQL = R"SQL(
-WITH 子链 AS (
-    SELECT *
-    FROM fishnest.v_current_demand_panel_nodes
-    WHERE COALESCE(display_parent_id, N'') = )SQL" + 键 + R"SQL(
-    UNION ALL
-    SELECT 子.*
-    FROM fishnest.v_current_demand_panel_nodes 子
-    INNER JOIN 子链 父 ON COALESCE(子.display_parent_id, N'') = COALESCE(父.display_node_id, N'')
-)
-SELECT
-    COALESCE(display_node_id, N'') AS display_node_id,
-    COALESCE(display_parent_id, N'') AS display_parent_id,
-    CONVERT(nvarchar(20), COALESCE(display_depth, 0)) AS depth,
-    COALESCE(node_name, N'') AS node_name,
-    COALESCE(tree_shape, N'') AS tree_shape,
-    COALESCE(target_semantics, N'') AS target_semantics,
-    COALESCE(target_feature_display, N'') AS target_feature_display,
-    COALESCE(task_display, N'') AS task_display,
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(logic_group_type, N'') AS logic_group_type,
-    COALESCE(target_feature_type, N'') AS target_feature_type,
-    COALESCE(target_feature_key, N'') AS target_feature_key,
-    COALESCE(task_type, N'') AS task_type,
-    COALESCE(task_key, N'') AS task_key,
-    COALESCE(subject_display_name, N'') AS subject_display_name,
-    COALESCE(subject_type_name, N'') AS subject_type_name,
-    COALESCE(subject_key, N'') AS subject_key,
-    COALESCE(scene_display_name, N'') AS scene_display_name,
-    COALESCE(scene_type_name, N'') AS scene_type_name,
-    COALESCE(scene_key, N'') AS scene_key,
-    COALESCE(target_host_display_name, N'') AS target_host_display_name,
-    COALESCE(target_host_type_name, N'') AS target_host_type_name,
-    COALESCE(target_host_key, N'') AS target_host_key,
-    COALESCE(current_state_display_name, N'') AS current_state_display_name,
-    COALESCE(current_state_type_name, N'') AS current_state_type_name,
-    COALESCE(current_state_key, N'') AS current_state_key,
-    COALESCE(target_state_display_name, N'') AS target_state_display_name,
-    COALESCE(target_state_type_name, N'') AS target_state_type_name,
-    COALESCE(target_state_key, N'') AS target_state_key,
-    CONVERT(nvarchar(20), COALESCE(relation_mask, 0)) AS relation_mask,
-    CONVERT(nvarchar(20), COALESCE(safety_weight, 0)) AS safety_weight,
-    CONVERT(nvarchar(20), COALESCE(service_weight, 0)) AS service_weight,
-    CONVERT(nvarchar(20), COALESCE(safety_settled, 0)) AS safety_settled,
-    CONVERT(nvarchar(20), COALESCE(service_settled, 0)) AS service_settled,
-    CONVERT(nvarchar(20), COALESCE(valid_until_us, 0)) AS valid_until_us,
-    COALESCE(recent_settlement_task_display_name, N'') AS recent_settlement_task_display_name,
-    COALESCE(recent_settlement_task_type_name, N'') AS recent_settlement_task_type_name,
-    COALESCE(recent_settlement_task_key, N'') AS recent_settlement_task_key,
-    CONVERT(nvarchar(20), COALESCE(recent_settlement_time_us, 0)) AS recent_settlement_time_us,
-    COALESCE(description_key, N'') AS description_key,
-    CONVERT(nvarchar(20), COALESCE(stat_created_time_us, 0)) AS stat_created_time_us,
-    CONVERT(nvarchar(20), COALESCE(stat_last_observed_time_us, 0)) AS stat_last_observed_time_us,
-    CONVERT(nvarchar(20), COALESCE(stat_hit_count, 0)) AS stat_hit_count,
-    CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
-    CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent
-FROM 子链
-ORDER BY row_index
-OPTION (MAXRECURSION 0);
-)SQL";
-            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, SQL, 46);
-        }
-
-        if (区段ID == "taskTree") {
-            const std::string SQL = R"SQL(
-WITH 子链 AS (
-    SELECT *
-    FROM fishnest.v_current_task_tree_nodes
-    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
-    UNION ALL
-    SELECT 子.*
-    FROM fishnest.v_current_task_tree_nodes 子
-    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
-)
-SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind_text, N'') AS node_kind_text,
-    COALESCE(task_state_text, N'') AS task_state_text,
-    COALESCE(demand_key, N'') AS demand_key,
-    COALESCE(target_state_key, N'') AS target_state_key,
-    COALESCE(result_state_key, N'') AS result_state_key
-FROM 子链
-ORDER BY row_index
-OPTION (MAXRECURSION 0);
-)SQL";
-            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, SQL, 8);
-        }
-
-        if (区段ID == "methodTree") {
-            const std::string SQL = R"SQL(
-WITH 子链 AS (
-    SELECT *
-    FROM fishnest.v_current_method_tree_nodes
-    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
-    UNION ALL
-    SELECT 子.*
-    FROM fishnest.v_current_method_tree_nodes 子
-    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
-)
-SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind_text, N'') AS node_kind_text,
-    COALESCE(action_name, N'') AS action_name,
-    COALESCE(action_handle, N'') AS action_handle,
-    COALESCE(source_text, N'') AS source_text,
-    COALESCE(primary_result_feature_key, N'') AS primary_result_feature_key,
-    CONVERT(nvarchar(20), COALESCE(result_item_count, 0)) AS result_item_count
-FROM 子链
-ORDER BY row_index
-OPTION (MAXRECURSION 0);
-)SQL";
-            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, SQL, 9);
-        }
-
-        if (区段ID == "lexemeTree") {
-            const std::string SQL = R"SQL(
-WITH 子链 AS (
-    SELECT *
-    FROM fishnest.v_current_lexeme_nodes
-    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
-    UNION ALL
-    SELECT 子.*
-    FROM fishnest.v_current_lexeme_nodes 子
-    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
-)
-SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind, N'') AS node_kind,
-    COALESCE(word_text, N'') AS word_text,
-    COALESCE(entry_type_text, N'') AS entry_type_text,
-    COALESCE(mapped_main_type_text, N'') AS mapped_main_type_text,
-    COALESCE(bound_basic_key, N'') AS bound_basic_key
-FROM 子链
-ORDER BY row_index
-OPTION (MAXRECURSION 0);
-)SQL";
-            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, SQL, 8);
-        }
-
-        if (区段ID == "worldTree") {
-            const std::string 节点SQL = R"SQL(
-WITH 子链 AS (
-    SELECT *
-    FROM fishnest.v_current_world_tree_nodes
-    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
-    UNION ALL
-    SELECT 子.*
-    FROM fishnest.v_current_world_tree_nodes 子
-    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
-)
-SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind, N'') AS node_kind,
-    COALESCE(display_text, N'') AS display_text,
-    COALESCE(type_text, N'') AS type_text,
-    COALESCE(value_kind, N'') AS value_kind,
-    COALESCE(value_text, N'') AS value_text,
-    COALESCE(auxiliary_text, N'') AS auxiliary_text
-FROM 子链
-ORDER BY row_index
-OPTION (MAXRECURSION 0);
-)SQL";
-            const std::string 关系SQL = R"SQL(
-WITH 子链 AS (
-    SELECT *
-    FROM fishnest.v_current_world_tree_nodes
-    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
-    UNION ALL
-    SELECT 子.*
-    FROM fishnest.v_current_world_tree_nodes 子
-    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
-)
-SELECT
-    COALESCE(owner_key, N'') AS owner_key,
-    COALESCE(relation_name, N'') AS relation_name,
-    COALESCE(target_kind, N'') AS target_kind,
-    COALESCE(target_key, N'') AS target_key,
-    COALESCE(target_text, N'') AS target_text,
-    CONVERT(nvarchar(20), COALESCE(ordinal_index, 0)) AS ordinal_index
-FROM fishnest.v_current_world_tree_relations
-WHERE owner_key IN (SELECT node_key FROM 子链)
-ORDER BY row_index
-OPTION (MAXRECURSION 0);
-)SQL";
-            return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 节点SQL, 关系SQL);
-        }
-
         return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, "该区段不是按需树");
     }
 
@@ -8426,12 +8160,6 @@ function countGenericNodes(roots){
   visitTreeRows(roots||[],()=>{count+=1;});
   return count;
 }
-function markGenericSubtreeLoaded(rows){
-  (rows||[]).forEach(row=>{
-    row.__sqlSubtreeLoaded=true;
-    markGenericSubtreeLoaded(row.children||[]);
-  });
-}
 function findGenericNode(sectionId,key){
   let found=null;
   visitTreeRows(genericTreeRootsBySection.get(sectionId)||[],row=>{
@@ -8461,7 +8189,7 @@ function requestSQLGenericSubtree(row){
   row.__sqlSubtreeLoading=true;
   const requestId=++sqlSubtreeRequestSeq;
   sqlSubtreeRequests.set(requestId,{kind:'generic',sectionId:row.sectionId,nodeKey:row.key});
-  if(panelStatus)panelStatus.textContent=`正在加载子链：${row.key}`;
+  if(panelStatus)panelStatus.textContent=`正在加载子节点：${row.key}`;
   window.chrome.webview.postMessage(`sql-subtree:${requestId}:${row.sectionId}:${encodeURIComponent(row.key||'')}`);
 }
 function selectGenericNode(row){
@@ -8691,7 +8419,7 @@ function applySQLGenericSubtree(data){
   if(!section||!node)return;
   node.__sqlSubtreeLoading=false;
   if(!data.ok){
-    if(panelStatus)panelStatus.textContent=data.error?`子链加载失败：${data.error}`:'子链加载失败。';
+    if(panelStatus)panelStatus.textContent=data.error?`子节点加载失败：${data.error}`:'子节点加载失败。';
     return;
   }
   const headers=node.headers||[];
@@ -8699,11 +8427,10 @@ function applySQLGenericSubtree(data){
   const childRows=(Array.isArray(data.rows)?data.rows:[]).map((row,index)=>
     createGenericRowNode(sectionId,title,headers,row,index,true));
   node.children=buildGenericHierarchy(childRows);
-  markGenericSubtreeLoaded(node.children);
   node.__sqlSubtreeLoaded=true;
   renderGenericTreePanel(section);
   applyFilter();
-  if(panelStatus)panelStatus.textContent=`已加载子链：${nodeKey}，节点 ${childRows.length}`;
+  if(panelStatus)panelStatus.textContent=`已加载子节点：${nodeKey}，节点 ${childRows.length}`;
 }
 function mergeWorldRelations(relations){
   const known=new Set(worldTreeRelations.map(rel=>`${rel.owner}|${rel.relation}|${rel.targetKey}|${rel.ordinal}`));
@@ -8720,13 +8447,12 @@ function applySQLWorldSubtree(data){
   const parent=worldNodeByKey.get(nodeKey);
   if(parent)parent.__sqlSubtreeLoading=false;
   if(!data.ok){
-    if(panelStatus)panelStatus.textContent=data.error?`子链加载失败：${data.error}`:'子链加载失败。';
+    if(panelStatus)panelStatus.textContent=data.error?`子节点加载失败：${data.error}`:'子节点加载失败。';
     return;
   }
   const rows=sqlRowsToTreeRows(data.rows);
   const known=new Set(worldTreeRows.map(row=>row.key));
   rows.forEach(row=>{
-    row.__sqlSubtreeLoaded=true;
     if(!known.has(row.key)){
       known.add(row.key);
       worldTreeRows.push(row);
@@ -8737,7 +8463,7 @@ function applySQLWorldSubtree(data){
   resetWorldTreeIndexes([...worldTreeRows],[...worldTreeRelations]);
   buildWorldTree();
   applyFilter();
-  if(panelStatus)panelStatus.textContent=`已加载世界树子链：${nodeKey}，节点 ${rows.length}`;
+  if(panelStatus)panelStatus.textContent=`已加载世界树子节点：${nodeKey}，节点 ${rows.length}`;
 }
 function 应用SQL子链刷新(requestId,data){
   const request=sqlSubtreeRequests.get(Number(requestId));
@@ -8805,7 +8531,7 @@ function requestSQLWorldSubtree(row){
   row.__sqlSubtreeLoading=true;
   const requestId=++sqlSubtreeRequestSeq;
   sqlSubtreeRequests.set(requestId,{kind:'world',sectionId:'worldTree',nodeKey:row.key});
-  if(panelStatus)panelStatus.textContent=`正在加载世界树子链：${row.key}`;
+  if(panelStatus)panelStatus.textContent=`正在加载世界树子节点：${row.key}`;
   window.chrome.webview.postMessage(`sql-subtree:${requestId}:worldTree:${encodeURIComponent(row.key||'')}`);
 }
 function selectWorldTreeNode(row){
