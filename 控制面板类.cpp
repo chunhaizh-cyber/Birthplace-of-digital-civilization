@@ -7871,19 +7871,23 @@ function queryCausalChain(){
 }
 )HTML";
         输出 << R"HTML(
-function activateMenuButton(button){
+function activateMenuButton(button, refreshOnMenu=false){
   if(!button)return;
   buttons.forEach(item=>item.classList.toggle('active',item===button));
   sections.forEach(section=>section.classList.toggle('active',section.id===button.dataset.target));
   try{localStorage.setItem('fishnest.panel.activeTarget',button.dataset.target||'');}catch(_){}
   applyFilter();
+  if(refreshOnMenu&&window.chrome&&window.chrome.webview){
+    if(refreshStatus)refreshStatus.textContent='正在刷新...';
+    window.chrome.webview.postMessage('refresh');
+  }
 }
-function selectMenuByNumber(text){
+function selectMenuByNumber(text, refreshOnMenu=false){
   const index=Number(text);
   if(!Number.isInteger(index)||index<=0)return false;
   const button=buttons.find(item=>Number(item.dataset.menuIndex||0)===index);
   if(!button)return false;
-  activateMenuButton(button);
+  activateMenuButton(button, refreshOnMenu);
   return true;
 }
 function refreshPanel(){
@@ -7902,7 +7906,7 @@ function openCameraWindow(){
     refreshStatus.textContent='静态 HTML 预览不能打开相机窗口。';
   }
 }
-buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button)));
+buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button,true)));
 filter.addEventListener('input',applyFilter);
 if(refreshButton)refreshButton.addEventListener('click',refreshPanel);
 if(openCameraButton)openCameraButton.addEventListener('click',openCameraWindow);
@@ -7912,14 +7916,14 @@ document.addEventListener('keydown',event=>{
     menuNumberBuffer+=event.key;
     clearTimeout(menuNumberTimer);
     if(menuNumberBuffer==='1'){
-      menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer);menuNumberBuffer='';},650);
+      menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer,true);menuNumberBuffer='';},650);
       return;
     }
-    if(selectMenuByNumber(menuNumberBuffer)){
+    if(selectMenuByNumber(menuNumberBuffer,true)){
       menuNumberBuffer='';
       return;
     }
-    menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer);menuNumberBuffer='';},650);
+    menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer,true);menuNumberBuffer='';},650);
   }
 });
 document.getElementById('chainQuery').addEventListener('click',queryCausalChain);
@@ -13990,7 +13994,11 @@ std::string 私有_生成控制面板HTML(
 )HTML";
     输出 << R"HTML(
     菜单项列表.forEach((item) => {
-      item.addEventListener('click', () => 切换页面(item.dataset.page));
+      item.addEventListener('click', () => {
+        const 目标页 = item.dataset.page;
+        切换页面(目标页);
+        请求刷新控制面板页(目标页);
+      });
     });
 
     if (指针弹窗关闭) {
@@ -14092,11 +14100,17 @@ std::string 私有_生成控制面板HTML(
       }
     });
 
-    function 刷新当前控制面板页() {
+    function 请求刷新控制面板页(page) {
       if (window.chrome && window.chrome.webview) {
-        const 当前页面 = 页面列表.find((item) => item.classList.contains('active')) || 页面列表[0];
-        window.chrome.webview.postMessage(`refresh-page:${当前页面?.dataset.page || 'thread-status'}`);
-      } else {
+        window.chrome.webview.postMessage(`refresh-page:${page || 'thread-status'}`);
+        return true;
+      }
+      return false;
+    }
+
+    function 刷新当前控制面板页() {
+      const 当前页面 = 页面列表.find((item) => item.classList.contains('active')) || 页面列表[0];
+      if (!请求刷新控制面板页(当前页面?.dataset.page || 'thread-status')) {
         location.reload();
       }
     }
