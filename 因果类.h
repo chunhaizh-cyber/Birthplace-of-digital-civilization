@@ -13,14 +13,6 @@
 // 2) 动态 / 运行结果 / 场景中的具体发生，只作为证据样本。
 // 3) 因果树不强绑特征树；它只解释状态变化，并可投影为需求候选。
 
-struct 结构_自检原子目标因果投影结果 {
-    std::size_t 候选投影数量 = 0;
-    std::vector<std::uint32_t> 结算贡献层级集{};
-    std::vector<std::uint32_t> 因果距离层级集{};
-    std::vector<std::string> 来源因果主键集{};
-    std::vector<std::string> 缺失证据{};
-};
-
 class 因果类 {
 public:
     explicit 因果类(基础信息类* 基础信息 = nullptr) noexcept;
@@ -95,13 +87,16 @@ public:
     // 只读自检投影接口：
     // 自检固定来源任务是安全根任务；本函数不要求叶子任务存在，
     // 只按固定来源和原子目标查询状态转换因果投影、来源因果和缺失证据。
-    结构_自检原子目标因果投影结果 查询自检原子目标投影(
+    void 查询自检原子目标投影(
         任务节点类* 固定来源任务,
         需求节点类* 固定来源需求,
         基础信息节点类* 目标宿主,
         特征节点类* 目标特征类型,
-        const 语素入口节点类* 目标特征类型词 = nullptr,
-        bool 允许未验证路径 = true) const;
+        const 语素入口节点类* 目标特征类型词,
+        bool 允许未验证路径,
+        std::size_t& 候选投影数量,
+        std::vector<std::string>& 来源因果主键集,
+        std::vector<std::string>& 缺失证据) const;
 
     bool 二次特征匹配模板(const 二次特征节点类* 二次特征, const 二次特征节点类* 模板) const noexcept;
 
