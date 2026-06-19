@@ -660,33 +660,6 @@ public:
     }
 
     // 功能：按函数名执行对应处理。
-    std::optional<std::pair<枚举_本能动作ID, 结构体_本能动作登记信息>> 查询_按函数名(const std::string& 函数名称) const
-    {
-        if (函数名称.empty()) return std::nullopt;
-
-        std::lock_guard 锁(mu_);
-        for (const auto& [动作ID, 上下文] : 表_) {
-            if (上下文.函数名称 == 函数名称) {
-                return std::make_pair(动作ID, 上下文);
-            }
-        }
-        return std::nullopt;
-    }
-
-    // 功能：按函数名执行对应处理。
-    std::string 查询函数名称(枚举_本能动作ID 动作ID) const
-    {
-        {
-            std::lock_guard 锁(mu_);
-            const auto it = 表_.find(动作ID);
-            if (it != 表_.end() && !it->second.函数名称.empty()) {
-                return it->second.函数名称;
-            }
-        }
-        return 本能动作管理模块_detail::默认函数名称(动作ID);
-    }
-
-    // 功能：按函数名执行对应处理。
     枚举_本能动作ID 查询ID(const std::string& 函数名称) const
     {
         if (函数名称.empty()) return 枚举_本能动作ID::未定义;
