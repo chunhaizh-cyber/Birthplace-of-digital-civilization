@@ -108,46 +108,6 @@ namespace {
         return s_词;
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    const 语素入口节点类* 私有_特征_方法状态_控制面板() noexcept
-    {
-        static const 语素入口节点类* s_词 =
-            语素集.添加信息入口词("方法状态", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    const 语素入口节点类* 私有_特征_方法动作状态_控制面板() noexcept
-    {
-        static const 语素入口节点类* s_词 =
-            语素集.添加信息入口词("方法动作状态", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
-    // 功能：执行对应模块、线程或方法的运行逻辑。
-    const 语素入口节点类* 私有_特征_方法运行次数_控制面板() noexcept
-    {
-        static const 语素入口节点类* s_词 =
-            语素集.添加信息入口词("方法运行次数", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    const 语素入口节点类* 私有_特征_方法成功次数_控制面板() noexcept
-    {
-        static const 语素入口节点类* s_词 =
-            语素集.添加信息入口词("方法成功次数", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    const 语素入口节点类* 私有_特征_方法最近连续成功次数_控制面板() noexcept
-    {
-        static const 语素入口节点类* s_词 =
-            语素集.添加信息入口词("方法最近连续成功次数", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
     // 功能：解析输入文本、消息、场景或运行包。
     存在节点类* 私有_解析方法虚拟存在_控制面板(const 方法节点* 方法) noexcept
     {
@@ -620,24 +580,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    const char* 私有_特征值类型文本(const 特征值& 值) noexcept
-    {
-        if (std::holds_alternative<std::monostate>(值)) {
-            return "空";
-        }
-        if (std::holds_alternative<I64>(值)) {
-            return "i64";
-        }
-        if (std::holds_alternative<VecU句柄>(值)) {
-            return "VecU句柄";
-        }
-        if (std::holds_alternative<指针句柄>(值)) {
-            return "指针句柄";
-        }
-        return "未定义";
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     const char* 私有_线程生命周期文本(const 枚举_线程生命周期状态 状态) noexcept
     {
         switch (状态) {
@@ -1039,37 +981,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    I64 私有_统计方法条件结果对数量_控制面板(const 方法节点* 方法首节点) noexcept
-    {
-        if (!方法首节点 || !方法首节点->子) {
-            return 0;
-        }
-        I64 数量 = 0;
-        auto* 首子 = reinterpret_cast<const 方法节点*>(方法首节点->子);
-        auto* 当前 = 首子;
-        std::size_t 保护 = 0;
-        do {
-            if (当前
-                && 当前->主信息.节点种类() == 枚举_方法节点种类::方法条件节点
-                && 当前->子) {
-                auto* 首结果 = reinterpret_cast<const 方法节点*>(当前->子);
-                auto* 结果 = 首结果;
-                std::size_t 结果保护 = 0;
-                do {
-                    if (结果 && 结果->主信息.节点种类() == 枚举_方法节点种类::方法结果节点) {
-                        ++数量;
-                    }
-                    结果 = 结果 ? reinterpret_cast<const 方法节点*>(结果->下) : nullptr;
-                    ++结果保护;
-                } while (结果 && 结果 != 首结果 && 结果保护 < 1024);
-            }
-            当前 = 当前 ? reinterpret_cast<const 方法节点*>(当前->下) : nullptr;
-            ++保护;
-        } while (当前 && 当前 != 首子 && 保护 < 4096);
-        return 数量;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_方法结构诊断摘要(const 结构_控制面板快照& 快照)
     {
         std::ostringstream 输出;
@@ -1087,21 +998,6 @@ namespace {
         case 枚举_方法节点种类::方法首节点: return "方法首节点";
         case 枚举_方法节点种类::方法条件节点: return "方法条件节点";
         case 枚举_方法节点种类::方法结果节点: return "方法结果节点";
-        default: return "未定义";
-        }
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    const char* 私有_方法状态文本(const I64 状态) noexcept
-    {
-        switch (static_cast<枚举_方法状态>(状态)) {
-        case 枚举_方法状态::待方法动作: return "待方法动作";
-        case 枚举_方法状态::待可执行入口: return "结构完整/待可执行入口";
-        case 枚举_方法状态::待条件节点: return "待条件节点";
-        case 枚举_方法状态::待结果节点: return "待结果节点";
-        case 枚举_方法状态::待条件结果对: return "有真实动作入口/待条件结果对";
-        case 枚举_方法状态::可用: return "可用";
-        case 枚举_方法状态::好用: return "好用";
         default: return "未定义";
         }
     }
@@ -3649,37 +3545,6 @@ namespace {
                 已访问);
         }
         return 候选方法;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    std::optional<int> 私有_二次特征方向_控制面板(const 二次特征节点类* 二次特征节点) noexcept
-    {
-        const auto* 主信息 = 二次特征节点
-            ? 世界树.基础信息().取主信息<二次特征主信息类>(二次特征节点)
-            : nullptr;
-        if (!主信息) {
-            return std::nullopt;
-        }
-        if (主信息->差值.has_value()) {
-            if (*主信息->差值 > 0) {
-                return 1;
-            }
-            if (*主信息->差值 < 0) {
-                return -1;
-            }
-            return 0;
-        }
-        switch (主信息->方向区间) {
-        case 二次特征主信息类::枚举_方向区间::正区间:
-            return 1;
-        case 二次特征主信息类::枚举_方向区间::负区间:
-            return -1;
-        case 二次特征主信息类::枚举_方向区间::零区间:
-            return 0;
-        default:
-            break;
-        }
-        return std::nullopt;
     }
 
     // 功能：服务所在模块的内部辅助流程。
