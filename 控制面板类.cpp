@@ -7253,7 +7253,8 @@ ORDER BY row_index;
         const std::vector<std::string_view>& 表头,
         const std::vector<std::vector<std::string>>& 行集)
     {
-        输出 << "<section id=\"" << 私有_转义HTML(区段ID) << "\">\n"
+        输出 << "<section id=\"" << 私有_转义HTML(区段ID)
+            << "\" data-section-title=\"" << 私有_转义HTML(标题) << "\">\n"
             << "<h2>" << 私有_转义HTML(标题) << "</h2>\n"
             << "<div class=\"table-wrap\"><table data-filterable><thead><tr>";
         for (const auto 表头项 : 表头) {
@@ -7337,18 +7338,19 @@ ORDER BY row_index;
     *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink)}
     header{padding:20px 28px;background:#18212f;color:#fff} h1{margin:0 0 8px;font-size:24px;letter-spacing:0} header p{margin:4px 0;color:#d7deea}
     .top-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.top-actions button{border:1px solid rgba(255,255,255,.35);background:#fff;color:#172026;border-radius:6px;padding:8px 12px;cursor:pointer}.top-actions button.secondary{background:#263244;color:#fff}.top-actions span{align-self:center;color:#d7deea;font-size:13px}
-    .panel-shell{display:grid;grid-template-columns:240px minmax(0,1fr);gap:0;min-height:calc(100vh - 108px)}
+    .panel-shell{display:grid;grid-template-columns:220px minmax(360px,.9fr) minmax(380px,1.1fr);gap:0;min-height:calc(100vh - 108px)}
     .menu-bar{background:#fff;border-right:1px solid var(--line);padding:14px 12px;position:sticky;top:0;height:calc(100vh - 108px);overflow:auto}
     .menu-group{display:grid;gap:6px}.menu-title{font-size:12px;color:var(--muted);margin:10px 8px 4px}.menu-bar button{width:100%;border:1px solid transparent;background:#fff;border-radius:6px;padding:9px 10px;text-align:left;color:var(--ink);cursor:pointer}.menu-bar button:hover{background:#eef6f5}.menu-bar button.active{background:#0f766e;border-color:#0f766e;color:#fff}
-    main.content{padding:18px 28px 36px;min-width:0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0 0 16px}
+    main.content{padding:18px 18px 36px;min-width:0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0 0 16px}
+    .node-detail-pane{background:#fff;border-left:1px solid var(--line);padding:18px 18px 36px;position:sticky;top:0;height:calc(100vh - 108px);overflow:auto}
     .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}.card b{display:block;font-size:22px;margin-bottom:4px}
     input{width:min(720px,100%);padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;margin-bottom:12px}
     section{display:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}section.active{display:block}h2{font-size:18px;margin:0 0 12px}
     .table-wrap{overflow:auto;max-height:68vh;border:1px solid #e5e7eb}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #e5e7eb;padding:8px 10px;text-align:left;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;background:#f8fafc;z-index:1}
-    .world-tree-grid{display:grid;grid-template-columns:minmax(340px,0.95fr) minmax(0,1.05fr);gap:12px;align-items:start}.tree-panel{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;overflow:hidden}.tree-toolbar{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #e5e7eb;background:#f8fafc}.tree-toolbar button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer}.tree-view{max-height:68vh;overflow:auto;padding:10px;font-size:13px}.tree-node{margin:2px 0}.tree-node summary{cursor:pointer;list-style:none}.tree-node summary::-webkit-details-marker{display:none}.tree-node summary::before{content:"▸";display:inline-block;width:16px;color:#64748b}.tree-node[open]>summary::before{content:"▾"}.tree-leaf{padding-left:16px}.tree-line{display:flex;gap:6px;align-items:center;min-height:26px;padding:3px 6px;border-radius:5px}.tree-line:hover{background:#eef6f5}.tree-line.selected{background:#dff2ef;outline:1px solid #8fc9c1}.tree-key{font-family:Consolas,monospace;color:#1d4ed8}.tree-kind{color:#0f766e}.tree-muted{color:#64748b}.tree-children{margin-left:18px;border-left:1px solid #dbe4ee;padding-left:8px}
+    .table-wrap[hidden]{display:none}.world-tree-grid,.sql-section-tree{display:block}.tree-panel{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;overflow:hidden}.tree-toolbar{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #e5e7eb;background:#f8fafc}.tree-toolbar button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer}.tree-view{max-height:68vh;overflow:auto;padding:10px;font-size:13px}.tree-node{margin:2px 0}.tree-node summary{cursor:pointer;list-style:none}.tree-node summary::-webkit-details-marker{display:none}.tree-node summary::before{content:"▸";display:inline-block;width:16px;color:#64748b}.tree-node[open]>summary::before{content:"▾"}.tree-leaf{padding-left:16px}.tree-line{display:flex;gap:6px;align-items:center;min-height:26px;padding:3px 6px;border-radius:5px}.tree-line:hover{background:#eef6f5}.tree-line.selected{background:#dff2ef;outline:1px solid #8fc9c1}.tree-key{font-family:Consolas,monospace;color:#1d4ed8}.tree-kind{color:#0f766e}.tree-muted{color:#64748b}.tree-children{margin-left:18px;border-left:1px solid #dbe4ee;padding-left:8px}
     .causal-detail{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;min-height:420px;max-height:68vh;overflow:auto;padding:12px}.causal-detail-empty{color:var(--muted);font-size:14px}.detail-head{display:grid;gap:4px;border-bottom:1px solid #e5e7eb;padding-bottom:10px;margin-bottom:10px}.detail-head strong{font-size:16px}.detail-block{border:1px solid #dbe4ee;border-radius:8px;background:#fff;margin:10px 0;padding:10px}.detail-block h3{margin:0 0 8px;font-size:15px}.detail-item{border-top:1px solid #edf2f7;padding:9px 0}.detail-item:first-of-type{border-top:0}.detail-item-title{font-weight:600;margin-bottom:6px}.detail-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;font-size:13px;line-height:1.5}.detail-row span{color:var(--muted)}.detail-row b{font-weight:400;word-break:break-all}.detail-sub{margin:8px 0 0 10px;border-left:2px solid #bfdcd8;padding-left:10px}.detail-sub-title{font-size:12px;color:var(--muted);margin-bottom:5px}.detail-sub-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;font-size:12px;line-height:1.5;padding:3px 0}.detail-sub-row b{font-weight:500}.detail-sub-row span{word-break:break-all}
     .chain-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:start;margin-bottom:12px}.chain-grid label{display:grid;gap:5px;font-size:13px;color:var(--muted)}.chain-grid input{width:100%;margin:0}.chain-grid button{height:39px;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:0 14px;cursor:pointer}.chain-result{margin:8px 0 12px;color:var(--muted)}
-    @media(max-width:960px){.panel-shell{grid-template-columns:1fr}.menu-bar{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}.menu-group{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.menu-title{grid-column:1/-1}.world-tree-grid{grid-template-columns:1fr}}
+    @media(max-width:1100px){.panel-shell{grid-template-columns:1fr}.menu-bar,.node-detail-pane{position:static;height:auto;border-right:0;border-left:0;border-bottom:1px solid var(--line)}.menu-group{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.menu-title{grid-column:1/-1}}
     @media(max-width:760px){main.content{padding:14px}.chain-grid{grid-template-columns:1fr}.chain-grid button{width:100%}}
     .note{color:var(--muted);font-size:13px;line-height:1.6}code{background:#eef2f7;color:#172026;padding:1px 4px;border-radius:4px}
   </style>
@@ -7383,7 +7385,7 @@ ORDER BY row_index;
             << "<button data-menu-index=\"15\" data-target=\"catalog\">15. 字段目录</button>"
             << "</nav></aside><main class=\"content\">\n"
             << "<input id=\"filter\" type=\"search\" placeholder=\"过滤当前页表格和世界树文本\">\n"
-            << "<section id=\"metrics\" class=\"active\"><h2>面板指标</h2>\n"
+            << "<section id=\"metrics\" class=\"active\" data-section-title=\"面板指标\"><h2>面板指标</h2>\n"
             << "<p class=\"note\">本页面通过 ADO 读取 SQL 投影，不读取 live 控制面板快照，也不是世界树、任务树或动作动态链的写入口。"
             << 私有_转义HTML(来源说明) << "</p>\n"
             << "<div class=\"cards\">";
@@ -7421,8 +7423,7 @@ ORDER BY row_index;
             << "<button id=\"causalInfoCollapse\" type=\"button\">收起</button>"
             << "<span class=\"note\">SQL 世界树因果节点：" << 数据.因果信息.size()
             << "；组成关系：" << 数据.因果信息关系.size() << "</span></div>"
-            << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div>"
-            << "<div id=\"causalInfoDetail\" class=\"causal-detail\"><div class=\"causal-detail-empty\">未选择因果信息</div></div></div></section>\n";
+            << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div></div></section>\n";
         私有_追加SQL控制面板表(输出, "因果边", "causal", { "来源类", "来源键", "目标类", "目标键", "关系", "日志", "行" }, 数据.因果边);
         私有_追加SQL控制面板表(输出, "需求树", "demandTree", { "节点", "父节点", "深度", "结构角色", "目标语义", "目标特征", "任务" }, 数据.需求树);
         私有_追加SQL控制面板表(输出, "任务树", "taskTree", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
@@ -7441,7 +7442,7 @@ ORDER BY row_index;
             << "<span class=\"note\">SQL 当前节点数：" << 数据.世界树.size()
             << "；因果节点：" << 世界树因果节点数 << "</span></div>"
             << "<div id=\"worldTreeView\" class=\"tree-view\"></div></div>"
-            << "<div class=\"table-wrap\"><table data-filterable><thead><tr>"
+            << "<div class=\"table-wrap\" hidden><table data-filterable><thead><tr>"
             << "<th>节点</th><th>父节点</th><th>深度</th><th>类别</th><th>显示</th><th>类型</th><th>值类</th><th>值</th><th>辅助</th>"
             << "</tr></thead><tbody>\n";
         for (const auto& 行 : 数据.世界树) {
@@ -7457,7 +7458,9 @@ ORDER BY row_index;
         私有_追加SQL控制面板表(输出, "特征类型", "features", { "特征", "来源", "符号", "文件", "行" }, 数据.特征);
         私有_追加SQL控制面板表(输出, "控制面板字段目录", "catalog", { "字段", "分组", "C++类型", "结构", "文件", "行" }, 数据.字段目录);
 
-        输出 << "</main></div>\n<script>\nconst causalEdges=" << 私有_生成SQL因果边JSON(数据.因果边) << ";\nconst causalInfoRows=[";
+        输出 << "</main><aside class=\"node-detail-pane\" aria-label=\"节点信息\">"
+            << "<div id=\"sqlNodeDetail\" class=\"causal-detail\"><div class=\"causal-detail-empty\">请选择中间树节点查看信息</div></div>"
+            << "</aside></div>\n<script>\nconst causalEdges=" << 私有_生成SQL因果边JSON(数据.因果边) << ";\nconst causalInfoRows=[";
         for (std::size_t i = 0; i < 数据.因果信息.size(); ++i) {
             if (i > 0) {
                 输出 << ',';
@@ -7559,14 +7562,19 @@ const effectInput=document.getElementById('effectInput');
 const chainRows=document.getElementById('chainRows');
 const chainResult=document.getElementById('chainResult');
 const causalInfoHost=document.getElementById('causalInfoTreeView');
-const causalInfoDetail=document.getElementById('causalInfoDetail');
+const nodeDetail=document.getElementById('sqlNodeDetail');
+const causalInfoDetail=nodeDetail;
 const worldTreeHost=document.getElementById('worldTreeView');
 const refreshButton=document.getElementById('refreshPanel');
 const openCameraButton=document.getElementById('openCameraWindow');
 const refreshStatus=document.getElementById('refreshStatus');
 let causalInfoRoots=[];
 let worldTreeRoots=[];
+const genericTreeRootsBySection=new Map();
 let selectedCausalInfoKey='';
+let selectedCausalInfoNode=null;
+let selectedWorldTreeNode=null;
+let selectedGenericNode=null;
 let menuNumberBuffer='';
 let menuNumberTimer=0;
 const causalInfoByKey=new Map(causalInfoRows.map(row=>[row.key,row]));
@@ -7592,6 +7600,7 @@ function applyFilter(){
   }
   filterCausalInfo(query);
   filterWorldTree(query);
+  filterGenericTrees(query);
 }
 function fieldText(value){
   const text=String(value??'').trim();
@@ -7626,6 +7635,10 @@ function isActionRelation(name){
 }
 function renderDetailRows(rows){
   return rows.map(([label,value])=>`<div class="detail-row"><span>${escapeHtml(label)}</span><b>${escapeHtml(fieldText(value))}</b></div>`).join('');
+}
+function showNodeDetail(title,subtitle,rows,extraHtml=''){
+  if(!nodeDetail)return;
+  nodeDetail.innerHTML=`<div class="detail-head"><strong>${escapeHtml(fieldText(title))}</strong><span>${escapeHtml(fieldText(subtitle))}</span></div><div class="detail-block"><h3>节点信息</h3>${renderDetailRows(rows)}</div>${extraHtml}`;
 }
 function renderOneLayerChildren(ownerKey){
   const relations=worldRelationsByOwner.get(ownerKey)||[];
@@ -7680,11 +7693,12 @@ function visitTreeRows(rows,visitor){
 }
 function updateCausalSelection(){
   visitTreeRows(causalInfoRoots,row=>{
-    if(row.lineEl)row.lineEl.classList.toggle('selected',row.selectKey===selectedCausalInfoKey);
+    if(row.lineEl)row.lineEl.classList.toggle('selected',row===selectedCausalInfoNode);
   });
 }
-function selectCausalInfo(key){
+function selectCausalInfo(key,node=null){
   selectedCausalInfoKey=key;
+  selectedCausalInfoNode=node;
   const row=causalInfoByKey.get(key);
   if(!row||!causalInfoDetail){
     if(causalInfoDetail)causalInfoDetail.innerHTML='<div class="causal-detail-empty">未选择因果信息</div>';
@@ -7697,6 +7711,24 @@ function selectCausalInfo(key){
   const actionRelations=relations.filter(rel=>isActionRelation(rel.relation)&&!isConditionRelation(rel.relation)&&!isResultRelation(rel.relation));
   causalInfoDetail.innerHTML=`<div class="detail-head"><strong>${escapeHtml(row.display||row.type||row.key)}</strong><span><span class="tree-key">${escapeHtml(row.key)}</span> ${escapeHtml(row.kind||'因果')}</span><span class="tree-muted">${escapeHtml(row.aux||'')}</span></div>${renderReferenceBlock('条件',conditionRelations)}${renderActionBlock(row,actionRelations)}${renderReferenceBlock('结果',resultRelations)}`;
   updateCausalSelection();
+}
+function selectCausalInfoNode(node){
+  if(!node)return;
+  if(node.relationRow){
+    selectedCausalInfoNode=node;
+    const rel=node.relationRow;
+    showNodeDetail(`${rel.relation||'因果关系'} -> ${rel.targetKey||rel.targetText||'未记录'}`,`宿主因果 ${node.ownerKey||''}`,[
+      ['宿主因果',node.ownerKey],
+      ['关系',rel.relation],
+      ['目标类别',rel.targetKind],
+      ['目标主键',rel.targetKey],
+      ['目标显示',rel.targetText],
+      ['序号',rel.ordinal]
+    ]);
+    updateCausalSelection();
+    return;
+  }
+  selectCausalInfo(node.key,node);
 }
 function treeLabel(row){
   const parts=[`<span class="tree-key">${escapeHtml(row.key)}</span>`];
@@ -7737,6 +7769,76 @@ function renderTreeNode(row, labelFn){
   }
   return wrapper;
 }
+)HTML";
+        输出 << R"HTML(
+function genericNodeLabel(row){
+  const parts=[`<span class="tree-key">${escapeHtml(row.key||'节点')}</span>`];
+  if(row.kind)parts.push(`<span class="tree-kind">${escapeHtml(row.kind)}</span>`);
+  if(row.display)parts.push(`<span>${escapeHtml(row.display)}</span>`);
+  if(row.summary)parts.push(`<span class="tree-muted">${escapeHtml(row.summary)}</span>`);
+  return parts.join('');
+}
+function updateGenericSelection(){
+  genericTreeRootsBySection.forEach(roots=>{
+    visitTreeRows(roots,row=>{
+      if(row.lineEl)row.lineEl.classList.toggle('selected',row===selectedGenericNode);
+    });
+  });
+}
+function selectGenericNode(row){
+  if(!row)return;
+  selectedGenericNode=row;
+  const rows=row.headers.map((header,index)=>[header||`字段${index+1}`,row.cells[index]||'']);
+  showNodeDetail(row.title||row.key,row.subtitle||row.kind||'SQL 行节点',rows);
+  updateGenericSelection();
+}
+function createGenericRowNode(sectionTitle,headers,cells,index,treeLike){
+  const key=fieldText(cells[0]||`${sectionTitle}#${index+1}`);
+  const kind=treeLike?fieldText(cells[3]):fieldText(cells[1]||sectionTitle);
+  const display=treeLike?fieldText(cells[4]||cells[5]||cells[6]||''):fieldText(cells[2]||cells[1]||'');
+  const summary=headers.slice(1,4).map((header,i)=>`${header}=${fieldText(cells[i+1])}`).join(' | ');
+  const node={key,parent:treeLike?String(cells[1]||''):'',depth:treeLike?String(cells[2]||'1'):'1',kind,display,summary,headers,cells,children:[],title:key,subtitle:sectionTitle};
+  node.searchText=[sectionTitle,key,kind,display,summary,...cells].join(' ').toLowerCase();
+  node.onSelect=()=>selectGenericNode(node);
+  return node;
+}
+function buildGenericHierarchy(nodes){
+  const map=new Map();
+  nodes.forEach(node=>map.set(node.key,node));
+  const roots=[];
+  nodes.forEach(node=>{
+    const parent=map.get(node.parent);
+    if(parent&&parent!==node)parent.children.push(node);else roots.push(node);
+  });
+  return roots.length?roots:nodes;
+}
+function buildTableTreeSections(){
+  const treeLikeSections=new Set(['demandTree','taskTree','methodTree','lexemeTree']);
+  sections.forEach(section=>{
+    if(['causalInfo','worldTree','causalChain'].includes(section.id))return;
+    const table=section.querySelector('table[data-filterable]');
+    if(!table||section.querySelector('.sql-section-tree'))return;
+    const headers=Array.from(table.tHead?.rows?.[0]?.cells||[]).map(cell=>cell.textContent.trim());
+    const rows=Array.from(table.tBodies?.[0]?.rows||[]).map((tr,index)=>{
+      const cells=Array.from(tr.cells).map(cell=>cell.textContent.trim());
+      return createGenericRowNode(section.dataset.sectionTitle||section.querySelector('h2')?.textContent||section.id,headers,cells,index,treeLikeSections.has(section.id));
+    });
+    const roots=treeLikeSections.has(section.id)?buildGenericHierarchy(rows):[{key:section.dataset.sectionTitle||section.id,depth:'0',kind:'页面',display:`${section.dataset.sectionTitle||section.id} ${rows.length}`,summary:'SQL 行节点',headers:['页面','数量'],cells:[section.dataset.sectionTitle||section.id,String(rows.length)],children:rows,searchText:rows.map(row=>row.searchText).join(' '),onSelect:null}];
+    genericTreeRootsBySection.set(section.id,roots);
+    const panel=document.createElement('div');
+    panel.className='tree-panel sql-section-tree';
+    panel.innerHTML=`<div class="tree-toolbar"><span class="note">SQL 节点：${rows.length}</span></div><div class="tree-view"></div>`;
+    const view=panel.querySelector('.tree-view');
+    roots.forEach(root=>view.appendChild(renderTreeNode(root,genericNodeLabel)));
+    const wrap=table.closest('.table-wrap');
+    if(wrap){
+      section.insertBefore(panel,wrap);
+      wrap.hidden=true;
+    }else{
+      section.appendChild(panel);
+    }
+  });
+}
 function filterTreeRows(roots,query){
   if(!roots.length)return;
   function visit(row){
@@ -7758,12 +7860,40 @@ function worldTreeLabel(row){
 function causalInfoLabel(row){
   return treeLabel(row);
 }
+function updateWorldSelection(){
+  worldTreeRows.forEach(row=>{
+    if(row.lineEl)row.lineEl.classList.toggle('selected',row===selectedWorldTreeNode);
+  });
+}
+function selectWorldTreeNode(row){
+  if(!row)return;
+  selectedWorldTreeNode=row;
+  const relations=worldRelationsByOwner.get(row.key)||[];
+  const relationHtml=relations.length?`<div class="detail-block"><h3>子关系 ${relations.length}</h3>${relations.slice(0,48).map(rel=>`<div class="detail-item">${renderDetailRows([
+    ['关系',rel.relation],
+    ['目标',`${rel.targetKind||''}:${rel.targetKey||''}`],
+    ['显示',rel.targetText],
+    ['序号',rel.ordinal]
+  ])}</div>`).join('')}${relations.length>48?`<div class="detail-sub-row"><b>其余</b><span>${relations.length-48} 条</span></div>`:''}</div>`:'';
+  showNodeDetail(row.display||row.type||row.key,`${row.kind||'世界树节点'} | ${row.key}`,[
+    ['节点主键',row.key],
+    ['父节点',row.parent],
+    ['深度',row.depth],
+    ['类别',row.kind],
+    ['显示',row.display],
+    ['类型',row.type],
+    ['值类',row.valueKind],
+    ['值',row.value],
+    ['辅助',row.aux]
+  ],relationHtml);
+  updateWorldSelection();
+}
 function buildCausalInfoTree(){
   if(!causalInfoHost)return;
   causalInfoRoots=causalInfoRows.map(row=>{
     const copy={...row,children:[],selectKey:row.key};
     copy.depth='1';
-    copy.onSelect=()=>selectCausalInfo(copy.key);
+    copy.onSelect=()=>selectCausalInfoNode(copy);
     copy.searchText=[copy.key,copy.parent,copy.kind,copy.display,copy.type,copy.valueKind,copy.value,copy.aux].join(' ').toLowerCase();
     for(const rel of causalRelationsByOwner.get(copy.key)||[]){
       const child={
@@ -7778,7 +7908,9 @@ function buildCausalInfoTree(){
         aux:`序号=${rel.ordinal||0}`,
         children:[],
         selectKey:copy.key,
-        onSelect:()=>selectCausalInfo(copy.key)
+        ownerKey:copy.key,
+        relationRow:rel,
+        onSelect:()=>selectCausalInfoNode(child)
       };
       child.searchText=[child.key,child.parent,child.kind,child.display,child.type,child.aux].join(' ').toLowerCase();
       copy.children.push(child);
@@ -7798,7 +7930,7 @@ function filterCausalInfo(query){
 function buildWorldTree(){
   if(!worldTreeHost)return;
   const map=new Map();
-  worldTreeRows.forEach(row=>{row.children=[];row.searchText=[row.key,row.parent,row.kind,row.display,row.type,row.valueKind,row.value,row.aux].join(' ').toLowerCase();map.set(row.key,row);});
+  worldTreeRows.forEach(row=>{row.children=[];row.searchText=[row.key,row.parent,row.kind,row.display,row.type,row.valueKind,row.value,row.aux].join(' ').toLowerCase();row.onSelect=()=>selectWorldTreeNode(row);map.set(row.key,row);});
   worldTreeRoots=[];
   worldTreeRows.forEach(row=>{
     const parent=map.get(row.parent);
@@ -7808,10 +7940,14 @@ function buildWorldTree(){
   const fragment=document.createDocumentFragment();
   worldTreeRoots.forEach(row=>fragment.appendChild(renderTreeNode(row,worldTreeLabel)));
   worldTreeHost.appendChild(fragment);
+  updateWorldSelection();
 }
 function filterWorldTree(query){
   if(!worldTreeHost||!worldTreeRoots.length)return;
   filterTreeRows(worldTreeRoots,query);
+}
+function filterGenericTrees(query){
+  genericTreeRootsBySection.forEach(roots=>filterTreeRows(roots,query));
 }
 function setWorldTreeDepth(depth){
   if(!worldTreeHost)return;
@@ -7869,6 +8005,38 @@ function queryCausalChain(){
   }
   renderChain([],`没有在 ${causalEdges.length} 条 SQL 因果边内找到路径。`);
 }
+function firstSelectableNode(roots){
+  let found=null;
+  visitTreeRows(roots,row=>{
+    if(!found&&row.onSelect)found=row;
+  });
+  return found;
+}
+function selectDefaultForSection(target){
+  if(target==='causalInfo'){
+    const node=firstSelectableNode(causalInfoRoots);
+    if(node)selectCausalInfoNode(node);
+    return;
+  }
+  if(target==='worldTree'){
+    const node=firstSelectableNode(worldTreeRoots);
+    if(node)selectWorldTreeNode(node);
+    return;
+  }
+  const genericRoots=genericTreeRootsBySection.get(target);
+  if(genericRoots){
+    const node=firstSelectableNode(genericRoots);
+    if(node)selectGenericNode(node);
+    return;
+  }
+  if(target==='causalChain'){
+    showNodeDetail('因果链查询','输入因和果后生成中间链接',[
+      ['因',causeInput?.value||''],
+      ['果',effectInput?.value||''],
+      ['SQL 因果边',String(causalEdges.length)]
+    ]);
+  }
+}
 )HTML";
         输出 << R"HTML(
 function activateMenuButton(button, refreshOnMenu=false){
@@ -7877,6 +8045,7 @@ function activateMenuButton(button, refreshOnMenu=false){
   sections.forEach(section=>section.classList.toggle('active',section.id===button.dataset.target));
   try{localStorage.setItem('fishnest.panel.activeTarget',button.dataset.target||'');}catch(_){}
   applyFilter();
+  selectDefaultForSection(button.dataset.target);
   if(refreshOnMenu&&window.chrome&&window.chrome.webview){
     if(refreshStatus)refreshStatus.textContent='正在刷新...';
     window.chrome.webview.postMessage('refresh');
@@ -7934,13 +8103,14 @@ document.getElementById('causalInfoCollapse').addEventListener('click',()=>setTr
 document.getElementById('worldTreeExpand').addEventListener('click',()=>setWorldTreeDepth(3));
 document.getElementById('worldTreeCollapse').addEventListener('click',()=>setWorldTreeDepth(1));
 document.getElementById('worldTreeShowCausal').addEventListener('click',()=>{filter.value='因果';applyFilter();});
+buildTableTreeSections();
 buildCausalInfoTree();
 buildWorldTree();
 try{
   const savedTarget=localStorage.getItem('fishnest.panel.activeTarget');
   const savedButton=savedTarget?buttons.find(item=>item.dataset.target===savedTarget):null;
-  if(savedButton)activateMenuButton(savedButton);
-}catch(_){}
+  if(savedButton)activateMenuButton(savedButton);else activateMenuButton(buttons[0]);
+}catch(_){activateMenuButton(buttons[0]);}
 window.__panelApplyCameraWindowState=function(data){
   if(refreshStatus&&data&&typeof data==='object'){
     refreshStatus.textContent=data.message||(data.ok?'相机窗口已打开。':'相机窗口打开失败。');
