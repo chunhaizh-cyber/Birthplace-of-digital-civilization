@@ -1248,9 +1248,6 @@ struct 结构体_原始场景帧 {
     [[nodiscard]] bool 有效深度掩膜() const noexcept { return 深度有效.size() == 深度.size(); }
 
     // 功能：按函数名执行对应处理。
-    [[nodiscard]] bool 有效前景提示() const noexcept { return 前景提示.size() == 深度.size(); }
-
-    // 功能：按函数名执行对应处理。
     [[nodiscard]] inline std::size_t 索引(int u, int v) const noexcept {
         return static_cast<std::size_t>(v) * static_cast<std::size_t>(宽度) + static_cast<std::size_t>(u);
     }
@@ -1259,18 +1256,8 @@ struct 结构体_原始场景帧 {
     [[nodiscard]] inline double 深度_at(int u, int v) const noexcept { return 深度[索引(u, v)]; }
 
     // 功能：按函数名执行对应处理。
-    [[nodiscard]] inline bool 深度有效_at(int u, int v) const noexcept {
-        return 有效深度掩膜() ? (深度有效[索引(u, v)] != 0) : (深度_at(u, v) > 0.0);
-    }
-
-    // 功能：按函数名执行对应处理。
     [[nodiscard]] inline Color 颜色_at(int u, int v) const noexcept {
         return 有效颜色() ? 颜色[索引(u, v)] : Color{ 255, 255, 255 };
-    }
-
-    // 功能：按函数名执行对应处理。
-    [[nodiscard]] inline Vector3D 点云_at(int u, int v) const noexcept {
-        return 有效点云() ? 点云[索引(u, v)] : Vector3D{};
     }
 };
 
