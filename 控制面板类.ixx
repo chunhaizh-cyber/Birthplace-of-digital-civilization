@@ -585,6 +585,7 @@ bool 保存控制面板HTML(
 
 bool 启动控制面板窗口() noexcept;
 bool 启动控制面板相机窗口() noexcept;
+void 请求关闭控制面板窗口() noexcept;
 void 等待控制面板窗口关闭() noexcept;
 int 获取控制面板启动诊断码() noexcept;
 

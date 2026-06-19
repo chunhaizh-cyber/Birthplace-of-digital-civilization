@@ -71,8 +71,32 @@ namespace {
     std::atomic_bool 私有_相机播放窗口启动中{ false };
     std::atomic_bool 私有_自我场景窗口启动中{ false };
     std::atomic<int> 私有_启动诊断码{ 0 };
+    std::atomic_bool 私有_控制面板窗口线程运行中{ false };
+    std::atomic_bool 私有_相机播放窗口线程运行中{ false };
+    std::atomic_bool 私有_自我场景窗口线程运行中{ false };
     std::atomic_bool 私有_相机窗口启动过外设线程{ false };
     constexpr std::size_t 私有_NavigateToString安全字节数 = 1024u * 1024u;
+
+    struct 结构_窗口线程运行守卫 {
+        explicit 结构_窗口线程运行守卫(std::atomic_bool& 标记) noexcept
+            : 标记指针(&标记)
+        {
+            标记.store(true);
+        }
+
+        ~结构_窗口线程运行守卫()
+        {
+            if (标记指针) {
+                标记指针->store(false);
+            }
+        }
+
+        结构_窗口线程运行守卫(const 结构_窗口线程运行守卫&) = delete;
+        结构_窗口线程运行守卫& operator=(const 结构_窗口线程运行守卫&) = delete;
+
+    private:
+        std::atomic_bool* 标记指针 = nullptr;
+    };
 
     struct 结构_相机帧JSON {
         bool 成功 = false;
@@ -1624,6 +1648,18 @@ namespace {
         return 私有_自我场景窗口启动中;
     }
 
+    // 功能：读取指定窗口用途对应的线程运行标记。
+    std::atomic_bool& 私有_窗口线程运行中槽(枚举_WebView2窗口用途 用途) noexcept
+    {
+        if (用途 == 枚举_WebView2窗口用途::相机播放) {
+            return 私有_相机播放窗口线程运行中;
+        }
+        if (用途 == 枚举_WebView2窗口用途::自我场景) {
+            return 私有_自我场景窗口线程运行中;
+        }
+        return 私有_控制面板窗口线程运行中;
+    }
+
     // 功能：服务所在模块的内部辅助流程。
     const wchar_t* 私有_窗口标题(枚举_WebView2窗口用途 用途) noexcept
     {
@@ -1683,6 +1719,7 @@ namespace {
     // 功能：服务所在模块的内部辅助流程。
     void 私有_独立窗口线程主体(枚举_WebView2窗口用途 用途) noexcept
     {
+        结构_窗口线程运行守卫 运行守卫{ 私有_窗口线程运行中槽(用途) };
         HRESULT COM结果 = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
         const bool 已初始化COM = SUCCEEDED(COM结果);
         if (!已初始化COM) {
@@ -1838,6 +1875,7 @@ namespace {
     // 功能：服务所在模块的内部辅助流程。
     void 私有_窗口线程主体(std::promise<bool> 启动结果) noexcept
     {
+        结构_窗口线程运行守卫 运行守卫{ 私有_控制面板窗口线程运行中 };
         HRESULT COM结果 = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
         const bool 已初始化COM = SUCCEEDED(COM结果);
         if (!已初始化COM) {
@@ -1954,9 +1992,6 @@ bool 启动控制面板WebView2窗口() noexcept
                 "启动窗口线程返回失败",
                 私有_启动诊断码.load());
         }
-        if (成功) {
-            (void)私有_打开相机播放窗口(nullptr);
-        }
         return 成功;
     }
     catch (...) {
@@ -1970,6 +2005,54 @@ bool 启动控制面板WebView2窗口() noexcept
 bool 启动控制面板相机播放窗口() noexcept
 {
     return 私有_打开相机播放窗口(nullptr);
+}
+
+// 功能：请求控制面板相关窗口关闭并等待窗口线程收束。
+void 请求关闭控制面板WebView2窗口() noexcept
+{
+    try {
+        auto 请求关闭 = [](std::atomic<HWND>& 窗口槽) noexcept {
+            if (auto* 窗口 = 窗口槽.load(); 窗口 && IsWindow(窗口)) {
+                PostMessageW(窗口, WM_CLOSE, 0, 0);
+            }
+        };
+
+        请求关闭(私有_相机播放窗口句柄);
+        请求关闭(私有_自我场景窗口句柄);
+        请求关闭(私有_窗口句柄);
+
+        constexpr int 最大等待次数 = 100;
+        for (int 次数 = 0; 次数 < 最大等待次数; ++次数) {
+            const HWND 控制面板窗口 = 私有_窗口句柄.load();
+            const HWND 相机窗口 = 私有_相机播放窗口句柄.load();
+            const HWND 自我场景窗口 = 私有_自我场景窗口句柄.load();
+            const bool 控制面板活动 = 私有_控制面板窗口线程运行中.load()
+                || (控制面板窗口 && IsWindow(控制面板窗口));
+            const bool 相机活动 = 私有_相机播放窗口线程运行中.load()
+                || 私有_相机播放窗口启动中.load()
+                || (相机窗口 && IsWindow(相机窗口));
+            const bool 自我场景活动 = 私有_自我场景窗口线程运行中.load()
+                || 私有_自我场景窗口启动中.load()
+                || (自我场景窗口 && IsWindow(自我场景窗口));
+            if (!控制面板活动 && !相机活动 && !自我场景活动) {
+                return;
+            }
+            Sleep(50);
+        }
+
+        私有_记录WebView2诊断(
+            "请求关闭窗口超时",
+            23,
+            S_OK,
+            ERROR_SUCCESS,
+            std::string("控制面板线程=")
+                + (私有_控制面板窗口线程运行中.load() ? "是" : "否")
+                + " | 相机线程=" + (私有_相机播放窗口线程运行中.load() ? "是" : "否")
+                + " | 自我场景线程=" + (私有_自我场景窗口线程运行中.load() ? "是" : "否"));
+    }
+    catch (...) {
+        私有_记录WebView2诊断("请求关闭窗口捕获未知异常", 24);
+    }
 }
 
 // 功能：等待线程、任务、外设或条件变化。
