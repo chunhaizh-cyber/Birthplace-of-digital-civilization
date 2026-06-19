@@ -319,12 +319,7 @@ private:
             return 输出;
         }
 
-        struct 候选项 {
-            基础信息节点类* 节点 = nullptr;
-            I64 分数 = 0;
-        };
-
-        std::vector<候选项> 候选{};
+        std::vector<std::pair<I64, 基础信息节点类*>> 候选{};
         for (auto* 输入子节点 : 本能动作模块_detail::枚举子节点(输入父节点)) {
             if (!输入子节点 || 本能动作模块_detail::取类型(输入子节点) != 类型) {
                 continue;
@@ -332,7 +327,7 @@ private:
 
             I64 分数 = 1000;
             分数 += 值匹配分(参数, 类型, 输入子节点, 模式子节点);
-            候选.push_back({ 输入子节点, 分数 });
+            候选.emplace_back(分数, 输入子节点);
         }
 
         if (候选.empty()) {
@@ -341,18 +336,20 @@ private:
             return 输出;
         }
 
-        std::sort(候选.begin(), 候选.end(), [](const 候选项& 左, const 候选项& 右) {
-            if (左.分数 != 右.分数) {
-                return 左.分数 > 右.分数;
+        std::sort(候选.begin(), 候选.end(), [](
+            const std::pair<I64, 基础信息节点类*>& 左,
+            const std::pair<I64, 基础信息节点类*>& 右) {
+            if (左.first != 右.first) {
+                return 左.first > 右.first;
             }
-            return 本能动作模块_detail::取主键(左.节点) < 本能动作模块_detail::取主键(右.节点);
+            return 本能动作模块_detail::取主键(左.second) < 本能动作模块_detail::取主键(右.second);
         });
 
-        已绑定输入节点栈.push_back(候选.front().节点);
-        输出.score += 候选.front().分数;
+        已绑定输入节点栈.push_back(候选.front().second);
+        输出.score += 候选.front().first;
 
         if (候选.size() >= 2) {
-            const I64 分差 = 本能动作模块_detail::饱和绝对差(候选[0].分数, 候选[1].分数);
+            const I64 分差 = 本能动作模块_detail::饱和绝对差(候选[0].first, 候选[1].first);
             if (分差 <= 参数.歧义分差阈值) {
                 输出.ambiguous = true;
                 输入输出.有歧义 = true;
