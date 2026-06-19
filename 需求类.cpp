@@ -233,9 +233,6 @@ namespace {
         std::ostringstream SQL;
         SQL << "SET NOCOUNT ON;\n"
             << "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');\n"
-            << "IF OBJECT_ID(N'fishnest.v_current_demand_panel_nodes', N'V') IS NOT NULL DROP VIEW fishnest.v_current_demand_panel_nodes;\n"
-            << "IF OBJECT_ID(N'fishnest.v_current_demand_tree_nodes', N'V') IS NOT NULL DROP VIEW fishnest.v_current_demand_tree_nodes;\n"
-            << "IF OBJECT_ID(N'fishnest.v_current_demand_main_info', N'V') IS NOT NULL DROP VIEW fishnest.v_current_demand_main_info;\n"
             << "IF OBJECT_ID(N'fishnest.demand_tree_snapshot', N'U') IS NULL\n"
             << "CREATE TABLE fishnest.demand_tree_snapshot (\n"
             << "    snapshot_id uniqueidentifier NOT NULL PRIMARY KEY,\n"

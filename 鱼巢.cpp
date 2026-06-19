@@ -91,7 +91,7 @@ namespace {
 
     bool 私有_确保自我环境已初始化(const std::string& 标记, bool 刷新控制面板SQL投影 = false);
     bool 私有_确保自我线程已启动(const std::string& 标记, bool 刷新控制面板SQL投影 = false);
-    void 私有_刷新启动需求树SQL投影(const std::string& 标记) noexcept;
+    void 私有_刷新启动需求树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
     void 私有_刷新语素SQL投影(const std::string& 标记, bool 仅首次) noexcept;
     void 私有_刷新世界树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
     void 私有_刷新任务树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
@@ -1113,13 +1113,13 @@ namespace {
     };
 
     // 功能：初始化相关对象、状态或运行上下文。
-    void 私有_刷新启动需求树SQL投影(const std::string& 标记) noexcept
+    void 私有_刷新启动需求树SQL投影(const std::string& 标记, const bool 仅首次) noexcept
     {
         static std::mutex 投影互斥{};
-        static bool 已成功写入 = false;
+        static bool 启动已成功写入 = false;
 
         std::lock_guard<std::mutex> 锁{ 投影互斥 };
-        if (已成功写入) {
+        if (仅首次 && 启动已成功写入) {
             return;
         }
 
@@ -1130,11 +1130,19 @@ namespace {
             return;
         }
 
-        已成功写入 = 需求类::重写需求树SQL投影(需求根, "启动初始化清空重写");
+        const std::string 来源原因 = 仅首次
+            ? "启动初始化清空重写"
+            : "控制面板读前清空重写";
+        const bool 成功 = 需求类::重写需求树SQL投影(需求根, 来源原因.c_str());
+        if (仅首次 && 成功) {
+            启动已成功写入 = true;
+        }
+
         项目运行日志(
             "启动需求树SQL投影"
             " | 标记=" + 标记
-            + " | 成功=" + 布尔文本_是或否(已成功写入));
+            + " | 仅首次=" + 布尔文本_是或否(仅首次)
+            + " | 成功=" + 布尔文本_是或否(成功));
     }
 
     // 功能：把当前语素树写入 SQL Server 查询投影。
@@ -1282,8 +1290,8 @@ namespace {
             鱼巢_启动说明("按需SQL投影处理");
             if (刷新控制面板SQL投影) {
                 私有_本进程已执行控制面板SQL投影.store(true);
-                私有_刷新启动需求树SQL投影(标记);
-                私有_刷新治理SQL投影集(标记, true);
+                私有_刷新启动需求树SQL投影(标记, false);
+                私有_刷新治理SQL投影集(标记, false);
             }
             else {
                 项目运行日志("启动SQL投影跳过 | 标记=" + 标记 + " | 原因=当前入口不需要控制面板SQL读模型");
@@ -1318,8 +1326,8 @@ namespace {
             鱼巢_启动说明("自我线程启动前按需SQL投影处理");
             if (刷新控制面板SQL投影) {
                 私有_本进程已执行控制面板SQL投影.store(true);
-                私有_刷新启动需求树SQL投影(标记);
-                私有_刷新治理SQL投影集(标记, true);
+                私有_刷新启动需求树SQL投影(标记, false);
+                私有_刷新治理SQL投影集(标记, false);
             }
             else {
                 项目运行日志("启动SQL投影跳过 | 标记=" + 标记 + " | 原因=当前入口不需要控制面板SQL读模型");
