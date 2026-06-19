@@ -214,7 +214,7 @@ std::string 生成SQLServerWindows认证ADO连接串(
     连接串.append(服务器);
     连接串 += ";Initial Catalog=";
     连接串.append(数据库);
-    连接串 += ";Integrated Security=SSPI;Persist Security Info=False;";
+    连接串 += ";Integrated Security=SSPI;Persist Security Info=False;Connect Timeout=3;";
     return 连接串;
 }
 

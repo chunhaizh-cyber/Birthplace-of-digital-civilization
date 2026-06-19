@@ -14318,10 +14318,9 @@ std::string 生成SQL控制面板HTML()
 // 功能：从 SQL Server 读模型读取数据并保存控制面板 HTML。
 bool 保存控制面板HTML(const std::filesystem::path& 输出路径)
 {
-    结构_SQL控制面板数据 数据{};
-    std::string 错误{};
-    if (!私有_读取SQL控制面板数据(数据, 错误)) {
-        项目运行错误日志("控制面板HTML保存失败 | 来源=ADO-SQL | 原因=" + 错误);
+    const auto HTML = 生成SQL控制面板HTML();
+    if (HTML.empty()) {
+        项目运行错误日志("控制面板HTML保存失败 | 来源=ADO-SQL | 原因=生成HTML为空");
         return false;
     }
 
@@ -14331,7 +14330,6 @@ bool 保存控制面板HTML(const std::filesystem::path& 输出路径)
         return false;
     }
 
-    const auto HTML = 私有_生成SQL控制面板HTML(数据);
     输出文件.write(HTML.data(), static_cast<std::streamsize>(HTML.size()));
     return 输出文件.good();
 }
