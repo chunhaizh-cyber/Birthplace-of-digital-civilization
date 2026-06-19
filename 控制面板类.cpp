@@ -8039,24 +8039,20 @@ function selectDefaultForSection(target){
 }
 )HTML";
         输出 << R"HTML(
-function activateMenuButton(button, refreshOnMenu=false){
+function activateMenuButton(button){
   if(!button)return;
   buttons.forEach(item=>item.classList.toggle('active',item===button));
   sections.forEach(section=>section.classList.toggle('active',section.id===button.dataset.target));
   try{localStorage.setItem('fishnest.panel.activeTarget',button.dataset.target||'');}catch(_){}
   applyFilter();
   selectDefaultForSection(button.dataset.target);
-  if(refreshOnMenu&&window.chrome&&window.chrome.webview){
-    if(refreshStatus)refreshStatus.textContent='正在刷新...';
-    window.chrome.webview.postMessage('refresh');
-  }
 }
-function selectMenuByNumber(text, refreshOnMenu=false){
+function selectMenuByNumber(text){
   const index=Number(text);
   if(!Number.isInteger(index)||index<=0)return false;
   const button=buttons.find(item=>Number(item.dataset.menuIndex||0)===index);
   if(!button)return false;
-  activateMenuButton(button, refreshOnMenu);
+  activateMenuButton(button);
   return true;
 }
 function refreshPanel(){
@@ -8075,7 +8071,7 @@ function openCameraWindow(){
     refreshStatus.textContent='静态 HTML 预览不能打开相机窗口。';
   }
 }
-buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button,true)));
+buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button)));
 filter.addEventListener('input',applyFilter);
 if(refreshButton)refreshButton.addEventListener('click',refreshPanel);
 if(openCameraButton)openCameraButton.addEventListener('click',openCameraWindow);
@@ -8085,14 +8081,14 @@ document.addEventListener('keydown',event=>{
     menuNumberBuffer+=event.key;
     clearTimeout(menuNumberTimer);
     if(menuNumberBuffer==='1'){
-      menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer,true);menuNumberBuffer='';},650);
+      menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer);menuNumberBuffer='';},650);
       return;
     }
-    if(selectMenuByNumber(menuNumberBuffer,true)){
+    if(selectMenuByNumber(menuNumberBuffer)){
       menuNumberBuffer='';
       return;
     }
-    menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer,true);menuNumberBuffer='';},650);
+    menuNumberTimer=setTimeout(()=>{selectMenuByNumber(menuNumberBuffer);menuNumberBuffer='';},650);
   }
 });
 document.getElementById('chainQuery').addEventListener('click',queryCausalChain);
