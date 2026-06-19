@@ -7,6 +7,7 @@ module;
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <initializer_list>
 #include <limits>
 #include <mutex>
 #include <optional>
@@ -7143,6 +7144,212 @@ ORDER BY row_index;
         输出 << '"';
     }
 
+    // 功能：把 SQL 控制面板表头输出为 JSON 字符串数组。
+    void 私有_追加SQL控制面板表头JSON(
+        std::ostringstream& 输出,
+        std::initializer_list<std::string_view> 表头)
+    {
+        输出 << "[";
+        std::size_t 索引 = 0;
+        for (const auto 字段 : 表头) {
+            if (索引++ > 0) {
+                输出 << ",";
+            }
+            私有_追加SQL控制面板JSON字符串(输出, 字段);
+        }
+        输出 << "]";
+    }
+
+    // 功能：把 SQL 控制面板行集输出为 JSON 二维数组。
+    void 私有_追加SQL控制面板行集JSON(
+        std::ostringstream& 输出,
+        const std::vector<std::vector<std::string>>& 行集,
+        const std::size_t 列数)
+    {
+        输出 << "[";
+        for (std::size_t 行索引 = 0; 行索引 < 行集.size(); ++行索引) {
+            if (行索引 > 0) {
+                输出 << ",";
+            }
+            输出 << "[";
+            for (std::size_t 列索引 = 0; 列索引 < 列数; ++列索引) {
+                if (列索引 > 0) {
+                    输出 << ",";
+                }
+                私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行集[行索引], 列索引));
+            }
+            输出 << "]";
+        }
+        输出 << "]";
+    }
+
+    // 功能：生成 SQL 控制面板普通表格区段刷新 JSON。
+    std::string 私有_SQL控制面板表格区段刷新JSON(
+        std::string_view 区段ID,
+        std::string_view 标题,
+        std::initializer_list<std::string_view> 表头,
+        const std::vector<std::vector<std::string>>& 行集)
+    {
+        std::ostringstream 输出;
+        输出 << "{\"ok\":true,\"kind\":\"sql-table\",\"page\":";
+        私有_追加SQL控制面板JSON字符串(输出, 区段ID);
+        输出 << ",\"title\":";
+        私有_追加SQL控制面板JSON字符串(输出, 标题);
+        输出 << ",\"headers\":";
+        私有_追加SQL控制面板表头JSON(输出, 表头);
+        输出 << ",\"rows\":";
+        私有_追加SQL控制面板行集JSON(输出, 行集, 表头.size());
+        输出 << "}";
+        return 输出.str();
+    }
+
+    // 功能：生成 SQL 控制面板因果信息区段刷新 JSON。
+    std::string 私有_SQL控制面板因果信息刷新JSON(
+        std::string_view 区段ID,
+        const 结构_SQL控制面板数据& 数据)
+    {
+        std::ostringstream 输出;
+        输出 << "{\"ok\":true,\"kind\":\"sql-causal-info\",\"page\":";
+        私有_追加SQL控制面板JSON字符串(输出, 区段ID);
+        输出 << ",\"rows\":";
+        私有_追加SQL控制面板行集JSON(输出, 数据.因果信息, 9);
+        输出 << ",\"relations\":";
+        私有_追加SQL控制面板行集JSON(输出, 数据.因果信息关系, 6);
+        输出 << "}";
+        return 输出.str();
+    }
+
+    // 功能：生成 SQL 控制面板因果链查询区段刷新 JSON。
+    std::string 私有_SQL控制面板因果链刷新JSON(
+        std::string_view 区段ID,
+        const 结构_SQL控制面板数据& 数据)
+    {
+        std::ostringstream 输出;
+        输出 << "{\"ok\":true,\"kind\":\"sql-causal-chain\",\"page\":";
+        私有_追加SQL控制面板JSON字符串(输出, 区段ID);
+        输出 << ",\"relations\":";
+        私有_追加SQL控制面板行集JSON(输出, 数据.因果信息关系, 6);
+        输出 << "}";
+        return 输出.str();
+    }
+
+    // 功能：生成 SQL 控制面板世界树区段刷新 JSON。
+    std::string 私有_SQL控制面板世界树刷新JSON(
+        std::string_view 区段ID,
+        const 结构_SQL控制面板数据& 数据)
+    {
+        std::ostringstream 输出;
+        输出 << "{\"ok\":true,\"kind\":\"sql-world-tree\",\"page\":";
+        私有_追加SQL控制面板JSON字符串(输出, 区段ID);
+        输出 << ",\"headers\":";
+        私有_追加SQL控制面板表头JSON(输出, { "节点", "父节点", "深度", "类别", "显示", "类型", "值类", "值", "辅助" });
+        输出 << ",\"rows\":";
+        私有_追加SQL控制面板行集JSON(输出, 数据.世界树, 9);
+        输出 << ",\"relations\":";
+        私有_追加SQL控制面板行集JSON(输出, 数据.世界树关系, 6);
+        输出 << "}";
+        return 输出.str();
+    }
+
+    // 功能：按 SQL 控制面板菜单区段生成局部刷新 JSON。
+    std::string 私有_SQL控制面板区段刷新JSON(std::string_view 区段ID)
+    {
+        结构_SQL控制面板数据 数据{};
+        std::string 错误{};
+        if (!私有_读取SQL控制面板数据(数据, 错误)) {
+            std::ostringstream 输出;
+            输出 << "{\"ok\":false,\"kind\":\"sql-section\",\"page\":";
+            私有_追加SQL控制面板JSON字符串(输出, 区段ID);
+            输出 << ",\"error\":";
+            私有_追加SQL控制面板JSON字符串(输出, 错误);
+            输出 << "}";
+            return 输出.str();
+        }
+
+        if (区段ID == "metrics") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "面板指标", { "指标", "分组", "值", "来源", "文件" }, 数据.指标);
+        }
+        if (区段ID == "threads") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "线程信息", { "逻辑ID", "线程名", "生命周期", "运行状态", "健康", "模块", "最近原因" }, 数据.线程);
+        }
+        if (区段ID == "threadEvents") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "线程生命周期事件", { "消息ID", "事件", "线程", "旧生命周期", "新生命周期", "原因", "摘要" }, 数据.线程事件);
+        }
+        if (区段ID == "actions") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "动作动态", { "时间", "类", "事件", "方法", "特征", "动作动态", "来源动态" }, 数据.动作动态);
+        }
+        if (区段ID == "causalInfo") {
+            return 私有_SQL控制面板因果信息刷新JSON(区段ID, 数据);
+        }
+        if (区段ID == "causalChain") {
+            return 私有_SQL控制面板因果链刷新JSON(区段ID, 数据);
+        }
+        if (区段ID == "demandTree") {
+            return 私有_SQL控制面板表格区段刷新JSON(
+                区段ID,
+                "需求树",
+                {
+                    "节点序号", "父序号", "深度", "名称", "树形态", "目标语义", "目标特征", "任务",
+                    "需求节点主键", "逻辑组织类型", "目标特征类型", "目标特征主键", "任务类型", "任务主键",
+                    "需求主体名称", "需求主体类型", "需求主体主键",
+                    "需求场景名称", "需求场景类型", "需求场景主键",
+                    "目标宿主名称", "目标宿主类型", "目标宿主主键",
+                    "当前状态名称", "当前状态类型", "当前状态主键",
+                    "目标状态名称", "目标状态类型", "目标状态主键",
+                    "满足关系掩码", "安全权重", "服务权重", "累计安全结算", "累计服务结算", "有效截止",
+                    "最近结算任务名称", "最近结算任务类型", "最近结算任务主键", "最近结算时间",
+                    "描述信息主键", "统计创建时间", "统计最后观测时间", "统计命中次数", "已截止", "阻塞父任务"
+                },
+                数据.需求树);
+        }
+        if (区段ID == "taskTree") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "任务树", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
+        }
+        if (区段ID == "methodTree") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "方法树", { "节点", "父节点", "深度", "节点种类", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
+        }
+        if (区段ID == "worldTree") {
+            return 私有_SQL控制面板世界树刷新JSON(区段ID, 数据);
+        }
+        if (区段ID == "worldRelations") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "世界树关系", { "宿主", "关系", "目标类", "目标", "目标显示", "序号" }, 数据.世界树关系);
+        }
+        if (区段ID == "lexemeTree") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "语素树", { "节点", "父节点", "深度", "类别", "词面", "入口类型", "主信息类型", "基础信息" }, 数据.语素树);
+        }
+        if (区段ID == "features") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "特征类型", { "特征", "来源", "符号", "文件", "行" }, 数据.特征);
+        }
+        if (区段ID == "catalog") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "控制面板字段目录", { "字段", "分组", "C++类型", "结构", "文件", "行" }, 数据.字段目录);
+        }
+
+        std::ostringstream 输出;
+        输出 << "{\"ok\":false,\"kind\":\"sql-section\",\"page\":";
+        私有_追加SQL控制面板JSON字符串(输出, 区段ID);
+        输出 << ",\"error\":\"未知 SQL 控制面板区段\"}";
+        return 输出.str();
+    }
+
+    // 功能：判断页面名是否对应 SQL 控制面板菜单区段。
+    bool 私有_是SQL控制面板区段(std::string_view 区段ID) noexcept
+    {
+        return 区段ID == "metrics"
+            || 区段ID == "threads"
+            || 区段ID == "threadEvents"
+            || 区段ID == "actions"
+            || 区段ID == "causalInfo"
+            || 区段ID == "causalChain"
+            || 区段ID == "demandTree"
+            || 区段ID == "taskTree"
+            || 区段ID == "methodTree"
+            || 区段ID == "worldTree"
+            || 区段ID == "worldRelations"
+            || 区段ID == "lexemeTree"
+            || 区段ID == "features"
+            || 区段ID == "catalog";
+    }
+
     // 功能：根据 SQL 控制面板数据生成静态 HTML。
     std::string 私有_生成SQL控制面板HTML(const 结构_SQL控制面板数据& 数据)
     {
@@ -7692,33 +7899,187 @@ function buildGenericHierarchy(nodes){
   });
   return roots.length?roots:nodes;
 }
+const treeLikeSections=new Set(['demandTree','taskTree','methodTree','lexemeTree']);
+function buildTableTreeSection(section){
+  if(!section||['causalInfo','worldTree','causalChain'].includes(section.id))return;
+  const table=section.querySelector('table[data-filterable]');
+  if(!table||section.querySelector('.sql-section-tree'))return;
+  const headers=Array.from(table.tHead?.rows?.[0]?.cells||[]).map(cell=>cell.textContent.trim());
+  const rows=Array.from(table.tBodies?.[0]?.rows||[]).map((tr,index)=>{
+    const cells=Array.from(tr.cells).map(cell=>cell.textContent.trim());
+    return createGenericRowNode(section.id,section.dataset.sectionTitle||section.querySelector('h2')?.textContent||section.id,headers,cells,index,treeLikeSections.has(section.id));
+  });
+  const roots=treeLikeSections.has(section.id)?buildGenericHierarchy(rows):[{key:section.dataset.sectionTitle||section.id,depth:'0',kind:'页面',display:`${section.dataset.sectionTitle||section.id} ${rows.length}`,summary:'SQL 行节点',headers:['页面','数量'],cells:[section.dataset.sectionTitle||section.id,String(rows.length)],children:rows,searchText:rows.map(row=>row.searchText).join(' '),onSelect:null}];
+  genericTreeRootsBySection.set(section.id,roots);
+  const panel=document.createElement('div');
+  panel.className='tree-panel sql-section-tree';
+  panel.innerHTML=`<div class="tree-toolbar"><span class="note">SQL 节点：${rows.length}</span></div><div class="tree-view"></div>`;
+  const view=panel.querySelector('.tree-view');
+  roots.forEach(root=>view.appendChild(renderTreeNode(root,genericNodeLabel)));
+  const wrap=table.closest('.table-wrap');
+  if(wrap){
+    section.insertBefore(panel,wrap);
+    wrap.hidden=true;
+  }else{
+    section.appendChild(panel);
+  }
+}
+function rebuildTableTreeSection(section){
+  if(!section)return;
+  section.querySelectorAll('.sql-section-tree').forEach(panel=>panel.remove());
+  const wrap=section.querySelector('.table-wrap');
+  if(wrap)wrap.hidden=false;
+  genericTreeRootsBySection.delete(section.id);
+  buildTableTreeSection(section);
+}
 function buildTableTreeSections(){
-  const treeLikeSections=new Set(['demandTree','taskTree','methodTree','lexemeTree']);
-  sections.forEach(section=>{
-    if(['causalInfo','worldTree','causalChain'].includes(section.id))return;
-    const table=section.querySelector('table[data-filterable]');
-    if(!table||section.querySelector('.sql-section-tree'))return;
-    const headers=Array.from(table.tHead?.rows?.[0]?.cells||[]).map(cell=>cell.textContent.trim());
-    const rows=Array.from(table.tBodies?.[0]?.rows||[]).map((tr,index)=>{
-      const cells=Array.from(tr.cells).map(cell=>cell.textContent.trim());
-      return createGenericRowNode(section.id,section.dataset.sectionTitle||section.querySelector('h2')?.textContent||section.id,headers,cells,index,treeLikeSections.has(section.id));
-    });
-    const roots=treeLikeSections.has(section.id)?buildGenericHierarchy(rows):[{key:section.dataset.sectionTitle||section.id,depth:'0',kind:'页面',display:`${section.dataset.sectionTitle||section.id} ${rows.length}`,summary:'SQL 行节点',headers:['页面','数量'],cells:[section.dataset.sectionTitle||section.id,String(rows.length)],children:rows,searchText:rows.map(row=>row.searchText).join(' '),onSelect:null}];
-    genericTreeRootsBySection.set(section.id,roots);
-    const panel=document.createElement('div');
-    panel.className='tree-panel sql-section-tree';
-    panel.innerHTML=`<div class="tree-toolbar"><span class="note">SQL 节点：${rows.length}</span></div><div class="tree-view"></div>`;
-    const view=panel.querySelector('.tree-view');
-    roots.forEach(root=>view.appendChild(renderTreeNode(root,genericNodeLabel)));
-    const wrap=table.closest('.table-wrap');
-    if(wrap){
-      section.insertBefore(panel,wrap);
-      wrap.hidden=true;
-    }else{
-      section.appendChild(panel);
-    }
+  sections.forEach(buildTableTreeSection);
+}
+)HTML";
+        输出 << R"HTML(
+function sqlCell(row,index){
+  return Array.isArray(row)&&row[index]!=null?String(row[index]):'';
+}
+function sqlRowsToTreeRows(rows){
+  return (Array.isArray(rows)?rows:[]).map(row=>({
+    key:sqlCell(row,0),
+    parent:sqlCell(row,1),
+    depth:sqlCell(row,2),
+    kind:sqlCell(row,3),
+    display:sqlCell(row,4),
+    type:sqlCell(row,5),
+    valueKind:sqlCell(row,6),
+    value:sqlCell(row,7),
+    aux:sqlCell(row,8)
+  }));
+}
+function sqlRowsToRelations(rows){
+  return (Array.isArray(rows)?rows:[]).map(row=>({
+    owner:sqlCell(row,0),
+    relation:sqlCell(row,1),
+    targetKind:sqlCell(row,2),
+    targetKey:sqlCell(row,3),
+    targetText:sqlCell(row,4),
+    ordinal:sqlCell(row,5)
+  }));
+}
+function resetCausalRelationIndexes(relations){
+  causalInfoRelations.splice(0,causalInfoRelations.length,...relations);
+  causalRelationsByOwner.clear();
+  causalInfoRelations.forEach(rel=>{
+    if(!causalRelationsByOwner.has(rel.owner))causalRelationsByOwner.set(rel.owner,[]);
+    causalRelationsByOwner.get(rel.owner).push(rel);
+  });
+  causalRelationEdges.splice(0,causalRelationEdges.length,...causalInfoRelations.map(rel=>({
+    sourceKind:'因果',
+    sourceKey:rel.owner,
+    targetKind:rel.targetKind,
+    targetKey:rel.targetKey,
+    relation:rel.relation,
+    evidence:rel.targetText||`序号=${rel.ordinal||0}`
+  })));
+}
+function resetCausalInfoIndexes(rows,relations){
+  causalInfoRows.splice(0,causalInfoRows.length,...rows);
+  causalInfoByKey.clear();
+  causalInfoRows.forEach(row=>causalInfoByKey.set(row.key,row));
+  resetCausalRelationIndexes(relations);
+}
+function resetWorldTreeIndexes(rows,relations){
+  worldTreeRows.splice(0,worldTreeRows.length,...rows);
+  worldTreeRelations.splice(0,worldTreeRelations.length,...relations);
+  worldNodeByKey.clear();
+  worldTreeRows.forEach(row=>worldNodeByKey.set(row.key,row));
+  worldRelationsByOwner.clear();
+  worldTreeRelations.forEach(rel=>{
+    if(!worldRelationsByOwner.has(rel.owner))worldRelationsByOwner.set(rel.owner,[]);
+    worldRelationsByOwner.get(rel.owner).push(rel);
   });
 }
+function renderSQLTableSection(data){
+  const section=document.getElementById(data.page||'');
+  if(!section)return;
+  const table=section.querySelector('table[data-filterable]');
+  if(!table)return;
+  const headers=Array.isArray(data.headers)?data.headers:[];
+  const rows=Array.isArray(data.rows)?data.rows:[];
+  const headRow=table.tHead?.rows?.[0];
+  if(headRow)headRow.innerHTML=headers.map(header=>`<th>${escapeHtml(header)}</th>`).join('');
+  const body=table.tBodies?.[0]||table.createTBody();
+  body.innerHTML=rows.map(row=>`<tr>${headers.map((_,index)=>`<td>${escapeHtml(sqlCell(row,index))}</td>`).join('')}</tr>`).join('');
+  if(data.page==='metrics'){
+    const cards=section.querySelector('.cards');
+    if(cards){
+      cards.innerHTML=rows.map(row=>`<div class="card"><b>${escapeHtml(sqlCell(row,2))}</b><span>${escapeHtml(sqlCell(row,0))}</span><div class="note">${escapeHtml(sqlCell(row,1))}</div></div>`).join('');
+    }
+  }
+  rebuildTableTreeSection(section);
+  applyFilter();
+  selectDefaultForSection(data.page);
+}
+function renderSQLCausalInfoSection(data){
+  const rows=sqlRowsToTreeRows(data.rows);
+  const relations=sqlRowsToRelations(data.relations);
+  resetCausalInfoIndexes(rows,relations);
+  const note=document.querySelector('#causalInfo .tree-toolbar .note');
+  if(note)note.textContent=`SQL 世界树因果节点：${rows.length}；组成关系：${relations.length}`;
+  buildCausalInfoTree();
+  applyFilter();
+  selectDefaultForSection('causalInfo');
+}
+function renderSQLCausalChainSection(data){
+  const relations=sqlRowsToRelations(data.relations);
+  resetCausalRelationIndexes(relations);
+  chainRows.innerHTML='';
+  chainResult.textContent=`已刷新因果链关系 ${causalRelationEdges.length} 条。`;
+}
+function renderSQLWorldTreeSection(data){
+  const rows=sqlRowsToTreeRows(data.rows);
+  const relations=sqlRowsToRelations(data.relations);
+  resetWorldTreeIndexes(rows,relations);
+  const section=document.getElementById('worldTree');
+  const table=section?.querySelector('table[data-filterable]');
+  const headers=Array.isArray(data.headers)?data.headers:[];
+  if(table){
+    const headRow=table.tHead?.rows?.[0];
+    if(headRow)headRow.innerHTML=headers.map(header=>`<th>${escapeHtml(header)}</th>`).join('');
+    const body=table.tBodies?.[0]||table.createTBody();
+    body.innerHTML=(Array.isArray(data.rows)?data.rows:[]).map(row=>`<tr>${headers.map((_,index)=>`<td>${escapeHtml(sqlCell(row,index))}</td>`).join('')}</tr>`).join('');
+  }
+  const note=document.querySelector('#worldTree .tree-toolbar .note');
+  if(note){
+    const causalCount=rows.filter(row=>row.kind==='因果').length;
+    note.textContent=`SQL 当前节点数：${rows.length}；因果节点：${causalCount}`;
+  }
+  buildWorldTree();
+  applyFilter();
+  selectDefaultForSection('worldTree');
+}
+function 请求刷新当前SQL区段(target){
+  if(!target)return false;
+  if(window.chrome&&window.chrome.webview){
+    if(panelStatus)panelStatus.textContent=`正在刷新：${target}`;
+    window.chrome.webview.postMessage(`refresh-page:${target}`);
+    return true;
+  }
+  if(panelStatus)panelStatus.textContent='静态 HTML 预览未连接实时刷新接口。';
+  return false;
+}
+function 应用SQL区段刷新(data){
+  if(!data||typeof data!=='object')return;
+  if(!data.ok){
+    if(panelStatus)panelStatus.textContent=data.error?`刷新失败：${data.error}`:'刷新失败。';
+    return;
+  }
+  if(data.kind==='sql-table')renderSQLTableSection(data);
+  else if(data.kind==='sql-causal-info')renderSQLCausalInfoSection(data);
+  else if(data.kind==='sql-causal-chain')renderSQLCausalChainSection(data);
+  else if(data.kind==='sql-world-tree')renderSQLWorldTreeSection(data);
+  else return;
+  if(panelStatus)panelStatus.textContent=`已刷新当前页面：${data.page||''}`;
+}
+)HTML";
+        输出 << R"HTML(
 function filterTreeRows(roots,query){
   if(!roots.length)return;
   function visit(row){
@@ -7919,20 +8280,21 @@ function selectDefaultForSection(target){
 }
 )HTML";
         输出 << R"HTML(
-function activateMenuButton(button){
+function activateMenuButton(button,refreshCurrent=false){
   if(!button)return;
   buttons.forEach(item=>item.classList.toggle('active',item===button));
   sections.forEach(section=>section.classList.toggle('active',section.id===button.dataset.target));
   try{localStorage.setItem('fishnest.panel.activeTarget',button.dataset.target||'');}catch(_){}
   applyFilter();
   selectDefaultForSection(button.dataset.target);
+  if(refreshCurrent)请求刷新当前SQL区段(button.dataset.target);
 }
 function selectMenuByNumber(text){
   const index=Number(text);
   if(!Number.isInteger(index)||index<=0)return false;
   const button=buttons.find(item=>Number(item.dataset.menuIndex||0)===index);
   if(!button)return false;
-  activateMenuButton(button);
+  activateMenuButton(button,true);
   return true;
 }
 function openCameraWindow(){
@@ -7942,7 +8304,7 @@ function openCameraWindow(){
     panelStatus.textContent='静态 HTML 预览不能打开相机窗口。';
   }
 }
-buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button)));
+buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button,true)));
 filter.addEventListener('input',applyFilter);
 if(openCameraButton)openCameraButton.addEventListener('click',openCameraWindow);
 document.addEventListener('keydown',event=>{
@@ -7982,7 +8344,7 @@ window.__panelApplyCameraWindowState=function(data){
     panelStatus.textContent=data.message||(data.ok?'相机窗口已打开。':'相机窗口打开失败。');
   }
 };
-window.__panelApplyPageRefresh=function(){};
+window.__panelApplyPageRefresh=应用SQL区段刷新;
 window.__panelApplyExpand=function(){};
 window.__panelApplyDetail=function(){};
 </script>
@@ -9376,6 +9738,10 @@ window.__panelApplyDetail=function(){};
 // 功能：从指定来源读取数据或状态。
 std::string 读取控制面板页面刷新JSON(std::string_view 页面)
 {
+    if (私有_是SQL控制面板区段(页面)) {
+        return 私有_SQL控制面板区段刷新JSON(页面);
+    }
+
     const auto 快照 = 读取控制面板快照(0, 0);
     auto* 自我存在 = 自我.获取自我存在();
     auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
