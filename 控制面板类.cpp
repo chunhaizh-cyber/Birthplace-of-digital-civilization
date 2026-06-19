@@ -5253,7 +5253,6 @@ namespace {
         私有_追加叶字段(字段节点, "适用锚点类型", 私有_因果锚点类型文本(主信息.适用锚点类型));
         私有_追加叶字段(字段节点, "适用层级", static_cast<std::uint64_t>(主信息.适用层级));
         私有_追加叶字段(字段节点, "因动作名称", 主信息.因动作名称);
-        私有_追加叶字段(字段节点, "因动作语义键", 主信息.因动作语义键);
         私有_追加叶字段(字段节点, "派生稳定度", 主信息.计算稳定度());
         私有_追加叶字段(字段节点, "已验证", 主信息.已验证);
         私有_追加叶字段(字段节点, "观察次数", 主信息.观察次数);
@@ -8040,7 +8039,6 @@ function renderReferenceBlock(title,relations){
 }
 function renderActionBlock(row,relations){
   const fields=parseAuxFields(row.aux);
-  const actionCode=fields.get('因动作语义键')||fields.get('因动作')||fields.get('动作编码')||'';
   const actionName=fields.get('因动作名称')||fields.get('动作名称')||'';
   const methodTemplate=fields.get('因方法模板')||'';
   const relationHtml=relations.length?relations.map(rel=>`<div class="detail-item">${renderDetailRows([
@@ -8050,7 +8048,6 @@ function renderActionBlock(row,relations){
     ['序号', rel.ordinal]
   ])}</div>`).join(''):'';
   return `<div class="detail-block"><h3>动作</h3><div class="detail-item">${renderDetailRows([
-    ['动作编码', actionCode],
     ['动作名称', actionName],
     ['因方法模板', methodTemplate]
   ])}</div>${relationHtml}</div>`;

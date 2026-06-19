@@ -596,7 +596,6 @@ namespace {
         }
         else if (const auto* 因果 = dynamic_cast<const 因果主信息类*>(主信息)) {
             行.辅助文本 = "因动作名称=" + 因果->因动作名称
-                + " | 因动作语义键=" + 因果->因动作语义键
                 + " | 成立=" + std::to_string(因果->成立次数)
                 + " | 失败=" + std::to_string(因果->失败次数);
         }
