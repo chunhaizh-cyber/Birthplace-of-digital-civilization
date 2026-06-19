@@ -5402,39 +5402,30 @@ namespace {
             0,
             true);
 
-        std::vector<基础信息节点类*> 因果模板节点{};
-
-        for (auto* 因果节点 : 世界树.基础信息().枚举节点_按类型<因果主信息类>()) {
-            const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
-            if (!主信息) continue;
-            因果模板节点.push_back(因果节点);
+        std::vector<基础信息节点类*> 因果根节点{};
+        if (auto* 世界根节点 = 世界树.基础信息().世界根()) {
+            for (auto* 子节点 : 私有_枚举子节点(
+                     世界根节点,
+                     (std::numeric_limits<std::size_t>::max)())) {
+                if (世界树.基础信息().取主信息<因果主信息类>(子节点)) {
+                    因果根节点.push_back(子节点);
+                }
+            }
         }
 
-        auto 追加分组 = [&](const std::string& 名称, const std::vector<基础信息节点类*>& 节点集) {
-            auto 分组节点 = 私有_新节点(
-                名称 + " | 数量=" + std::to_string(节点集.size()),
-                0,
-                true);
-            const auto 实际上限 = (std::min)(上下文.树广度上限, 节点集.size());
-            for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
-                分组节点.子项.push_back(
-                    私有_基础信息骨架节点(节点集[索引], 上下文, false));
-            }
-            if (节点集.size() > 实际上限) {
-                分组节点.子项.push_back(
-                    私有_新节点("... 省略 " + std::to_string(节点集.size() - 实际上限) + " 项"));
-            }
-            if (节点集.empty()) {
-                分组节点.子项.push_back(私有_新节点("当前无记录"));
-            }
-            根节点.子项.push_back(std::move(分组节点));
-        };
+        const auto 实际上限 = (std::min)(上下文.树广度上限, 因果根节点.size());
+        for (std::size_t 索引 = 0; 索引 < 实际上限; ++索引) {
+            根节点.子项.push_back(
+                私有_基础信息骨架节点(因果根节点[索引], 上下文, false));
+        }
+        if (因果根节点.size() > 实际上限) {
+            根节点.子项.push_back(
+                私有_新节点("... 省略 " + std::to_string(因果根节点.size() - 实际上限) + " 项"));
+        }
 
-        追加分组("因果模板", 因果模板节点);
-
-        if (因果模板节点.empty()) {
+        if (因果根节点.empty()) {
             根节点.子项.clear();
-            根节点.子项.push_back(私有_新节点("当前世界树未记录因果信息"));
+            根节点.子项.push_back(私有_新节点("当前世界树根链未记录因果根节点"));
         }
 
         return 根节点;
@@ -6849,6 +6840,7 @@ SELECT
     COALESCE(auxiliary_text, N'') AS auxiliary_text
 FROM fishnest.v_current_world_tree_nodes
 WHERE node_kind = N'因果'
+  AND COALESCE(parent_key, N'') = N'WORLD_ROOT'
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::因果信息
@@ -6868,6 +6860,7 @@ WHERE owner_key IN (
     SELECT node_key
     FROM fishnest.v_current_world_tree_nodes
     WHERE node_kind = N'因果'
+      AND COALESCE(parent_key, N'') = N'WORLD_ROOT'
 )
 ORDER BY owner_key, ordinal_index, relation_name;
 )SQL",
@@ -7529,6 +7522,26 @@ COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
             }
             return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 行集, 关系行集);
         }
+        if (区段ID == "causalInfo") {
+            constexpr std::string_view 字段 = R"SQL(
+COALESCE(node_key, N'') AS node_key,
+COALESCE(parent_key, N'') AS parent_key,
+CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+COALESCE(node_kind, N'') AS node_kind,
+COALESCE(display_text, N'') AS display_text,
+COALESCE(type_text, N'') AS type_text,
+COALESCE(value_kind, N'') AS value_kind,
+COALESCE(value_text, N'') AS value_text,
+COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
+            if (!私有_读取SQL树直接子层("因果信息子层", "fishnest.v_current_world_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+                return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+            }
+            std::vector<std::vector<std::string>> 关系行集{};
+            if (!私有_读取SQL世界树关系行集(行集, 关系行集, 错误)) {
+                return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+            }
+            return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 行集, 关系行集);
+        }
         return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, "该区段不是按需树");
     }
 
@@ -7732,7 +7745,7 @@ COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
             << "<div class=\"world-tree-grid\"><div class=\"tree-panel\">"
             << "<div class=\"tree-toolbar\"><button id=\"causalInfoExpand\" type=\"button\">展开两层</button>"
             << "<button id=\"causalInfoCollapse\" type=\"button\">收起</button>"
-            << "<span class=\"note\">SQL 世界树因果节点：" << 数据.因果信息.size()
+            << "<span class=\"note\">SQL 世界树根链因果根节点：" << 数据.因果信息.size()
             << "；组成关系：" << 数据.因果信息关系.size() << "</span></div>"
             << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div></div></section>\n";
         私有_追加SQL控制面板表(
@@ -8047,7 +8060,7 @@ function selectCausalInfo(key,node=null){
   causalInfoDetail.innerHTML=`<div class="detail-head"><strong>${escapeHtml(row.display||row.type||row.key)}</strong><span><span class="tree-key">${escapeHtml(row.key)}</span> ${escapeHtml(row.kind||'因果')}</span><span class="tree-muted">${escapeHtml(row.aux||'')}</span></div>${renderReferenceBlock('条件',conditionRelations)}${renderActionBlock(row,actionRelations)}${renderReferenceBlock('结果',resultRelations)}`;
   updateCausalSelection();
 }
-function selectCausalInfoNode(node){
+function selectCausalInfoNode(node,loadSubtree=false){
   if(!node)return;
   if(node.relationRow){
     selectedCausalInfoNode=node;
@@ -8063,7 +8076,33 @@ function selectCausalInfoNode(node){
     updateCausalSelection();
     return;
   }
+  if(node.kind&&node.kind!=='因果'){
+    selectedCausalInfoKey=node.key;
+    selectedCausalInfoNode=node;
+    const relations=causalRelationsByOwner.get(node.key)||[];
+    const relationHtml=relations.length?`<div class="detail-block"><h3>子关系 ${relations.length}</h3>${relations.slice(0,48).map(rel=>`<div class="detail-item">${renderDetailRows([
+      ['关系',rel.relation],
+      ['目标',`${rel.targetKind||''}:${rel.targetKey||''}`],
+      ['显示',rel.targetText],
+      ['序号',rel.ordinal]
+    ])}</div>`).join('')}${relations.length>48?`<div class="detail-sub-row"><b>其余</b><span>${relations.length-48} 条</span></div>`:''}</div>`:'';
+    showNodeDetail(node.display||node.type||node.key,`${node.kind||'世界树节点'} | ${node.key}`,[
+      ['节点主键',node.key],
+      ['父节点',node.parent],
+      ['深度',node.depth],
+      ['类别',node.kind],
+      ['显示',node.display],
+      ['类型',node.type],
+      ['值类',node.valueKind],
+      ['值',node.value],
+      ['辅助',node.aux]
+    ],relationHtml);
+    updateCausalSelection();
+    if(loadSubtree)requestSQLCausalInfoSubtree(node);
+    return;
+  }
   selectCausalInfo(node.key,node);
+  if(loadSubtree)requestSQLCausalInfoSubtree(node);
 }
 function treeLabel(row){
   const parts=[`<span class="tree-key">${escapeHtml(row.key)}</span>`];
@@ -8084,7 +8123,7 @@ function renderTreeNode(row, labelFn){
   wrapper.className=hasChildren?'tree-node':'tree-node tree-leaf';
   wrapper.dataset.search=row.searchText||'';
   row.el=wrapper;
-  if(hasChildren&&Number(row.depth||0)<2)wrapper.open=true;
+  if(hasChildren&&(row.open||Number(row.depth||0)<2))wrapper.open=true;
   const lineTag=hasChildren?'summary':'div';
   const line=document.createElement(lineTag);
   line.className='tree-line';
@@ -8300,6 +8339,16 @@ function resetCausalRelationIndexes(relations){
     evidence:rel.targetText||`序号=${rel.ordinal||0}`
   })));
 }
+function mergeCausalInfoRelations(relations){
+  const known=new Set(causalInfoRelations.map(rel=>`${rel.owner}|${rel.relation}|${rel.targetKey}|${rel.ordinal}`));
+  relations.forEach(rel=>{
+    const key=`${rel.owner}|${rel.relation}|${rel.targetKey}|${rel.ordinal}`;
+    if(!known.has(key)){
+      known.add(key);
+      causalInfoRelations.push(rel);
+    }
+  });
+}
 function resetCausalInfoIndexes(rows,relations){
   causalInfoRows.splice(0,causalInfoRows.length,...rows);
   causalInfoByKey.clear();
@@ -8343,7 +8392,7 @@ function renderSQLCausalInfoSection(data){
   const relations=sqlRowsToRelations(data.relations);
   resetCausalInfoIndexes(rows,relations);
   const note=document.querySelector('#causalInfo .tree-toolbar .note');
-  if(note)note.textContent=`SQL 世界树因果节点：${rows.length}；组成关系：${relations.length}`;
+  if(note)note.textContent=`SQL 世界树根链因果根节点：${rows.length}；组成关系：${relations.length}`;
   buildCausalInfoTree();
   applyFilter();
   selectDefaultForSection('causalInfo');
@@ -8430,10 +8479,37 @@ function applySQLWorldSubtree(data){
   applyFilter();
   if(panelStatus)panelStatus.textContent=`已加载世界树子节点：${nodeKey}，节点 ${rows.length}`;
 }
+function applySQLCausalInfoSubtree(data){
+  const nodeKey=data.nodeKey||'';
+  const parent=causalInfoByKey.get(nodeKey);
+  if(parent)parent.__sqlSubtreeLoading=false;
+  if(!data.ok){
+    if(panelStatus)panelStatus.textContent=data.error?`子节点加载失败：${data.error}`:'子节点加载失败。';
+    return;
+  }
+  const rows=sqlRowsToTreeRows(data.rows);
+  const known=new Set(causalInfoRows.map(row=>row.key));
+  rows.forEach(row=>{
+    if(!known.has(row.key)){
+      known.add(row.key);
+      causalInfoRows.push(row);
+    }
+  });
+  if(parent){
+    parent.__sqlSubtreeLoaded=true;
+    parent.open=true;
+  }
+  mergeCausalInfoRelations(sqlRowsToRelations(data.relations));
+  resetCausalInfoIndexes([...causalInfoRows],[...causalInfoRelations]);
+  buildCausalInfoTree();
+  applyFilter();
+  if(panelStatus)panelStatus.textContent=`已加载因果信息子节点：${nodeKey}，节点 ${rows.length}`;
+}
 function 应用SQL子链刷新(requestId,data){
   const request=sqlSubtreeRequests.get(Number(requestId));
   sqlSubtreeRequests.delete(Number(requestId));
-  if(data?.kind==='sql-world-subtree')applySQLWorldSubtree(data);
+  if(data?.kind==='sql-world-subtree'&&data?.section==='causalInfo')applySQLCausalInfoSubtree(data);
+  else if(data?.kind==='sql-world-subtree')applySQLWorldSubtree(data);
   else applySQLGenericSubtree(data||{ok:false,section:request?.sectionId,nodeKey:request?.nodeKey,error:'子链响应为空'});
 }
 function 请求刷新当前SQL区段(target){
@@ -8482,6 +8558,19 @@ function worldTreeLabel(row){
 function causalInfoLabel(row){
   return treeLabel(row);
 }
+function requestSQLCausalInfoSubtree(row){
+  if(!row||row.__sqlSubtreeLoaded||row.__sqlSubtreeLoading)return;
+  if(!(window.chrome&&window.chrome.webview)){
+    if(panelStatus)panelStatus.textContent='静态 HTML 预览未连接子链加载接口。';
+    return;
+  }
+  row.__sqlSubtreeLoading=true;
+  row.open=true;
+  const requestId=++sqlSubtreeRequestSeq;
+  sqlSubtreeRequests.set(requestId,{kind:'causalInfo',sectionId:'causalInfo',nodeKey:row.key});
+  if(panelStatus)panelStatus.textContent=`正在加载因果信息子节点：${row.key}`;
+  window.chrome.webview.postMessage(`sql-subtree:${requestId}:causalInfo:${encodeURIComponent(row.key||'')}`);
+}
 function updateWorldSelection(){
   worldTreeRows.forEach(row=>{
     if(row.lineEl)row.lineEl.classList.toggle('selected',row===selectedWorldTreeNode);
@@ -8525,32 +8614,18 @@ function selectWorldTreeNode(row){
 }
 function buildCausalInfoTree(){
   if(!causalInfoHost)return;
-  causalInfoRoots=causalInfoRows.map(row=>{
-    const copy={...row,children:[],selectKey:row.key};
-    copy.depth='1';
-    copy.onSelect=()=>selectCausalInfoNode(copy);
-    copy.searchText=[copy.key,copy.parent,copy.kind,copy.display,copy.type,copy.valueKind,copy.value,copy.aux].join(' ').toLowerCase();
-    for(const rel of causalRelationsByOwner.get(copy.key)||[]){
-      const child={
-        key:`${copy.key}:${rel.relation}:${rel.targetKey}:${rel.ordinal}`,
-        parent:copy.key,
-        depth:'2',
-        kind:rel.relation,
-        display:`${rel.targetKind||''}:${rel.targetKey||''}`,
-        type:rel.targetText||'',
-        valueKind:'',
-        value:'',
-        aux:`序号=${rel.ordinal||0}`,
-        children:[],
-        selectKey:copy.key,
-        ownerKey:copy.key,
-        relationRow:rel,
-        onSelect:()=>selectCausalInfoNode(child)
-      };
-      child.searchText=[child.key,child.parent,child.kind,child.display,child.type,child.aux].join(' ').toLowerCase();
-      copy.children.push(child);
-    }
-    return copy;
+  const map=new Map();
+  causalInfoRows.forEach(row=>{
+    row.children=[];
+    row.selectKey=row.key;
+    row.onSelect=()=>selectCausalInfoNode(row,true);
+    row.searchText=[row.key,row.parent,row.kind,row.display,row.type,row.valueKind,row.value,row.aux].join(' ').toLowerCase();
+    if(row.key)map.set(row.key,row);
+  });
+  causalInfoRoots=[];
+  causalInfoRows.forEach(row=>{
+    const parent=map.get(row.parent);
+    if(parent&&parent!==row)parent.children.push(row);else causalInfoRoots.push(row);
   });
   causalInfoHost.innerHTML='';
   const root={key:'CAUSAL_INFO_ROOT',depth:'0',kind:'因果信息',display:`因果信息 ${causalInfoRoots.length}`,children:causalInfoRoots};
