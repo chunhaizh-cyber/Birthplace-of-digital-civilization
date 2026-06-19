@@ -576,6 +576,10 @@ std::string 读取控制面板节点详情JSON(
 std::string 读取控制面板页面刷新JSON(
     std::string_view 页面);
 
+std::string 读取SQL控制面板子链JSON(
+    std::string_view 区段ID,
+    std::string_view 节点键);
+
 bool 保存控制面板HTML(
     const std::filesystem::path& 输出路径);
 

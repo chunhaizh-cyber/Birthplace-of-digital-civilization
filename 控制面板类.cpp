@@ -6987,6 +6987,7 @@ SELECT TOP (400)
     CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
     CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent
 FROM fishnest.v_current_demand_panel_nodes
+WHERE COALESCE(display_parent_id, N'') = N''
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::需求树
@@ -6994,7 +6995,7 @@ ORDER BY row_index;
             {
                 "任务树",
                 R"SQL(
-SELECT TOP (400)
+SELECT
     COALESCE(node_key, N'') AS node_key,
     COALESCE(parent_key, N'') AS parent_key,
     CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
@@ -7004,6 +7005,7 @@ SELECT TOP (400)
     COALESCE(target_state_key, N'') AS target_state_key,
     COALESCE(result_state_key, N'') AS result_state_key
 FROM fishnest.v_current_task_tree_nodes
+WHERE COALESCE(parent_key, N'') = N''
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::任务树
@@ -7011,7 +7013,7 @@ ORDER BY row_index;
             {
                 "方法树",
                 R"SQL(
-SELECT TOP (400)
+SELECT
     COALESCE(node_key, N'') AS node_key,
     COALESCE(parent_key, N'') AS parent_key,
     CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
@@ -7022,6 +7024,7 @@ SELECT TOP (400)
     COALESCE(primary_result_feature_key, N'') AS primary_result_feature_key,
     CONVERT(nvarchar(20), COALESCE(result_item_count, 0)) AS result_item_count
 FROM fishnest.v_current_method_tree_nodes
+WHERE COALESCE(parent_key, N'') = N''
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::方法树
@@ -7040,6 +7043,7 @@ SELECT
     COALESCE(value_text, N'') AS value_text,
     COALESCE(auxiliary_text, N'') AS auxiliary_text
 FROM fishnest.v_current_world_tree_nodes
+WHERE COALESCE(parent_key, N'') = N''
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::世界树
@@ -7062,7 +7066,7 @@ ORDER BY row_index;
             {
                 "语素树",
                 R"SQL(
-SELECT TOP (500)
+SELECT
     COALESCE(node_key, N'') AS node_key,
     COALESCE(parent_key, N'') AS parent_key,
     CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
@@ -7072,6 +7076,7 @@ SELECT TOP (500)
     COALESCE(mapped_main_type_text, N'') AS mapped_main_type_text,
     COALESCE(bound_basic_key, N'') AS bound_basic_key
 FROM fishnest.v_current_lexeme_nodes
+WHERE COALESCE(parent_key, N'') = N''
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::语素树
@@ -7099,6 +7104,22 @@ ORDER BY row_index;
         const std::size_t 索引)
     {
         return 索引 < 行.size() ? 行[索引] : std::string{};
+    }
+
+    // 功能：生成 SQL Server Unicode 字符串字面量。
+    std::string 私有_SQL字符串字面量(std::string_view 文本)
+    {
+        std::string 输出 = "N'";
+        for (const char 字符 : 文本) {
+            if (字符 == '\'') {
+                输出 += "''";
+            }
+            else {
+                输出.push_back(字符);
+            }
+        }
+        输出 += "'";
+        return 输出;
     }
 
     // 功能：向 SQL 控制面板 HTML 追加一个数据表区段。
@@ -7249,6 +7270,567 @@ ORDER BY row_index;
         私有_追加SQL控制面板行集JSON(输出, 数据.世界树关系, 6);
         输出 << "}";
         return 输出.str();
+    }
+
+    // 功能：生成 SQL 控制面板子链读取失败 JSON。
+    std::string 私有_SQL控制面板子链错误JSON(
+        std::string_view 区段ID,
+        std::string_view 节点键,
+        std::string_view 错误)
+    {
+        std::ostringstream 输出;
+        输出 << "{\"ok\":false,\"kind\":\"sql-subtree\",\"section\":";
+        私有_追加SQL控制面板JSON字符串(输出, 区段ID);
+        输出 << ",\"nodeKey\":";
+        私有_追加SQL控制面板JSON字符串(输出, 节点键);
+        输出 << ",\"error\":";
+        私有_追加SQL控制面板JSON字符串(输出, 错误);
+        输出 << "}";
+        return 输出.str();
+    }
+
+    // 功能：执行 SQL 控制面板子链查询。
+    bool 私有_读取SQL控制面板子链行集(
+        std::string_view 名称,
+        const std::string& SQL,
+        std::vector<std::vector<std::string>>& 行集,
+        std::string& 错误)
+    {
+        结构_ADO查询结果 查询结果{};
+        if (!私有_执行ADO控制面板查询(
+            私有_SQL控制面板ADO连接串(),
+            名称,
+            SQL,
+            查询结果,
+            错误)) {
+            return false;
+        }
+        行集 = std::move(查询结果.行集);
+        return true;
+    }
+
+    // 功能：生成 SQL 控制面板普通树页子链刷新 JSON。
+    std::string 私有_SQL控制面板普通树子链JSON(
+        std::string_view 区段ID,
+        std::string_view 节点键,
+        const std::vector<std::vector<std::string>>& 行集,
+        const std::size_t 列数)
+    {
+        std::ostringstream 输出;
+        输出 << "{\"ok\":true,\"kind\":\"sql-subtree\",\"section\":";
+        私有_追加SQL控制面板JSON字符串(输出, 区段ID);
+        输出 << ",\"nodeKey\":";
+        私有_追加SQL控制面板JSON字符串(输出, 节点键);
+        输出 << ",\"rows\":";
+        私有_追加SQL控制面板行集JSON(输出, 行集, 列数);
+        输出 << "}";
+        return 输出.str();
+    }
+
+    // 功能：生成 SQL IN 条件中的字符串列表。
+    std::string 私有_SQL字符串IN列表(
+        const std::vector<std::string>& 键列表,
+        const std::size_t 起点,
+        const std::size_t 数量)
+    {
+        std::string 输出;
+        const std::size_t 终点 = std::min(键列表.size(), 起点 + 数量);
+        for (std::size_t 索引 = 起点; 索引 < 终点; ++索引) {
+            if (!输出.empty()) {
+                输出 += ",";
+            }
+            输出 += 私有_SQL字符串字面量(键列表[索引]);
+        }
+        return 输出;
+    }
+
+    // 功能：按父节点键逐层读取 SQL 树完整后代子链。
+    bool 私有_按层读取SQL树子链(
+        std::string_view 查询名,
+        std::string_view 来源视图,
+        std::string_view 父键字段,
+        std::string_view 选择字段SQL,
+        std::string_view 根节点键,
+        std::vector<std::vector<std::string>>& 行集,
+        std::string& 错误)
+    {
+        行集.clear();
+        std::vector<std::string> 当前层{ std::string(根节点键) };
+        std::unordered_set<std::string> 已访问{ std::string(根节点键) };
+        constexpr std::size_t 单批键数量 = 80;
+        constexpr std::size_t 最大层数 = 256;
+
+        for (std::size_t 层 = 0; 层 < 最大层数 && !当前层.empty(); ++层) {
+            std::vector<std::string> 下一层{};
+            for (std::size_t 起点 = 0; 起点 < 当前层.size(); 起点 += 单批键数量) {
+                const std::string IN列表 = 私有_SQL字符串IN列表(当前层, 起点, 单批键数量);
+                if (IN列表.empty()) {
+                    continue;
+                }
+                std::string SQL;
+                SQL += "SELECT ";
+                SQL += 选择字段SQL;
+                SQL += " FROM ";
+                SQL += 来源视图;
+                SQL += " WHERE COALESCE(";
+                SQL += 父键字段;
+                SQL += ", N'') IN (";
+                SQL += IN列表;
+                SQL += ") ORDER BY row_index;";
+
+                std::vector<std::vector<std::string>> 本批行集{};
+                if (!私有_读取SQL控制面板子链行集(查询名, SQL, 本批行集, 错误)) {
+                    return false;
+                }
+                for (auto& 行 : 本批行集) {
+                    const std::string 子键 = 私有_SQL字段(行, 0);
+                    if (子键.empty() || 已访问.insert(子键).second) {
+                        if (!子键.empty()) {
+                            下一层.push_back(子键);
+                        }
+                        行集.push_back(std::move(行));
+                    }
+                }
+            }
+            当前层 = std::move(下一层);
+        }
+
+        if (!当前层.empty()) {
+            错误 = "SQL 树子链超过最大层数";
+            return false;
+        }
+        return true;
+    }
+
+    // 功能：按世界树节点键集合读取关系行。
+    bool 私有_读取SQL世界树关系行集(
+        const std::vector<std::vector<std::string>>& 节点行集,
+        std::vector<std::vector<std::string>>& 关系行集,
+        std::string& 错误)
+    {
+        关系行集.clear();
+        std::vector<std::string> 节点键集{};
+        节点键集.reserve(节点行集.size());
+        for (const auto& 行 : 节点行集) {
+            const auto 键 = 私有_SQL字段(行, 0);
+            if (!键.empty()) {
+                节点键集.push_back(键);
+            }
+        }
+
+        constexpr std::size_t 单批键数量 = 80;
+        for (std::size_t 起点 = 0; 起点 < 节点键集.size(); 起点 += 单批键数量) {
+            const auto IN列表 = 私有_SQL字符串IN列表(节点键集, 起点, 单批键数量);
+            if (IN列表.empty()) {
+                continue;
+            }
+            std::string SQL = R"SQL(
+SELECT
+    COALESCE(owner_key, N'') AS owner_key,
+    COALESCE(relation_name, N'') AS relation_name,
+    COALESCE(target_kind, N'') AS target_kind,
+    COALESCE(target_key, N'') AS target_key,
+    COALESCE(target_text, N'') AS target_text,
+    CONVERT(nvarchar(20), COALESCE(ordinal_index, 0)) AS ordinal_index
+FROM fishnest.v_current_world_tree_relations
+WHERE owner_key IN ()SQL";
+            SQL += IN列表;
+            SQL += ") ORDER BY row_index;";
+
+            std::vector<std::vector<std::string>> 本批行集{};
+            if (!私有_读取SQL控制面板子链行集("世界树子链关系", SQL, 本批行集, 错误)) {
+                return false;
+            }
+            for (auto& 行 : 本批行集) {
+                关系行集.push_back(std::move(行));
+            }
+        }
+        return true;
+    }
+
+    // 功能：生成 SQL 控制面板世界树子链刷新 JSON。
+    std::string 私有_SQL控制面板世界树子链JSON(
+        std::string_view 区段ID,
+        std::string_view 节点键,
+        const std::vector<std::vector<std::string>>& 节点行集,
+        const std::vector<std::vector<std::string>>& 关系行集)
+    {
+        std::ostringstream 输出;
+        输出 << "{\"ok\":true,\"kind\":\"sql-world-subtree\",\"section\":";
+        私有_追加SQL控制面板JSON字符串(输出, 区段ID);
+        输出 << ",\"nodeKey\":";
+        私有_追加SQL控制面板JSON字符串(输出, 节点键);
+        输出 << ",\"rows\":";
+        私有_追加SQL控制面板行集JSON(输出, 节点行集, 9);
+        输出 << ",\"relations\":";
+        私有_追加SQL控制面板行集JSON(输出, 关系行集, 6);
+        输出 << "}";
+        return 输出.str();
+    }
+
+    // 功能：执行指定 SQL 并生成普通树子链 JSON。
+    std::string 私有_SQL控制面板普通树子链JSON(
+        std::string_view 区段ID,
+        std::string_view 节点键,
+        std::string_view SQL,
+        const std::size_t 列数)
+    {
+        std::vector<std::vector<std::string>> 行集{};
+        std::string 错误{};
+        if (!私有_读取SQL控制面板子链行集(区段ID, std::string(SQL), 行集, 错误)) {
+            return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+        }
+        return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 列数);
+    }
+
+    // 功能：执行指定 SQL 并生成世界树子链 JSON。
+    std::string 私有_SQL控制面板世界树子链JSON(
+        std::string_view 区段ID,
+        std::string_view 节点键,
+        const std::string& 节点SQL,
+        const std::string& 关系SQL)
+    {
+        std::vector<std::vector<std::string>> 节点行集{};
+        std::vector<std::vector<std::string>> 关系行集{};
+        std::string 错误{};
+        if (!私有_读取SQL控制面板子链行集("世界树子链节点", 节点SQL, 节点行集, 错误)) {
+            return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+        }
+        if (!私有_读取SQL控制面板子链行集("世界树子链关系", 关系SQL, 关系行集, 错误)) {
+            return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+        }
+        return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 节点行集, 关系行集);
+    }
+
+    // 功能：按 SQL 控制面板树节点读取整条后代子链。
+    std::string 私有_SQL控制面板子链JSON(
+        std::string_view 区段ID,
+        std::string_view 节点键)
+    {
+        if (节点键.empty()) {
+            return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, "节点键为空");
+        }
+
+        std::vector<std::vector<std::string>> 行集{};
+        std::string 错误{};
+        if (区段ID == "demandTree") {
+            constexpr std::string_view 字段 = R"SQL(
+COALESCE(display_node_id, N'') AS display_node_id,
+COALESCE(display_parent_id, N'') AS display_parent_id,
+CONVERT(nvarchar(20), COALESCE(display_depth, 0)) AS depth,
+COALESCE(node_name, N'') AS node_name,
+COALESCE(tree_shape, N'') AS tree_shape,
+COALESCE(target_semantics, N'') AS target_semantics,
+COALESCE(target_feature_display, N'') AS target_feature_display,
+COALESCE(task_display, N'') AS task_display,
+COALESCE(node_key, N'') AS node_key,
+COALESCE(logic_group_type, N'') AS logic_group_type,
+COALESCE(target_feature_type, N'') AS target_feature_type,
+COALESCE(target_feature_key, N'') AS target_feature_key,
+COALESCE(task_type, N'') AS task_type,
+COALESCE(task_key, N'') AS task_key,
+COALESCE(subject_display_name, N'') AS subject_display_name,
+COALESCE(subject_type_name, N'') AS subject_type_name,
+COALESCE(subject_key, N'') AS subject_key,
+COALESCE(scene_display_name, N'') AS scene_display_name,
+COALESCE(scene_type_name, N'') AS scene_type_name,
+COALESCE(scene_key, N'') AS scene_key,
+COALESCE(target_host_display_name, N'') AS target_host_display_name,
+COALESCE(target_host_type_name, N'') AS target_host_type_name,
+COALESCE(target_host_key, N'') AS target_host_key,
+COALESCE(current_state_display_name, N'') AS current_state_display_name,
+COALESCE(current_state_type_name, N'') AS current_state_type_name,
+COALESCE(current_state_key, N'') AS current_state_key,
+COALESCE(target_state_display_name, N'') AS target_state_display_name,
+COALESCE(target_state_type_name, N'') AS target_state_type_name,
+COALESCE(target_state_key, N'') AS target_state_key,
+CONVERT(nvarchar(20), COALESCE(relation_mask, 0)) AS relation_mask,
+CONVERT(nvarchar(20), COALESCE(safety_weight, 0)) AS safety_weight,
+CONVERT(nvarchar(20), COALESCE(service_weight, 0)) AS service_weight,
+CONVERT(nvarchar(20), COALESCE(safety_settled, 0)) AS safety_settled,
+CONVERT(nvarchar(20), COALESCE(service_settled, 0)) AS service_settled,
+CONVERT(nvarchar(20), COALESCE(valid_until_us, 0)) AS valid_until_us,
+COALESCE(recent_settlement_task_display_name, N'') AS recent_settlement_task_display_name,
+COALESCE(recent_settlement_task_type_name, N'') AS recent_settlement_task_type_name,
+COALESCE(recent_settlement_task_key, N'') AS recent_settlement_task_key,
+CONVERT(nvarchar(20), COALESCE(recent_settlement_time_us, 0)) AS recent_settlement_time_us,
+COALESCE(description_key, N'') AS description_key,
+CONVERT(nvarchar(20), COALESCE(stat_created_time_us, 0)) AS stat_created_time_us,
+CONVERT(nvarchar(20), COALESCE(stat_last_observed_time_us, 0)) AS stat_last_observed_time_us,
+CONVERT(nvarchar(20), COALESCE(stat_hit_count, 0)) AS stat_hit_count,
+CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
+CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent)SQL";
+            if (!私有_按层读取SQL树子链("需求树子链", "fishnest.v_current_demand_panel_nodes", "display_parent_id", 字段, 节点键, 行集, 错误)) {
+                return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+            }
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 46);
+        }
+        if (区段ID == "taskTree") {
+            constexpr std::string_view 字段 = R"SQL(
+COALESCE(node_key, N'') AS node_key,
+COALESCE(parent_key, N'') AS parent_key,
+CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+COALESCE(node_kind_text, N'') AS node_kind_text,
+COALESCE(task_state_text, N'') AS task_state_text,
+COALESCE(demand_key, N'') AS demand_key,
+COALESCE(target_state_key, N'') AS target_state_key,
+COALESCE(result_state_key, N'') AS result_state_key)SQL";
+            if (!私有_按层读取SQL树子链("任务树子链", "fishnest.v_current_task_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+                return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+            }
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 8);
+        }
+        if (区段ID == "methodTree") {
+            constexpr std::string_view 字段 = R"SQL(
+COALESCE(node_key, N'') AS node_key,
+COALESCE(parent_key, N'') AS parent_key,
+CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+COALESCE(node_kind_text, N'') AS node_kind_text,
+COALESCE(action_name, N'') AS action_name,
+COALESCE(action_handle, N'') AS action_handle,
+COALESCE(source_text, N'') AS source_text,
+COALESCE(primary_result_feature_key, N'') AS primary_result_feature_key,
+CONVERT(nvarchar(20), COALESCE(result_item_count, 0)) AS result_item_count)SQL";
+            if (!私有_按层读取SQL树子链("方法树子链", "fishnest.v_current_method_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+                return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+            }
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 9);
+        }
+        if (区段ID == "lexemeTree") {
+            constexpr std::string_view 字段 = R"SQL(
+COALESCE(node_key, N'') AS node_key,
+COALESCE(parent_key, N'') AS parent_key,
+CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+COALESCE(node_kind, N'') AS node_kind,
+COALESCE(word_text, N'') AS word_text,
+COALESCE(entry_type_text, N'') AS entry_type_text,
+COALESCE(mapped_main_type_text, N'') AS mapped_main_type_text,
+COALESCE(bound_basic_key, N'') AS bound_basic_key)SQL";
+            if (!私有_按层读取SQL树子链("语素树子链", "fishnest.v_current_lexeme_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+                return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+            }
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 8);
+        }
+        if (区段ID == "worldTree") {
+            constexpr std::string_view 字段 = R"SQL(
+COALESCE(node_key, N'') AS node_key,
+COALESCE(parent_key, N'') AS parent_key,
+CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+COALESCE(node_kind, N'') AS node_kind,
+COALESCE(display_text, N'') AS display_text,
+COALESCE(type_text, N'') AS type_text,
+COALESCE(value_kind, N'') AS value_kind,
+COALESCE(value_text, N'') AS value_text,
+COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
+            if (!私有_按层读取SQL树子链("世界树子链", "fishnest.v_current_world_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+                return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+            }
+            std::vector<std::vector<std::string>> 关系行集{};
+            if (!私有_读取SQL世界树关系行集(行集, 关系行集, 错误)) {
+                return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
+            }
+            return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 行集, 关系行集);
+        }
+        return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, "该区段不是按需树");
+
+        const std::string 键 = 私有_SQL字符串字面量(节点键);
+        if (区段ID == "demandTree") {
+            const std::string SQL = R"SQL(
+WITH 子链 AS (
+    SELECT *
+    FROM fishnest.v_current_demand_panel_nodes
+    WHERE COALESCE(display_parent_id, N'') = )SQL" + 键 + R"SQL(
+    UNION ALL
+    SELECT 子.*
+    FROM fishnest.v_current_demand_panel_nodes 子
+    INNER JOIN 子链 父 ON COALESCE(子.display_parent_id, N'') = COALESCE(父.display_node_id, N'')
+)
+SELECT
+    COALESCE(display_node_id, N'') AS display_node_id,
+    COALESCE(display_parent_id, N'') AS display_parent_id,
+    CONVERT(nvarchar(20), COALESCE(display_depth, 0)) AS depth,
+    COALESCE(node_name, N'') AS node_name,
+    COALESCE(tree_shape, N'') AS tree_shape,
+    COALESCE(target_semantics, N'') AS target_semantics,
+    COALESCE(target_feature_display, N'') AS target_feature_display,
+    COALESCE(task_display, N'') AS task_display,
+    COALESCE(node_key, N'') AS node_key,
+    COALESCE(logic_group_type, N'') AS logic_group_type,
+    COALESCE(target_feature_type, N'') AS target_feature_type,
+    COALESCE(target_feature_key, N'') AS target_feature_key,
+    COALESCE(task_type, N'') AS task_type,
+    COALESCE(task_key, N'') AS task_key,
+    COALESCE(subject_display_name, N'') AS subject_display_name,
+    COALESCE(subject_type_name, N'') AS subject_type_name,
+    COALESCE(subject_key, N'') AS subject_key,
+    COALESCE(scene_display_name, N'') AS scene_display_name,
+    COALESCE(scene_type_name, N'') AS scene_type_name,
+    COALESCE(scene_key, N'') AS scene_key,
+    COALESCE(target_host_display_name, N'') AS target_host_display_name,
+    COALESCE(target_host_type_name, N'') AS target_host_type_name,
+    COALESCE(target_host_key, N'') AS target_host_key,
+    COALESCE(current_state_display_name, N'') AS current_state_display_name,
+    COALESCE(current_state_type_name, N'') AS current_state_type_name,
+    COALESCE(current_state_key, N'') AS current_state_key,
+    COALESCE(target_state_display_name, N'') AS target_state_display_name,
+    COALESCE(target_state_type_name, N'') AS target_state_type_name,
+    COALESCE(target_state_key, N'') AS target_state_key,
+    CONVERT(nvarchar(20), COALESCE(relation_mask, 0)) AS relation_mask,
+    CONVERT(nvarchar(20), COALESCE(safety_weight, 0)) AS safety_weight,
+    CONVERT(nvarchar(20), COALESCE(service_weight, 0)) AS service_weight,
+    CONVERT(nvarchar(20), COALESCE(safety_settled, 0)) AS safety_settled,
+    CONVERT(nvarchar(20), COALESCE(service_settled, 0)) AS service_settled,
+    CONVERT(nvarchar(20), COALESCE(valid_until_us, 0)) AS valid_until_us,
+    COALESCE(recent_settlement_task_display_name, N'') AS recent_settlement_task_display_name,
+    COALESCE(recent_settlement_task_type_name, N'') AS recent_settlement_task_type_name,
+    COALESCE(recent_settlement_task_key, N'') AS recent_settlement_task_key,
+    CONVERT(nvarchar(20), COALESCE(recent_settlement_time_us, 0)) AS recent_settlement_time_us,
+    COALESCE(description_key, N'') AS description_key,
+    CONVERT(nvarchar(20), COALESCE(stat_created_time_us, 0)) AS stat_created_time_us,
+    CONVERT(nvarchar(20), COALESCE(stat_last_observed_time_us, 0)) AS stat_last_observed_time_us,
+    CONVERT(nvarchar(20), COALESCE(stat_hit_count, 0)) AS stat_hit_count,
+    CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
+    CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent
+FROM 子链
+ORDER BY row_index
+OPTION (MAXRECURSION 0);
+)SQL";
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, SQL, 46);
+        }
+
+        if (区段ID == "taskTree") {
+            const std::string SQL = R"SQL(
+WITH 子链 AS (
+    SELECT *
+    FROM fishnest.v_current_task_tree_nodes
+    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
+    UNION ALL
+    SELECT 子.*
+    FROM fishnest.v_current_task_tree_nodes 子
+    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
+)
+SELECT
+    COALESCE(node_key, N'') AS node_key,
+    COALESCE(parent_key, N'') AS parent_key,
+    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+    COALESCE(node_kind_text, N'') AS node_kind_text,
+    COALESCE(task_state_text, N'') AS task_state_text,
+    COALESCE(demand_key, N'') AS demand_key,
+    COALESCE(target_state_key, N'') AS target_state_key,
+    COALESCE(result_state_key, N'') AS result_state_key
+FROM 子链
+ORDER BY row_index
+OPTION (MAXRECURSION 0);
+)SQL";
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, SQL, 8);
+        }
+
+        if (区段ID == "methodTree") {
+            const std::string SQL = R"SQL(
+WITH 子链 AS (
+    SELECT *
+    FROM fishnest.v_current_method_tree_nodes
+    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
+    UNION ALL
+    SELECT 子.*
+    FROM fishnest.v_current_method_tree_nodes 子
+    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
+)
+SELECT
+    COALESCE(node_key, N'') AS node_key,
+    COALESCE(parent_key, N'') AS parent_key,
+    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+    COALESCE(node_kind_text, N'') AS node_kind_text,
+    COALESCE(action_name, N'') AS action_name,
+    COALESCE(action_handle, N'') AS action_handle,
+    COALESCE(source_text, N'') AS source_text,
+    COALESCE(primary_result_feature_key, N'') AS primary_result_feature_key,
+    CONVERT(nvarchar(20), COALESCE(result_item_count, 0)) AS result_item_count
+FROM 子链
+ORDER BY row_index
+OPTION (MAXRECURSION 0);
+)SQL";
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, SQL, 9);
+        }
+
+        if (区段ID == "lexemeTree") {
+            const std::string SQL = R"SQL(
+WITH 子链 AS (
+    SELECT *
+    FROM fishnest.v_current_lexeme_nodes
+    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
+    UNION ALL
+    SELECT 子.*
+    FROM fishnest.v_current_lexeme_nodes 子
+    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
+)
+SELECT
+    COALESCE(node_key, N'') AS node_key,
+    COALESCE(parent_key, N'') AS parent_key,
+    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+    COALESCE(node_kind, N'') AS node_kind,
+    COALESCE(word_text, N'') AS word_text,
+    COALESCE(entry_type_text, N'') AS entry_type_text,
+    COALESCE(mapped_main_type_text, N'') AS mapped_main_type_text,
+    COALESCE(bound_basic_key, N'') AS bound_basic_key
+FROM 子链
+ORDER BY row_index
+OPTION (MAXRECURSION 0);
+)SQL";
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, SQL, 8);
+        }
+
+        if (区段ID == "worldTree") {
+            const std::string 节点SQL = R"SQL(
+WITH 子链 AS (
+    SELECT *
+    FROM fishnest.v_current_world_tree_nodes
+    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
+    UNION ALL
+    SELECT 子.*
+    FROM fishnest.v_current_world_tree_nodes 子
+    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
+)
+SELECT
+    COALESCE(node_key, N'') AS node_key,
+    COALESCE(parent_key, N'') AS parent_key,
+    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
+    COALESCE(node_kind, N'') AS node_kind,
+    COALESCE(display_text, N'') AS display_text,
+    COALESCE(type_text, N'') AS type_text,
+    COALESCE(value_kind, N'') AS value_kind,
+    COALESCE(value_text, N'') AS value_text,
+    COALESCE(auxiliary_text, N'') AS auxiliary_text
+FROM 子链
+ORDER BY row_index
+OPTION (MAXRECURSION 0);
+)SQL";
+            const std::string 关系SQL = R"SQL(
+WITH 子链 AS (
+    SELECT *
+    FROM fishnest.v_current_world_tree_nodes
+    WHERE COALESCE(parent_key, N'') = )SQL" + 键 + R"SQL(
+    UNION ALL
+    SELECT 子.*
+    FROM fishnest.v_current_world_tree_nodes 子
+    INNER JOIN 子链 父 ON COALESCE(子.parent_key, N'') = COALESCE(父.node_key, N'')
+)
+SELECT
+    COALESCE(owner_key, N'') AS owner_key,
+    COALESCE(relation_name, N'') AS relation_name,
+    COALESCE(target_kind, N'') AS target_kind,
+    COALESCE(target_key, N'') AS target_key,
+    COALESCE(target_text, N'') AS target_text,
+    CONVERT(nvarchar(20), COALESCE(ordinal_index, 0)) AS ordinal_index
+FROM fishnest.v_current_world_tree_relations
+WHERE owner_key IN (SELECT node_key FROM 子链)
+ORDER BY row_index
+OPTION (MAXRECURSION 0);
+)SQL";
+            return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 节点SQL, 关系SQL);
+        }
+
+        return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, "该区段不是按需树");
     }
 
     // 功能：按 SQL 控制面板菜单区段生成局部刷新 JSON。
@@ -7621,6 +8203,8 @@ let selectedWorldTreeNode=null;
 let selectedGenericNode=null;
 let menuNumberBuffer='';
 let menuNumberTimer=0;
+let sqlSubtreeRequestSeq=0;
+const sqlSubtreeRequests=new Map();
 const causalInfoByKey=new Map(causalInfoRows.map(row=>[row.key,row]));
 const causalRelationsByOwner=new Map();
 causalInfoRelations.forEach(rel=>{
@@ -7837,12 +8421,56 @@ function updateGenericSelection(){
     });
   });
 }
+function countGenericNodes(roots){
+  let count=0;
+  visitTreeRows(roots||[],()=>{count+=1;});
+  return count;
+}
+function markGenericSubtreeLoaded(rows){
+  (rows||[]).forEach(row=>{
+    row.__sqlSubtreeLoaded=true;
+    markGenericSubtreeLoaded(row.children||[]);
+  });
+}
+function findGenericNode(sectionId,key){
+  let found=null;
+  visitTreeRows(genericTreeRootsBySection.get(sectionId)||[],row=>{
+    if(!found&&row.key===key)found=row;
+  });
+  return found;
+}
+function renderGenericTreePanel(section){
+  if(!section)return;
+  const roots=genericTreeRootsBySection.get(section.id)||[];
+  const panel=section.querySelector('.sql-section-tree');
+  if(!panel)return;
+  const note=panel.querySelector('.note');
+  if(note)note.textContent=`SQL 节点：${countGenericNodes(roots)}`;
+  const view=panel.querySelector('.tree-view');
+  if(!view)return;
+  view.innerHTML='';
+  roots.forEach(root=>view.appendChild(renderTreeNode(root,genericNodeLabel)));
+  updateGenericSelection();
+}
+function requestSQLGenericSubtree(row){
+  if(!row||!row.lazySubtree||row.__sqlSubtreeLoaded||row.__sqlSubtreeLoading)return;
+  if(!(window.chrome&&window.chrome.webview)){
+    if(panelStatus)panelStatus.textContent='静态 HTML 预览未连接子链加载接口。';
+    return;
+  }
+  row.__sqlSubtreeLoading=true;
+  const requestId=++sqlSubtreeRequestSeq;
+  sqlSubtreeRequests.set(requestId,{kind:'generic',sectionId:row.sectionId,nodeKey:row.key});
+  if(panelStatus)panelStatus.textContent=`正在加载子链：${row.key}`;
+  window.chrome.webview.postMessage(`sql-subtree:${requestId}:${row.sectionId}:${encodeURIComponent(row.key||'')}`);
+}
 function selectGenericNode(row){
   if(!row)return;
   selectedGenericNode=row;
   const rows=row.headers.map((header,index)=>[header||`字段${index+1}`,row.cells[index]||'']);
   showNodeDetail(row.title||row.key,row.subtitle||row.kind||'SQL 行节点',rows);
   updateGenericSelection();
+  requestSQLGenericSubtree(row);
 }
 function createGenericRowNode(sectionId,sectionTitle,headers,cells,index,treeLike){
   const key=fieldText(cells[0]||`${sectionTitle}#${index+1}`);
@@ -7862,7 +8490,7 @@ function createGenericRowNode(sectionId,sectionTitle,headers,cells,index,treeLik
     title=name||key;
     subtitle=`${sectionTitle} | 节点=${key}`;
   }
-  const node={key,parent:treeLike?String(cells[1]||''):'',depth:treeLike?String(cells[2]||'1'):'1',kind,display,summary,headers,cells,children:[],title,subtitle};
+  const node={sectionId,key,parent:treeLike?String(cells[1]||''):'',depth:treeLike?String(cells[2]||'1'):'1',kind,display,summary,headers,cells,children:[],title,subtitle,lazySubtree:treeLike};
   node.searchText=[sectionTitle,key,kind,display,summary,...cells].join(' ').toLowerCase();
   node.onSelect=()=>selectGenericNode(node);
   return node;
@@ -8055,6 +8683,68 @@ function renderSQLWorldTreeSection(data){
   applyFilter();
   selectDefaultForSection('worldTree');
 }
+function applySQLGenericSubtree(data){
+  const sectionId=data.section||data.page||'';
+  const nodeKey=data.nodeKey||'';
+  const section=document.getElementById(sectionId);
+  const node=findGenericNode(sectionId,nodeKey);
+  if(!section||!node)return;
+  node.__sqlSubtreeLoading=false;
+  if(!data.ok){
+    if(panelStatus)panelStatus.textContent=data.error?`子链加载失败：${data.error}`:'子链加载失败。';
+    return;
+  }
+  const headers=node.headers||[];
+  const title=section.dataset.sectionTitle||section.querySelector('h2')?.textContent||sectionId;
+  const childRows=(Array.isArray(data.rows)?data.rows:[]).map((row,index)=>
+    createGenericRowNode(sectionId,title,headers,row,index,true));
+  node.children=buildGenericHierarchy(childRows);
+  markGenericSubtreeLoaded(node.children);
+  node.__sqlSubtreeLoaded=true;
+  renderGenericTreePanel(section);
+  applyFilter();
+  if(panelStatus)panelStatus.textContent=`已加载子链：${nodeKey}，节点 ${childRows.length}`;
+}
+function mergeWorldRelations(relations){
+  const known=new Set(worldTreeRelations.map(rel=>`${rel.owner}|${rel.relation}|${rel.targetKey}|${rel.ordinal}`));
+  relations.forEach(rel=>{
+    const key=`${rel.owner}|${rel.relation}|${rel.targetKey}|${rel.ordinal}`;
+    if(!known.has(key)){
+      known.add(key);
+      worldTreeRelations.push(rel);
+    }
+  });
+}
+function applySQLWorldSubtree(data){
+  const nodeKey=data.nodeKey||'';
+  const parent=worldNodeByKey.get(nodeKey);
+  if(parent)parent.__sqlSubtreeLoading=false;
+  if(!data.ok){
+    if(panelStatus)panelStatus.textContent=data.error?`子链加载失败：${data.error}`:'子链加载失败。';
+    return;
+  }
+  const rows=sqlRowsToTreeRows(data.rows);
+  const known=new Set(worldTreeRows.map(row=>row.key));
+  rows.forEach(row=>{
+    row.__sqlSubtreeLoaded=true;
+    if(!known.has(row.key)){
+      known.add(row.key);
+      worldTreeRows.push(row);
+    }
+  });
+  if(parent)parent.__sqlSubtreeLoaded=true;
+  mergeWorldRelations(sqlRowsToRelations(data.relations));
+  resetWorldTreeIndexes([...worldTreeRows],[...worldTreeRelations]);
+  buildWorldTree();
+  applyFilter();
+  if(panelStatus)panelStatus.textContent=`已加载世界树子链：${nodeKey}，节点 ${rows.length}`;
+}
+function 应用SQL子链刷新(requestId,data){
+  const request=sqlSubtreeRequests.get(Number(requestId));
+  sqlSubtreeRequests.delete(Number(requestId));
+  if(data?.kind==='sql-world-subtree')applySQLWorldSubtree(data);
+  else applySQLGenericSubtree(data||{ok:false,section:request?.sectionId,nodeKey:request?.nodeKey,error:'子链响应为空'});
+}
 function 请求刷新当前SQL区段(target){
   if(!target)return false;
   if(window.chrome&&window.chrome.webview){
@@ -8106,6 +8796,18 @@ function updateWorldSelection(){
     if(row.lineEl)row.lineEl.classList.toggle('selected',row===selectedWorldTreeNode);
   });
 }
+function requestSQLWorldSubtree(row){
+  if(!row||row.__sqlSubtreeLoaded||row.__sqlSubtreeLoading)return;
+  if(!(window.chrome&&window.chrome.webview)){
+    if(panelStatus)panelStatus.textContent='静态 HTML 预览未连接子链加载接口。';
+    return;
+  }
+  row.__sqlSubtreeLoading=true;
+  const requestId=++sqlSubtreeRequestSeq;
+  sqlSubtreeRequests.set(requestId,{kind:'world',sectionId:'worldTree',nodeKey:row.key});
+  if(panelStatus)panelStatus.textContent=`正在加载世界树子链：${row.key}`;
+  window.chrome.webview.postMessage(`sql-subtree:${requestId}:worldTree:${encodeURIComponent(row.key||'')}`);
+}
 function selectWorldTreeNode(row){
   if(!row)return;
   selectedWorldTreeNode=row;
@@ -8128,6 +8830,7 @@ function selectWorldTreeNode(row){
     ['辅助',row.aux]
   ],relationHtml);
   updateWorldSelection();
+  requestSQLWorldSubtree(row);
 }
 function buildCausalInfoTree(){
   if(!causalInfoHost)return;
@@ -8345,6 +9048,7 @@ window.__panelApplyCameraWindowState=function(data){
   }
 };
 window.__panelApplyPageRefresh=应用SQL区段刷新;
+window.__panelApplySQLSubtree=应用SQL子链刷新;
 window.__panelApplyExpand=function(){};
 window.__panelApplyDetail=function(){};
 </script>
@@ -9921,6 +10625,14 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
     }
 
     return 私有_页面刷新JSON(页面, nullptr, "未知控制面板页面");
+}
+
+// 功能：读取 SQL 控制面板树节点的完整后代子链 JSON。
+std::string 读取SQL控制面板子链JSON(
+    std::string_view 区段ID,
+    std::string_view 节点键)
+{
+    return 私有_SQL控制面板子链JSON(区段ID, 节点键);
 }
 
 // 功能：从指定来源读取数据或状态。

@@ -401,6 +401,81 @@ namespace {
         return 私有_解析节点消息(消息, L"detail:", 请求号, 展开类型, 节点指针);
     }
 
+    // 功能：解析 URI 百分号编码文本。
+    std::string 私有_URI百分号解码(std::string_view 文本)
+    {
+        auto 十六进制值 = [](const char 字符) -> int {
+            if (字符 >= '0' && 字符 <= '9') {
+                return 字符 - '0';
+            }
+            if (字符 >= 'A' && 字符 <= 'F') {
+                return 字符 - 'A' + 10;
+            }
+            if (字符 >= 'a' && 字符 <= 'f') {
+                return 字符 - 'a' + 10;
+            }
+            return -1;
+        };
+
+        std::string 输出{};
+        输出.reserve(文本.size());
+        for (std::size_t 索引 = 0; 索引 < 文本.size(); ++索引) {
+            if (文本[索引] == '%' && 索引 + 2 < 文本.size()) {
+                const int 高位 = 十六进制值(文本[索引 + 1]);
+                const int 低位 = 十六进制值(文本[索引 + 2]);
+                if (高位 >= 0 && 低位 >= 0) {
+                    输出.push_back(static_cast<char>((高位 << 4) | 低位));
+                    索引 += 2;
+                    continue;
+                }
+            }
+            输出.push_back(文本[索引]);
+        }
+        return 输出;
+    }
+
+    // 功能：解析 SQL 控制面板树子链读取消息。
+    bool 私有_解析SQL子链消息(
+        const std::wstring& 消息,
+        std::uint64_t* 请求号,
+        std::string* 区段ID,
+        std::string* 节点键) noexcept
+    {
+        constexpr std::wstring_view 前缀 = L"sql-subtree:";
+        if (!消息.starts_with(前缀)) {
+            return false;
+        }
+
+        const auto 第一分隔 = 消息.find(L':', 前缀.size());
+        if (第一分隔 == std::wstring::npos) {
+            return false;
+        }
+        const auto 第二分隔 = 消息.find(L':', 第一分隔 + 1);
+        if (第二分隔 == std::wstring::npos) {
+            return false;
+        }
+
+        std::uint64_t 解析请求号 = 0;
+        if (!私有_解析U64(
+                std::wstring_view(消息).substr(前缀.size(), 第一分隔 - 前缀.size()),
+                解析请求号)) {
+            return false;
+        }
+
+        if (请求号) {
+            *请求号 = 解析请求号;
+        }
+        if (区段ID) {
+            *区段ID = 私有_宽字串转UTF8(
+                消息.substr(第一分隔 + 1, 第二分隔 - 第一分隔 - 1));
+        }
+        if (节点键) {
+            *节点键 = 私有_URI百分号解码(
+                私有_宽字串转UTF8(消息.substr(第二分隔 + 1)));
+        }
+        return true;
+    }
+
     // 功能：设置对象字段、状态或运行参数。
     bool 私有_解析线程池大小设置消息(
         const std::wstring& 消息,
@@ -1456,6 +1531,23 @@ namespace {
                                             std::uintptr_t 节点指针 = 0;
                                             std::uintptr_t 附加参数 = 0;
                                             std::string 展开类型{};
+                                            std::string SQL区段ID{};
+                                            std::string SQL节点键{};
+                                            if (私有_解析SQL子链消息(消息, &请求号, &SQL区段ID, &SQL节点键)) {
+                                                auto* 上下文 = 私有_取窗口上下文(窗口);
+                                                if (上下文 && 上下文->WebView) {
+                                                    const auto 子链JSON = 读取SQL控制面板子链JSON(SQL区段ID, SQL节点键);
+                                                    const auto 宽子链JSON = 私有_UTF8转宽字串(子链JSON);
+                                                    std::wstring 脚本 =
+                                                        L"window.__panelApplySQLSubtree("
+                                                        + std::to_wstring(请求号)
+                                                        + L", "
+                                                        + 宽子链JSON
+                                                        + L");";
+                                                    (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
+                                                }
+                                                return S_OK;
+                                            }
                                             if (私有_解析展开消息(消息, &请求号, &展开类型, &节点指针, &附加参数)) {
                                                 auto* 上下文 = 私有_取窗口上下文(窗口);
                                                 if (上下文 && 上下文->WebView) {
