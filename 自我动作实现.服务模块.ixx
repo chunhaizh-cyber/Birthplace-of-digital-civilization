@@ -2181,7 +2181,7 @@ export namespace 自我动作实现模块::服务模块 {
     inline 动态节点类* 归一D0动作动态指针(void* 指针) noexcept
     {
         auto* 动态 = reinterpret_cast<动态节点类*>(指针);
-        return 动态 && 世界树.动态().取动态主信息(动态) ? 动态 : nullptr;
+        return 动态 && 世界树.取动态主信息(动态) ? 动态 : nullptr;
     }
 
     inline 动态节点类* 读取宿主D0动作动态(
@@ -2313,7 +2313,7 @@ export namespace 自我动作实现模块::服务模块 {
 
         结果.D0 = D0;
         结果.D0存在 = D0 != nullptr;
-        结果.D0主信息 = D0 ? 世界树.动态().取动态主信息(D0) : nullptr;
+        结果.D0主信息 = D0 ? 世界树.取动态主信息(D0) : nullptr;
         结果.D0主信息存在 = 结果.D0主信息 != nullptr;
         if (结果.D0主信息) {
             结果.动作主体 = 结果.D0主信息->动态主体.指针;
