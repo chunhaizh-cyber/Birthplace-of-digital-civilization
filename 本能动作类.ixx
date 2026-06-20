@@ -63,36 +63,16 @@ namespace 本能动作模块_detail {
     // 功能：按函数名执行对应处理。
     inline std::vector<基础信息节点类*> 枚举子节点(基础信息节点类* 父节点)
     {
-        std::vector<基础信息节点类*> 输出{};
-        if (!父节点 || !父节点->子) {
-            return 输出;
-        }
-
-        auto* 首节点 = static_cast<基础信息节点类*>(父节点->子);
-        auto* 当前 = 首节点;
-        do {
-            输出.push_back(当前);
-            当前 = 当前 ? static_cast<基础信息节点类*>(当前->下) : nullptr;
-        } while (当前 && 当前 != 首节点);
-
-        return 输出;
+        return 世界树.获取子节点(父节点);
     }
 
     // 功能：按函数名执行对应处理。
     inline std::vector<const 基础信息节点类*> 枚举子节点_只读(const 基础信息节点类* 父节点)
     {
         std::vector<const 基础信息节点类*> 输出{};
-        if (!父节点 || !父节点->子) {
-            return 输出;
+        for (auto* 子节点 : 世界树.获取子节点(父节点)) {
+            输出.push_back(子节点);
         }
-
-        auto* 首节点 = static_cast<const 基础信息节点类*>(父节点->子);
-        auto* 当前 = 首节点;
-        do {
-            输出.push_back(当前);
-            当前 = 当前 ? static_cast<const 基础信息节点类*>(当前->下) : nullptr;
-        } while (当前 && 当前 != 首节点);
-
         return 输出;
     }
 
@@ -101,7 +81,7 @@ namespace 本能动作模块_detail {
     {
         return 是特征节点(模式节点)
             && !特征有值(模式节点)
-            && 模式节点->子 != nullptr;
+            && !枚举子节点_只读(模式节点).empty();
     }
 
     // 功能：按函数名执行对应处理。
@@ -166,19 +146,16 @@ public:
             if (!类型) {
                 return true;
             }
-            auto lk = 基础信息.获取读锁();
-            if (!条件场景->子) {
+            const auto 条件子节点集 = 世界树.获取子节点(条件场景);
+            if (条件子节点集.empty()) {
                 return false;
             }
-            auto* 首节点 = static_cast<基础信息节点类*>(条件场景->子);
-            auto* 当前 = 首节点;
-            do {
+            for (auto* 当前 : 条件子节点集) {
                 const auto* 特征主信息 = dynamic_cast<特征节点主信息类*>(当前->主信息);
                 if (特征主信息 && 特征主信息->类型 == 类型) {
                     return true;
                 }
-                当前 = static_cast<基础信息节点类*>(当前->下);
-            } while (当前 && 当前 != 首节点);
+            }
             return false;
         };
 
@@ -377,7 +354,7 @@ private:
             return false;
         }
 
-        if (!模式节点->子) {
+        if (本能动作模块_detail::枚举子节点_只读(模式节点).empty()) {
             return true;
         }
 
