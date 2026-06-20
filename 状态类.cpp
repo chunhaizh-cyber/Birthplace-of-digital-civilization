@@ -559,14 +559,10 @@ bool 状态类::是否当前活动状态(const 场景节点类* 场景, const �
     if (!基础信息_ || !场景 || !节点) return false;
 
     const auto* 目标主信息 = 取状态主信息(节点);
-    const auto* 场景主信息 = 基础信息_->取主信息<场景节点主信息类>(场景);
-    if (!目标主信息 || !场景主信息) return false;
+    if (!目标主信息) return false;
 
-    std::vector<可解析引用<状态节点类>> 状态索引快照;
-    {
-        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
-        状态索引快照 = 场景主信息->状态索引;
-    }
+    场景类 场景服务(基础信息_);
+    const auto 状态索引快照 = 场景服务.读取场景状态索引快照(场景);
     bool 在活动索引中 = false;
     for (const auto& 项 : 状态索引快照) {
         auto* 候选节点 = 私有_解析状态引用(基础信息_, 项);
@@ -612,14 +608,10 @@ bool 状态类::可从活动状态链清理(const 场景节点类* 场景, const
     if (!基础信息_ || !场景 || !节点) return false;
 
     const auto* 目标主信息 = 取状态主信息(节点);
-    const auto* 场景主信息 = 基础信息_->取主信息<场景节点主信息类>(场景);
-    if (!目标主信息 || !场景主信息) return false;
+    if (!目标主信息) return false;
 
-    std::vector<可解析引用<状态节点类>> 状态索引快照;
-    {
-        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
-        状态索引快照 = 场景主信息->状态索引;
-    }
+    场景类 场景服务(基础信息_);
+    const auto 状态索引快照 = 场景服务.读取场景状态索引快照(场景);
     std::size_t 更新状态数量 = 0;
     for (const auto& 项 : 状态索引快照) {
         auto* 候选节点 = 私有_解析状态引用(基础信息_, 项);
