@@ -72,6 +72,18 @@ public:
     std::vector<基础信息节点类*> 获取子节点(const 基础信息节点类* 父节点) const;
     std::size_t 统计全部节点() const;
     bool 基础节点属于当前世界树(const 基础信息节点类* 节点) const;
+    // 功能：按主信息类型读取直接子节点，不创建或修改节点。
+    template<class T主信息>
+    std::vector<基础信息节点类*> 获取子节点_按主信息类型(const 基础信息节点类* 父节点) const
+    {
+        std::vector<基础信息节点类*> 输出;
+        for (auto* 子节点 : 获取子节点(父节点)) {
+            if (基础信息链_.取主信息<T主信息>(子节点)) {
+                输出.push_back(子节点);
+            }
+        }
+        return 输出;
+    }
     // 功能：按主信息类型枚举世界树节点，不创建或修改节点。
     template<class T主信息>
     std::vector<基础信息节点类*> 枚举节点_按主信息类型() const
