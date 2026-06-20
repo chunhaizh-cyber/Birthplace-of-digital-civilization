@@ -553,10 +553,6 @@ std::string 渲染缺口摘要(
 std::string 渲染需求树生长摘要(
     const 结构_控制面板快照& 快照);
 
-std::string 生成控制面板HTML(
-    const 结构_控制面板快照& 快照,
-    std::size_t 列表预览上限 = 12);
-
 std::string 生成自我场景独立窗口HTML(
     const 结构_控制面板快照& 快照);
 
@@ -582,10 +578,6 @@ std::string 读取SQL控制面板子链JSON(
 
 bool 保存控制面板HTML(
     const std::filesystem::path& 输出路径);
-
-bool 保存控制面板HTML(
-    const std::filesystem::path& 输出路径,
-    const 结构_控制面板快照& 快照);
 
 bool 启动控制面板窗口() noexcept;
 bool 启动控制面板相机窗口() noexcept;

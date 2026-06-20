@@ -71,7 +71,6 @@ namespace {
     constexpr std::size_t 私有_列表分页大小 = 100;
 
     enum class 枚举_控制面板HTML用途 {
-        主面板,
         自我场景窗口,
     };
 
@@ -14990,17 +14989,6 @@ std::string 私有_生成控制面板HTML(
 }
 
 // 功能：根据当前输入生成目标数据、场景、动态或回执。
-std::string 生成控制面板HTML(
-    const 结构_控制面板快照& 快照,
-    std::size_t 列表预览上限)
-{
-    return 私有_生成控制面板HTML(
-        快照,
-        列表预览上限,
-        枚举_控制面板HTML用途::主面板);
-}
-
-// 功能：根据当前输入生成目标数据、场景、动态或回执。
 std::string 生成自我场景独立窗口HTML(
     const 结构_控制面板快照& 快照)
 {
@@ -15043,21 +15031,6 @@ bool 保存控制面板HTML(const std::filesystem::path& 输出路径)
         return false;
     }
 
-    输出文件.write(HTML.data(), static_cast<std::streamsize>(HTML.size()));
-    return 输出文件.good();
-}
-
-// 功能：按函数名执行对应处理。
-bool 保存控制面板HTML(
-    const std::filesystem::path& 输出路径,
-    const 结构_控制面板快照& 快照)
-{
-    std::ofstream 输出文件(输出路径, std::ios::binary);
-    if (!输出文件) {
-        return false;
-    }
-
-    const auto HTML = 生成控制面板HTML(快照, 24);
     输出文件.write(HTML.data(), static_cast<std::streamsize>(HTML.size()));
     return 输出文件.good();
 }
