@@ -13642,8 +13642,8 @@ namespace {
     inline 存在节点类* 查找首个已确认观察存在(基础信息节点类* 宿主) noexcept
     {
         if (!宿主) return nullptr;
-        if (auto* 自身 = dynamic_cast<存在节点主信息类*>(宿主->主信息);
-            自身 && 已确认观察存在节点(reinterpret_cast<存在节点类*>(宿主))) {
+        if (世界树.存在().是存在节点(宿主)
+            && 已确认观察存在节点(reinterpret_cast<存在节点类*>(宿主))) {
             return reinterpret_cast<存在节点类*>(宿主);
         }
         for (auto* 子存在 : 世界树.存在().获取子存在(宿主)) {
@@ -13671,7 +13671,7 @@ namespace {
         std::vector<存在节点类*>& 结果) noexcept
     {
         if (!宿主) return;
-        if (auto* 自身 = dynamic_cast<存在节点主信息类*>(宿主->主信息)) {
+        if (世界树.存在().是存在节点(宿主)) {
             追加已确认观察存在(结果, reinterpret_cast<存在节点类*>(宿主));
         }
         for (auto* 子存在 : 世界树.存在().获取子存在(宿主)) {
