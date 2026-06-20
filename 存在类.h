@@ -16,6 +16,8 @@ public:
     存在节点主信息类* 取存在主信息(存在节点类* 节点) const noexcept;
     const 存在节点主信息类* 取存在主信息(const 存在节点类* 节点) const noexcept;
     bool 是存在节点(const 基础信息节点类* 节点) const noexcept;
+    bool 是存在概念(const 存在节点类* 节点, const 存在节点类* 存在概念根) const noexcept;
+    bool 是实例存在(const 存在节点类* 节点, const 存在节点类* 存在概念根) const noexcept;
     const 语素入口节点类* 读取存在名称(const 存在节点类* 节点) const noexcept;
     const 语素入口节点类* 读取存在类型(const 存在节点类* 节点) const noexcept;
     场景节点类* 读取内部世界(const 存在节点类* 节点) const noexcept;
