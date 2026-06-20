@@ -1228,6 +1228,12 @@ const 因果类& 世界树类::因果() const noexcept { return 因果服务_; }
     return 场景服务_.按主键解析场景节点(主键);
 }
 
+// 功能：按主键解析特征节点，不创建或修改节点。
+特征节点类* 世界树类::按主键解析特征节点(const std::string& 主键) const noexcept
+{
+    return 特征服务_.按主键解析特征节点(主键);
+}
+
 // 功能：按主键解析状态节点，不创建或修改节点。
 状态节点类* 世界树类::按主键解析状态节点(const std::string& 主键) const noexcept
 {

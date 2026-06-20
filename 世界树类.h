@@ -59,6 +59,8 @@ public:
     存在节点类* 按主键解析存在节点(const std::string& 主键) const noexcept;
     // 功能：按主键解析场景节点，不创建或修改节点。
     场景节点类* 按主键解析场景节点(const std::string& 主键) const noexcept;
+    // 功能：按主键解析特征节点，不创建或修改节点。
+    特征节点类* 按主键解析特征节点(const std::string& 主键) const noexcept;
     // 功能：按主键解析状态节点，不创建或修改节点。
     状态节点类* 按主键解析状态节点(const std::string& 主键) const noexcept;
     // 功能：按主键解析动态节点，不创建或修改节点。
