@@ -48,18 +48,8 @@ namespace {
         const 基础信息类& 基础信息,
         const 基础信息节点类* 父节点)
     {
-        std::vector<基础信息节点类*> 结果{};
-        auto lk = 基础信息.获取读锁();
-        auto* 父 = 父节点 ? const_cast<基础信息节点类*>(父节点) : 基础信息.世界根();
-        if (!父 || !父->子) return 结果;
-
-        auto* 首节点 = static_cast<基础信息节点类*>(父->子);
-        auto* 当前 = 首节点;
-        do {
-            结果.push_back(当前);
-            当前 = static_cast<基础信息节点类*>(当前->下);
-        } while (当前 && 当前 != 首节点);
-        return 结果;
+        (void)基础信息;
+        return 世界树.获取子节点(父节点);
     }
 
     // 功能：服务所在模块的内部辅助流程。
