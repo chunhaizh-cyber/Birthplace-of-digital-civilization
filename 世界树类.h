@@ -18,20 +18,6 @@
 
 class 二次特征生成模块;
 
-struct 场景相对坐标项 {
-    const 存在节点类* 参考存在 = nullptr;
-    Vector3D 相对坐标_mm{};
-    I64 置信度 = 10000;
-};
-
-struct 场景绝对坐标换算结果 {
-    bool 成功 = false;
-    Vector3D 绝对坐标_mm{};
-    const 存在节点类* 参考存在 = nullptr;
-    I64 使用相对坐标项数量 = 0;
-    I64 置信度 = 0;
-};
-
 class 世界树类 {
 public:
     世界树类();
@@ -254,11 +240,11 @@ public:
         const Vector3D& 相对坐标_mm,
         时间戳 now = 结构体_时间戳::当前_微秒(),
         I64 置信度 = 10000);
-    场景绝对坐标换算结果 计算场景绝对坐标_由相对坐标表(
-        const std::vector<场景相对坐标项>& 相对坐标表) const;
+    结构_存在空间绝对坐标换算结果 计算场景绝对坐标_由相对坐标表(
+        const std::vector<结构_存在空间相对坐标项>& 相对坐标表) const;
     bool 写入存在场景绝对坐标_由相对坐标表(
         存在节点类* 目标存在,
-        const std::vector<场景相对坐标项>& 相对坐标表,
+        const std::vector<结构_存在空间相对坐标项>& 相对坐标表,
         时间戳 now = 结构体_时间戳::当前_微秒());
     bool 写入存在观测位置(存在节点类* 节点, const Vector3D& 位置_mm);
 

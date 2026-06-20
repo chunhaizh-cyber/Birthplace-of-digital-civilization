@@ -7,6 +7,20 @@
 #include "任务类.h"
 #include "方法类.h"
 
+struct 结构_存在空间相对坐标项 {
+    const 存在节点类* 参考存在 = nullptr;
+    Vector3D 相对坐标_mm{};
+    I64 置信度 = 10000;
+};
+
+struct 结构_存在空间绝对坐标换算结果 {
+    bool 成功 = false;
+    Vector3D 绝对坐标_mm{};
+    const 存在节点类* 参考存在 = nullptr;
+    I64 使用相对坐标项数量 = 0;
+    I64 置信度 = 0;
+};
+
 class 存在类 {
 public:
     explicit 存在类(基础信息类* 基础信息 = nullptr) noexcept;
@@ -28,6 +42,8 @@ public:
         const 存在节点类* 参考存在,
         const Vector3D& 相对坐标_mm,
         Vector3D& 输出绝对坐标_mm) const;
+    结构_存在空间绝对坐标换算结果 计算场景绝对坐标_由相对坐标表(
+        const std::vector<结构_存在空间相对坐标项>& 相对坐标表) const;
     bool 读取最近观测位置缓存(const 存在节点类* 节点, Vector3D& 输出位置_mm) const noexcept;
     bool 读取上次观测位置缓存(const 存在节点类* 节点, Vector3D& 输出位置_mm) const noexcept;
     bool 确保存在三类根节点(存在节点类* 节点) const noexcept;
@@ -97,6 +113,10 @@ public:
         const Vector3D& 相对坐标_mm,
         时间戳 now,
         I64 置信度);
+    bool 写入存在场景绝对坐标_由相对坐标表(
+        存在节点类* 目标存在,
+        const std::vector<结构_存在空间相对坐标项>& 相对坐标表,
+        时间戳 now);
     bool 标记观测未命中(存在节点类* 节点);
 
 private:
