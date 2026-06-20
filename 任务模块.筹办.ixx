@@ -428,8 +428,12 @@ namespace {
             return reinterpret_cast<需求节点*>(任务头->主信息.对应需求.指针);
         }
         if (!任务头->主信息.对应需求.主键.empty()) {
-            if (auto* 节点 = 世界树.基础信息().查找主键(任务头->主信息.对应需求.主键)) {
-                return reinterpret_cast<需求节点*>(节点);
+            auto* 自我存在 = 世界树.自我指针;
+            auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
+            if (auto* 节点 = 需求类::按主键解析需求节点(
+                    需求根节点,
+                    任务头->主信息.对应需求.主键)) {
+                return 节点;
             }
         }
         return nullptr;

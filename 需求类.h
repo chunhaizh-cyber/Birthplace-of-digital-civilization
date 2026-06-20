@@ -451,6 +451,11 @@ public:
         return 收集直接子需求目标视图_已加锁(父需求);
     }
 
+    // 功能：按主键解析给定需求树根下的需求节点，不创建或修改节点。
+    static 节点类* 按主键解析需求节点(
+        节点类* 需求根节点,
+        const std::string& 主键) noexcept;
+
     static bool 绑定对应任务(
         节点类* 需求,
         任务节点类* 任务) noexcept;
