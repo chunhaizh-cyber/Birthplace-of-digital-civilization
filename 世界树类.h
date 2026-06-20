@@ -160,6 +160,7 @@ public:
         const std::vector<存在节点类*>& 概念集
     );
     bool 存在包含概念(const 存在节点类* 实例, const 存在节点类* 概念) const noexcept;
+    std::vector<存在节点类*> 获取子存在(const 基础信息节点类* 父节点) const;
     std::vector<存在节点类*> 查找实例_按概念(
         const 存在节点类* 概念,
         const 基础信息节点类* 范围根 = nullptr
