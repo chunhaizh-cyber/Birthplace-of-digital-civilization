@@ -3361,7 +3361,7 @@ namespace {
             bool 有可比较状态 = false;
             bool 已等价匹配 = false;
             for (const auto* 实际状态 : 实际状态集) {
-                const auto 比较 = 世界树.特征().比较状态(
+                const auto 比较 = 世界树.比较状态(
                     const_cast<状态节点类*>(既有状态),
                     const_cast<状态节点类*>(实际状态));
                 if (!比较.可比较) {
@@ -10675,7 +10675,7 @@ export namespace 自我动作实现模块 {
             return false;
         }
 
-        const auto 比较 = 世界树.特征().比较状态(结果状态, 目标状态);
+        const auto 比较 = 世界树.比较状态(结果状态, 目标状态);
         const bool 达成 = 比较.可比较
             && 三向关系被接受(比较.关系, 关系_大于等于);
         if (!达成 || 任务状态提交诊断日志启用()) {
@@ -10746,7 +10746,7 @@ export namespace 自我动作实现模块 {
             return;
         }
 
-        const auto 目标比较 = 世界树.特征().比较状态(结果状态, 目标状态);
+        const auto 目标比较 = 世界树.比较状态(结果状态, 目标状态);
         const bool 目标达成 = 目标比较.可比较
             && 三向关系被接受(目标比较.关系, 关系_大于等于);
 

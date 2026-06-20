@@ -1523,7 +1523,7 @@ bool 方法类::场景状态语义等价(const 场景节点类* 左, const 场�
     for (const auto* 左状态 : 左状态集) {
         bool 已匹配 = false;
         for (const auto* 右状态 : 右状态集) {
-            const auto 比较 = 世界树.特征().比较状态(左状态, 右状态);
+            const auto 比较 = 世界树.比较状态(左状态, 右状态);
             if (比较.可比较 && 比较.关系 == 枚举_三向关系::等于) {
                 已匹配 = true;
                 break;
