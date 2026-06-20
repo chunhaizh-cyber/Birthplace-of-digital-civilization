@@ -329,6 +329,20 @@ public:
     bool 追加来源低层动态(动态节点类* 节点, 动态节点类* 来源低层动态);
     动态节点主信息类* 取动态主信息(动态节点类* 节点) const noexcept;
     const 动态节点主信息类* 取动态主信息(const 动态节点类* 节点) const noexcept;
+    bool 读取动态聚合信息(
+        const 动态节点类* 动态,
+        std::uint32_t& 动态层级,
+        枚举_动态聚合方式& 聚合方式,
+        std::uint64_t& 动态路径签名) const noexcept;
+    bool 是原子相邻动态(const 动态节点类* 动态) const noexcept;
+    bool 读取动态来源低层动态(
+        const 动态节点类* 动态,
+        std::vector<动态节点类*>& 输出来源低层动态) const;
+    std::uint64_t 计算动态列表路径签名(const std::vector<动态节点类*>& 动态列表) const noexcept;
+    bool 动态聚合来源链相同(
+        const 动态节点类* 聚合动态,
+        const std::vector<动态节点类*>& 来源动态列表) const noexcept;
+    std::vector<动态节点类*> 获取场景动态(const 场景节点类* 场景) const;
     动态节点类* 状态记录后刷新动态(
         场景节点类* 场景,
         状态节点类* 新状态,
