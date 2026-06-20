@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 
+#include "场景类.h"
 #include "场景索引同步.h"
 #include "世界树类.h"
 
@@ -508,16 +509,8 @@ bool 状态类::删除状态(状态节点类* 节点)
     if (!基础信息_ || !节点) return false;
 
     auto* 父节点 = static_cast<基础信息节点类*>(节点->父);
-    auto* 场景主信息 = 基础信息_->取主信息<场景节点主信息类>(父节点);
-    if (场景主信息) {
-        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
-        场景主信息->状态索引.erase(
-            std::remove_if(
-                场景主信息->状态索引.begin(),
-                场景主信息->状态索引.end(),
-                [&](const auto& 项) { return 项.指针 == 节点 || 项.主键 == 节点->获取主键(); }),
-            场景主信息->状态索引.end());
-    }
+    场景类 场景服务(基础信息_);
+    (void)场景服务.移除场景状态索引(static_cast<场景节点类*>(父节点), 节点);
 
     return 基础信息_->删除节点(节点);
 }

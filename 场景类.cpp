@@ -1,5 +1,6 @@
 #include "场景类.h"
 
+#include <algorithm>
 #include <limits>
 #include <mutex>
 
@@ -333,6 +334,27 @@ bool 场景类::追加状态(场景节点类* 节点, 状态节点类* 状态节
         return 左.主键 < 右.主键;
     });
     return true;
+}
+
+// 功能：从场景状态事实目录移除指定状态引用，不删除状态节点。
+bool 场景类::移除场景状态索引(场景节点类* 场景, 状态节点类* 状态节点)
+{
+    auto* 主信息 = 取场景主信息(场景);
+    if (!主信息 || !状态节点) return false;
+
+    const auto 状态主键 = 状态节点->获取主键();
+    std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
+    auto& 索引 = 主信息->状态索引;
+    const auto 原数量 = 索引.size();
+    索引.erase(
+        std::remove_if(
+            索引.begin(),
+            索引.end(),
+            [&](const auto& 项) {
+                return 项.指针 == 状态节点 || (!状态主键.empty() && 项.主键 == 状态主键);
+            }),
+        索引.end());
+    return 索引.size() != 原数量;
 }
 
 // 功能：按函数名执行对应处理。
