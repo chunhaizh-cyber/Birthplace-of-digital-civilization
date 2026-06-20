@@ -13630,7 +13630,7 @@ namespace {
     {
         auto* 当前 = 节点 ? static_cast<基础信息节点类*>(节点->父) : nullptr;
         while (当前) {
-            if (dynamic_cast<场景节点主信息类*>(当前->主信息)) {
+            if (世界树.场景().是场景节点(当前)) {
                 return reinterpret_cast<场景节点类*>(当前);
             }
             当前 = static_cast<基础信息节点类*>(当前->父);

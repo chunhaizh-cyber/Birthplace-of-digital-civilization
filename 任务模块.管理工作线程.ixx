@@ -1513,8 +1513,7 @@ const 语素入口节点类* 私有_读取输出语素入口指针(
         return reinterpret_cast<状态节点类*>(指针);
     }
 
-    const auto* 场景主信息 = dynamic_cast<const 场景节点主信息类*>(宿主->主信息);
-    if (!场景主信息) {
+    if (!世界树.场景().是场景节点(宿主)) {
         return nullptr;
     }
 

@@ -11,6 +11,9 @@ public:
     场景节点主信息类* 取场景主信息(场景节点类* 节点) const noexcept;
     const 场景节点主信息类* 取场景主信息(const 场景节点类* 节点) const noexcept;
 
+    // 功能：判断基础信息节点是否为场景节点，不创建或修改节点。
+    bool 是场景节点(const 基础信息节点类* 节点) const noexcept;
+
     // 功能：按主键查找并解析场景节点，不创建或修改节点。
     场景节点类* 按主键解析场景节点(const std::string& 主键) const noexcept;
 
