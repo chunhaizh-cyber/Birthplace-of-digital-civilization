@@ -50,8 +50,7 @@ namespace {
         列表.push_back(节点);
     }
 
-    template<class T主信息>
-    std::vector<基础信息节点类*> 私有_直接基础信息子节点_按类型(
+    std::vector<基础信息节点类*> 私有_直接存在子节点(
         const 基础信息类& 基础信息,
         const 基础信息节点类* 父节点)
     {
@@ -63,7 +62,7 @@ namespace {
         auto* 首节点 = static_cast<基础信息节点类*>(父->子);
         auto* 当前 = 首节点;
         do {
-            if (dynamic_cast<T主信息*>(当前->主信息)) {
+            if (基础信息.取主信息<存在节点主信息类>(当前)) {
                 结果.push_back(当前);
             }
             当前 = static_cast<基础信息节点类*>(当前->下);
@@ -382,7 +381,7 @@ std::vector<存在节点类*> 存在类::获取子存在(const 基础信息节�
     std::vector<存在节点类*> out;
     if (!基础信息_) return out;
 
-    for (auto* 节点 : 私有_直接基础信息子节点_按类型<存在节点主信息类>(*基础信息_, 父节点)) {
+    for (auto* 节点 : 私有_直接存在子节点(*基础信息_, 父节点)) {
         out.push_back(static_cast<存在节点类*>(节点));
     }
     return out;
