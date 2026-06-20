@@ -758,17 +758,7 @@ public:
             有条件判定索引 = !条件节点信息->条件判定索引.empty();
         }
         auto 子节点数 = [](const 基础信息节点类* 父) noexcept -> std::size_t {
-            if (!父 || !父->子) {
-                return 0;
-            }
-            std::size_t 数量 = 0;
-            auto* 首节点 = static_cast<const 基础信息节点类*>(父->子);
-            auto* 当前 = 首节点;
-            do {
-                ++数量;
-                当前 = 当前 ? static_cast<const 基础信息节点类*>(当前->下) : nullptr;
-            } while (当前 && 当前 != 首节点);
-            return 数量;
+            return 世界树.获取子节点(父).size();
         };
         auto 节点主键 = [](const 基础信息节点类* 节点) -> std::string {
             return 节点 ? 节点->获取主键() : std::string("空");
