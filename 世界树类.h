@@ -449,6 +449,44 @@ public:
         std::vector<因果节点类*>& 同向命中因果,
         std::vector<因果节点类*>& 反向命中因果,
         std::vector<std::string>& 缺失证据) const;
+    因果模板节点类* 确保被动触发初始因果模板(
+        基础信息节点类* 父节点,
+        场景节点类* 适用场景,
+        二次特征节点类* 条件比较,
+        二次特征节点类* 主果比较,
+        动态节点类* 证据动态,
+        std::uint32_t 适用层级,
+        const std::string& 动作语义键,
+        bool& 已创建);
+    void 查询因果链(
+        状态节点类* 目标结果状态,
+        特征节点类* 目标结果特征,
+        std::uint32_t 最大深度,
+        bool 包含未验证路径,
+        std::size_t& 边数量,
+        std::vector<因果模板节点类*>& 来源因果模板,
+        std::vector<std::string>& 缺失证据) const;
+    void 查询叶子任务目标投影层级(
+        任务节点类* 叶子任务,
+        需求节点类* 来源需求,
+        基础信息节点类* 目标宿主,
+        特征节点类* 目标特征类型,
+        bool 允许未验证路径,
+        std::size_t& 候选投影数量,
+        std::vector<std::uint32_t>& 结算贡献层级集,
+        std::vector<std::uint32_t>& 因果距离层级集,
+        std::vector<std::string>& 缺失证据,
+        bool& 是否允许形成D0) const;
+    void 查询自检原子目标投影(
+        任务节点类* 固定来源任务,
+        需求节点类* 固定来源需求,
+        基础信息节点类* 目标宿主,
+        特征节点类* 目标特征类型,
+        const 语素入口节点类* 目标特征类型词,
+        bool 允许未验证路径,
+        std::size_t& 候选投影数量,
+        std::vector<std::string>& 来源因果主键集,
+        std::vector<std::string>& 缺失证据) const;
 
     bool 写入特征_I64(特征节点类* 节点, I64 值, 时间戳 now = 结构体_时间戳::当前_微秒());
     bool 写入特征值(特征节点类* 节点, const 特征值& 值, 时间戳 now = 结构体_时间戳::当前_微秒());
