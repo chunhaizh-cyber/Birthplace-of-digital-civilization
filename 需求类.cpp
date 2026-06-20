@@ -960,7 +960,7 @@ namespace {
         }
 
         auto* 自我存在 = 世界树.自我指针;
-        auto* 方法根节点 = 自我存在 ? 世界树.存在().获取方法根节点(自我存在) : nullptr;
+        auto* 方法根节点 = 自我存在 ? 世界树.获取方法根节点(自我存在) : nullptr;
         if (!方法根节点) {
             return nullptr;
         }
@@ -1036,7 +1036,7 @@ namespace {
         const 语素入口节点类* 目标特征类型) noexcept
     {
         auto* 自我存在 = 世界树.自我指针;
-        auto* 方法根节点 = 自我存在 ? 世界树.存在().获取方法根节点(自我存在) : nullptr;
+        auto* 方法根节点 = 自我存在 ? 世界树.获取方法根节点(自我存在) : nullptr;
         if (!方法根节点 || !目标特征类型) {
             return false;
         }

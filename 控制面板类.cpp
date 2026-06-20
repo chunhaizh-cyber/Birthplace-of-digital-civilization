@@ -310,16 +310,16 @@ namespace {
             return 世界树.世界根();
         }
         else if constexpr (std::is_same_v<节点类型, 需求节点>) {
-            return 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
+            return 自我存在 ? 世界树.获取需求根节点(自我存在) : nullptr;
         }
         else if constexpr (std::is_same_v<节点类型, 任务节点>) {
             return 自我存在
-                ? reinterpret_cast<const 节点类型*>(世界树.存在().获取任务根节点(自我存在))
+                ? reinterpret_cast<const 节点类型*>(世界树.获取任务根节点(自我存在))
                 : nullptr;
         }
         else if constexpr (std::is_same_v<节点类型, 方法节点>) {
             return 自我存在
-                ? reinterpret_cast<const 节点类型*>(世界树.存在().获取方法根节点(自我存在))
+                ? reinterpret_cast<const 节点类型*>(世界树.获取方法根节点(自我存在))
                 : nullptr;
         }
         else if constexpr (std::is_same_v<节点类型, 自然句节点类>) {
@@ -3480,11 +3480,11 @@ namespace {
 
         std::vector<方法节点*> 方法根集{};
         auto* 被需求存在 = 私有_解析基础信息引用_控制面板(需求->主信息.被需求存在);
-        if (auto* 方法根 = 被需求存在 ? 世界树.存在().获取方法根节点(被需求存在) : nullptr) {
+        if (auto* 方法根 = 被需求存在 ? 世界树.获取方法根节点(被需求存在) : nullptr) {
             私有_追加唯一方法_控制面板(方法根集, reinterpret_cast<方法节点*>(方法根));
         }
         if (auto* 自我存在 = 自我.获取自我存在()) {
-            if (auto* 方法根 = 世界树.存在().获取方法根节点(自我存在)) {
+            if (auto* 方法根 = 世界树.获取方法根节点(自我存在)) {
                 私有_追加唯一方法_控制面板(方法根集, reinterpret_cast<方法节点*>(方法根));
             }
         }
@@ -4499,7 +4499,7 @@ namespace {
             return nullptr;
         }
         auto* 需求根节点 = reinterpret_cast<需求节点*>(
-            世界树.存在().获取需求根节点(世界树.自我指针));
+            世界树.获取需求根节点(世界树.自我指针));
         if (!需求根节点) {
             return nullptr;
         }
@@ -9517,9 +9517,9 @@ window.__panelApplyDetail=function(){};
     }
 
     auto* 自我存在 = 自我.获取自我存在();
-    auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
-    auto* 任务根节点 = 自我存在 ? 世界树.存在().获取任务根节点(自我存在) : nullptr;
-    auto* 方法根节点 = 自我存在 ? 世界树.存在().获取方法根节点(自我存在) : nullptr;
+    auto* 需求根节点 = 自我存在 ? 世界树.获取需求根节点(自我存在) : nullptr;
+    auto* 任务根节点 = 自我存在 ? 世界树.获取任务根节点(自我存在) : nullptr;
+    auto* 方法根节点 = 自我存在 ? 世界树.获取方法根节点(自我存在) : nullptr;
     记录快照阶段("自我根节点读取完成");
 
     快照.需求数 = 需求根节点 ? (私有_计数子树节点(需求根节点) - 1) : 0;
@@ -10202,9 +10202,9 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
 
     const auto 快照 = 读取控制面板快照(0, 0);
     auto* 自我存在 = 自我.获取自我存在();
-    auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
-    auto* 任务根节点 = 自我存在 ? 世界树.存在().获取任务根节点(自我存在) : nullptr;
-    auto* 方法根节点 = 自我存在 ? 世界树.存在().获取方法根节点(自我存在) : nullptr;
+    auto* 需求根节点 = 自我存在 ? 世界树.获取需求根节点(自我存在) : nullptr;
+    auto* 任务根节点 = 自我存在 ? 世界树.获取任务根节点(自我存在) : nullptr;
+    auto* 方法根节点 = 自我存在 ? 世界树.获取方法根节点(自我存在) : nullptr;
     const auto 上下文 = 私有_创建构建上下文(16);
 
     if (页面 == "thread-status") {
@@ -10592,7 +10592,7 @@ std::string 读取控制面板节点子项JSON(
     if (展开类型 == "need-list-more") {
         结构_控制面板树节点 容器 = 私有_新节点("需求列表分页");
         auto* 自我存在 = 自我.获取自我存在();
-        if (auto* 需求根节点 = 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr) {
+        if (auto* 需求根节点 = 自我存在 ? 世界树.获取需求根节点(自我存在) : nullptr) {
             std::vector<需求节点*> 分页节点集{};
             bool 分页还有更多 = false;
             std::size_t 分页已遍历数量 = 0;

@@ -163,6 +163,12 @@ public:
         const 基础信息节点类* 父节点,
         const 语素入口节点类* 类型
     ) const;
+    需求类::节点类* 获取需求根节点(存在节点类* 节点) const noexcept;
+    const 需求类::节点类* 获取需求根节点(const 存在节点类* 节点) const noexcept;
+    任务类::节点类* 获取任务根节点(存在节点类* 节点) const noexcept;
+    const 任务类::节点类* 获取任务根节点(const 存在节点类* 节点) const noexcept;
+    方法类::节点类* 获取方法根节点(存在节点类* 节点) const noexcept;
+    const 方法类::节点类* 获取方法根节点(const 存在节点类* 节点) const noexcept;
     存在节点类* 取或创建子存在_按类型并按特征I64(
         基础信息节点类* 父节点,
         const 语素入口节点类* 类型,

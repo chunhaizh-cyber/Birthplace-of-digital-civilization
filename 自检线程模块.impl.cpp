@@ -974,7 +974,7 @@ namespace {
         std::vector<方法节点*> 全量{};
         auto* 自我存在 = 自我.获取自我存在();
         auto* 方法根节点 = 自我存在
-            ? reinterpret_cast<方法节点*>(世界树.存在().获取方法根节点(自我存在))
+            ? reinterpret_cast<方法节点*>(世界树.获取方法根节点(自我存在))
             : nullptr;
         if (!方法根节点) {
             return 全量;
