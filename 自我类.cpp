@@ -524,7 +524,7 @@ namespace {
         const std::string& 原因类别,
         const std::string& 原因说明) noexcept
     {
-        auto* 状态节点 = 世界树.状态().创建状态(场景, 主体, 特征, 值, now, now);
+        auto* 状态节点 = 世界树.创建状态(场景, 主体, 特征, 值, now, now);
         if (!状态节点) return nullptr;
 
         auto* 主信息 = 世界树.状态().取状态主信息(状态节点);

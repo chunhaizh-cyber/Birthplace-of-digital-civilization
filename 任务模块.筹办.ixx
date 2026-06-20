@@ -1719,7 +1719,7 @@ namespace {
         if (!场景 || !特征) {
             return nullptr;
         }
-        return 世界树.状态().创建状态(
+        return 世界树.创建状态(
             场景,
             主体,
             特征,

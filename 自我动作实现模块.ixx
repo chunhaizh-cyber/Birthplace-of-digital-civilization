@@ -12520,14 +12520,14 @@ export namespace 自我动作实现模块 {
             return nullptr;
         }
 
-        auto* 旧状态 = 世界树.状态().创建状态(
+        auto* 旧状态 = 世界树.创建状态(
             场景,
             reinterpret_cast<基础信息节点类*>(自我存在),
             特征,
             特征值{ 旧值 },
             now,
             now);
-        auto* 新状态 = 世界树.状态().创建状态(
+        auto* 新状态 = 世界树.创建状态(
             场景,
             reinterpret_cast<基础信息节点类*>(自我存在),
             特征,
