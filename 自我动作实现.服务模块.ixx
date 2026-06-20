@@ -2247,7 +2247,7 @@ export namespace 自我动作实现模块::服务模块 {
     // 功能：从指定来源读取数据或状态。
     inline 基础信息节点类* 读取状态主体(状态节点类* 状态) noexcept
     {
-        const auto* 主信息 = 状态 ? 世界树.状态().取状态主信息(状态) : nullptr;
+        const auto* 主信息 = 状态 ? 世界树.取状态主信息(状态) : nullptr;
         return 主信息 ? 主信息->状态主体.指针 : nullptr;
     }
 

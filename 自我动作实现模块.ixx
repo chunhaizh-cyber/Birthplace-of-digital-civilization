@@ -10703,7 +10703,7 @@ export namespace 自我动作实现模块 {
         const 状态节点类* 状态,
         I64& 输出值) noexcept
     {
-        const auto* 主信息 = 状态 ? 世界树.状态().取状态主信息(状态) : nullptr;
+        const auto* 主信息 = 状态 ? 世界树.取状态主信息(状态) : nullptr;
         const auto* 标量值 = 主信息 ? std::get_if<I64>(&主信息->状态值) : nullptr;
         if (!标量值) {
             return false;

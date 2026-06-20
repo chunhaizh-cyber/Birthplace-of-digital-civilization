@@ -1697,7 +1697,7 @@ namespace {
         const 状态节点类* 状态节点) noexcept
     {
         结构_状态变化跟踪项 输出{};
-        const auto* 状态主信息 = 状态节点 ? 世界树.状态().取状态主信息(状态节点) : nullptr;
+        const auto* 状态主信息 = 状态节点 ? 世界树.取状态主信息(状态节点) : nullptr;
         if (!状态节点 || !状态主信息) {
             return 输出;
         }

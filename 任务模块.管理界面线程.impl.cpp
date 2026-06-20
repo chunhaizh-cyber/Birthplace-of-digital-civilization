@@ -3904,7 +3904,7 @@ std::string 私有_引用主键_任务管理(const 可解析引用<节点类型>
 std::string 私有_状态主体主键_任务管理(const 状态节点类* 状态) noexcept
 {
     const auto* 主信息 = 状态
-        ? 世界树.状态().取状态主信息(const_cast<状态节点类*>(状态))
+        ? 世界树.取状态主信息(const_cast<状态节点类*>(状态))
         : nullptr;
     if (!主信息) {
         return {};
@@ -3919,7 +3919,7 @@ const 语素入口节点类* 私有_状态特征类型_任务管理(
     const 状态节点类* 状态) noexcept
 {
     const auto* 主信息 = 状态
-        ? 世界树.状态().取状态主信息(const_cast<状态节点类*>(状态))
+        ? 世界树.取状态主信息(const_cast<状态节点类*>(状态))
         : nullptr;
     if (!主信息) {
         return nullptr;

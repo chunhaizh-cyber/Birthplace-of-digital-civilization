@@ -443,7 +443,7 @@ namespace {
     const 状态节点主信息类* 状态主信息(const 状态节点类* 状态节点) noexcept
     {
         return 状态节点
-            ? 世界树.状态().取状态主信息(const_cast<状态节点类*>(状态节点))
+            ? 世界树.取状态主信息(const_cast<状态节点类*>(状态节点))
             : nullptr;
     }
 
