@@ -1110,14 +1110,8 @@ std::vector<动态节点类*> 动态类::枚举全部动态() const
 std::vector<动态节点类*> 动态类::获取场景动态(const 场景节点类* 场景) const
 {
     std::vector<动态节点类*> out;
-    const auto* 场景主信息 = 基础信息_ ? 基础信息_->取主信息<场景节点主信息类>(场景) : nullptr;
-    if (!场景主信息) return out;
-
-    std::vector<可解析引用<动态节点类>> 动态索引快照;
-    {
-        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
-        动态索引快照 = 场景主信息->动态索引;
-    }
+    场景类 场景服务(基础信息_);
+    const auto 动态索引快照 = 场景服务.读取场景动态索引快照(场景);
 
     for (const auto& 项 : 动态索引快照) {
         if (auto* 动态节点 = 私有_解析动态引用(基础信息_, 项)) {
