@@ -105,20 +105,6 @@ struct 结构_轮廓比较结果 {
     bool 可比较() const noexcept { return 状态 == 枚举_轮廓比较状态::可比较; }
 };
 
-struct 结构_三维体素二分层摘要 {
-    bool 有效 = false;
-    std::uint32_t 顶层边长 = 4;
-    std::uint32_t 细分层数 = 0;
-    std::uint64_t 最终边长 = 0;
-    std::uint32_t 原始宽度 = 0;
-    std::uint32_t 原始高度 = 0;
-    std::uint32_t 原始深度 = 0;
-    bool 来源为非立方体 = false;
-    std::uint64_t 最小体素边长_mm = 0;
-    std::uint64_t 节点数量 = 0;
-    std::uint64_t 占据体素数量 = 0;
-};
-
 enum class 枚举_三维体素链节点状态 : std::uint8_t {
     空 = 0,
     满 = 1,
@@ -146,7 +132,6 @@ struct 结构_三维体素链写入结果 {
     bool 成功 = false;
     VecU句柄 根句柄{};
     std::vector<VecU句柄> 叶子句柄{};
-    结构_三维体素二分层摘要 摘要{};
 };
 
 struct 结构_三维体素链查询结果 {
