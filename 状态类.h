@@ -11,15 +11,13 @@
 
 struct 结构_状态清理问题快照 {
     bool 需要自检报告 = false;
-    std::uintptr_t 场景指针 = 0;
-    std::string 场景主键{};
+    可解析引用<场景节点类> 场景{};
     std::size_t 活动状态数量 = 0;
     std::size_t 活动状态上限 = 0;
     std::size_t 目标清理数量 = 0;
     std::size_t 已清理数量 = 0;
     std::size_t 被引用状态数量 = 0;
     时间戳 记录时间 = 0;
-    std::string 摘要{};
 };
 
 class 状态类 {
