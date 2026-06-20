@@ -118,6 +118,11 @@ public:
         return mi ? &mi->值 : nullptr;
     }
 
+    // 功能：读取特征值节点中的 VecU 值，不创建或修改节点。
+    static const VecIU64* 取节点VecU只读指针(const 节点类* n) noexcept {
+        return n ? &n->主信息.值 : nullptr;
+    }
+
     // 功能：按条件查找目标对象、方法或事实。
     节点类* 查找_已加锁(const 特征值主信息类& mi) const {
         私有_确保缓存_已加锁();
