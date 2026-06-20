@@ -383,7 +383,7 @@ namespace {
             return 私有_二次特征种类文本(二次特征主信息->种类);
         }
 
-        if (const auto* 因果主信息 = 世界树.因果().取因果主信息(static_cast<const 因果节点类*>(节点))) {
+        if (const auto* 因果主信息 = 世界树.取因果主信息(static_cast<const 因果节点类*>(节点))) {
             const auto 名称 = 语素_安全获取词(因果主信息->名称);
             return 名称.empty() ? "因果模板" : 名称;
         }

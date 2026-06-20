@@ -200,11 +200,11 @@ std::string 语言类::获取基础信息名称(const 基础信息节点类* 节
         return 私有_二次特征种类文本(二次特征主信息->种类);
     }
 
-    if (const auto* 因果主信息 = 世界树.因果().取因果主信息(static_cast<const 因果节点类*>(节点))) {
+    if (const auto* 因果主信息 = 世界树.取因果主信息(static_cast<const 因果节点类*>(节点))) {
         const auto 名称 = 语素_安全获取词(因果主信息->名称);
         if (名称 == "因果信息") return 名称;
 
-        const auto 自然语言 = 世界树.因果().生成抽象因果自然语言(static_cast<const 因果模板节点类*>(节点));
+        const auto 自然语言 = 世界树.生成抽象因果自然语言(static_cast<const 因果模板节点类*>(节点));
         if (!自然语言.empty()) return 自然语言;
         if (!名称.empty()) return 名称;
         return "因果模板";
