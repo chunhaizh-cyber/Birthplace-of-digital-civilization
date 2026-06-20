@@ -6365,15 +6365,7 @@ export namespace 自我动作实现模块 {
     // 功能：按函数名执行对应处理。
     inline std::size_t 子节点数量(基础信息节点类* 集合) noexcept
     {
-        auto* 首子 = 集合 && 集合->子 ? static_cast<基础信息节点类*>(集合->子) : nullptr;
-        if (!首子) return 0;
-        std::size_t 数量 = 0;
-        auto* 当前 = 首子;
-        do {
-            ++数量;
-            当前 = static_cast<基础信息节点类*>(当前->下);
-        } while (当前 && 当前 != 首子);
-        return 数量;
+        return 世界树.获取子节点(集合).size();
     }
 
     // 功能：按函数名执行对应处理。
@@ -6411,11 +6403,8 @@ export namespace 自我动作实现模块 {
         const auto 数量 = 子节点数量(集合);
         if (数量 == 0) return nullptr;
         const auto 目标索引 = 离散集合扩展索引(数量, 已生成数量);
-        auto* 当前 = static_cast<基础信息节点类*>(集合->子);
-        for (std::size_t i = 0; 当前 && i < 目标索引; ++i) {
-            当前 = static_cast<基础信息节点类*>(当前->下);
-        }
-        return 当前;
+        const auto 子节点集 = 世界树.获取子节点(集合);
+        return 目标索引 < 子节点集.size() ? 子节点集[目标索引] : nullptr;
     }
 
     // 功能：从指定来源读取数据或状态。
