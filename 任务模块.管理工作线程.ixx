@@ -1518,7 +1518,7 @@ const 语素入口节点类* 私有_读取输出语素入口指针(
     }
 
     const auto* 场景 = reinterpret_cast<const 场景节点类*>(宿主);
-    const auto 状态集 = 世界树.状态().获取场景状态(场景);
+    const auto 状态集 = 世界树.获取场景状态(场景);
     for (auto it = 状态集.rbegin(); it != 状态集.rend(); ++it) {
         auto* 状态 = *it;
         const auto* 状态主信息 = 状态
