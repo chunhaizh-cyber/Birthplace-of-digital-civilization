@@ -3512,19 +3512,19 @@ std::vector<二次特征节点类*> 二次特征生成模块::刷新场景存在
     // 存在主信息中的位置字段仅作为观测缓存输入；本函数负责把空间关系沉淀为二次特征。
     for (std::size_t i = 0; i < 存在列表.size(); ++i) {
         auto* 左存在 = 存在列表[i];
-        const auto* 左主信息 = 世界树_->存在().取存在主信息(左存在);
-        if (!左主信息 || !左主信息->有位置历史) continue;
+        Vector3D 左位置_mm{};
+        if (!世界树_->存在().读取最近观测位置缓存(左存在, 左位置_mm)) continue;
 
         for (std::size_t j = i + 1; j < 存在列表.size(); ++j) {
             auto* 右存在 = 存在列表[j];
-            const auto* 右主信息 = 世界树_->存在().取存在主信息(右存在);
-            if (!右主信息 || !右主信息->有位置历史) continue;
+            Vector3D 右位置_mm{};
+            if (!世界树_->存在().读取最近观测位置缓存(右存在, 右位置_mm)) continue;
 
             auto* 左对象 = static_cast<基础信息节点类*>(左存在);
             auto* 右对象 = static_cast<基础信息节点类*>(右存在);
             私有_规范化左右对象(左对象, 右对象);
 
-            const auto 距离_mm = 私有_计算距离_mm(左主信息->最近观测位置_mm, 右主信息->最近观测位置_mm);
+            const auto 距离_mm = 私有_计算距离_mm(左位置_mm, 右位置_mm);
             const auto 接近余量 = 接近阈值_mm - 距离_mm;
             const auto 冲突余量 = 冲突阈值_mm - 距离_mm;
 

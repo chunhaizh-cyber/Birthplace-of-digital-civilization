@@ -15,6 +15,14 @@ public:
 
     存在节点主信息类* 取存在主信息(存在节点类* 节点) const noexcept;
     const 存在节点主信息类* 取存在主信息(const 存在节点类* 节点) const noexcept;
+    bool 是存在节点(const 基础信息节点类* 节点) const noexcept;
+    const 语素入口节点类* 读取存在名称(const 存在节点类* 节点) const noexcept;
+    const 语素入口节点类* 读取存在类型(const 存在节点类* 节点) const noexcept;
+    场景节点类* 读取内部世界(const 存在节点类* 节点) const noexcept;
+    std::vector<可解析引用<存在节点类>> 读取概念集快照(const 存在节点类* 节点) const;
+    可解析引用<存在节点类> 读取概念模板引用(const 存在节点类* 节点) const noexcept;
+    bool 读取最近观测位置缓存(const 存在节点类* 节点, Vector3D& 输出位置_mm) const noexcept;
+    bool 读取上次观测位置缓存(const 存在节点类* 节点, Vector3D& 输出位置_mm) const noexcept;
     bool 确保存在三类根节点(存在节点类* 节点) const noexcept;
     需求类::节点类* 获取需求根节点(存在节点类* 节点) const noexcept;
     const 需求类::节点类* 获取需求根节点(const 存在节点类* 节点) const noexcept;
