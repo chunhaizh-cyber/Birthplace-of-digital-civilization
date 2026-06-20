@@ -412,6 +412,11 @@ public:
     const 因果主信息类* 取因果主信息(const 因果节点类* 节点) const noexcept;
     bool 是因果节点(const 基础信息节点类* 节点) const noexcept;
     std::string 生成抽象因果自然语言(const 因果模板节点类* 模板) const;
+    std::vector<因果模板节点类*> 查找匹配因果模板(
+        枚举_因果锚点类型 锚点类型,
+        std::uint32_t 状态层级,
+        const std::vector<二次特征节点类*>& 条件候选,
+        const std::vector<二次特征节点类*>& 结果候选) const;
 
     bool 写入特征_I64(特征节点类* 节点, I64 值, 时间戳 now = 结构体_时间戳::当前_微秒());
     bool 写入特征值(特征节点类* 节点, const 特征值& 值, 时间戳 now = 结构体_时间戳::当前_微秒());
