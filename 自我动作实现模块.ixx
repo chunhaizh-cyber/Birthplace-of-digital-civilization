@@ -3987,7 +3987,7 @@ namespace {
         auto* 包宿主 = 参数包 ? reinterpret_cast<基础信息节点类*>(参数包) : nullptr;
 
         for (auto* 参数特征 : 世界树.获取子特征(reinterpret_cast<基础信息节点类*>(参数根))) {
-            const auto* 参数主信息 = 世界树.特征().取特征主信息(参数特征);
+            const auto* 参数主信息 = 世界树.取特征主信息(参数特征);
             const auto* 参数类型 = 参数主信息 ? 参数主信息->类型 : nullptr;
             if (!参数类型) return false;
 
@@ -4634,7 +4634,7 @@ namespace {
                 static_cast<const 抽象特征节点类*>(节点))) {
             return 抽象主信息->类型;
         }
-        if (const auto* 特征主信息 = 世界树.特征().取特征主信息(
+        if (const auto* 特征主信息 = 世界树.取特征主信息(
                 static_cast<const 特征节点类*>(节点))) {
             if (auto* 抽象特征 = 特征主信息->抽象特征.指针) {
                 if (const auto* 抽象主信息 = 世界树.特征().取抽象特征主信息(
@@ -4678,7 +4678,7 @@ namespace {
     // 功能：从指定来源读取数据或状态。
     inline std::optional<特征值> 读取特征当前值(特征节点类* 特征) noexcept
     {
-        const auto* 主信息 = 世界树.特征().取特征主信息(特征);
+        const auto* 主信息 = 世界树.取特征主信息(特征);
         if (!主信息 || !主信息->有当前值()) return std::nullopt;
         return 主信息->当前值;
     }
@@ -4691,7 +4691,7 @@ namespace {
             if (世界树.特征().取抽象特征主信息(static_cast<抽象特征节点类*>(节点))) {
                 项.抽象特征引用 = 节点;
             }
-            else if (const auto* 特征主信息 = 世界树.特征().取特征主信息(
+            else if (const auto* 特征主信息 = 世界树.取特征主信息(
                     static_cast<特征节点类*>(节点))) {
                 项.基础节点引用 = 节点;
                 if (特征主信息->抽象特征.指针) {
@@ -4759,7 +4759,7 @@ namespace {
         结构_条件项视图 项{};
         if (!条件项节点) return 项;
 
-        const auto* 主信息 = 世界树.特征().取特征主信息(条件项节点);
+        const auto* 主信息 = 世界树.取特征主信息(条件项节点);
         const auto* 默认类型 = 主信息 ? 主信息->类型 : nullptr;
         auto* 条件项宿主 = reinterpret_cast<基础信息节点类*>(条件项节点);
 
@@ -5348,7 +5348,7 @@ namespace {
             return true;
         }
 
-        const auto* 主信息 = 世界树.特征().取特征主信息(区间包);
+        const auto* 主信息 = 世界树.取特征主信息(区间包);
         if (主信息 && 主信息->区间.has_value() && 主信息->区间->有效()) {
             输出下界 = 主信息->区间->低值;
             输出上界 = 主信息->区间->高值;
@@ -5378,7 +5378,7 @@ namespace {
         时间戳 now) noexcept
     {
         if (!源特征 || !目标宿主 || !目标特征类型) return false;
-        const auto* 主信息 = 世界树.特征().取特征主信息(源特征);
+        const auto* 主信息 = 世界树.取特征主信息(源特征);
         if (!主信息 || !主信息->有当前值()) return false;
         if (const auto* 值 = std::get_if<I64>(&主信息->当前值)) {
             return 写入基础节点I64(目标宿主, 目标特征类型, *值, now);
@@ -6253,7 +6253,7 @@ export namespace 自我动作实现模块 {
         }
         auto* 源特征 = 查找子特征(输入包, 参数特征类型);
         const auto* 源主信息 = 源特征
-            ? 世界树.特征().取特征主信息(源特征)
+            ? 世界树.取特征主信息(源特征)
             : nullptr;
         if (!源主信息 || !源主信息->有当前值()) {
             return false;
@@ -6549,7 +6549,7 @@ export namespace 自我动作实现模块 {
         I64& 缺失参数数量) noexcept
     {
         if (!形参节点 || !实参表宿主) return false;
-        const auto* 形参主信息 = 世界树.特征().取特征主信息(
+        const auto* 形参主信息 = 世界树.取特征主信息(
             static_cast<特征节点类*>(形参节点));
         const auto* 参数特征类型 = 形参主信息 ? 形参主信息->类型 : nullptr;
         if (!参数特征类型) return false;
@@ -6653,7 +6653,7 @@ export namespace 自我动作实现模块 {
         if (!实参表宿主 || !参数特征类型) return false;
         auto* 候选参数 = 查找子特征(实参表宿主, 参数特征类型);
         const auto* 候选主信息 = 候选参数
-            ? 世界树.特征().取特征主信息(static_cast<特征节点类*>(候选参数))
+            ? 世界树.取特征主信息(static_cast<特征节点类*>(候选参数))
             : nullptr;
         return 候选主信息 && 候选主信息->有当前值();
     }
@@ -6670,7 +6670,7 @@ export namespace 自我动作实现模块 {
         if (!形参表 || !实参表宿主) return;
 
         for (auto* 当前 : 世界树.获取子节点(形参表)) {
-            const auto* 形参主信息 = 世界树.特征().取特征主信息(
+            const auto* 形参主信息 = 世界树.取特征主信息(
                 static_cast<特征节点类*>(当前));
             const auto* 参数特征类型 = 形参主信息 ? 形参主信息->类型 : nullptr;
             const bool 已绑定 = 候选实参已具备值(实参表宿主, 参数特征类型);
@@ -6725,12 +6725,12 @@ export namespace 自我动作实现模块 {
 
         I64 序号 = 0;
         for (auto* 当前 : 形参节点集) {
-            const auto* 形参主信息 = 世界树.特征().取特征主信息(
+            const auto* 形参主信息 = 世界树.取特征主信息(
                 static_cast<特征节点类*>(当前));
             const auto* 参数特征类型 = 形参主信息 ? 形参主信息->类型 : nullptr;
             auto* 候选参数 = 查找子特征(实参表宿主, 参数特征类型);
             const auto* 候选主信息 = 候选参数
-                ? 世界树.特征().取特征主信息(static_cast<特征节点类*>(候选参数))
+                ? 世界树.取特征主信息(static_cast<特征节点类*>(候选参数))
                 : nullptr;
             void* 形参值类型 = nullptr;
             void* 形参来源 = nullptr;
@@ -6769,7 +6769,7 @@ export namespace 自我动作实现模块 {
         if (候选实参节点集.empty()) return false;
         bool 已复制 = false;
         for (auto* 当前 : 候选实参节点集) {
-            const auto* 主信息 = 世界树.特征().取特征主信息(
+            const auto* 主信息 = 世界树.取特征主信息(
                 static_cast<特征节点类*>(当前));
             if (主信息 && 主信息->类型 && 查找子特征(当前, 特征_参数值类型())) {
                 已复制 = 复制特征当前标量到宿主(
@@ -6851,7 +6851,7 @@ export namespace 自我动作实现模块 {
         时间戳 now) noexcept
     {
         if (!条件实参 || !实参表宿主) return false;
-        const auto* 主信息 = 世界树.特征().取特征主信息(条件实参);
+        const auto* 主信息 = 世界树.取特征主信息(条件实参);
         const auto* 参数特征类型 = 主信息 ? 主信息->类型 : nullptr;
         if (!参数特征类型 || !主信息->有当前值()) return false;
 
@@ -6893,7 +6893,7 @@ export namespace 自我动作实现模块 {
         I64 复制数量 = 0;
         for (auto* 当前 : 源包子节点集) {
             if (当前
-                && 世界树.特征().取特征主信息(static_cast<特征节点类*>(当前))
+                && 世界树.取特征主信息(static_cast<特征节点类*>(当前))
                 && 复制条件实参特征到候选实参(
                     目标方法宿主,
                     static_cast<特征节点类*>(当前),

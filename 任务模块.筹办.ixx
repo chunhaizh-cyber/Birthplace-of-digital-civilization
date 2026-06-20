@@ -4032,7 +4032,7 @@ namespace {
     // 功能：推进任务筹办，形成候选、缺口或就绪回执。
     const 语素入口节点类* 特征节点类型_筹办(const 特征节点类* 特征) noexcept
     {
-        const auto* 主信息 = 世界树.特征().取特征主信息(特征);
+        const auto* 主信息 = 世界树.取特征主信息(特征);
         return 主信息 ? 主信息->类型 : nullptr;
     }
 

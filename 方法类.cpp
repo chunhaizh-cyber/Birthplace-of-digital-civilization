@@ -524,7 +524,7 @@ namespace {
     {
         const auto* 状态主信息 = 世界树.取状态主信息(状态);
         auto* 特征节点 = 状态主信息 ? 私有_解析特征引用(状态主信息->状态特征) : nullptr;
-        const auto* 特征主信息 = 特征节点 ? 世界树.特征().取特征主信息(特征节点) : nullptr;
+        const auto* 特征主信息 = 特征节点 ? 世界树.取特征主信息(特征节点) : nullptr;
         return 特征主信息 ? 特征主信息->类型 : nullptr;
     }
 

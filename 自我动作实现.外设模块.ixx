@@ -8733,7 +8733,7 @@ namespace {
         auto* 包宿主 = 参数包 ? reinterpret_cast<基础信息节点类*>(参数包) : nullptr;
 
         for (auto* 参数特征 : 世界树.获取子特征(reinterpret_cast<基础信息节点类*>(参数根))) {
-            const auto* 参数主信息 = 世界树.特征().取特征主信息(参数特征);
+            const auto* 参数主信息 = 世界树.取特征主信息(参数特征);
             const auto* 参数类型 = 参数主信息 ? 参数主信息->类型 : nullptr;
             if (!参数类型) return false;
 
@@ -14149,7 +14149,7 @@ namespace {
         if (!目标节点 || !目标特征类型) return 快照;
 
         auto* 特征节点 = 世界树.查找子特征_按类型(目标节点, 目标特征类型);
-        const auto* 主信息 = 世界树.特征().取特征主信息(特征节点);
+        const auto* 主信息 = 世界树.取特征主信息(特征节点);
         if (!主信息 || !主信息->有当前值()) return 快照;
 
         if (const auto* 值 = std::get_if<I64>(&主信息->当前值)) {
