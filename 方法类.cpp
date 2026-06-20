@@ -999,7 +999,6 @@ namespace {
             reinterpret_cast<基础信息节点类*>(方法虚拟存在),
             状态特征,
             初始值,
-            枚举_存在状态事件::创建,
             false,
             now);
     }
