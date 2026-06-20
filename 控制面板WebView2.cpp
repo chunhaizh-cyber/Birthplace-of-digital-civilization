@@ -1550,6 +1550,10 @@ namespace {
                                             }
                                             if (私有_解析展开消息(消息, &请求号, &展开类型, &节点指针, &附加参数)) {
                                                 auto* 上下文 = 私有_取窗口上下文(窗口);
+                                                if (上下文 && 上下文->用途 == 枚举_WebView2窗口用途::控制面板) {
+                                                    私有_记录WebView2诊断("SQL控制面板拒绝live展开消息", 45);
+                                                    return S_OK;
+                                                }
                                                 if (上下文 && 上下文->WebView) {
                                                     const auto 子项JSON = 读取控制面板节点子项JSON(展开类型, 节点指针, 16, 附加参数);
                                                     const auto 宽子项JSON = 私有_UTF8转宽字串(子项JSON);
@@ -1566,6 +1570,10 @@ namespace {
 
                                             if (私有_解析详情消息(消息, &请求号, &展开类型, &节点指针)) {
                                                 auto* 上下文 = 私有_取窗口上下文(窗口);
+                                                if (上下文 && 上下文->用途 == 枚举_WebView2窗口用途::控制面板) {
+                                                    私有_记录WebView2诊断("SQL控制面板拒绝live详情消息", 46);
+                                                    return S_OK;
+                                                }
                                                 if (上下文 && 上下文->WebView) {
                                                     const auto 详情JSON = 读取控制面板节点详情JSON(展开类型, 节点指针, 16);
                                                     const auto 宽详情JSON = 私有_UTF8转宽字串(详情JSON);
