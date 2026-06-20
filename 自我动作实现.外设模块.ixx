@@ -12133,7 +12133,7 @@ namespace {
         候选列表.clear();
         if (!宿主) return false;
         for (auto* 子存在 : 世界树.获取子存在(宿主)) {
-            const auto* 主信息 = 世界树.存在().取存在主信息(子存在);
+            const auto* 主信息 = 世界树.取存在主信息(子存在);
             if (!主信息 || 主信息->类型 != 类型_空间候选观察事实()) {
                 continue;
             }
@@ -12239,7 +12239,7 @@ namespace {
         区域列表.clear();
         if (!宿主) return false;
         for (auto* 子存在 : 世界树.获取子存在(宿主)) {
-            const auto* 主信息 = 世界树.存在().取存在主信息(子存在);
+            const auto* 主信息 = 世界树.取存在主信息(子存在);
             if (!主信息 || 主信息->类型 != 类型_观察诊断区域()) {
                 continue;
             }
@@ -13589,7 +13589,7 @@ namespace {
     // 功能：按函数名执行对应处理。
     inline bool 存在类型是(存在节点类* 节点, const 语素入口节点类* 类型) noexcept
     {
-        const auto* 主信息 = 世界树.存在().取存在主信息(节点);
+        const auto* 主信息 = 世界树.取存在主信息(节点);
         return 主信息 && 主信息->类型 == 类型;
     }
 
@@ -17687,7 +17687,7 @@ export namespace 自我动作实现模块::外设模块 {
         if (读取输入参数指针(输入参数场景, 特征_目标外设(), 指针)) {
             auto* 候选节点 = reinterpret_cast<基础信息节点类*>(指针);
             if (基础节点属于当前世界树(候选节点)
-                && 世界树.存在().取存在主信息(reinterpret_cast<存在节点类*>(候选节点))) {
+                && 世界树.取存在主信息(reinterpret_cast<存在节点类*>(候选节点))) {
                 return reinterpret_cast<存在节点类*>(候选节点);
             }
             记录无效基础节点引用(

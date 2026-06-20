@@ -1675,7 +1675,7 @@ namespace {
             if (++已扫描 > 1024) {
                 break;
             }
-            const auto* 主信息 = 世界树.存在().取存在主信息(子存在);
+            const auto* 主信息 = 世界树.取存在主信息(子存在);
             if (!主信息 || 主信息->类型 != 区域类型) {
                 continue;
             }
@@ -1793,7 +1793,7 @@ namespace {
         项.节点指针 = 私有_地址(节点);
         项.来源范围 = 来源范围;
         项.标题 = 私有_对象摘要(节点);
-        if (const auto* 存在主信息 = 世界树.存在().取存在主信息(reinterpret_cast<const 存在节点类*>(节点))) {
+        if (const auto* 存在主信息 = 世界树.取存在主信息(reinterpret_cast<const 存在节点类*>(节点))) {
             项.类型 = 存在主信息->类型 ? 存在主信息->类型->获取主键() : std::string("存在");
         } else {
             项.类型 = "存在";
@@ -3047,7 +3047,7 @@ namespace {
         const auto 目标键 = 私有_OR组令牌记录键_控制面板(OR组);
         for (auto* 子存在 : 世界树.获取子存在(
                  reinterpret_cast<基础信息节点类*>(自我存在))) {
-            const auto* 主信息 = 世界树.存在().取存在主信息(子存在);
+            const auto* 主信息 = 世界树.取存在主信息(子存在);
             if (!主信息 || !语素入口同一(主信息->类型, 记录类型)) {
                 continue;
             }
