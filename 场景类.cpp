@@ -30,8 +30,8 @@ namespace {
         return false;
     }
 
-    template<class T主信息>
-    std::vector<基础信息节点类*> 私有_直接基础信息子节点_按类型(
+    // 功能：服务所在模块的内部辅助流程。
+    std::vector<基础信息节点类*> 私有_直接基础信息子节点(
         const 基础信息类& 基础信息,
         const 基础信息节点类* 父节点)
     {
@@ -43,9 +43,7 @@ namespace {
         auto* 首节点 = static_cast<基础信息节点类*>(父->子);
         auto* 当前 = 首节点;
         do {
-            if (dynamic_cast<T主信息*>(当前->主信息)) {
-                结果.push_back(当前);
-            }
+            结果.push_back(当前);
             当前 = static_cast<基础信息节点类*>(当前->下);
         } while (当前 && 当前 != 首节点);
         return 结果;
@@ -164,8 +162,10 @@ std::vector<场景节点类*> 场景类::获取子场景(const 基础信息节�
     std::vector<场景节点类*> out;
     if (!基础信息_) return out;
 
-    for (auto* 节点 : 私有_直接基础信息子节点_按类型<场景节点主信息类>(*基础信息_, 父节点)) {
-        out.push_back(static_cast<场景节点类*>(节点));
+    for (auto* 节点 : 私有_直接基础信息子节点(*基础信息_, 父节点)) {
+        if (基础信息_->取主信息<场景节点主信息类>(节点)) {
+            out.push_back(static_cast<场景节点类*>(节点));
+        }
     }
     return out;
 }
@@ -176,8 +176,10 @@ std::vector<存在节点类*> 场景类::获取子存在(const 基础信息节�
     std::vector<存在节点类*> out;
     if (!基础信息_) return out;
 
-    for (auto* 节点 : 私有_直接基础信息子节点_按类型<存在节点主信息类>(*基础信息_, 父节点)) {
-        out.push_back(static_cast<存在节点类*>(节点));
+    for (auto* 节点 : 私有_直接基础信息子节点(*基础信息_, 父节点)) {
+        if (基础信息_->取主信息<存在节点主信息类>(节点)) {
+            out.push_back(static_cast<存在节点类*>(节点));
+        }
     }
     return out;
 }
@@ -188,8 +190,10 @@ std::vector<特征节点类*> 场景类::获取子特征(const 基础信息节�
     std::vector<特征节点类*> out;
     if (!基础信息_) return out;
 
-    for (auto* 节点 : 私有_直接基础信息子节点_按类型<特征节点主信息类>(*基础信息_, 父节点)) {
-        out.push_back(static_cast<特征节点类*>(节点));
+    for (auto* 节点 : 私有_直接基础信息子节点(*基础信息_, 父节点)) {
+        if (基础信息_->取主信息<特征节点主信息类>(节点)) {
+            out.push_back(static_cast<特征节点类*>(节点));
+        }
     }
     return out;
 }
