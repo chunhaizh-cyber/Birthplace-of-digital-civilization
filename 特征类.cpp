@@ -4124,10 +4124,9 @@ bool 特征类::校验坐标类VecI64_按特征类型(const 语素入口节点�
     std::unordered_map<const 语素入口节点类*, const 特征节点类*> 左表{};
     std::unordered_map<const 语素入口节点类*, const 特征节点类*> 右表{};
 
-    const auto 构建索引 = [](const 特征集合& 集合, auto& 输出表) {
+    const auto 构建索引 = [this](const 特征集合& 集合, auto& 输出表) {
         for (const auto* 节点 : 集合) {
-            if (!节点 || !节点->主信息) continue;
-            const auto* 主信息 = dynamic_cast<const 特征节点主信息类*>(节点->主信息);
+            const auto* 主信息 = 取特征主信息(节点);
             if (!主信息 || !主信息->类型 || 输出表.contains(主信息->类型)) continue;
             输出表.emplace(主信息->类型, 节点);
         }
