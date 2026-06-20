@@ -394,7 +394,7 @@ namespace {
             return nullptr;
         }
 
-        auto* 动态 = 世界树.动态().创建动态(
+        auto* 动态 = 世界树.创建动态(
             场景,
             旧状态节点,
             新状态节点,
