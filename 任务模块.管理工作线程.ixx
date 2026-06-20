@@ -1513,7 +1513,7 @@ const 语素入口节点类* 私有_读取输出语素入口指针(
         return reinterpret_cast<状态节点类*>(指针);
     }
 
-    if (!世界树.场景().是场景节点(宿主)) {
+    if (!世界树.是场景节点(宿主)) {
         return nullptr;
     }
 

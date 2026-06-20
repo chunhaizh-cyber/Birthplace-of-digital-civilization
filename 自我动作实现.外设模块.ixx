@@ -13632,7 +13632,7 @@ namespace {
     {
         auto* 当前 = 世界树.获取父节点(节点);
         while (当前) {
-            if (世界树.场景().是场景节点(当前)) {
+            if (世界树.是场景节点(当前)) {
                 return reinterpret_cast<场景节点类*>(当前);
             }
             当前 = 世界树.获取父节点(当前);
@@ -13644,7 +13644,7 @@ namespace {
     inline 存在节点类* 查找首个已确认观察存在(基础信息节点类* 宿主) noexcept
     {
         if (!宿主) return nullptr;
-        if (世界树.存在().是存在节点(宿主)
+        if (世界树.是存在节点(宿主)
             && 已确认观察存在节点(reinterpret_cast<存在节点类*>(宿主))) {
             return reinterpret_cast<存在节点类*>(宿主);
         }
@@ -13673,7 +13673,7 @@ namespace {
         std::vector<存在节点类*>& 结果) noexcept
     {
         if (!宿主) return;
-        if (世界树.存在().是存在节点(宿主)) {
+        if (世界树.是存在节点(宿主)) {
             追加已确认观察存在(结果, reinterpret_cast<存在节点类*>(宿主));
         }
         for (auto* 子存在 : 世界树.获取子存在(宿主)) {

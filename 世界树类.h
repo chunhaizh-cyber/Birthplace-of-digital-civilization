@@ -164,6 +164,8 @@ public:
         const 特征节点主信息类* 右特征主信息 = nullptr) const;
     存在节点主信息类* 取存在主信息(存在节点类* 节点) const noexcept;
     const 存在节点主信息类* 取存在主信息(const 存在节点类* 节点) const noexcept;
+    bool 是存在节点(const 基础信息节点类* 节点) const noexcept;
+    bool 是场景节点(const 基础信息节点类* 节点) const noexcept;
     存在节点类* 创建存在(基础信息节点类* 父节点, 存在节点主信息类* 主信息);
     存在节点类* 取或创建子存在_按名称类型(
         基础信息节点类* 父节点,
