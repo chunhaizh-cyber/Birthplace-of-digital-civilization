@@ -1234,7 +1234,7 @@ bool 任务类::记录任务虚拟存在特征(
             now);
     }
     if (const auto* Vec句柄 = std::get_if<VecU句柄>(&值)) {
-        const auto* Vec值 = 世界树.值池().取VecU只读指针(*Vec句柄);
+        const auto* Vec值 = 世界树.取VecU只读指针(*Vec句柄);
         return Vec值
             ? 世界树.写入特征_VecU(任务虚拟存在, 特征类型, *Vec值, 枚举_轮廓维度::未定义, now)
             : false;

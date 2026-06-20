@@ -35,6 +35,7 @@ public:
     const 基础信息类& 基础信息() const noexcept;
     特征值类& 值池() noexcept;
     const 特征值类& 值池() const noexcept;
+    const VecIU64* 取VecU只读指针(VecU句柄 句柄) const noexcept;
     特征类& 特征() noexcept;
     const 特征类& 特征() const noexcept;
     存在类& 存在() noexcept;
@@ -258,7 +259,6 @@ public:
         const std::vector<结构_三维体素轮廓图视角>& 局部视角集合,
         const 结构_三维体素轮廓融合参数& 局部融合参数,
         const 结构_场景三维体素轮廓查找参数& 参数,
-        const 特征值类& 值池,
         const 存在节点类* 存在概念根) const;
     二次特征节点类* 创建二次特征(基础信息节点类* 父节点, 二次特征主信息类* 主信息);
     std::vector<二次特征节点类*> 获取子二次特征(const 基础信息节点类* 父节点) const;
