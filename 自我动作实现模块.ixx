@@ -3986,7 +3986,7 @@ namespace {
         auto* 参数包 = 输入包根(输入参数场景, 特征_任务参数包());
         auto* 包宿主 = 参数包 ? reinterpret_cast<基础信息节点类*>(参数包) : nullptr;
 
-        for (auto* 参数特征 : 世界树.特征().获取子特征(reinterpret_cast<基础信息节点类*>(参数根))) {
+        for (auto* 参数特征 : 世界树.获取子特征(reinterpret_cast<基础信息节点类*>(参数根))) {
             const auto* 参数主信息 = 世界树.特征().取特征主信息(参数特征);
             const auto* 参数类型 = 参数主信息 ? 参数主信息->类型 : nullptr;
             if (!参数类型) return false;
@@ -4824,7 +4824,7 @@ namespace {
     {
         std::vector<结构_条件项视图> 列表{};
         if (!条件包) return 列表;
-        for (auto* 子特征 : 世界树.特征().获取子特征(条件包)) {
+        for (auto* 子特征 : 世界树.获取子特征(条件包)) {
             auto 项 = 解析条件项视图(子特征);
             if (项.条件特征类型) {
                 列表.push_back(项);

@@ -8732,7 +8732,7 @@ namespace {
         auto* 参数包 = 输入包根(输入参数场景, 特征_任务参数包());
         auto* 包宿主 = 参数包 ? reinterpret_cast<基础信息节点类*>(参数包) : nullptr;
 
-        for (auto* 参数特征 : 世界树.特征().获取子特征(reinterpret_cast<基础信息节点类*>(参数根))) {
+        for (auto* 参数特征 : 世界树.获取子特征(reinterpret_cast<基础信息节点类*>(参数根))) {
             const auto* 参数主信息 = 世界树.特征().取特征主信息(参数特征);
             const auto* 参数类型 = 参数主信息 ? 参数主信息->类型 : nullptr;
             if (!参数类型) return false;

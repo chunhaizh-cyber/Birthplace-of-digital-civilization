@@ -4187,7 +4187,7 @@ namespace {
             return true;
         }
 
-        for (auto* 形参节点 : 世界树.特征().获取子特征(
+        for (auto* 形参节点 : 世界树.获取子特征(
                  reinterpret_cast<基础信息节点类*>(形参表))) {
             if (!形参节点 || !形参节点是必需_筹办(形参节点)) {
                 continue;
@@ -4246,7 +4246,7 @@ namespace {
             return true;
         }
 
-        for (auto* 形参节点 : 世界树.特征().获取子特征(
+        for (auto* 形参节点 : 世界树.获取子特征(
                  reinterpret_cast<基础信息节点类*>(形参表))) {
             if (!形参节点 || !形参节点是必需_筹办(形参节点)) {
                 continue;
@@ -4788,7 +4788,7 @@ namespace {
         I64 通用派生指针数量 = 0;
         I64 暂无来源数量 = 0;
         if (auto* 形参表 = 方法形参表_筹办(上下文.当前方法, 上下文.now)) {
-            for (auto* 形参节点 : 世界树.特征().获取子特征(
+            for (auto* 形参节点 : 世界树.获取子特征(
                      reinterpret_cast<基础信息节点类*>(形参表))) {
                 if (!形参节点) {
                     continue;

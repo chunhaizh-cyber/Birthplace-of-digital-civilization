@@ -1725,7 +1725,7 @@ export namespace 自我动作实现模块::服务模块 {
         }
 
         ++结果.已扫描声明根数;
-        for (auto* 声明字段 : 世界树.特征().获取子特征(reinterpret_cast<基础信息节点类*>(声明根))) {
+        for (auto* 声明字段 : 世界树.获取子特征(reinterpret_cast<基础信息节点类*>(声明根))) {
             const auto* 字段类型 = 读取声明字段类型(声明字段);
             if (!字段类型) {
                 continue;
