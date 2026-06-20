@@ -958,19 +958,6 @@ const 语素入口节点类* 私有_任务语义特征词(const char* 名称) no
     return 名称 ? 语素集.添加信息入口词(名称, 枚举_信息入口类型::特征模板入口) : nullptr;
 }
 
-bool 私有_语素入口相同_任务管理(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept
-{
-    if (左 == 右) {
-        return 左 != nullptr;
-    }
-    if (!左 || !右) {
-        return false;
-    }
-    const auto 左主键 = 左->获取主键();
-    const auto 右主键 = 右->获取主键();
-    return !左主键.empty() && 左主键 == 右主键;
-}
-
 enum class 枚举_外设观察需求口径_任务管理 : std::uint8_t {
     未映射 = 0,
     识别 = 1,
@@ -997,9 +984,8 @@ bool 私有_目标特征类型等于任务特征_任务管理(
     const 语素入口节点类* 目标特征类型,
     const char* 特征名) noexcept
 {
-    return 私有_语素入口相同_任务管理(
-        目标特征类型,
-        私有_任务语义特征词(特征名));
+    const auto* 任务特征类型 = 私有_任务语义特征词(特征名);
+    return 目标特征类型 && 任务特征类型 && 语素入口同一(目标特征类型, 任务特征类型);
 }
 
 I64 私有_方法自我能力值(const 方法类::节点类* 方法) noexcept;
