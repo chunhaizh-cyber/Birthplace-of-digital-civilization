@@ -275,6 +275,16 @@ bool 存在类::是存在节点(const 基础信息节点类* 节点) const noexc
     return 节点 && 基础信息_ && 基础信息_->取主信息<存在节点主信息类>(节点);
 }
 
+// 功能：按主键查找并解析存在节点，不创建或修改节点。
+存在节点类* 存在类::按主键解析存在节点(const std::string& 主键) const noexcept
+{
+    if (!基础信息_ || 主键.empty()) {
+        return nullptr;
+    }
+    auto* 节点 = 基础信息_->查找主键(主键);
+    return 是存在节点(节点) ? static_cast<存在节点类*>(节点) : nullptr;
+}
+
 // 功能：判断存在节点是否位于存在概念根子树内，不创建或修改节点。
 bool 存在类::是存在概念(const 存在节点类* 节点, const 存在节点类* 存在概念根) const noexcept
 {
