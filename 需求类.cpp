@@ -629,27 +629,6 @@ namespace {
         return 特征节点 ? 世界树.取特征主信息(特征节点) : nullptr;
     }
 
-    template<class T主信息>
-    std::vector<基础信息节点类*> 私有_直接基础信息子节点_按类型(
-        const 基础信息类& 基础信息,
-        const 基础信息节点类* 父节点)
-    {
-        std::vector<基础信息节点类*> 结果{};
-        auto lk = 基础信息.获取读锁();
-        auto* 父 = 父节点 ? const_cast<基础信息节点类*>(父节点) : 基础信息.世界根();
-        if (!父 || !父->子) return 结果;
-
-        auto* 首节点 = static_cast<基础信息节点类*>(父->子);
-        auto* 当前 = 首节点;
-        do {
-            if (dynamic_cast<T主信息*>(当前->主信息)) {
-                结果.push_back(当前);
-            }
-            当前 = static_cast<基础信息节点类*>(当前->下);
-        } while (当前 && 当前 != 首节点);
-        return 结果;
-    }
-
     // 功能：服务所在模块的内部辅助流程。
     bool 私有_语素入口主键相等(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept
     {
@@ -713,7 +692,7 @@ namespace {
         if (!状态节点) {
             return nullptr;
         }
-        return dynamic_cast<场景节点类*>(状态节点->父);
+        return dynamic_cast<场景节点类*>(世界树.获取父节点(状态节点));
     }
 
     // 功能：解析输入文本、消息、场景或运行包。
