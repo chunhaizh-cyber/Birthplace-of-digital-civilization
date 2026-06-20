@@ -3016,17 +3016,12 @@ bool 私有_特征节点语义相同_线程侧(
     if (!输出结果场景 || !输出结果场景->主信息 || !目标特征类型) {
         return nullptr;
     }
-    const auto* 场景主信息 = dynamic_cast<const 场景节点主信息类*>(输出结果场景->主信息);
-    if (!场景主信息) {
+    const auto 状态索引快照 = 世界树.场景().读取场景状态索引快照(输出结果场景);
+    if (状态索引快照.empty()) {
         return nullptr;
     }
     状态节点类* 命中状态 = nullptr;
     时间戳 命中排序时间 = 0;
-    std::vector<可解析引用<状态节点类>> 状态索引快照;
-    {
-        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
-        状态索引快照 = 场景主信息->状态索引;
-    }
     for (const auto& 状态引用 : 状态索引快照) {
         auto* 状态 = 状态引用.指针;
         if (!状态 && !状态引用.主键.empty()) {
