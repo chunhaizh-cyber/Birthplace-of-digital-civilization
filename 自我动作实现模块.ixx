@@ -4592,10 +4592,7 @@ namespace {
         if (!指针) return nullptr;
         auto* 候选 = const_cast<基础信息节点类*>(
             reinterpret_cast<const 基础信息节点类*>(指针));
-        for (auto* 节点 : 世界树.基础信息().枚举全部节点()) {
-            if (节点 == 候选) return 节点;
-        }
-        return nullptr;
+        return 世界树.基础节点属于当前世界树(候选) ? 候选 : nullptr;
     }
 
     // 功能：按条件查找目标对象、方法或事实。

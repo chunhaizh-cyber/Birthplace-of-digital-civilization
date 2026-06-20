@@ -70,6 +70,8 @@ public:
     // 功能：读取世界树节点的父节点，不创建或修改节点。
     基础信息节点类* 获取父节点(const 基础信息节点类* 节点) const noexcept;
     std::vector<基础信息节点类*> 获取子节点(const 基础信息节点类* 父节点) const;
+    std::size_t 统计全部节点() const;
+    bool 基础节点属于当前世界树(const 基础信息节点类* 节点) const;
     // 功能：按主信息类型枚举世界树节点，不创建或修改节点。
     template<class T主信息>
     std::vector<基础信息节点类*> 枚举节点_按主信息类型() const

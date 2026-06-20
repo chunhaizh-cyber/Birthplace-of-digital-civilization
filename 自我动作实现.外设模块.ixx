@@ -11739,13 +11739,7 @@ namespace {
         if (!节点) return false;
         const auto* 根节点 = 世界树.世界根();
         if (节点 == 根节点) return true;
-        const auto 全部节点 = 世界树.基础信息().枚举全部节点();
-        for (const auto* 当前 : 全部节点) {
-            if (当前 == 节点) {
-                return true;
-            }
-        }
-        return false;
+        return 世界树.基础节点属于当前世界树(节点);
     }
 
     // 功能：按函数名执行对应处理。

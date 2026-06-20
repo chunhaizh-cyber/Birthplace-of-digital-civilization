@@ -1264,6 +1264,25 @@ std::vector<基础信息节点类*> 世界树类::获取子节点(const 基础�
     return 私有_直接基础信息子节点(基础信息链_, 父节点);
 }
 
+// 功能：统计当前世界树基础信息节点总数，不返回节点集合。
+std::size_t 世界树类::统计全部节点() const
+{
+    return 基础信息链_.枚举全部节点().size();
+}
+
+// 功能：判断基础信息节点指针是否属于当前世界树。
+bool 世界树类::基础节点属于当前世界树(const 基础信息节点类* 节点) const
+{
+    if (!节点) return false;
+    if (节点 == 世界根()) return true;
+    for (const auto* 当前 : 基础信息链_.枚举全部节点()) {
+        if (当前 == 节点) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // 功能：读取并返回指定对象、状态或运行材料。
 std::string 世界树类::获取名称(const 基础信息节点类* 节点) const
 {
