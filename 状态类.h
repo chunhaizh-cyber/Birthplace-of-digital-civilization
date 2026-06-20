@@ -152,7 +152,6 @@ public:
 
 private:
     static 时间戳 私有_取状态排序时间(const 状态节点主信息类& 主信息) noexcept;
-    void 私有_按时间追加状态索引(场景节点主信息类* 场景主信息, 状态节点类* 节点) const;
 
 private:
     基础信息类* 基础信息_ = nullptr;
