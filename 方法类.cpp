@@ -473,7 +473,7 @@ namespace {
         if (引用.主键.empty()) {
             return nullptr;
         }
-        return dynamic_cast<二次特征节点类*>(世界树.基础信息().查找主键(引用.主键));
+        return 世界树.二次特征().按主键解析二次特征节点(引用.主键);
     }
 
     // 功能：解析输入文本、消息、场景或运行包。
@@ -485,7 +485,7 @@ namespace {
         if (引用.主键.empty()) {
             return nullptr;
         }
-        return dynamic_cast<特征节点类*>(世界树.基础信息().查找主键(引用.主键));
+        return 世界树.特征().按主键解析特征节点(引用.主键);
     }
 
     // 功能：解析输入文本、消息、场景或运行包。
@@ -497,7 +497,7 @@ namespace {
         if (引用.主键.empty()) {
             return nullptr;
         }
-        return dynamic_cast<状态节点类*>(世界树.基础信息().查找主键(引用.主键));
+        return 世界树.状态().按主键解析状态节点(引用.主键);
     }
 
     // 功能：解析输入文本、消息、场景或运行包。
@@ -510,7 +510,7 @@ namespace {
         if (引用.主键.empty()) {
             return nullptr;
         }
-        return 世界树.基础信息().查找主键(引用.主键);
+        return 世界树.按主键解析节点(引用.主键);
     }
 
     // 功能：服务所在模块的内部辅助流程。

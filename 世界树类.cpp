@@ -1210,6 +1210,12 @@ const 因果类& 世界树类::因果() const noexcept { return 因果服务_; }
     return 基础信息链_.世界根();
 }
 
+// 功能：按主键解析基础信息世界树节点，不创建或修改节点。
+基础信息节点类* 世界树类::按主键解析节点(const std::string& 主键) const noexcept
+{
+    return 主键.empty() ? nullptr : 基础信息链_.查找主键(主键);
+}
+
 // 功能：读取并返回指定对象、状态或运行材料。
 std::vector<基础信息节点类*> 世界树类::获取子节点(const 基础信息节点类* 父节点) const
 {

@@ -53,6 +53,8 @@ public:
     const 因果类& 因果() const noexcept;
 
     基础信息节点类* 世界根() const noexcept;
+    // 功能：按主键解析基础信息世界树节点，不创建或修改节点。
+    基础信息节点类* 按主键解析节点(const std::string& 主键) const noexcept;
     std::vector<基础信息节点类*> 获取子节点(const 基础信息节点类* 父节点) const;
     std::string 获取名称(const 基础信息节点类* 节点) const;
     // 功能：把当前世界树本体重写到 SQL Server 查询投影。
