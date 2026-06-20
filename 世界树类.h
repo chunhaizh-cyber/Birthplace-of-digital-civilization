@@ -410,6 +410,8 @@ public:
         bool 设为主结果 = true);
     因果主信息类* 取因果主信息(因果节点类* 节点) const noexcept;
     const 因果主信息类* 取因果主信息(const 因果节点类* 节点) const noexcept;
+    因果节点类* 按主键解析因果节点(const std::string& 主键) noexcept;
+    const 因果节点类* 按主键解析因果节点(const std::string& 主键) const noexcept;
     bool 是因果节点(const 基础信息节点类* 节点) const noexcept;
     std::string 生成抽象因果自然语言(const 因果模板节点类* 模板) const;
     std::vector<因果模板节点类*> 查找匹配因果模板(
@@ -417,6 +419,12 @@ public:
         std::uint32_t 状态层级,
         const std::vector<二次特征节点类*>& 条件候选,
         const std::vector<二次特征节点类*>& 结果候选) const;
+    void 查询因果动作来源(
+        const 因果节点类* 因果,
+        方法节点类*& 因方法,
+        bool& 有方法模板,
+        bool& 有动作语义,
+        std::string& 动作语义键) const;
 
     bool 写入特征_I64(特征节点类* 节点, I64 值, 时间戳 now = 结构体_时间戳::当前_微秒());
     bool 写入特征值(特征节点类* 节点, const 特征值& 值, 时间戳 now = 结构体_时间戳::当前_微秒());
