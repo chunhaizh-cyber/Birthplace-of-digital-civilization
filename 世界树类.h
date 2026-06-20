@@ -410,6 +410,8 @@ public:
         bool 设为主结果 = true);
     因果主信息类* 取因果主信息(因果节点类* 节点) const noexcept;
     const 因果主信息类* 取因果主信息(const 因果节点类* 节点) const noexcept;
+    因果模板主信息类* 取因果模板主信息(因果模板节点类* 节点) const noexcept;
+    const 因果模板主信息类* 取因果模板主信息(const 因果模板节点类* 节点) const noexcept;
     因果节点类* 按主键解析因果节点(const std::string& 主键) noexcept;
     const 因果节点类* 按主键解析因果节点(const std::string& 主键) const noexcept;
     bool 是因果节点(const 基础信息节点类* 节点) const noexcept;
