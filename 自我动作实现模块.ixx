@@ -4603,7 +4603,7 @@ namespace {
     {
         if (!特征类型) return nullptr;
         for (auto* 节点 : 世界树.枚举节点_按主信息类型<抽象特征主信息类>()) {
-            const auto* 主信息 = 世界树.特征().取抽象特征主信息(
+            const auto* 主信息 = 世界树.取抽象特征主信息(
                 static_cast<const 抽象特征节点类*>(节点));
             if (主信息 && 主信息->类型 == 特征类型) {
                 return static_cast<抽象特征节点类*>(节点);
@@ -4620,7 +4620,7 @@ namespace {
     {
         if (!节点) return false;
         if (目标节点 && 节点 == 目标节点) return true;
-        const auto* 主信息 = 世界树.特征().取抽象特征主信息(
+        const auto* 主信息 = 世界树.取抽象特征主信息(
             static_cast<const 抽象特征节点类*>(节点));
         return 主信息 && 目标类型 && 主信息->类型 == 目标类型;
     }
@@ -4630,14 +4630,14 @@ namespace {
         const 基础信息节点类* 节点) noexcept
     {
         if (!节点) return nullptr;
-        if (const auto* 抽象主信息 = 世界树.特征().取抽象特征主信息(
+        if (const auto* 抽象主信息 = 世界树.取抽象特征主信息(
                 static_cast<const 抽象特征节点类*>(节点))) {
             return 抽象主信息->类型;
         }
         if (const auto* 特征主信息 = 世界树.取特征主信息(
                 static_cast<const 特征节点类*>(节点))) {
             if (auto* 抽象特征 = 特征主信息->抽象特征.指针) {
-                if (const auto* 抽象主信息 = 世界树.特征().取抽象特征主信息(
+                if (const auto* 抽象主信息 = 世界树.取抽象特征主信息(
                         static_cast<const 抽象特征节点类*>(抽象特征))) {
                     return 抽象主信息->类型;
                 }
@@ -4688,7 +4688,7 @@ namespace {
     {
         if (!指针) return;
         if (auto* 节点 = 指针若为基础信息节点(指针)) {
-            if (世界树.特征().取抽象特征主信息(static_cast<抽象特征节点类*>(节点))) {
+            if (世界树.取抽象特征主信息(static_cast<抽象特征节点类*>(节点))) {
                 项.抽象特征引用 = 节点;
             }
             else if (const auto* 特征主信息 = 世界树.取特征主信息(

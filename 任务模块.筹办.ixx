@@ -2823,7 +2823,7 @@ namespace {
         if (!抽象特征 || 深度 > 32) {
             return;
         }
-        const auto* 主信息 = 世界树.特征().取抽象特征主信息(抽象特征);
+        const auto* 主信息 = 世界树.取抽象特征主信息(抽象特征);
         if (!主信息) {
             return;
         }
@@ -2834,7 +2834,7 @@ namespace {
         }
 
         for (auto* 子节点 : 世界树.获取子节点(reinterpret_cast<const 基础信息节点类*>(抽象特征))) {
-            auto* 子抽象 = 子节点 && 世界树.特征().取抽象特征主信息(
+            auto* 子抽象 = 子节点 && 世界树.取抽象特征主信息(
                 static_cast<const 抽象特征节点类*>(子节点))
                 ? static_cast<const 抽象特征节点类*>(子节点)
                 : nullptr;
