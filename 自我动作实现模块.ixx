@@ -6629,12 +6629,9 @@ export namespace 自我动作实现模块 {
         I64& 缺失参数数量) noexcept
     {
         if (!形参表 || !实参表宿主) return false;
-        auto* 首子 = 形参表->子 ? static_cast<基础信息节点类*>(形参表->子) : nullptr;
-        if (!首子) return false;
-        bool 已遍历 = false;
-        auto* 当前 = 首子;
-        do {
-            已遍历 = true;
+        const auto 形参节点集 = 世界树.获取子节点(形参表);
+        if (形参节点集.empty()) return false;
+        for (auto* 当前 : 形参节点集) {
             (void)生成单个候选实参(
                 输入包,
                 当前,
@@ -6644,9 +6641,8 @@ export namespace 自我动作实现模块 {
                 now,
                 绑定参数数量,
                 缺失参数数量);
-            当前 = static_cast<基础信息节点类*>(当前->下);
-        } while (当前 && 当前 != 首子);
-        return 已遍历;
+        }
+        return true;
     }
 
     // 功能：按函数名执行对应处理。
@@ -6673,11 +6669,7 @@ export namespace 自我动作实现模块 {
         缺失参数数量 = 0;
         if (!形参表 || !实参表宿主) return;
 
-        auto* 首子 = 形参表->子 ? static_cast<基础信息节点类*>(形参表->子) : nullptr;
-        if (!首子) return;
-
-        auto* 当前 = 首子;
-        do {
+        for (auto* 当前 : 世界树.获取子节点(形参表)) {
             const auto* 形参主信息 = 世界树.特征().取特征主信息(
                 static_cast<特征节点类*>(当前));
             const auto* 参数特征类型 = 形参主信息 ? 形参主信息->类型 : nullptr;
@@ -6687,8 +6679,7 @@ export namespace 自我动作实现模块 {
             } else if (形参为必需(当前)) {
                 ++缺失参数数量;
             }
-            当前 = 当前 ? static_cast<基础信息节点类*>(当前->下) : nullptr;
-        } while (当前 && 当前 != 首子);
+        }
     }
 
     // 功能：按函数名执行对应处理。
@@ -6720,8 +6711,8 @@ export namespace 自我动作实现模块 {
         I64 缺失参数数量) noexcept
     {
         if (!形参表 || !实参表宿主) return;
-        auto* 首子 =形参表->子 ? static_cast<基础信息节点类*>(形参表->子) : nullptr;
-        if (!首子) return;
+        const auto 形参节点集 = 世界树.获取子节点(形参表);
+        if (形参节点集.empty()) return;
 
         std::ostringstream 输出;
         输出 << "自我动作/练习候选实参明细"
@@ -6733,8 +6724,7 @@ export namespace 自我动作实现模块 {
             << " | 缺失参数数量=" << 缺失参数数量;
 
         I64 序号 = 0;
-        auto* 当前 = 首子;
-        do {
+        for (auto* 当前 : 形参节点集) {
             const auto* 形参主信息 = 世界树.特征().取特征主信息(
                 static_cast<特征节点类*>(当前));
             const auto* 参数特征类型 = 形参主信息 ? 形参主信息->类型 : nullptr;
@@ -6762,9 +6752,8 @@ export namespace 自我动作实现模块 {
                 << ",形参来源=" << 指针语素日志文本(形参来源)
                 << ",候选来源=" << 指针语素日志文本(候选来源);
 
-            当前 = 当前 ? static_cast<基础信息节点类*>(当前->下) : nullptr;
             ++序号;
-        } while (当前 && 当前 != 首子);
+        }
 
         项目运行日志(输出.str());
     }
@@ -6776,11 +6765,10 @@ export namespace 自我动作实现模块 {
         时间戳 now) noexcept
     {
         if (!候选实参表 || !输入包) return false;
-        auto* 首子 = 候选实参表->子 ? static_cast<基础信息节点类*>(候选实参表->子) : nullptr;
-        if (!首子) return false;
+        const auto 候选实参节点集 = 世界树.获取子节点(候选实参表);
+        if (候选实参节点集.empty()) return false;
         bool 已复制 = false;
-        auto* 当前 = 首子;
-        do {
+        for (auto* 当前 : 候选实参节点集) {
             const auto* 主信息 = 世界树.特征().取特征主信息(
                 static_cast<特征节点类*>(当前));
             if (主信息 && 主信息->类型 && 查找子特征(当前, 特征_参数值类型())) {
@@ -6790,8 +6778,7 @@ export namespace 自我动作实现模块 {
                     主信息->类型,
                     now) || 已复制;
             }
-            当前 = static_cast<基础信息节点类*>(当前->下);
-        } while (当前 && 当前 != 首子);
+        }
         return 已复制;
     }
 
@@ -6900,12 +6887,11 @@ export namespace 自我动作实现模块 {
         时间戳 now) noexcept
     {
         if (!源包 || !实参表宿主) return 0;
-        auto* 首子 = 源包->子 ? static_cast<基础信息节点类*>(源包->子) : nullptr;
-        if (!首子) return 0;
+        const auto 源包子节点集 = 世界树.获取子节点(源包);
+        if (源包子节点集.empty()) return 0;
 
         I64 复制数量 = 0;
-        auto* 当前 = 首子;
-        do {
+        for (auto* 当前 : 源包子节点集) {
             if (当前
                 && 世界树.特征().取特征主信息(static_cast<特征节点类*>(当前))
                 && 复制条件实参特征到候选实参(
@@ -6915,8 +6901,7 @@ export namespace 自我动作实现模块 {
                     now)) {
                 ++复制数量;
             }
-            当前 = 当前 ? static_cast<基础信息节点类*>(当前->下) : nullptr;
-        } while (当前 && 当前 != 首子);
+        }
         return 复制数量;
     }
 
