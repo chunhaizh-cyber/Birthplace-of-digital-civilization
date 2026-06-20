@@ -307,7 +307,7 @@ namespace {
         auto* 自我存在 = 自我.获取自我存在();
 
         if constexpr (std::is_same_v<节点类型, 基础信息节点类>) {
-            return 世界树.基础信息().世界根();
+            return 世界树.世界根();
         }
         else if constexpr (std::is_same_v<节点类型, 需求节点>) {
             return 自我存在 ? 世界树.存在().获取需求根节点(自我存在) : nullptr;
@@ -5338,7 +5338,7 @@ namespace {
             true);
 
         std::vector<基础信息节点类*> 因果根节点{};
-        auto* 世界根节点 = 世界树.基础信息().世界根();
+        auto* 世界根节点 = 世界树.世界根();
         for (auto* 因果节点 : 世界树.基础信息().枚举节点_按类型<因果主信息类>()) {
             bool 有因果父祖先 = false;
             std::size_t 保护计数 = 0;
@@ -9365,7 +9365,7 @@ window.__panelApplyDetail=function(){};
     };
 
     记录快照阶段("开始");
-    快照.世界树已初始化 = 世界树.基础信息().世界根() != nullptr;
+    快照.世界树已初始化 = 世界树.世界根() != nullptr;
     快照.自我已初始化 = 自我.已初始化();
     auto* 原始自我存在 = 自我.获取自我存在();
     快照.自我存在已建立 = 原始自我存在 != nullptr;
@@ -10038,7 +10038,7 @@ window.__panelApplyDetail=function(){};
             + " | 存在=" + std::to_string(快照.存在数),
         0,
         true);
-    if (auto* 世界根节点 = 世界树.基础信息().世界根()) {
+    if (auto* 世界根节点 = 世界树.世界根()) {
         世界树根.子项.push_back(
             私有_构建基础信息根链骨架(世界根节点, 上下文));
     }
@@ -10198,7 +10198,7 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
                 + " | 存在=" + std::to_string(局部快照.存在数),
             0,
             true);
-        if (auto* 世界根节点 = 世界树.基础信息().世界根()) {
+        if (auto* 世界根节点 = 世界树.世界根()) {
             根.子项.push_back(私有_构建基础信息根链骨架(世界根节点, 上下文));
         }
         else {

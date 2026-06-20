@@ -428,7 +428,7 @@ inline std::string 本能动作基础节点指针文本(const 基础信息节点
 inline bool 本能动作基础节点属于当前世界树(const 基础信息节点类* 节点) noexcept
 {
     if (!节点) return false;
-    const auto* 根节点 = 世界树.基础信息().世界根();
+    const auto* 根节点 = 世界树.世界根();
     if (节点 == 根节点) return true;
     const auto 全部节点 = 世界树.基础信息().枚举全部节点();
     for (const auto* 当前 : 全部节点) {
