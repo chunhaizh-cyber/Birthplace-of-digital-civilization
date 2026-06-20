@@ -582,9 +582,8 @@ namespace {
                 + " | 二次特征索引=" + std::to_string(场景->二次特征索引.size());
         }
         else if (const auto* 动态 = dynamic_cast<const 动态节点主信息类*>(主信息)) {
-            行.辅助文本 = "来源类型=" + std::to_string(static_cast<int>(动态->来源类型))
-                + " | 业务语义=" + std::to_string(static_cast<int>(动态->业务语义类型))
-                + " | 路径签名=" + std::to_string(动态->动态路径签名);
+            行.辅助文本 = "路径签名=" + std::to_string(动态->动态路径签名)
+                + " | 动态层级=" + std::to_string(动态->动态层级);
         }
         else if (const auto* 二次 = dynamic_cast<const 二次特征主信息类*>(主信息)) {
             行.值类别 = "二次特征";
