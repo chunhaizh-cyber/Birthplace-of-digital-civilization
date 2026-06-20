@@ -156,6 +156,12 @@ public:
     结构_特征状态比较结果 比较状态(
         const 状态节点类* 当前状态,
         const 状态节点类* 目标状态) const;
+    特征比较方法结果 获取比较方法结果(
+        const 语素入口节点类* 特征类型,
+        const 特征值& 左值,
+        const 特征值& 右值,
+        const 特征节点主信息类* 左特征主信息 = nullptr,
+        const 特征节点主信息类* 右特征主信息 = nullptr) const;
     存在节点主信息类* 取存在主信息(存在节点类* 节点) const noexcept;
     const 存在节点主信息类* 取存在主信息(const 存在节点类* 节点) const noexcept;
     存在节点类* 创建存在(基础信息节点类* 父节点, 存在节点主信息类* 主信息);
