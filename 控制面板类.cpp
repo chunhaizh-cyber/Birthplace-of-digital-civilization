@@ -9400,7 +9400,7 @@ window.__panelApplyDetail=function(){};
     快照.自我已初始化 = 自我.已初始化();
     auto* 原始自我存在 = 自我.获取自我存在();
     快照.自我存在已建立 = 原始自我存在 != nullptr;
-    if (const auto* 自我主信息 = 世界树.基础信息().取主信息<存在节点主信息类>(原始自我存在)) {
+    if (const auto* 自我主信息 = 世界树.取存在主信息(原始自我存在)) {
         快照.自我需求根字段已建立 = 自我主信息->需求根节点 != nullptr;
         快照.自我任务根字段已建立 = 自我主信息->任务根节点 != nullptr;
         快照.自我方法根字段已建立 = 自我主信息->方法根节点 != nullptr;
@@ -9505,7 +9505,7 @@ window.__panelApplyDetail=function(){};
         std::size_t 因果模板数 = 0;
         std::size_t 因果证据动态样本数 = 0;
         for (auto* 因果节点 : 因果节点集) {
-            const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
+            const auto* 主信息 = 世界树.取因果主信息(reinterpret_cast<const 因果节点类*>(因果节点));
             if (!主信息) {
                 continue;
             }
@@ -10242,7 +10242,7 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
         std::size_t 因果模板数 = 0;
         std::size_t 因果证据动态样本数 = 0;
         for (auto* 因果节点 : 世界树.枚举节点_按主信息类型<因果主信息类>()) {
-            const auto* 主信息 = 世界树.基础信息().取主信息<因果主信息类>(因果节点);
+            const auto* 主信息 = 世界树.取因果主信息(reinterpret_cast<const 因果节点类*>(因果节点));
             if (!主信息) {
                 continue;
             }

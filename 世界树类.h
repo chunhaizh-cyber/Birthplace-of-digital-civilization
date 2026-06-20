@@ -334,6 +334,8 @@ public:
         基础信息节点类* 动作语义 = nullptr,
         const std::string& 动作语义键 = {},
         bool 设为主结果 = true);
+    因果主信息类* 取因果主信息(因果节点类* 节点) const noexcept;
+    const 因果主信息类* 取因果主信息(const 因果节点类* 节点) const noexcept;
 
     bool 写入特征_I64(特征节点类* 节点, I64 值, 时间戳 now = 结构体_时间戳::当前_微秒());
     bool 写入特征值(特征节点类* 节点, const 特征值& 值, 时间戳 now = 结构体_时间戳::当前_微秒());
