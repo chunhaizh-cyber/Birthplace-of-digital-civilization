@@ -534,15 +534,10 @@ std::vector<状态节点类*> 状态类::枚举全部状态() const
 std::vector<状态节点类*> 状态类::获取场景状态(const 场景节点类* 场景) const
 {
     std::vector<状态节点类*> out;
-    const auto* 场景主信息 = 基础信息_ ? 基础信息_->取主信息<场景节点主信息类>(场景) : nullptr;
-    if (!场景主信息) return out;
+    if (!基础信息_ || !场景) return out;
 
-    std::vector<可解析引用<状态节点类>> 状态索引快照;
-    {
-        std::lock_guard<std::recursive_mutex> 锁(借用场景索引全局互斥());
-        状态索引快照 = 场景主信息->状态索引;
-    }
-
+    场景类 场景服务(基础信息_);
+    const auto 状态索引快照 = 场景服务.读取场景状态索引快照(场景);
     for (const auto& 项 : 状态索引快照) {
         if (项.指针) out.push_back(项.指针);
     }
