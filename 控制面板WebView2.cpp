@@ -1479,6 +1479,32 @@ namespace {
                                             if (消息.starts_with(页面刷新前缀)) {
                                                 const auto 页面 = 私有_宽字串转UTF8(
                                                     消息.substr(页面刷新前缀.size()));
+                                                const auto 是SQL区段 = [](std::string_view 区段) noexcept {
+                                                    return 区段 == "metrics"
+                                                        || 区段 == "threads"
+                                                        || 区段 == "threadEvents"
+                                                        || 区段 == "actions"
+                                                        || 区段 == "causalInfo"
+                                                        || 区段 == "causalChain"
+                                                        || 区段 == "demandTree"
+                                                        || 区段 == "taskTree"
+                                                        || 区段 == "methodTree"
+                                                        || 区段 == "worldTree"
+                                                        || 区段 == "worldRelations"
+                                                        || 区段 == "lexemeTree"
+                                                        || 区段 == "features"
+                                                        || 区段 == "catalog";
+                                                };
+                                                if (auto* 上下文 = 私有_取窗口上下文(窗口);
+                                                    上下文 && 上下文->用途 == 枚举_WebView2窗口用途::控制面板 && !是SQL区段(页面)) {
+                                                    私有_记录WebView2诊断(
+                                                        "SQL控制面板拒绝live页面刷新消息",
+                                                        47,
+                                                        S_OK,
+                                                        ERROR_SUCCESS,
+                                                        "页面=" + 页面);
+                                                    return S_OK;
+                                                }
                                                 私有_发送页面刷新到页面(窗口, 页面);
                                                 return S_OK;
                                             }
