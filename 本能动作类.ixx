@@ -124,7 +124,6 @@ public:
 public:
     template<class T方法节点>
     static inline bool 方法首节点_确保条件参数类型(
-        基础信息类& 基础信息,
         T方法节点* 方法首节点,
         const std::vector<const 语素入口节点类*>& 需要类型表)
     {
@@ -166,7 +165,7 @@ public:
             }
 
             auto* 新主信息 = new 特征节点主信息类(类型);
-            auto* 新节点 = static_cast<特征节点类*>(基础信息.添加子节点(条件场景, 新主信息));
+            auto* 新节点 = 世界树.创建特征(条件场景, 新主信息);
             if (!新节点) {
                 delete 新主信息;
                 continue;
@@ -179,14 +178,6 @@ public:
         }
 
         return 已追加;
-    }
-
-    template<class T方法节点>
-    static inline void 方法首节点_确保条件参数类型(
-        T方法节点* 方法首节点,
-        const std::vector<const 语素入口节点类*>& 需要类型表)
-    {
-        (void)方法首节点_确保条件参数类型(世界树.基础信息(), 方法首节点, 需要类型表);
     }
 
     static inline 结构体_场景模式匹配结果 场景_模式匹配(
