@@ -163,18 +163,10 @@ struct 结构_三维体素轮廓融合参数 {
     std::uint64_t 最大输出体素数 = 2000000;
 };
 
-struct 结构_三维体素颜色项 {
-    std::uint32_t x = 0;
-    std::uint32_t y = 0;
-    std::uint32_t z = 0;
-    std::uint32_t 颜色_RGBA = 0;
-};
-
 struct 结构_三维体素轮廓融合结果 {
     bool 成功 = false;
     std::string 失败原因{};
     VecIU64 占据位块{};
-    std::vector<结构_三维体素颜色项> 体素颜色{};
     std::uint32_t 宽度 = 0;
     std::uint32_t 高度 = 0;
     std::uint32_t 深度 = 0;

@@ -3547,7 +3547,7 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     return 结果;
 }
 
-// 功能：根据多视角已对齐轮廓图生成长方体体素占据位块和体素颜色绑定。
+// 功能：根据多视角已对齐轮廓图生成长方体体素占据位块和颜色体素数量。
 结构_三维体素轮廓融合结果 特征类::从多视角轮廓图生成三维体素(
     const std::vector<结构_三维体素轮廓图视角>& 视角集合,
     const 结构_三维体素轮廓融合参数& 参数)
@@ -3644,16 +3644,8 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     std::vector<std::uint8_t> 占据(稠密大小, 0);
     std::vector<std::uint8_t> 来源视角数(稠密大小, 0);
     std::vector<std::uint64_t> 来源视角位集(稠密大小, 0);
-    std::vector<std::uint64_t> 颜色A{};
-    std::vector<std::uint64_t> 颜色R{};
-    std::vector<std::uint64_t> 颜色G{};
-    std::vector<std::uint64_t> 颜色B{};
     std::vector<std::uint32_t> 颜色数量{};
     if (需要颜色累积) {
-        颜色A.assign(稠密大小, 0);
-        颜色R.assign(稠密大小, 0);
-        颜色G.assign(稠密大小, 0);
-        颜色B.assign(稠密大小, 0);
         颜色数量.assign(稠密大小, 0);
     }
 
@@ -3669,12 +3661,8 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
         return static_cast<std::size_t>((static_cast<std::uint64_t>(z) * 高度 + y) * 宽度 + x);
     };
 
-    const auto 记录颜色 = [&](const std::size_t 索引, const std::uint32_t 颜色) {
+    const auto 记录颜色 = [&](const std::size_t 索引) {
         if (!需要颜色累积) return;
-        颜色A[索引] += static_cast<std::uint64_t>((颜色 >> 24) & 0xffu);
-        颜色R[索引] += static_cast<std::uint64_t>((颜色 >> 16) & 0xffu);
-        颜色G[索引] += static_cast<std::uint64_t>((颜色 >> 8) & 0xffu);
-        颜色B[索引] += static_cast<std::uint64_t>(颜色 & 0xffu);
         ++颜色数量[索引];
     };
 
@@ -3702,29 +3690,13 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
                 }
             }
             if (有颜色) {
-                记录颜色(idx, 视角.颜色_RGBA[i]);
+                记录颜色(idx);
             }
         }
     }
 
-    const auto 取平均颜色 = [&](const std::size_t 索引) -> std::uint32_t {
-        if (!需要颜色累积 || 颜色数量[索引] == 0) return 0;
-        const auto 数量 = static_cast<std::uint64_t>(颜色数量[索引]);
-        const auto a = static_cast<std::uint32_t>(颜色A[索引] / 数量) & 0xffu;
-        const auto r = static_cast<std::uint32_t>(颜色R[索引] / 数量) & 0xffu;
-        const auto g = static_cast<std::uint32_t>(颜色G[索引] / 数量) & 0xffu;
-        const auto b = static_cast<std::uint32_t>(颜色B[索引] / 数量) & 0xffu;
-        return (a << 24) | (r << 16) | (g << 8) | b;
-    };
-
     const auto 写入补全颜色 = [&](const std::size_t 目标, const std::size_t 左, const std::size_t 右) {
         if (!需要颜色累积 || 颜色数量[目标] != 0 || 颜色数量[左] == 0 || 颜色数量[右] == 0) return;
-        const auto 左色 = 取平均颜色(左);
-        const auto 右色 = 取平均颜色(右);
-        颜色A[目标] = static_cast<std::uint64_t>(((左色 >> 24) & 0xffu) + ((右色 >> 24) & 0xffu)) / 2ull;
-        颜色R[目标] = static_cast<std::uint64_t>(((左色 >> 16) & 0xffu) + ((右色 >> 16) & 0xffu)) / 2ull;
-        颜色G[目标] = static_cast<std::uint64_t>(((左色 >> 8) & 0xffu) + ((右色 >> 8) & 0xffu)) / 2ull;
-        颜色B[目标] = static_cast<std::uint64_t>((左色 & 0xffu) + (右色 & 0xffu)) / 2ull;
         颜色数量[目标] = 1;
     };
 
@@ -3787,11 +3759,7 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
         位块[idx / 64ull] |= (1ull << (idx % 64ull));
         ++结果.占据体素数量;
         if (需要颜色累积 && 颜色数量[idx] > 0) {
-            const auto x = static_cast<std::uint32_t>(idx % 宽度);
-            const auto yz = idx / 宽度;
-            const auto y = static_cast<std::uint32_t>(yz % 高度);
-            const auto z = static_cast<std::uint32_t>(yz / 高度);
-            结果.体素颜色.push_back({ x, y, z, 取平均颜色(idx) });
+            ++结果.颜色体素数量;
         }
     }
 
@@ -3799,7 +3767,6 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
 
     结果.成功 = true;
     结果.占据位块 = std::move(位块);
-    结果.颜色体素数量 = static_cast<std::uint64_t>(结果.体素颜色.size());
     结果.宽度 = 宽度;
     结果.高度 = 高度;
     结果.深度 = 深度;
