@@ -166,6 +166,11 @@ public:
     const 存在节点主信息类* 取存在主信息(const 存在节点类* 节点) const noexcept;
     bool 是存在节点(const 基础信息节点类* 节点) const noexcept;
     bool 是场景节点(const 基础信息节点类* 节点) const noexcept;
+    const 语素入口节点类* 读取存在名称(const 存在节点类* 节点) const noexcept;
+    const 语素入口节点类* 读取存在类型(const 存在节点类* 节点) const noexcept;
+    std::vector<存在节点类*> 获取概念集(const 存在节点类* 节点) const;
+    bool 读取最近观测位置缓存(const 存在节点类* 节点, Vector3D& 输出位置_mm) const noexcept;
+    bool 确保存在三类根节点(存在节点类* 节点) const noexcept;
     存在节点类* 创建存在(基础信息节点类* 父节点, 存在节点主信息类* 主信息);
     存在节点类* 取或创建子存在_按名称类型(
         基础信息节点类* 父节点,

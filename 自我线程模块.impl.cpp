@@ -12654,14 +12654,14 @@ bool 私有_线程存在匹配线程状态消息(
     }
 
     if (!消息段.线程标签.empty()) {
-        const auto 现有标签 = 私有_安全词(世界树.存在().读取存在名称(线程存在));
+        const auto 现有标签 = 私有_安全词(世界树.读取存在名称(线程存在));
         if (!现有标签.empty() && 现有标签 != 消息段.线程标签) {
             return false;
         }
     }
 
     if (!消息段.线程种类.empty()) {
-        const auto 现有种类 = 私有_安全词(世界树.存在().读取存在类型(线程存在));
+        const auto 现有种类 = 私有_安全词(世界树.读取存在类型(线程存在));
         if (!现有种类.empty() && 现有种类 != 消息段.线程种类) {
             return false;
         }
@@ -15224,7 +15224,7 @@ std::uint64_t 自我线程类::读取累计恢复次数() const noexcept
             快照.当前任务虚拟存在指针 =
                 reinterpret_cast<std::uintptr_t>(任务虚拟存在);
             快照.当前任务虚拟存在主键 = 任务虚拟存在->获取主键();
-            const auto 概念集 = 世界树.存在().获取概念集(任务虚拟存在);
+            const auto 概念集 = 世界树.获取概念集(任务虚拟存在);
             std::ostringstream 概念摘要;
             for (std::size_t i = 0; i < 概念集.size() && i < 4; ++i) {
                 if (i > 0) {

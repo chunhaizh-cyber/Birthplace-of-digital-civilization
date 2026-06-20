@@ -3514,12 +3514,12 @@ std::vector<二次特征节点类*> 二次特征生成模块::刷新场景存在
     for (std::size_t i = 0; i < 存在列表.size(); ++i) {
         auto* 左存在 = 存在列表[i];
         Vector3D 左位置_mm{};
-        if (!世界树_->存在().读取最近观测位置缓存(左存在, 左位置_mm)) continue;
+        if (!世界树_->读取最近观测位置缓存(左存在, 左位置_mm)) continue;
 
         for (std::size_t j = i + 1; j < 存在列表.size(); ++j) {
             auto* 右存在 = 存在列表[j];
             Vector3D 右位置_mm{};
-            if (!世界树_->存在().读取最近观测位置缓存(右存在, 右位置_mm)) continue;
+            if (!世界树_->读取最近观测位置缓存(右存在, 右位置_mm)) continue;
 
             auto* 左对象 = static_cast<基础信息节点类*>(左存在);
             auto* 右对象 = static_cast<基础信息节点类*>(右存在);
