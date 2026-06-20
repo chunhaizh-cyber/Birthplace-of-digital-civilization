@@ -1,10 +1,12 @@
 #include "存在类.h"
 
 #include <cmath>
+#include <limits>
 
 #include "需求类.h"
 #include "任务类.h"
 #include "方法类.h"
+#include "特征类.h"
 #include "语素类.h"
 
 
@@ -17,6 +19,129 @@ namespace {
         const long double dy = static_cast<long double>(左位置.y) - static_cast<long double>(右位置.y);
         const long double dz = static_cast<long double>(左位置.z) - static_cast<long double>(右位置.z);
         return static_cast<std::int64_t>(std::llround(std::sqrt(dx * dx + dy * dy + dz * dz)));
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    const 语素入口节点类* 私有_特征模板入口性(const char* 名称) noexcept
+    {
+        return 名称 && *名称
+            ? 语素集.添加信息入口词(名称, 枚举_信息入口类型::特征模板入口)
+            : nullptr;
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    const 语素入口节点类* 私有_特征_存在场景绝对坐标X() noexcept
+    {
+        return 私有_特征模板入口性("存在_场景绝对坐标X");
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    const 语素入口节点类* 私有_特征_存在场景绝对坐标Y() noexcept
+    {
+        return 私有_特征模板入口性("存在_场景绝对坐标Y");
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    const 语素入口节点类* 私有_特征_存在场景绝对坐标Z() noexcept
+    {
+        return 私有_特征模板入口性("存在_场景绝对坐标Z");
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    const 语素入口节点类* 私有_特征_存在场景绝对坐标明确状态() noexcept
+    {
+        return 私有_特征模板入口性("存在_场景绝对坐标明确状态");
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    const 语素入口节点类* 私有_特征_存在坐标来源() noexcept
+    {
+        return 私有_特征模板入口性("存在_坐标来源");
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    const 语素入口节点类* 私有_特征_存在坐标时间戳() noexcept
+    {
+        return 私有_特征模板入口性("存在_坐标时间戳");
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    const 语素入口节点类* 私有_特征_存在坐标置信度() noexcept
+    {
+        return 私有_特征模板入口性("存在_坐标置信度");
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    bool 私有_坐标分量转I64(double 值, I64& 输出) noexcept
+    {
+        if (!std::isfinite(值)) return false;
+        const long double 下界 = static_cast<long double>((std::numeric_limits<I64>::min)());
+        const long double 上界 = static_cast<long double>((std::numeric_limits<I64>::max)());
+        const long double 待写 = static_cast<long double>(值);
+        if (待写 < 下界 || 待写 > 上界) return false;
+        输出 = static_cast<I64>(std::llround(值));
+        return true;
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    bool 私有_坐标转I64三元(const Vector3D& 坐标, I64& x, I64& y, I64& z) noexcept
+    {
+        return 私有_坐标分量转I64(坐标.x, x)
+            && 私有_坐标分量转I64(坐标.y, y)
+            && 私有_坐标分量转I64(坐标.z, z);
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    场景节点类* 私有_取存在所在场景(
+        const 基础信息类& 基础信息,
+        const 存在节点类* 存在) noexcept
+    {
+        auto* 父节点 = 存在 ? static_cast<基础信息节点类*>(存在->父) : nullptr;
+        return 父节点 && 基础信息.取主信息<场景节点主信息类>(父节点)
+            ? static_cast<场景节点类*>(父节点)
+            : nullptr;
+    }
+
+    // 功能：从指定来源读取数据或状态。
+    bool 私有_读取子特征I64(
+        const 特征类& 特征服务,
+        const 基础信息节点类* 宿主,
+        const 语素入口节点类* 特征类型,
+        I64& 输出值)
+    {
+        const auto 值 = 特征服务.读取子特征值_按类型(宿主, 特征类型);
+        if (const auto* 标量 = std::get_if<I64>(&值)) {
+            输出值 = *标量;
+            return true;
+        }
+        return false;
+    }
+
+    // 功能：把处理结果写入指定对象、场景或日志。
+    bool 私有_写入子特征I64(
+        特征类& 特征服务,
+        基础信息节点类* 宿主,
+        const 语素入口节点类* 特征类型,
+        I64 值,
+        时间戳 now)
+    {
+        auto* 特征节点 = 特征服务.取或创建子特征_按类型(宿主, 特征类型);
+        return 特征节点 ? 特征服务.写入特征值_I64(特征节点, 值, now) : false;
+    }
+
+    // 功能：把处理结果写入指定对象、场景或日志。
+    bool 私有_写入子特征指针(
+        特征类& 特征服务,
+        基础信息节点类* 宿主,
+        const 语素入口节点类* 特征类型,
+        const void* 指针,
+        时间戳 now)
+    {
+        auto* 特征节点 = 特征服务.取或创建子特征_按类型(宿主, 特征类型);
+        if (!特征节点) return false;
+        指针句柄 句柄{};
+        句柄.指针 = reinterpret_cast<std::uintptr_t>(指针);
+        return 特征服务.写入特征值_指针句柄(特征节点, 句柄, now);
     }
 
     template<class T节点>
@@ -183,6 +308,72 @@ std::vector<可解析引用<存在节点类>> 存在类::读取概念集快照(c
 {
     const auto* 主信息 = 取存在主信息(节点);
     return 主信息 ? 主信息->概念模板 : 可解析引用<存在节点类>{};
+}
+
+// 功能：从存在特征结构读取场景绝对坐标，不创建特征节点。
+bool 存在类::读取存在场景绝对坐标(const 存在节点类* 节点, Vector3D& 输出坐标_mm) const
+{
+    输出坐标_mm = {};
+    if (!基础信息_ || !是存在节点(节点)) return false;
+
+    auto* 宿主 = reinterpret_cast<const 基础信息节点类*>(节点);
+    特征类 特征服务(基础信息_);
+
+    I64 明确状态 = 0;
+    if (!私有_读取子特征I64(特征服务, 宿主, 私有_特征_存在场景绝对坐标明确状态(), 明确状态)
+        || 明确状态 <= 0) {
+        return false;
+    }
+
+    I64 x = 0;
+    I64 y = 0;
+    I64 z = 0;
+    if (!私有_读取子特征I64(特征服务, 宿主, 私有_特征_存在场景绝对坐标X(), x)
+        || !私有_读取子特征I64(特征服务, 宿主, 私有_特征_存在场景绝对坐标Y(), y)
+        || !私有_读取子特征I64(特征服务, 宿主, 私有_特征_存在场景绝对坐标Z(), z)) {
+        return false;
+    }
+
+    输出坐标_mm = Vector3D{
+        static_cast<double>(x),
+        static_cast<double>(y),
+        static_cast<double>(z),
+    };
+    return true;
+}
+
+// 功能：按参考存在绝对坐标和相对坐标计算同场景绝对坐标。
+bool 存在类::计算场景绝对坐标_由参考存在相对坐标(
+    const 存在节点类* 参考存在,
+    const Vector3D& 相对坐标_mm,
+    Vector3D& 输出绝对坐标_mm) const
+{
+    输出绝对坐标_mm = {};
+    if (!基础信息_ || !参考存在 || !私有_取存在所在场景(*基础信息_, 参考存在)) return false;
+
+    Vector3D 参考绝对坐标{};
+    if (!读取存在场景绝对坐标(参考存在, 参考绝对坐标)) {
+        return false;
+    }
+
+    const Vector3D 候选{
+        参考绝对坐标.x + 相对坐标_mm.x,
+        参考绝对坐标.y + 相对坐标_mm.y,
+        参考绝对坐标.z + 相对坐标_mm.z,
+    };
+    I64 x = 0;
+    I64 y = 0;
+    I64 z = 0;
+    if (!私有_坐标转I64三元(候选, x, y, z)) {
+        return false;
+    }
+
+    输出绝对坐标_mm = Vector3D{
+        static_cast<double>(x),
+        static_cast<double>(y),
+        static_cast<double>(z),
+    };
+    return true;
 }
 
 // 功能：读取最近观测位置缓存；缓存只作为特征化或显示输入。
@@ -540,6 +731,77 @@ bool 存在类::写入观测位置(存在节点类* 节点, const Vector3D& 位�
         主信息->连续静止帧 = 0;
     }
     return true;
+}
+
+// 功能：把存在场景绝对坐标写入特征结构，并同步最近观测缓存。
+bool 存在类::写入存在场景绝对坐标(
+    存在节点类* 节点,
+    const Vector3D& 坐标_mm,
+    时间戳 now,
+    I64 置信度)
+{
+    if (!基础信息_ || !是存在节点(节点)) return false;
+
+    I64 x = 0;
+    I64 y = 0;
+    I64 z = 0;
+    if (!私有_坐标转I64三元(坐标_mm, x, y, z)) {
+        return false;
+    }
+
+    auto* 宿主 = reinterpret_cast<基础信息节点类*>(节点);
+    特征类 特征服务(基础信息_);
+
+    bool 全部成功 = true;
+    全部成功 = 私有_写入子特征I64(特征服务, 宿主, 私有_特征_存在场景绝对坐标X(), x, now) && 全部成功;
+    全部成功 = 私有_写入子特征I64(特征服务, 宿主, 私有_特征_存在场景绝对坐标Y(), y, now) && 全部成功;
+    全部成功 = 私有_写入子特征I64(特征服务, 宿主, 私有_特征_存在场景绝对坐标Z(), z, now) && 全部成功;
+    全部成功 = 私有_写入子特征I64(特征服务, 宿主, 私有_特征_存在场景绝对坐标明确状态(), 1, now) && 全部成功;
+    全部成功 = 私有_写入子特征I64(特征服务, 宿主, 私有_特征_存在坐标时间戳(), static_cast<I64>(now), now) && 全部成功;
+    全部成功 = 私有_写入子特征I64(特征服务, 宿主, 私有_特征_存在坐标置信度(), 置信度, now) && 全部成功;
+
+    if (全部成功) {
+        (void)写入观测位置(节点, Vector3D{
+            static_cast<double>(x),
+            static_cast<double>(y),
+            static_cast<double>(z),
+        });
+    }
+    return 全部成功;
+}
+
+// 功能：按参考存在相对坐标写入目标存在场景绝对坐标和坐标来源。
+bool 存在类::写入存在场景绝对坐标_由参考存在相对坐标(
+    存在节点类* 目标存在,
+    const 存在节点类* 参考存在,
+    const Vector3D& 相对坐标_mm,
+    时间戳 now,
+    I64 置信度)
+{
+    if (!基础信息_ || !目标存在 || !参考存在) return false;
+
+    auto* 目标场景 = 私有_取存在所在场景(*基础信息_, 目标存在);
+    auto* 参考场景 = 私有_取存在所在场景(*基础信息_, 参考存在);
+    if (!目标场景 || !参考场景 || 目标场景 != 参考场景) {
+        return false;
+    }
+
+    Vector3D 绝对坐标{};
+    if (!计算场景绝对坐标_由参考存在相对坐标(参考存在, 相对坐标_mm, 绝对坐标)) {
+        return false;
+    }
+
+    if (!写入存在场景绝对坐标(目标存在, 绝对坐标, now, 置信度)) {
+        return false;
+    }
+
+    特征类 特征服务(基础信息_);
+    return 私有_写入子特征指针(
+        特征服务,
+        reinterpret_cast<基础信息节点类*>(目标存在),
+        私有_特征_存在坐标来源(),
+        参考存在,
+        now);
 }
 
 // 功能：按函数名执行对应处理。

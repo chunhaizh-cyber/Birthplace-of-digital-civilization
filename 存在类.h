@@ -21,6 +21,11 @@ public:
     场景节点类* 读取内部世界(const 存在节点类* 节点) const noexcept;
     std::vector<可解析引用<存在节点类>> 读取概念集快照(const 存在节点类* 节点) const;
     可解析引用<存在节点类> 读取概念模板引用(const 存在节点类* 节点) const noexcept;
+    bool 读取存在场景绝对坐标(const 存在节点类* 节点, Vector3D& 输出坐标_mm) const;
+    bool 计算场景绝对坐标_由参考存在相对坐标(
+        const 存在节点类* 参考存在,
+        const Vector3D& 相对坐标_mm,
+        Vector3D& 输出绝对坐标_mm) const;
     bool 读取最近观测位置缓存(const 存在节点类* 节点, Vector3D& 输出位置_mm) const noexcept;
     bool 读取上次观测位置缓存(const 存在节点类* 节点, Vector3D& 输出位置_mm) const noexcept;
     bool 确保存在三类根节点(存在节点类* 节点) const noexcept;
@@ -79,6 +84,17 @@ public:
     bool 绑定内部世界(存在节点类* 节点, 场景节点类* 内部世界);
     // 仅更新存在主信息中的最近观测缓存；正式治理判断应读取空间特征 / 二次特征 / 动态证据。
     bool 写入观测位置(存在节点类* 节点, const Vector3D& 位置_mm);
+    bool 写入存在场景绝对坐标(
+        存在节点类* 节点,
+        const Vector3D& 坐标_mm,
+        时间戳 now,
+        I64 置信度);
+    bool 写入存在场景绝对坐标_由参考存在相对坐标(
+        存在节点类* 目标存在,
+        const 存在节点类* 参考存在,
+        const Vector3D& 相对坐标_mm,
+        时间戳 now,
+        I64 置信度);
     bool 标记观测未命中(存在节点类* 节点);
 
 private:
