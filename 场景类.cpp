@@ -1,10 +1,13 @@
 #include "场景类.h"
 
 #include <algorithm>
+#include <cmath>
+#include <limits>
 #include <mutex>
 
 #include "场景索引同步.h"
 #include "动态类.h"
+#include "存在类.h"
 #include "状态类.h"
 #include "语素类.h"
 
@@ -58,6 +61,26 @@ namespace {
         if (!私有_引用已存在(主信息->二次特征索引, 二次特征节点)) {
             主信息->二次特征索引.push_back(引用);
         }
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    bool 私有_坐标分量转I64(double 值, I64& 输出) noexcept
+    {
+        if (!std::isfinite(值)) return false;
+        const long double 下界 = static_cast<long double>((std::numeric_limits<I64>::min)());
+        const long double 上界 = static_cast<long double>((std::numeric_limits<I64>::max)());
+        const long double 待写 = static_cast<long double>(值);
+        if (待写 < 下界 || 待写 > 上界) return false;
+        输出 = static_cast<I64>(std::llround(值));
+        return true;
+    }
+
+    // 功能：服务所在模块的内部辅助流程。
+    bool 私有_坐标转I64三元(const Vector3D& 坐标, I64& x, I64& y, I64& z) noexcept
+    {
+        return 私有_坐标分量转I64(坐标.x, x)
+            && 私有_坐标分量转I64(坐标.y, y)
+            && 私有_坐标分量转I64(坐标.z, z);
     }
 
 }
@@ -210,6 +233,83 @@ std::vector<特征节点类*> 场景类::获取子特征(const 基础信息节�
         }
     }
     return nullptr;
+}
+
+// 功能：在场景直接子存在中按局部深度/彩图轮廓查找候选存在，只返回比较结果。
+std::vector<结构_场景三维体素轮廓存在比较结果> 场景类::查找存在_按深度或彩图轮廓图(
+    const 场景节点类* 场景,
+    const std::vector<结构_三维体素轮廓图视角>& 局部视角集合,
+    const 结构_三维体素轮廓融合参数& 局部融合参数,
+    const 结构_场景三维体素轮廓查找参数& 参数,
+    const 特征值类& 值池,
+    const 存在节点类* 存在概念根) const
+{
+    std::vector<结构_场景三维体素轮廓存在比较结果> 结果集合{};
+    if (!基础信息_ || !场景 || !参数.三维体素特征类型) return 结果集合;
+
+    const auto 局部体素 = 特征类::从多视角轮廓图生成三维体素(局部视角集合, 局部融合参数);
+    if (!局部体素.成功) return 结果集合;
+
+    存在类 存在服务(基础信息_);
+    特征类 特征服务(基础信息_);
+    const auto 最低相似度 = std::clamp<I64>(参数.最低相似度Q10000, 0, 10000);
+    for (auto* 候选存在 : 获取子存在(场景)) {
+        if (!候选存在 || !存在服务.是实例存在(候选存在, 存在概念根)) continue;
+
+        auto* 三维体素特征 = 特征服务.查找子特征_按类型(候选存在, 参数.三维体素特征类型);
+        VecU句柄 存在体素根句柄{};
+        if (!特征服务.读取三维体素特征值(三维体素特征, 存在体素根句柄)) continue;
+
+        Vector3D 存在原点{};
+        if (!存在服务.读取存在场景绝对坐标(候选存在, 存在原点)) continue;
+
+        I64 原点X = 0;
+        I64 原点Y = 0;
+        I64 原点Z = 0;
+        if (!私有_坐标转I64三元(存在原点, 原点X, 原点Y, 原点Z)) continue;
+
+        结构_三维体素存在空间绑定参数 存在空间{};
+        存在空间.原点X_mm = 原点X;
+        存在空间.原点Y_mm = 原点Y;
+        存在空间.原点Z_mm = 原点Z;
+        存在空间.最小体素边长_mm = 参数.默认存在最小体素边长_mm;
+
+        auto 比较结果 = 特征类::比较局部三维体素与三维体素链(
+            值池,
+            存在体素根句柄,
+            存在空间,
+            局部体素,
+            参数.查询层级);
+        if (!比较结果.可比较 || 比较结果.相似度Q10000 < 最低相似度) continue;
+
+        结构_场景三维体素轮廓存在比较结果 项{};
+        项.存在 = 候选存在;
+        项.三维体素特征 = 三维体素特征;
+        项.相似度Q10000 = 比较结果.相似度Q10000;
+        项.比较结果 = std::move(比较结果);
+        结果集合.push_back(std::move(项));
+    }
+
+    std::stable_sort(
+        结果集合.begin(),
+        结果集合.end(),
+        [](const 结构_场景三维体素轮廓存在比较结果& 左,
+           const 结构_场景三维体素轮廓存在比较结果& 右) {
+            if (左.相似度Q10000 != 右.相似度Q10000) {
+                return 左.相似度Q10000 > 右.相似度Q10000;
+            }
+            const auto 左键 = 左.存在 ? 左.存在->获取主键() : std::string{};
+            const auto 右键 = 右.存在 ? 右.存在->获取主键() : std::string{};
+            return 左键 < 右键;
+        });
+
+    if (参数.最大返回数量 > 0 && 结果集合.size() > 参数.最大返回数量) {
+        const auto 上限 = static_cast<std::size_t>(std::min<std::uint64_t>(
+            参数.最大返回数量,
+            static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())));
+        结果集合.resize(上限);
+    }
+    return 结果集合;
 }
 
 // 功能：建立对象、任务、方法或因果之间的绑定关系。

@@ -1,6 +1,24 @@
 #pragma once
 
+#include <limits>
+
 #include "基础信息类.h"
+#include "特征类.h"
+
+struct 结构_场景三维体素轮廓查找参数 {
+    const 语素入口节点类* 三维体素特征类型 = nullptr;
+    std::uint32_t 查询层级 = (std::numeric_limits<std::uint32_t>::max)();
+    I64 最低相似度Q10000 = 0;
+    std::uint32_t 默认存在最小体素边长_mm = 0;
+    std::uint64_t 最大返回数量 = 0;
+};
+
+struct 结构_场景三维体素轮廓存在比较结果 {
+    存在节点类* 存在 = nullptr;
+    特征节点类* 三维体素特征 = nullptr;
+    I64 相似度Q10000 = 0;
+    结构_三维体素局部轮廓相似度结果 比较结果{};
+};
 
 class 场景类 {
 public:
@@ -35,6 +53,13 @@ public:
     std::vector<存在节点类*> 获取子存在(const 基础信息节点类* 父节点) const;
     std::vector<特征节点类*> 获取子特征(const 基础信息节点类* 父节点) const;
     场景节点类* 查找子场景_按名称(const 基础信息节点类* 父节点, const 语素入口节点类* 名称) const;
+    std::vector<结构_场景三维体素轮廓存在比较结果> 查找存在_按深度或彩图轮廓图(
+        const 场景节点类* 场景,
+        const std::vector<结构_三维体素轮廓图视角>& 局部视角集合,
+        const 结构_三维体素轮廓融合参数& 局部融合参数,
+        const 结构_场景三维体素轮廓查找参数& 参数,
+        const 特征值类& 值池,
+        const 存在节点类* 存在概念根) const;
 
     bool 绑定宿主(场景节点类* 节点, 存在节点类* 宿主存在);
     bool 绑定来源文章(场景节点类* 节点, 文章节点类* 来源文章);
