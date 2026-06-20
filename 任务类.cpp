@@ -205,7 +205,7 @@ namespace {
             return 引用.指针;
         }
         if (!引用.主键.empty()) {
-            return 世界树.状态().按主键解析状态节点(引用.主键);
+            return 世界树.按主键解析状态节点(引用.主键);
         }
         return nullptr;
     }

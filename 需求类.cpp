@@ -607,7 +607,7 @@ namespace {
         if (引用.主键.empty()) {
             return nullptr;
         }
-        return 世界树.状态().按主键解析状态节点(引用.主键);
+        return 世界树.按主键解析状态节点(引用.主键);
     }
 
     // 功能：从指定来源读取数据或状态。
@@ -730,7 +730,7 @@ namespace {
         if (主键.empty()) {
             return nullptr;
         }
-        auto* 状态节点 = 世界树.状态().按主键解析状态节点(主键);
+        auto* 状态节点 = 世界树.按主键解析状态节点(主键);
         return 世界树.状态().取状态主信息(状态节点) ? 状态节点 : nullptr;
     }
 

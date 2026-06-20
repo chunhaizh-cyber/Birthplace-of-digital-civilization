@@ -57,6 +57,8 @@ public:
     基础信息节点类* 按主键解析节点(const std::string& 主键) const noexcept;
     // 功能：按主键解析存在节点，不创建或修改节点。
     存在节点类* 按主键解析存在节点(const std::string& 主键) const noexcept;
+    // 功能：按主键解析状态节点，不创建或修改节点。
+    状态节点类* 按主键解析状态节点(const std::string& 主键) const noexcept;
     // 功能：读取世界树节点的父节点，不创建或修改节点。
     基础信息节点类* 获取父节点(const 基础信息节点类* 节点) const noexcept;
     std::vector<基础信息节点类*> 获取子节点(const 基础信息节点类* 父节点) const;

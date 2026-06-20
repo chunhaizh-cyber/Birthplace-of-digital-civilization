@@ -3898,7 +3898,7 @@ std::string 私有_引用主键_任务管理(const 可解析引用<节点类型>
     if (引用.主键.empty()) {
         return nullptr;
     }
-    return 世界树.状态().按主键解析状态节点(引用.主键);
+    return 世界树.按主键解析状态节点(引用.主键);
 }
 
 std::string 私有_状态主体主键_任务管理(const 状态节点类* 状态) noexcept
