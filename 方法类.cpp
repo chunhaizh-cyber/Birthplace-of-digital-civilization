@@ -991,7 +991,7 @@ namespace {
             reinterpret_cast<基础信息节点类*>(方法虚拟存在),
             特征类型,
             初始值);
-        return 世界树.状态().创建内部状态(
+        return 世界树.创建内部状态(
             条件场景,
             reinterpret_cast<基础信息节点类*>(方法虚拟存在),
             状态特征,
