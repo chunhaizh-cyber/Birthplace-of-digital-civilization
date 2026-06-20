@@ -7529,7 +7529,7 @@ namespace {
         const 语素入口节点类* 特征类型) noexcept
     {
         return 宿主 && 特征类型
-            ? 世界树.特征().查找子特征_按类型(宿主, 特征类型)
+            ? 世界树.查找子特征_按类型(宿主, 特征类型)
             : nullptr;
     }
 
@@ -8737,9 +8737,9 @@ namespace {
             const auto* 参数类型 = 参数主信息 ? 参数主信息->类型 : nullptr;
             if (!参数类型) return false;
 
-            const bool 根上存在 = 世界树.特征().查找子特征_按类型(根宿主, 参数类型) != nullptr;
+            const bool 根上存在 = 世界树.查找子特征_按类型(根宿主, 参数类型) != nullptr;
             const bool 包中存在 = 包宿主
-                && 世界树.特征().查找子特征_按类型(包宿主, 参数类型) != nullptr;
+                && 世界树.查找子特征_按类型(包宿主, 参数类型) != nullptr;
             if (!根上存在 && !包中存在) return false;
         }
         return true;
@@ -14148,7 +14148,7 @@ namespace {
         auto* 目标节点 = reinterpret_cast<基础信息节点类*>(目标存在);
         if (!目标节点 || !目标特征类型) return 快照;
 
-        auto* 特征节点 = 世界树.特征().查找子特征_按类型(目标节点, 目标特征类型);
+        auto* 特征节点 = 世界树.查找子特征_按类型(目标节点, 目标特征类型);
         const auto* 主信息 = 世界树.特征().取特征主信息(特征节点);
         if (!主信息 || !主信息->有当前值()) return 快照;
 

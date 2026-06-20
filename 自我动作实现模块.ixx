@@ -2687,7 +2687,7 @@ namespace {
         const 语素入口节点类* 特征类型) noexcept
     {
         return 宿主 && 特征类型
-            ? 世界树.特征().查找子特征_按类型(宿主, 特征类型)
+            ? 世界树.查找子特征_按类型(宿主, 特征类型)
             : nullptr;
     }
 
@@ -3991,9 +3991,9 @@ namespace {
             const auto* 参数类型 = 参数主信息 ? 参数主信息->类型 : nullptr;
             if (!参数类型) return false;
 
-            const bool 根上存在 = 世界树.特征().查找子特征_按类型(根宿主, 参数类型) != nullptr;
+            const bool 根上存在 = 世界树.查找子特征_按类型(根宿主, 参数类型) != nullptr;
             const bool 包中存在 = 包宿主
-                && 世界树.特征().查找子特征_按类型(包宿主, 参数类型) != nullptr;
+                && 世界树.查找子特征_按类型(包宿主, 参数类型) != nullptr;
             if (!根上存在 && !包中存在) return false;
         }
         return true;
