@@ -412,6 +412,8 @@ public:
     const 因果主信息类* 取因果主信息(const 因果节点类* 节点) const noexcept;
     因果模板主信息类* 取因果模板主信息(因果模板节点类* 节点) const noexcept;
     const 因果模板主信息类* 取因果模板主信息(const 因果模板节点类* 节点) const noexcept;
+    因果节点类* 解析因果节点(基础信息节点类* 节点) const noexcept;
+    const 因果节点类* 解析因果节点(const 基础信息节点类* 节点) const noexcept;
     因果节点类* 按主键解析因果节点(const std::string& 主键) noexcept;
     const 因果节点类* 按主键解析因果节点(const std::string& 主键) const noexcept;
     bool 是因果节点(const 基础信息节点类* 节点) const noexcept;
@@ -427,6 +429,26 @@ public:
         bool& 有方法模板,
         bool& 有动作语义,
         std::string& 动作语义键) const;
+    void 读取因果证据状态(
+        const 因果节点类* 因果,
+        bool& 是初始模板,
+        bool& 已验证,
+        std::uint64_t& 证据动态样本数,
+        I64& 稳定度,
+        bool& 证据足够) const noexcept;
+    bool 存在因果条件模板(const 因果节点类* 因果) const noexcept;
+    void 枚举因果条件目标状态(
+        const 因果节点类* 因果,
+        std::vector<状态节点类*>& 条件目标状态集,
+        std::vector<std::string>& 缺失证据) const;
+    void 查询主果方向命中因果(
+        const 二次特征节点类* 目标比较,
+        bool 包含未验证路径,
+        std::size_t& 因果节点数量,
+        std::size_t& 主果可解析数量,
+        std::vector<因果节点类*>& 同向命中因果,
+        std::vector<因果节点类*>& 反向命中因果,
+        std::vector<std::string>& 缺失证据) const;
 
     bool 写入特征_I64(特征节点类* 节点, I64 值, 时间戳 now = 结构体_时间戳::当前_微秒());
     bool 写入特征值(特征节点类* 节点, const 特征值& 值, 时间戳 now = 结构体_时间戳::当前_微秒());
