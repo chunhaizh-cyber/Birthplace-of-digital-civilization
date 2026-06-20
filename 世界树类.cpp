@@ -572,8 +572,7 @@ namespace {
         else if (const auto* 状态 = dynamic_cast<const 状态节点主信息类*>(主信息)) {
             行.值类别 = 私有_世界树SQL特征值类别(状态->状态值);
             行.值文本 = 私有_世界树SQL特征值文本(状态->状态值);
-            行.辅助文本 = "状态域=" + std::to_string(static_cast<int>(状态->状态域))
-                + " | 发生时间=" + std::to_string(状态->发生时间)
+            行.辅助文本 = "发生时间=" + std::to_string(状态->发生时间)
                 + " | 是否变化=" + (状态->是否变化 ? "1" : "0");
         }
         else if (const auto* 场景 = dynamic_cast<const 场景节点主信息类*>(主信息)) {
