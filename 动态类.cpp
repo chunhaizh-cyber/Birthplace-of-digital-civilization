@@ -6,6 +6,7 @@
 #include <functional>
 #include <mutex>
 #include <sstream>
+#include <string>
 #include <string_view>
 
 #include "场景类.h"
@@ -505,6 +506,99 @@ bool 动态类::读取动态来源场景(
 
     输入场景 = 解析场景引用(主信息->来源输入场景);
     输出场景 = 解析场景引用(主信息->来源输出场景);
+    return true;
+}
+
+// 功能：读取动态聚合层级、聚合方式和路径签名，不创建或修改节点。
+bool 动态类::读取动态聚合信息(
+    const 动态节点类* 动态,
+    std::uint32_t& 动态层级,
+    枚举_动态聚合方式& 聚合方式,
+    std::uint64_t& 动态路径签名) const noexcept
+{
+    动态层级 = 0;
+    聚合方式 = 枚举_动态聚合方式::未定义;
+    动态路径签名 = 0;
+
+    const auto* 主信息 = 取动态主信息(动态);
+    if (!主信息) {
+        return false;
+    }
+
+    动态层级 = 主信息->动态层级;
+    聚合方式 = 主信息->聚合方式;
+    动态路径签名 = 主信息->动态路径签名;
+    return true;
+}
+
+// 功能：判断动态是否为原子相邻动态，不创建或修改节点。
+bool 动态类::是原子相邻动态(const 动态节点类* 动态) const noexcept
+{
+    std::uint32_t 动态层级 = 0;
+    枚举_动态聚合方式 聚合方式 = 枚举_动态聚合方式::未定义;
+    std::uint64_t 动态路径签名 = 0;
+    return 读取动态聚合信息(动态, 动态层级, 聚合方式, 动态路径签名)
+        && 动态层级 == 0
+        && 聚合方式 == 枚举_动态聚合方式::原子相邻;
+}
+
+// 功能：读取动态来源低层动态引用链，不创建或修改节点。
+bool 动态类::读取动态来源低层动态(
+    const 动态节点类* 动态,
+    std::vector<动态节点类*>& 输出来源低层动态) const
+{
+    输出来源低层动态.clear();
+    const auto* 主信息 = 取动态主信息(动态);
+    if (!主信息) {
+        return false;
+    }
+
+    std::vector<动态节点类*> 临时结果{};
+    临时结果.reserve(主信息->来源低层动态.size());
+    for (const auto& 来源引用 : 主信息->来源低层动态) {
+        auto* 来源动态 = 私有_解析动态引用(基础信息_, 来源引用);
+        if (!来源动态) {
+            return false;
+        }
+        临时结果.push_back(来源动态);
+    }
+
+    输出来源低层动态 = std::move(临时结果);
+    return true;
+}
+
+// 功能：按动态节点列表计算聚合路径签名，用于来源链快速过滤。
+std::uint64_t 动态类::计算动态列表路径签名(const std::vector<动态节点类*>& 动态列表) const noexcept
+{
+    try {
+        std::string 材料{};
+        材料.reserve(动态列表.size() * 48);
+        for (auto* 动态 : 动态列表) {
+            if (!材料.empty()) 材料.push_back('|');
+            材料 += 动态 ? 动态->获取主键() : std::string{};
+        }
+        return static_cast<std::uint64_t>(std::hash<std::string>{}(材料));
+    }
+    catch (...) {
+        return 0;
+    }
+}
+
+// 功能：比较聚合动态的来源低层动态链是否与输入动态列表一致。
+bool 动态类::动态聚合来源链相同(
+    const 动态节点类* 聚合动态,
+    const std::vector<动态节点类*>& 来源动态列表) const noexcept
+{
+    const auto* 主信息 = 取动态主信息(聚合动态);
+    if (!主信息 || 主信息->来源低层动态.size() != 来源动态列表.size()) {
+        return false;
+    }
+
+    for (std::size_t i = 0; i < 来源动态列表.size(); ++i) {
+        if (!私有_引用匹配节点(主信息->来源低层动态[i], 来源动态列表[i])) {
+            return false;
+        }
+    }
     return true;
 }
 
