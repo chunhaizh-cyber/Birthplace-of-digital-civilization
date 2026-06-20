@@ -13630,12 +13630,12 @@ namespace {
     // 功能：按函数名执行对应处理。
     inline 场景节点类* 取存在所在场景(存在节点类* 节点) noexcept
     {
-        auto* 当前 = 节点 ? static_cast<基础信息节点类*>(节点->父) : nullptr;
+        auto* 当前 = 世界树.获取父节点(节点);
         while (当前) {
             if (世界树.场景().是场景节点(当前)) {
                 return reinterpret_cast<场景节点类*>(当前);
             }
-            当前 = static_cast<基础信息节点类*>(当前->父);
+            当前 = 世界树.获取父节点(当前);
         }
         return 世界树.取或创建自我现实场景();
     }
