@@ -2630,6 +2630,21 @@ namespace {
     std::vector<T节点*> 私有_枚举子节点(const T节点* 父节点, const std::size_t 上限)
     {
         std::vector<T节点*> 结果{};
+        if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 基础信息节点类>) {
+            std::size_t 已收集 = 0;
+            for (auto* 子节点 : 世界树.获取子节点(父节点)) {
+                if (!子节点) {
+                    continue;
+                }
+                结果.push_back(static_cast<T节点*>(子节点));
+                ++已收集;
+                if (已收集 >= 上限) {
+                    break;
+                }
+            }
+            return 结果;
+        }
+
         if (!父节点 || 父节点->子节点数量 <= 0 || !父节点->子) {
             if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 需求节点>) {
                 私有_记录需求节点子链数量不一致_控制面板(父节点);
@@ -2651,6 +2666,15 @@ namespace {
     template<class T节点, class T回调>
     void 私有_遍历全部子节点(const T节点* 父节点, T回调&& 回调)
     {
+        if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 基础信息节点类>) {
+            for (auto* 子节点 : 世界树.获取子节点(父节点)) {
+                if (子节点) {
+                    回调(static_cast<T节点*>(子节点));
+                }
+            }
+            return;
+        }
+
         if (!父节点 || 父节点->子节点数量 <= 0 || !父节点->子) {
             if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 需求节点>) {
                 私有_记录需求节点子链数量不一致_控制面板(父节点);
@@ -2783,6 +2807,13 @@ namespace {
         }
 
         std::size_t 总数 = 1;
+        if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 基础信息节点类>) {
+            for (auto* 子节点 : 世界树.获取子节点(根节点)) {
+                总数 += 私有_计数子树节点(static_cast<const T节点*>(子节点));
+            }
+            return 总数;
+        }
+
         if (根节点->子节点数量 <= 0 || !根节点->子) {
             if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 需求节点>) {
                 私有_记录需求节点子链数量不一致_控制面板(根节点);
