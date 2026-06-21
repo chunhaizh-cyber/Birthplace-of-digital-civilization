@@ -388,9 +388,6 @@ public:
         const 节点类* 需求) noexcept;
 
     static 结构_需求方向签名 生成需求方向签名(
-        const 二次特征主信息类* 比较主信息) noexcept;
-
-    static 结构_需求方向签名 生成需求方向签名(
         const 二次特征节点类* 比较节点) noexcept;
 
     static 枚举_需求方向比较结果 比较需求方向签名(
