@@ -447,18 +447,21 @@ public:
         const std::string& 度量签名_链键) const noexcept;
     const 二次特征主信息类* 查找场景二次特征主信息(
         场景节点类* 场景,
-        const std::string& 概念名称,
+        const 基础信息节点类* 特征节点,
+        方向掩码 方向约束 = 0,
         const 基础信息节点类* 主体 = nullptr,
         const std::optional<枚举_二次特征域>& 域 = std::nullopt,
         bool 取最近观测 = false) const noexcept;
     std::optional<bool> 读取场景二次特征布尔(
         场景节点类* 场景,
-        const std::string& 概念名称,
+        const 基础信息节点类* 特征节点,
+        方向掩码 方向约束 = 方向_大于0,
         const 基础信息节点类* 主体 = nullptr,
         const std::optional<枚举_二次特征域>& 域 = std::nullopt) const noexcept;
     std::optional<I64> 读取场景二次特征标量(
         场景节点类* 场景,
-        const std::string& 概念名称,
+        const 基础信息节点类* 特征节点,
+        方向掩码 方向约束 = 0,
         const 基础信息节点类* 主体 = nullptr,
         const std::optional<枚举_二次特征域>& 域 = std::nullopt) const noexcept;
     二次特征节点类* 取或创建场景条件二次特征_布尔(
@@ -710,6 +713,31 @@ namespace {
         }
         return 主信息->主体.指针 == 主体
             || (!主信息->主体.主键.empty() && 主信息->主体.主键 == 主体->获取主键());
+    }
+
+    // 功能：按二次特征事实值判断是否命中指定方向约束。
+    bool 私有_二次特征方向命中(
+        const 二次特征主信息类* 主信息,
+        方向掩码 方向约束) noexcept
+    {
+        if (!主信息) {
+            return false;
+        }
+        if (方向约束 == 0) {
+            return true;
+        }
+
+        比较量 方向值 = 0;
+        if (主信息->值形态 == 枚举_二次特征值形态::布尔) {
+            方向值 = 主信息->是否满足 ? 1 : 0;
+        } else {
+            std::int32_t 方向编码 = 0;
+            if (!二次特征本能判断模块::判断二次特征方向(主信息, 方向编码)) {
+                return false;
+            }
+            方向值 = static_cast<比较量>(方向编码);
+        }
+        return 比较量命中方向(方向值, 方向约束);
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -2463,12 +2491,13 @@ void 二次特征生成模块::确保二次特征列表具备默认值(
 // 功能：按条件查找目标对象、方法或事实。
 const 二次特征主信息类* 二次特征生成模块::查找场景二次特征主信息(
     场景节点类* 场景,
-    const std::string& 概念名称,
+    const 基础信息节点类* 特征节点,
+    方向掩码 方向约束,
     const 基础信息节点类* 主体,
     const std::optional<枚举_二次特征域>& 域,
     bool 取最近观测) const noexcept
 {
-    if (!世界树_ || !场景 || 概念名称.empty()) {
+    if (!世界树_ || !场景 || !特征节点) {
         return nullptr;
     }
 
@@ -2485,7 +2514,11 @@ const 二次特征主信息类* 二次特征生成模块::查找场景二次特�
         if (!私有_二次特征主体匹配(主信息, 主体)) {
             continue;
         }
-        if (语素集.安全获取词(主信息->概念名称) != 概念名称) {
+        if (!私有_引用指向节点(主信息->左对象, 特征节点)
+            && !私有_引用指向节点(主信息->右对象, 特征节点)) {
+            continue;
+        }
+        if (!私有_二次特征方向命中(主信息, 方向约束)) {
             continue;
         }
 
@@ -2503,11 +2536,17 @@ const 二次特征主信息类* 二次特征生成模块::查找场景二次特�
 // 功能：从指定来源读取数据或状态。
 std::optional<bool> 二次特征生成模块::读取场景二次特征布尔(
     场景节点类* 场景,
-    const std::string& 概念名称,
+    const 基础信息节点类* 特征节点,
+    方向掩码 方向约束,
     const 基础信息节点类* 主体,
     const std::optional<枚举_二次特征域>& 域) const noexcept
 {
-    const auto* 主信息 = 查找场景二次特征主信息(场景, 概念名称, 主体, 域);
+    const auto* 主信息 = 查找场景二次特征主信息(
+        场景,
+        特征节点,
+        方向约束,
+        主体,
+        域);
     if (!主信息) {
         return std::nullopt;
     }
@@ -2517,11 +2556,17 @@ std::optional<bool> 二次特征生成模块::读取场景二次特征布尔(
 // 功能：从指定来源读取数据或状态。
 std::optional<I64> 二次特征生成模块::读取场景二次特征标量(
     场景节点类* 场景,
-    const std::string& 概念名称,
+    const 基础信息节点类* 特征节点,
+    方向掩码 方向约束,
     const 基础信息节点类* 主体,
     const std::optional<枚举_二次特征域>& 域) const noexcept
 {
-    const auto* 主信息 = 查找场景二次特征主信息(场景, 概念名称, 主体, 域);
+    const auto* 主信息 = 查找场景二次特征主信息(
+        场景,
+        特征节点,
+        方向约束,
+        主体,
+        域);
     if (!主信息) {
         return std::nullopt;
     }

@@ -320,13 +320,15 @@ public:
         const char* 默认离散语义键 = "待填充") noexcept;
     const 二次特征主信息类* 查找场景二次特征主信息(
         场景节点类* 场景,
-        const std::string& 概念名称,
+        const 基础信息节点类* 特征节点,
+        方向掩码 方向约束 = 0,
         const 基础信息节点类* 主体 = nullptr,
         const std::optional<枚举_二次特征域>& 域 = std::nullopt,
         bool 取最近观测 = false) const noexcept;
     std::optional<bool> 读取场景二次特征布尔(
         场景节点类* 场景,
-        const std::string& 概念名称,
+        const 基础信息节点类* 特征节点,
+        方向掩码 方向约束 = 方向_大于0,
         const 基础信息节点类* 主体 = nullptr,
         const std::optional<枚举_二次特征域>& 域 = std::nullopt) const noexcept;
     bool 写入治理二次特征(
