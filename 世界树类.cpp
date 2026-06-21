@@ -316,12 +316,8 @@ namespace {
         if (!入口) {
             return {};
         }
-        try {
-            return 语素集.获取词(入口);
-        }
-        catch (...) {
-            return 入口->获取主键();
-        }
+        const auto 词面 = 语素集.安全获取词(入口);
+        return 词面.empty() ? 入口->获取主键() : 词面;
     }
 
     const char* 私有_世界树SQL主信息类型文本(const 枚举_主信息类型 类型) noexcept

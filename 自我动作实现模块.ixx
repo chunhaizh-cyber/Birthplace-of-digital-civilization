@@ -6671,7 +6671,7 @@ export namespace 自我动作实现模块 {
     inline std::string 语素日志文本(const 语素入口节点类* 词) noexcept
     {
         if (!词) return "空";
-        const auto 文本 = 语素集.获取词(词);
+        const auto 文本 = 语素集.安全获取词(词);
         if (文本.empty()) {
             return 词->获取主键();
         }

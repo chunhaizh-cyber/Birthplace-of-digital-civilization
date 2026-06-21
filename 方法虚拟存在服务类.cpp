@@ -48,7 +48,7 @@ namespace {
             return nullptr;
         }
         try {
-            const auto 词面 = 语素集.获取词(动作名);
+            const auto 词面 = 语素集.安全获取词(动作名);
             if (词面.empty()) {
                 return nullptr;
             }

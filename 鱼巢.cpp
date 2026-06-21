@@ -1637,12 +1637,7 @@ namespace {
             return "空";
         }
         std::string 词;
-        try {
-            词 = 语素集.获取词(入口);
-        }
-        catch (...) {
-            词.clear();
-        }
+        词 = 语素集.安全获取词(入口);
 
         const auto 主键 = 入口->获取主键();
         if (词.empty()) {
