@@ -111,6 +111,7 @@ public:
     词节点类* 添加二次特征词(语素节点类* 参照物, 语素节点类* 比较对象, 语素节点类* 比较类型);
     std::int64_t 添加对应基础信息(const 语素入口节点类* 词节点, 基础信息节点类* 基础信息);
     std::string 获取词(const 语素入口节点类* 语素入口指针) const;
+    std::string 安全获取词(const 语素入口节点类* 语素入口指针) const noexcept;
 
     // 功能：把当前语素树本体重写到 SQL Server 查询投影。
     bool 重写语素SQL投影(const char* 来源原因) const noexcept;
@@ -138,14 +139,5 @@ extern 语素类 语素集;
 // 功能：安全读取语素入口词面；入口为空或读取异常时返回空文本。
 inline std::string 语素_安全获取词(const 语素入口节点类* 词) noexcept
 {
-    if (!词) {
-        return {};
-    }
-
-    try {
-        return 语素集.获取词(词);
-    }
-    catch (...) {
-        return {};
-    }
+    return 语素集.安全获取词(词);
 }
