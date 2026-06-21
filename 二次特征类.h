@@ -72,6 +72,9 @@ public:
         const 二次特征节点类* 节点,
         std::int32_t& 输出编码) noexcept;
 
+    // 功能：统计二次特征中引用指定状态的次数。
+    std::uint64_t 统计状态引用数量(const 状态节点类* 状态) const noexcept;
+
     // 功能：判断二次特征是否命中二次特征模板。
     bool 二次特征模板匹配(const 二次特征节点类* 二次特征, const 二次特征节点类* 模板) const noexcept;
 
