@@ -60,6 +60,16 @@ public:
         const 二次特征节点类* 节点,
         结构_二次特征方向签名材料& 输出) noexcept;
 
+    // 功能：读取方向比较结果编码，不创建或修改节点。
+    static bool 读取方向比较结果编码_直接(
+        const 二次特征主信息类* 主信息,
+        std::int32_t& 输出编码) noexcept;
+
+    // 功能：读取方向比较结果编码，不创建或修改节点。
+    static bool 读取方向比较结果编码_直接(
+        const 二次特征节点类* 节点,
+        std::int32_t& 输出编码) noexcept;
+
     // 功能：判断二次特征是否命中二次特征模板。
     bool 二次特征模板匹配(const 二次特征节点类* 二次特征, const 二次特征节点类* 模板) const noexcept;
 
