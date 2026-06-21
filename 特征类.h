@@ -328,6 +328,12 @@ public:
         const 特征值& 右值,
         const 特征节点主信息类* 左特征主信息 = nullptr,
         const 特征节点主信息类* 右特征主信息 = nullptr) const;
+    // 功能：按特征引用读取类型和误差区间后比较特征值，不创建或修改节点。
+    特征比较方法结果 比较同语义特征值(
+        const 可解析引用<特征节点类>& 左特征,
+        const 特征值& 左值,
+        const 可解析引用<特征节点类>& 右特征,
+        const 特征值& 右值) const;
     static 结构_VecU特征解释规则 VecU解释规则_按特征类型(const 语素入口节点类* 特征类型);
     static std::optional<std::uint32_t> 轮廓坐标维度_按特征类型(const 语素入口节点类* 特征类型);
     static std::uint64_t 三维体素最终边长(std::uint32_t 细分层数) noexcept;
