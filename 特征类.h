@@ -280,6 +280,17 @@ public:
     特征值 读取子特征值_按类型(const 基础信息节点类* 宿主, const 语素入口节点类* 特征类型) const;
     std::size_t 复制子特征到宿主(基础信息节点类* 目标宿主, const 基础信息节点类* 来源宿主);
     bool 特征值命中值域(const 特征值& 值, const 特征值域& 值域) const;
+
+    // 功能：判断抽象特征是否由两个以上 I64 点值叶子状态组成。
+    static bool 抽象特征是离散点枚举(
+        const 抽象特征节点类* 抽象特征,
+        bool* 输出有子状态 = nullptr) noexcept;
+
+    // 功能：判断特征值是否命中抽象特征或其枚举子状态值域。
+    static bool 特征值命中抽象特征值域(
+        const 抽象特征节点类* 抽象特征,
+        const 特征值& 值) noexcept;
+
     bool 匹配抽象特征(const 抽象特征节点类* 抽象特征, const 特征节点类* 实例特征) const;
     特征节点类* 查找实例特征_按抽象特征(
         const 基础信息节点类* 宿主,
