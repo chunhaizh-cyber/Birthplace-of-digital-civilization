@@ -94,6 +94,7 @@ public:
     static bool 信息入口需要上下文限定(枚举_信息入口类型 信息入口类型) noexcept;
     static bool 信息入口裸词默认模板入口(枚举_信息入口类型 信息入口类型) noexcept;
     static 枚举_主信息类型 推断人类词性默认基础信息类型(枚举_词性 词性) noexcept;
+    static bool 基础信息类型可由语素入口模板创建(枚举_主信息类型 类型) noexcept;
 
     const 语素入口节点类* 绑定人类词性入口到场景基础信息(
         const std::string& 词字符串,
@@ -135,4 +136,3 @@ public:
 };
 
 extern 语素类 语素集;
-
