@@ -502,7 +502,7 @@ namespace {
         if (!语素集.节点属于语素树(词)) {
             return {};
         }
-        return 语素_安全获取词(词);
+        return 语素集.安全获取词(词);
     }
 
     enum class 枚举_自我根特征类型_自检 : std::uint8_t {

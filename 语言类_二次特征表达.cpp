@@ -64,7 +64,7 @@ namespace {
     std::string 私有_方法节点名称(const 方法类::节点类* 节点)
     {
         if (!节点) return {};
-        return 私有_安全文本(语素_安全获取词(节点->主信息.首节点信息().动作名), std::string("方法#") + 节点->获取主键());
+        return 私有_安全文本(语素集.安全获取词(节点->主信息.首节点信息().动作名), std::string("方法#") + 节点->获取主键());
     }
 
     struct 结构_二次特征方向模板 {
@@ -107,7 +107,7 @@ namespace {
     std::string 私有_二次特征轴键(const 二次特征主信息类* 主信息)
     {
         if (!主信息) return {};
-        const auto 概念名称 = 语素_安全获取词(主信息->概念名称);
+        const auto 概念名称 = 语素集.安全获取词(主信息->概念名称);
         if (!概念名称.empty()) return 概念名称;
         if (!主信息->度量签名_链键.empty()) return 主信息->度量签名_链键;
         return 私有_二次特征种类文本(主信息->种类);
@@ -322,32 +322,32 @@ namespace {
         if (!节点 || !节点->主信息) return {};
 
         if (const auto* 指代主信息 = dynamic_cast<const 指代节点主信息类*>(节点->主信息)) {
-            const auto 代词 = 语素_安全获取词(指代主信息->代词);
+            const auto 代词 = 语素集.安全获取词(指代主信息->代词);
             if (!代词.empty()) return 代词;
             if (指代主信息->指代对象.指针) {
                 return 私有_安全文本(
-                    语素_安全获取词(指代主信息->指代对象.指针->主信息 ? 指代主信息->指代对象.指针->主信息->名称 : nullptr),
+                    语素集.安全获取词(指代主信息->指代对象.指针->主信息 ? 指代主信息->指代对象.指针->主信息->名称 : nullptr),
                     "指代");
             }
             return "指代";
         }
 
         if (const auto* 场景主信息 = dynamic_cast<const 场景节点主信息类*>(节点->主信息)) {
-            const auto 名称 = 语素_安全获取词(场景主信息->名称);
+            const auto 名称 = 语素集.安全获取词(场景主信息->名称);
             return 名称.empty() ? 私有_世界类型文本(场景主信息->世界类型) : 名称;
         }
 
         if (const auto* 存在主信息 = dynamic_cast<const 存在节点主信息类*>(节点->主信息)) {
-            const auto 名称 = 语素_安全获取词(存在主信息->名称);
+            const auto 名称 = 语素集.安全获取词(存在主信息->名称);
             if (!名称.empty()) return 名称;
-            const auto 类型 = 语素_安全获取词(存在主信息->类型);
+            const auto 类型 = 语素集.安全获取词(存在主信息->类型);
             return 类型.empty() ? "存在" : 类型;
         }
 
         if (const auto* 特征主信息 = dynamic_cast<const 特征节点主信息类*>(节点->主信息)) {
-            const auto 类型 = 语素_安全获取词(特征主信息->类型);
+            const auto 类型 = 语素集.安全获取词(特征主信息->类型);
             if (!类型.empty()) return 类型;
-            const auto 名称 = 语素_安全获取词(特征主信息->名称);
+            const auto 名称 = 语素集.安全获取词(特征主信息->名称);
             return 名称.empty() ? "特征" : 名称;
         }
 
@@ -358,7 +358,7 @@ namespace {
             }
             std::string 特征短名{};
             if (const auto* 特征主信息 = 世界树.取特征主信息(状态主信息->状态特征.指针)) {
-                特征短名 = 私有_安全文本(语素_安全获取词(特征主信息->类型), 语素_安全获取词(特征主信息->名称));
+                特征短名 = 私有_安全文本(语素集.安全获取词(特征主信息->类型), 语素集.安全获取词(特征主信息->名称));
             }
             if (!主体短名.empty() && !特征短名.empty()) {
                 return 主体短名 + "的" + 特征短名;
@@ -372,25 +372,25 @@ namespace {
                 const auto 动作名 = 私有_方法节点名称(来源方法);
                 if (!动作名.empty()) return 动作名;
             }
-            const auto 动作名 = 语素_安全获取词(动态主信息->来源动作名);
+            const auto 动作名 = 语素集.安全获取词(动态主信息->来源动作名);
             if (!动作名.empty()) return 动作名;
             return "动态";
         }
 
         if (const auto* 二次特征主信息 = 二次特征主信息_桥接(节点)) {
-            const auto 概念名称 = 语素_安全获取词(二次特征主信息->概念名称);
+            const auto 概念名称 = 语素集.安全获取词(二次特征主信息->概念名称);
             if (!概念名称.empty()) return 概念名称;
             return 私有_二次特征种类文本(二次特征主信息->种类);
         }
 
         if (const auto* 因果主信息 = 世界树.取因果主信息(static_cast<const 因果节点类*>(节点))) {
-            const auto 名称 = 语素_安全获取词(因果主信息->名称);
+            const auto 名称 = 语素集.安全获取词(因果主信息->名称);
             return 名称.empty() ? "因果模板" : 名称;
         }
 
-        const auto 名称 = 语素_安全获取词(节点->主信息->名称);
+        const auto 名称 = 语素集.安全获取词(节点->主信息->名称);
         if (!名称.empty()) return 名称;
-        const auto 类型 = 语素_安全获取词(节点->主信息->类型);
+        const auto 类型 = 语素集.安全获取词(节点->主信息->类型);
         return 类型.empty() ? std::string("节点#") + 节点->获取主键() : 类型;
     }
 }
@@ -454,7 +454,7 @@ std::string 语言类::生成二次特征自然语言(const 二次特征节点�
     }
     if (!反义词结果.empty()) return 反义词结果;
 
-    const auto 概念名称 = 语素_安全获取词(主信息->概念名称);
+    const auto 概念名称 = 语素集.安全获取词(主信息->概念名称);
     if (!概念名称.empty()) return 概念名称;
     return 私有_二次特征种类文本(主信息->种类);
 }
