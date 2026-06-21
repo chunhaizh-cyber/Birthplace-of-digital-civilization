@@ -93,6 +93,9 @@ public:
     // 功能：判断节点是否为方法首节点。
     static bool 方法是首节点(const 节点类* 方法节点) noexcept;
 
+    // 功能：读取方法节点种类。
+    static 枚举_方法节点种类 方法节点种类(const 节点类* 方法节点) noexcept;
+
     // 功能：判断方法首节点是否声明了动作入口。
     static bool 方法有动作(const 节点类* 方法首节点) noexcept;
 
@@ -104,6 +107,15 @@ public:
 
     // 功能：读取方法首节点声明的结果能力项集合。
     static const std::vector<结构_方法结果项>* 方法结果项集(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点的首个结果能力特征类型。
+    static const 语素入口节点类* 方法首个结果能力特征类型(const 节点类* 方法首节点) noexcept;
+
+    // 功能：判断方法首节点结果能力是否参与普通查找。
+    static bool 方法结果能力可被查找命中(const 节点类* 方法首节点) noexcept;
+
+    // 功能：判断方法首节点结果能力是否为根写入原语。
+    static bool 方法结果能力是根写入原语(const 节点类* 方法首节点) noexcept;
 
     // 功能：设置方法首节点结果能力是否参与普通查找。
     static bool 设置方法结果能力查找属性(
@@ -133,6 +145,27 @@ public:
 
     // 功能：读取方法首节点绑定的本能方法 ID。
     static I64 方法本能ID(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点的方法虚拟存在引用。
+    static 可解析引用<存在节点类> 方法虚拟存在引用(const 节点类* 方法首节点) noexcept;
+
+    // 功能：只读解析方法首节点绑定的方法虚拟存在。
+    static 存在节点类* 方法虚拟存在只读(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点的来源任务引用。
+    static 可解析引用<任务节点类> 方法来源任务引用(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点的父方法引用。
+    static 可解析引用<方法节点类> 方法父方法引用(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点的前置方法引用。
+    static 可解析引用<方法节点类> 方法前置方法引用(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点的后续方法引用。
+    static 可解析引用<方法节点类> 方法后续方法引用(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点是否允许自动查找。
+    static bool 方法允许自动查找(const 节点类* 方法首节点) noexcept;
 
     // 功能：判断方法首节点是否绑定了有效本能方法。
     static bool 方法指定本能方法(const 节点类* 方法首节点) noexcept;
