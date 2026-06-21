@@ -102,6 +102,15 @@ public:
     // 功能：读取方法首节点成熟度阶段。
     static I64 方法成熟度阶段(const 节点类* 方法首节点) noexcept;
 
+    // 功能：读取方法首节点声明的结果能力项集合。
+    static const std::vector<结构_方法结果项>* 方法结果项集(const 节点类* 方法首节点) noexcept;
+
+    // 功能：设置方法首节点结果能力是否参与普通查找。
+    static bool 设置方法结果能力查找属性(
+        节点类* 方法首节点,
+        bool 可被方法查找命中,
+        bool 是否根写入原语) noexcept;
+
     // 功能：读取方法首节点的动作名入口。
     static const 语素入口节点类* 方法动作名(const 节点类* 方法首节点) noexcept;
 
