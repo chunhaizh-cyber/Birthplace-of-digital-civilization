@@ -86,6 +86,20 @@ public:
         std::int64_t 服务权重 = 0;
     };
 
+    struct 结构_需求结算收束结果 {
+        bool 成功 = false;
+        bool 已提交收束 = false;
+        bool 当前状态已回写 = false;
+        bool 已写结算 = false;
+        bool 已刷新权重 = false;
+        时间戳 需求有效截止 = 0;
+        I64 累计安全结算 = 0;
+        I64 累计服务结算 = 0;
+        I64 安全权重 = 0;
+        I64 服务权重 = 0;
+        std::string 最近结算任务主键{};
+    };
+
     struct 结构_需求目标视图项 {
         节点类* 需求节点 = nullptr;
         可解析引用<存在节点类> 目标主体{};
@@ -377,6 +391,15 @@ public:
     static I64 读取需求综合权重(
         const 节点类* 需求,
         I64 默认值 = 0) noexcept;
+
+    // 功能：提交需求结算摘要和可选目标状态收束，不直接修改需求树结构。
+    static 结构_需求结算收束结果 提交需求结算收束(
+        节点类* 需求,
+        const std::string& 最近结算任务主键,
+        I64 安全结算增量,
+        I64 服务结算增量,
+        bool 允许收束当前状态,
+        时间戳 now) noexcept;
 
     // 功能：判断来源需求是否携带安全方向，不修改需求树。
     static bool 来源需求有安全方向(const 节点类* 需求) noexcept;
