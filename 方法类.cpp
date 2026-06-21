@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include "基础信息类.h"
 #include "日志接入.h"
@@ -126,6 +127,74 @@ namespace {
             }
             当前 = static_cast<方法节点*>(当前->下);
         } while (当前 && 当前 != 首节点);
+        return nullptr;
+    }
+
+    template<class T谓词>
+    const 方法节点* 私有_查找方法树节点_按谓词(
+        const 方法节点* 起点,
+        T谓词&& 谓词) noexcept
+    {
+        if (!起点) {
+            return nullptr;
+        }
+
+        auto* 根节点 = 起点;
+        while (根节点 && 根节点->父) {
+            根节点 = static_cast<const 方法节点*>(根节点->父);
+        }
+
+        std::vector<const 方法节点*> 待访问{};
+        std::vector<const 方法节点*> 已入栈{};
+
+        const auto 已记录节点 = [&](const 方法节点* 节点) noexcept {
+            for (const auto* 已记录 : 已入栈) {
+                if (已记录 == 节点) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        const auto 压入待访问 = [&](const 方法节点* 节点) noexcept {
+            if (!节点 || 已记录节点(节点)) {
+                return;
+            }
+            已入栈.push_back(节点);
+            待访问.push_back(节点);
+        };
+
+        const auto 压入直接子链 = [&](const 方法节点* 父节点) noexcept {
+            auto* 首子 = 父节点
+                ? static_cast<const 方法节点*>(父节点->子)
+                : nullptr;
+            if (!首子) {
+                return;
+            }
+
+            auto* 当前子 = 首子;
+            std::size_t 兄弟保护计数 = 0;
+            do {
+                压入待访问(当前子);
+                当前子 = static_cast<const 方法节点*>(当前子->下);
+                ++兄弟保护计数;
+            } while (当前子 && 当前子 != 首子 && 兄弟保护计数 < 4096);
+        };
+
+        压入待访问(根节点);
+
+        std::size_t 访问计数 = 0;
+        constexpr std::size_t 访问保护上限 = 65536;
+        while (!待访问.empty() && 访问计数 < 访问保护上限) {
+            const auto* 当前 = 待访问.back();
+            待访问.pop_back();
+            ++访问计数;
+
+            if (当前 && 谓词(当前)) {
+                return 当前;
+            }
+            压入直接子链(当前);
+        }
         return nullptr;
     }
 
@@ -1492,6 +1561,24 @@ bool 方法类::方法首节点生产目标特征(
         }
     }
     return false;
+}
+
+// 功能：判断方法树中是否存在明确生产目标特征类型的方法首节点。
+bool 方法类::方法树存在生产目标特征(
+    const 节点类* 方法根节点,
+    const 语素入口节点类* 目标特征类型) noexcept
+{
+    if (!方法根节点 || !目标特征类型) {
+        return false;
+    }
+
+    return 私有_查找方法树节点_按谓词(
+        reinterpret_cast<const 方法节点*>(方法根节点),
+        [&](const 方法节点* 节点) noexcept {
+            return 方法首节点生产目标特征(
+                reinterpret_cast<const 方法节点类*>(节点),
+                目标特征类型);
+        }) != nullptr;
 }
 
 // 功能：比较两个场景的状态语义是否等价。

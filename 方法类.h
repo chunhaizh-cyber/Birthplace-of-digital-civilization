@@ -85,6 +85,11 @@ public:
         const 方法节点类* 方法,
         const 语素入口节点类* 目标特征类型) noexcept;
 
+    // 功能：判断方法树中是否存在明确生产目标特征类型的方法首节点。
+    static bool 方法树存在生产目标特征(
+        const 节点类* 方法根节点,
+        const 语素入口节点类* 目标特征类型) noexcept;
+
     // 功能：比较两个场景的状态语义是否等价。
     static bool 场景状态语义等价(
         const 场景节点类* 左,
