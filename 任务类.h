@@ -86,6 +86,22 @@ public:
         时间戳 now = 结构体_时间戳::当前_微秒());
 
     static bool 任务状态已终结(枚举_任务状态 状态) noexcept;
+    static const 可解析引用<需求节点类>& 读取任务对应需求引用(
+        const 节点类* 任务节点) noexcept;
+    static 需求节点类* 解析任务对应需求(
+        const 节点类* 任务节点) noexcept;
+    static const 可解析引用<存在节点类>& 读取任务虚拟存在引用(
+        const 节点类* 任务节点) noexcept;
+    static 存在节点类* 解析任务虚拟存在(
+        const 节点类* 任务节点) noexcept;
+    static const 可解析引用<场景节点类>& 读取任务场景引用(
+        const 节点类* 任务节点) noexcept;
+    static 场景节点类* 解析任务场景(
+        const 节点类* 任务节点) noexcept;
+    static const 可解析引用<状态节点类>& 读取任务目标状态引用(
+        const 节点类* 任务节点) noexcept;
+    static 状态节点类* 解析任务目标状态(
+        const 节点类* 任务节点) noexcept;
     static const 可解析引用<状态节点类>& 读取任务实际结果状态(
         const 节点类* 任务节点) noexcept;
     static 状态节点类* 解析任务实际结果状态(
@@ -99,6 +115,15 @@ public:
     static bool 绑定对应需求(
         节点类* 任务节点,
         需求节点类* 来源需求) noexcept;
+    static 时间戳 读取任务创建时间(
+        const 节点类* 任务节点,
+        时间戳 默认值 = 0) noexcept;
+    static 时间戳 读取任务启动时间(
+        const 节点类* 任务节点,
+        时间戳 默认值 = 0) noexcept;
+    static 时间戳 读取任务完成时间(
+        const 节点类* 任务节点,
+        时间戳 默认值 = 0) noexcept;
     static 枚举_任务状态 读取任务状态(
         const 节点类* 任务节点,
         枚举_任务状态 默认值 = 枚举_任务状态::未定义,
