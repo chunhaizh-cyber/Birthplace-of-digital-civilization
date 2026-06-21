@@ -574,6 +574,16 @@ const 语素入口节点类* 特征类::读取特征语义类型(const 特征节
     return 主信息 ? 主信息->类型 : nullptr;
 }
 
+// 功能：读取特征语义类型，不创建或修改节点。
+const 语素入口节点类* 特征类::读取特征语义类型_直接(
+    const 特征节点类* 特征) noexcept
+{
+    const auto* 主信息 = 特征
+        ? dynamic_cast<const 特征节点主信息类*>(特征->主信息)
+        : nullptr;
+    return 主信息 ? 主信息->类型 : nullptr;
+}
+
 // 功能：按函数名执行对应处理。
 抽象特征主信息类* 特征类::取抽象特征主信息(抽象特征节点类* 节点) const noexcept
 {
