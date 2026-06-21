@@ -1216,8 +1216,8 @@ const 语素入口节点类* 私有_特征_输出结果场景() noexcept
     if (请求场景) {
         return 请求场景;
     }
-    if (任务 && 任务->主信息.场景.指针) {
-        return reinterpret_cast<场景节点类*>(任务->主信息.场景.指针);
+    if (auto* 任务场景 = 任务类::解析任务场景(任务)) {
+        return 任务场景;
     }
     if (auto* 需求场景 = 需求类::解析需求场景(需求)) {
         return 需求场景;
@@ -1230,9 +1230,7 @@ const 语素入口节点类* 私有_特征_输出结果场景() noexcept
 
 存在节点类* 私有_任务虚拟存在_只读(任务节点* 任务) noexcept
 {
-    return 任务
-        ? reinterpret_cast<存在节点类*>(任务->主信息.任务虚拟存在.指针)
-        : nullptr;
+    return 任务类::解析任务虚拟存在(任务);
 }
 
 bool 私有_任务虚拟存在I64特征已是(
@@ -3843,15 +3841,16 @@ void 私有_收集任务树头节点(
     if (!任务) {
         return nullptr;
     }
-    if (任务->主信息.对应需求.指针) {
-        return reinterpret_cast<需求节点*>(任务->主信息.对应需求.指针);
+    const auto& 对应需求 = 任务类::读取任务对应需求引用(任务);
+    if (对应需求.指针) {
+        return reinterpret_cast<需求节点*>(对应需求.指针);
     }
-    if (!任务->主信息.对应需求.主键.empty()) {
+    if (!对应需求.主键.empty()) {
         auto* 自我存在 = 世界树.自我指针;
         auto* 需求根节点 = 自我存在 ? 世界树.获取需求根节点(自我存在) : nullptr;
         return 需求类::按主键解析需求节点(
             需求根节点,
-            任务->主信息.对应需求.主键);
+            对应需求.主键);
     }
     return nullptr;
 }
@@ -3861,11 +3860,12 @@ void 私有_收集任务树头节点(
     if (!任务) {
         return nullptr;
     }
-    if (任务->主信息.任务虚拟存在.指针) {
-        return reinterpret_cast<存在节点类*>(任务->主信息.任务虚拟存在.指针);
+    const auto& 任务虚拟存在 = 任务类::读取任务虚拟存在引用(任务);
+    if (任务虚拟存在.指针) {
+        return reinterpret_cast<存在节点类*>(任务虚拟存在.指针);
     }
-    if (!任务->主信息.任务虚拟存在.主键.empty()) {
-        return 世界树.按主键解析存在节点(任务->主信息.任务虚拟存在.主键);
+    if (!任务虚拟存在.主键.empty()) {
+        return 世界树.按主键解析存在节点(任务虚拟存在.主键);
     }
     return nullptr;
 }
