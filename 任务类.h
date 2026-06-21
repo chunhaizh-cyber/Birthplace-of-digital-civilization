@@ -102,6 +102,9 @@ public:
         const 节点类* 任务节点) noexcept;
     static 状态节点类* 解析任务目标状态(
         const 节点类* 任务节点) noexcept;
+    static bool 写入任务目标状态(
+        节点类* 任务节点,
+        const 可解析引用<状态节点类>& 目标状态引用) noexcept;
     static const 可解析引用<状态节点类>& 读取任务实际结果状态(
         const 节点类* 任务节点) noexcept;
     static 状态节点类* 解析任务实际结果状态(
