@@ -90,6 +90,18 @@ public:
         const 节点类* 方法根节点,
         const 语素入口节点类* 目标特征类型) noexcept;
 
+    // 功能：判断节点是否为方法首节点。
+    static bool 方法是首节点(const 节点类* 方法节点) noexcept;
+
+    // 功能：判断方法首节点是否声明了动作入口。
+    static bool 方法有动作(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点来源枚举。
+    static 枚举_方法来源 方法来源(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点成熟度阶段。
+    static I64 方法成熟度阶段(const 节点类* 方法首节点) noexcept;
+
     // 功能：读取方法首节点的动作名入口。
     static const 语素入口节点类* 方法动作名(const 节点类* 方法首节点) noexcept;
 
