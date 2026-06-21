@@ -90,6 +90,44 @@ public:
         const 节点类* 方法根节点,
         const 语素入口节点类* 目标特征类型) noexcept;
 
+    // 功能：读取方法首节点的动作名入口。
+    static const 语素入口节点类* 方法动作名(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点的动作句柄。
+    static 结构体_动作句柄 方法动作句柄(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点绑定的本能方法 ID。
+    static I64 方法本能ID(const 节点类* 方法首节点) noexcept;
+
+    // 功能：判断方法首节点是否绑定了有效本能方法。
+    static bool 方法指定本能方法(const 节点类* 方法首节点) noexcept;
+
+    // 功能：统计方法首节点的动作数量。
+    static I64 方法动作数量(const 节点类* 方法首节点) noexcept;
+
+    // 功能：统计方法首节点的结构化可执行入口数量。
+    static I64 方法可执行入口数量(const 节点类* 方法首节点) noexcept;
+
+    // 功能：统计方法首节点的条件节点数量。
+    static I64 方法条件节点数量(const 节点类* 方法首节点) noexcept;
+
+    // 功能：统计方法首节点的结果节点数量。
+    static I64 方法结果节点数量(const 节点类* 方法首节点) noexcept;
+
+    // 功能：统计方法首节点的条件结果对数量。
+    static I64 方法条件结果对数量(const 节点类* 方法首节点) noexcept;
+
+    // 功能：读取方法首节点的第一个条件场景。
+    static 场景节点类* 方法首个条件场景(
+        const 节点类* 方法首节点,
+        场景节点类* 默认场景 = nullptr) noexcept;
+
+    // 功能：计算方法首节点当前最低结构状态值。
+    static I64 方法最低结构状态值(const 节点类* 方法首节点) noexcept;
+
+    // 功能：判断方法首节点是否满足可用最低结构判据。
+    static bool 方法满足可用最低判据(const 节点类* 方法首节点) noexcept;
+
     // 功能：比较两个场景的状态语义是否等价。
     static bool 场景状态语义等价(
         const 场景节点类* 左,
