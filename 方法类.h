@@ -111,6 +111,20 @@ public:
         bool 可被方法查找命中,
         bool 是否根写入原语) noexcept;
 
+    // 功能：向方法首节点声明一个结果能力项。
+    static bool 声明方法结果能力(
+        节点类* 方法首节点,
+        结构_方法结果项 结果项,
+        bool 可被方法查找命中 = true,
+        bool 是否根写入原语 = false) noexcept;
+
+    // 功能：设置方法首节点的本能动作入口。
+    static bool 设置方法本能动作入口(
+        节点类* 方法首节点,
+        const 语素入口节点类* 动作名,
+        枚举_本能方法ID 本能ID,
+        时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
+
     // 功能：读取方法首节点的动作名入口。
     static const 语素入口节点类* 方法动作名(const 节点类* 方法首节点) noexcept;
 
