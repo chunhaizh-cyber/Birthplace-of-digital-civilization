@@ -90,6 +90,12 @@ public:
         std::int32_t& 输出编码,
         std::string* 输出语义键 = nullptr) noexcept;
 
+    // 功能：创建语素入口对应的二次特征概念模板主信息。
+    static 二次特征主信息类* 创建语素入口概念模板主信息_直接(const 语素入口节点类* 入口节点);
+
+    // 功能：判断二次特征主信息是否引用指定概念入口。
+    static bool 主信息引用概念入口_直接(const 基础信息基类* 主信息, const 语素入口节点类* 入口节点) noexcept;
+
     // 功能：判断二次特征是否命中二次特征模板。
     bool 二次特征模板匹配(const 二次特征节点类* 二次特征, const 二次特征节点类* 模板) const noexcept;
 
