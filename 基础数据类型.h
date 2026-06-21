@@ -1121,22 +1121,6 @@ struct 结构体_相机内参 {
     int 高度 = 0;
     bool 有效 = false;
 };
-// ===== 原始场景帧 =====
-template<class T>
-struct RawImage {
-    int w = 0, h = 0;
-    std::vector<T> data;
-
-    // 功能：按函数名执行对应处理。
-    bool valid() const { return w > 0 && h > 0 && (int)data.size() == w * h; }
-
-    // 功能：按函数名执行对应处理。
-    T& at(int x, int y) { return data[(size_t)y * (size_t)w + (size_t)x]; }
-
-    // 功能：按函数名执行对应处理。
-    const T& at(int x, int y) const { return data[(size_t)y * (size_t)w + (size_t)x]; }
-};
-
 struct 结构体_原始场景帧 {
     // 单位约定：几何量/深度/点云 = mm，像素坐标 = px
     结构体_帧时间戳 时间戳;
