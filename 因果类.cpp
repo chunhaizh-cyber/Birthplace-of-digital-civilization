@@ -798,8 +798,7 @@ static const 语素入口节点类* 私有_只读查找特征类型词(const cha
 {
     if (!词 || !*词) return nullptr;
     try {
-        auto* 词节点 = 语素集.获取词节点指针(词);
-        return 词节点 ? 语素集.查找信息入口节点(词节点, 枚举_信息入口类型::特征模板入口) : nullptr;
+        return 语素集.查找信息入口节点(词, 枚举_信息入口类型::特征模板入口);
     } catch (...) {
         return nullptr;
     }

@@ -1245,10 +1245,7 @@ namespace {
             if (!名称 || !*名称) {
                 return nullptr;
             }
-            const auto* 词节点 = 语素集.查找词节点(名称);
-            return 词节点
-                ? 语素集.查找信息入口节点(词节点, 枚举_信息入口类型::特征模板入口)
-                : nullptr;
+            return 语素集.查找信息入口节点(名称, 枚举_信息入口类型::特征模板入口);
         }
         catch (...) {
             return nullptr;
@@ -1262,10 +1259,7 @@ namespace {
             if (!名称 || !*名称) {
                 return nullptr;
             }
-            const auto* 词节点 = 语素集.查找词节点(名称);
-            return 词节点
-                ? 语素集.查找信息入口节点(词节点, 枚举_信息入口类型::存在概念入口)
-                : nullptr;
+            return 语素集.查找信息入口节点(名称, 枚举_信息入口类型::存在概念入口);
         }
         catch (...) {
             return nullptr;
@@ -2981,10 +2975,7 @@ namespace {
             if (!名称 || !*名称) {
                 return nullptr;
             }
-            const auto* 词节点 = 语素集.查找词节点(名称);
-            return 词节点
-                ? 语素集.查找信息入口节点(词节点, 枚举_信息入口类型::特征模板入口)
-                : nullptr;
+            return 语素集.查找信息入口节点(名称, 枚举_信息入口类型::特征模板入口);
         }
         catch (...) {
             return nullptr;
@@ -3136,8 +3127,7 @@ namespace {
         if (词值.empty() || 词性值.empty()) {
             return nullptr;
         }
-        auto* 词节点 = 语素集.查找词节点(词值);
-        return 词节点 ? 语素集.查找人类词性入口节点(词节点, 词性值) : nullptr;
+        return 语素集.查找人类词性入口节点(词值, 词性值);
     }
 
     // 功能：服务所在模块的内部辅助流程。
