@@ -1,11 +1,24 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "基础信息类.h"
+
+struct 结构_二次特征方向签名材料 {
+    可解析引用<基础信息节点类> 主体{};
+    可解析引用<状态节点类> 来源起始状态{};
+    可解析引用<状态节点类> 来源结果状态{};
+    三向关系掩码 允许方向 = 0;
+    二次特征主信息类::枚举_方向区间 方向区间 =
+        二次特征主信息类::枚举_方向区间::未定义;
+    std::optional<I64> 差值{};
+    bool 有标量值 = false;
+    I64 标量值 = 0;
+};
 
 class 二次特征类 {
 public:
@@ -36,6 +49,11 @@ public:
     bool 融合同向状态迁移可融合标量区间(
         二次特征节点类* 目标二次特征,
         const std::vector<二次特征节点类*>& 候选集合) const noexcept;
+
+    // 功能：读取方向签名材料，不创建或修改节点。
+    static bool 读取方向签名材料_直接(
+        const 二次特征主信息类* 主信息,
+        结构_二次特征方向签名材料& 输出) noexcept;
 
     // 功能：判断二次特征是否命中二次特征模板。
     bool 二次特征模板匹配(const 二次特征节点类* 二次特征, const 二次特征节点类* 模板) const noexcept;
