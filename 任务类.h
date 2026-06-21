@@ -147,12 +147,6 @@ public:
         时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
     static bool 任务允许派发(const 节点类* 任务节点) noexcept;
     static void 确保任务初始状态(节点类* 任务节点) noexcept;
-    static void 标记任务待重筹办(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
-    static void 标记任务等待(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
-    static void 标记任务已承接(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
-    static void 标记任务已派发(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
-    static void 标记任务负载等待(节点类* 任务节点, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
-    static void 应用任务状态(节点类* 任务节点, 枚举_任务状态 新状态, 时间戳 now = 结构体_时间戳::当前_微秒()) noexcept;
     static 节点类* 读取任务管理对象任务(节点类* 任务节点) noexcept;
     static const 节点类* 读取任务管理对象任务(const 节点类* 任务节点) noexcept;
     static 节点类* 读取任务管理对象或自身(节点类* 任务节点) noexcept;
