@@ -1100,7 +1100,6 @@ namespace {
         std::string 条件场景主键{};
         std::string 结果场景主键{};
         std::string 主结果特征主键{};
-        int 条件组数量 = 0;
         int 结果项数量 = 0;
         bool 允许自动查找 = false;
         bool 有方法动作 = false;
@@ -1232,7 +1231,6 @@ namespace {
         const auto* 条件信息 = 节点->主信息.取条件节点信息();
         if (条件信息) {
             行.条件场景主键 = 私有_方法SQL引用主键(条件信息->条件场景);
-            行.条件组数量 = static_cast<int>(条件信息->条件面.可用条件组集.size());
             return;
         }
 
@@ -1345,7 +1343,6 @@ namespace {
             << "    condition_scene_key nvarchar(80) NULL,\n"
             << "    result_scene_key nvarchar(80) NULL,\n"
             << "    primary_result_feature_key nvarchar(160) NULL,\n"
-            << "    condition_group_count int NOT NULL,\n"
             << "    result_item_count int NOT NULL,\n"
             << "    allow_auto_find bit NOT NULL,\n"
             << "    has_action bit NOT NULL,\n"
@@ -1365,7 +1362,13 @@ namespace {
     std::string 私有_方法树SQL视图脚本()
     {
         std::ostringstream SQL;
-        SQL << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_method_main_info AS\n"
+        SQL << "IF OBJECT_ID(N'fishnest.v_current_method_tree_nodes', N'V') IS NOT NULL\n"
+            << "    DROP VIEW fishnest.v_current_method_tree_nodes;\n"
+            << "IF OBJECT_ID(N'fishnest.v_current_method_main_info', N'V') IS NOT NULL\n"
+            << "    DROP VIEW fishnest.v_current_method_main_info;\n"
+            << "IF COL_LENGTH(N'fishnest.method_main_info', N'condition_group_count') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.method_main_info DROP COLUMN condition_group_count;\n"
+            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_method_main_info AS\n"
             << "SELECT m.*\n"
             << "FROM fishnest.method_main_info m\n"
             << "WHERE m.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.method_tree_snapshot ORDER BY captured_at DESC);');\n"
@@ -1392,7 +1395,6 @@ namespace {
             << "    m.condition_scene_key,\n"
             << "    m.result_scene_key,\n"
             << "    m.primary_result_feature_key,\n"
-            << "    m.condition_group_count,\n"
             << "    m.result_item_count,\n"
             << "    m.allow_auto_find,\n"
             << "    m.has_action,\n"
@@ -1436,6 +1438,8 @@ namespace {
             << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN primary_result_feature_key;\n"
             << "IF COL_LENGTH(N'fishnest.method_tree_node', N'condition_group_count') IS NOT NULL\n"
             << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN condition_group_count;\n"
+            << "IF COL_LENGTH(N'fishnest.method_main_info', N'condition_group_count') IS NOT NULL\n"
+            << "    ALTER TABLE fishnest.method_main_info DROP COLUMN condition_group_count;\n"
             << "IF COL_LENGTH(N'fishnest.method_tree_node', N'result_item_count') IS NOT NULL\n"
             << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN result_item_count;\n"
             << "IF COL_LENGTH(N'fishnest.method_tree_node', N'allow_auto_find') IS NOT NULL\n"
@@ -1462,7 +1466,7 @@ namespace {
                 << 行.同层序号 << ", "
                 << 行.直接子数量 << ", "
                 << 私有_方法SQL字符串(行.路径) << ");\n";
-            SQL << "INSERT INTO fishnest.method_main_info (snapshot_id, node_key, node_row_index, node_kind_value, node_kind_text, action_name, action_handle, source_value, source_text, method_virtual_exist_key, condition_scene_key, result_scene_key, primary_result_feature_key, condition_group_count, result_item_count, allow_auto_find, has_action, has_result_ability) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO fishnest.method_main_info (snapshot_id, node_key, node_row_index, node_kind_value, node_kind_text, action_name, action_handle, source_value, source_text, method_virtual_exist_key, condition_scene_key, result_scene_key, primary_result_feature_key, result_item_count, allow_auto_find, has_action, has_result_ability) VALUES (@snapshot_id, "
                 << 私有_方法SQL字符串(行.节点主键, false) << ", "
                 << 行.行号 << ", "
                 << 行.节点种类值 << ", "
@@ -1475,7 +1479,6 @@ namespace {
                 << 私有_方法SQL字符串(行.条件场景主键) << ", "
                 << 私有_方法SQL字符串(行.结果场景主键) << ", "
                 << 私有_方法SQL字符串(行.主结果特征主键) << ", "
-                << 行.条件组数量 << ", "
                 << 行.结果项数量 << ", "
                 << 私有_方法SQL布尔(行.允许自动查找) << ", "
                 << 私有_方法SQL布尔(行.有方法动作) << ", "
