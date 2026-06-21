@@ -19,6 +19,12 @@ inline bool 语素入口同一(const 语素入口节点类* 左, const 语素入
     return !左主键.empty() && 左主键 == 右->获取主键();
 }
 
+// 功能：只比较两个语素入口节点指针是否完全相同，不读取主键或父词节点。
+inline bool 语素入口指针相同(const 语素入口节点类* 左, const 语素入口节点类* 右) noexcept
+{
+    return 左 == 右;
+}
+
 class 语素类 : public 链表模板<语素基类*> {
 public:
     using 基类 = 链表模板<语素基类*>;
