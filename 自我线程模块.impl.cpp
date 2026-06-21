@@ -78,8 +78,7 @@ std::string 私有_安全词(const 语素入口节点类* 词) noexcept
         return {};
     }
 
-    const auto* 语素根 = reinterpret_cast<const 语素入口节点类*>(语素集.根指针);
-    if (!私有_节点属于独立树(语素根, 词)) {
+    if (!语素集.节点属于语素树(词)) {
         return {};
     }
 
@@ -2564,13 +2563,12 @@ const 语素入口节点类* 私有_解析入口节点引用(
     const std::uintptr_t 节点指针,
     const std::string& 主键) noexcept
 {
-    auto* 语素根 = reinterpret_cast<语素入口节点类*>(语素集.根指针);
     if (!主键.empty()) {
-        return 私有_按主键扫描独立树(语素根, 主键);
+        return 语素集.按主键查找语素入口节点(主键);
     }
 
     auto* 候选节点 = reinterpret_cast<语素入口节点类*>(节点指针);
-    return 私有_节点属于独立树(语素根, 候选节点) ? 候选节点 : nullptr;
+    return 语素集.节点属于语素树(候选节点) ? 候选节点 : nullptr;
 }
 
 // 功能：解析输入文本、消息、场景或运行包。

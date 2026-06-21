@@ -499,8 +499,7 @@ namespace {
         if (!词) {
             return {};
         }
-        const auto* 语素根 = reinterpret_cast<const 语素入口节点类*>(语素集.根指针);
-        if (!私有_节点属于独立树(语素根, 词)) {
+        if (!语素集.节点属于语素树(词)) {
             return {};
         }
         return 语素_安全获取词(词);

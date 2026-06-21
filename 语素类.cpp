@@ -835,6 +835,51 @@ bool 语素类::重写语素SQL投影(const char* 来源原因) const noexcept
     return 查找词_已加锁(词字符串);
 }
 
+// 功能：只读返回语素树根节点。
+const 语素节点类* 语素类::获取语素树根节点() const noexcept
+{
+    读锁守卫 lk(链表锁);
+    return static_cast<const 语素节点类*>(根指针);
+}
+
+// 功能：判断指定节点是否属于当前语素树。
+bool 语素类::节点属于语素树(const 语素节点类* 节点) const noexcept
+{
+    if (!节点) return false;
+    读锁守卫 lk(链表锁);
+    const auto* 根 = static_cast<const 语素节点类*>(根指针);
+    if (!根) return false;
+    if (节点 == 根) return true;
+    for (auto* 当前 = static_cast<const 语素节点类*>(根->链下);
+         当前 && 当前 != 根;
+         当前 = static_cast<const 语素节点类*>(当前->链下)) {
+        if (当前 == 节点) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// 功能：按主键只读查找语素入口节点，不隐式创建节点。
+const 语素入口节点类* 语素类::按主键查找语素入口节点(const std::string& 主键) const noexcept
+{
+    if (主键.empty()) return nullptr;
+    读锁守卫 lk(链表锁);
+    const auto* 根 = static_cast<const 语素节点类*>(根指针);
+    if (!根) return nullptr;
+    if (根->获取主键() == 主键) {
+        return static_cast<const 语素入口节点类*>(根);
+    }
+    for (auto* 当前 = static_cast<const 语素节点类*>(根->链下);
+         当前 && 当前 != 根;
+         当前 = static_cast<const 语素节点类*>(当前->链下)) {
+        if (当前->获取主键() == 主键) {
+            return static_cast<const 语素入口节点类*>(当前);
+        }
+    }
+    return nullptr;
+}
+
 // 功能：按条件查找目标对象、方法或事实。
 语素入口节点类* 语素类::查找人类词性入口节点(const 词节点类* 词节点, 枚举_词性 词性值) const
 {

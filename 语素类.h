@@ -40,6 +40,9 @@ public:
     词节点类* 添加词(const std::string& 词字符串);
     词节点类* 查找词节点(const std::string& 词字符串) const;
     词节点类* 获取词节点指针(const std::string& 词字符串) const;
+    const 语素节点类* 获取语素树根节点() const noexcept;
+    bool 节点属于语素树(const 语素节点类* 节点) const noexcept;
+    const 语素入口节点类* 按主键查找语素入口节点(const std::string& 主键) const noexcept;
 
     语素入口节点类* 查找人类词性入口节点(const 词节点类* 词节点, 枚举_词性 词性值) const;
     语素入口节点类* 查找人类词性入口节点(const std::string& 词值, 枚举_词性 词性值) const;

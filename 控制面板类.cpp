@@ -325,7 +325,7 @@ namespace {
             return reinterpret_cast<const 节点类型*>(语言集.根指针);
         }
         else if constexpr (std::is_same_v<节点类型, 语素入口节点类>) {
-            return reinterpret_cast<const 节点类型*>(语素集.根指针);
+            return 语素集.获取语素树根节点();
         }
         else {
             return nullptr;
