@@ -191,55 +191,6 @@ private:
     }
 };
 
-struct 结构_基础信息轻引用 {
-    std::uintptr_t 指针 = 0;
-    std::string 主键{};
-
-    // 功能：按函数名执行对应处理。
-    bool 有效() const noexcept { return 指针 != 0 || !主键.empty(); }
-
-    template<class T节点>
-    T节点* 取指针() const noexcept
-    {
-        return reinterpret_cast<T节点*>(指针);
-    }
-
-    template<class T节点>
-    void 绑定(T节点* 节点)
-    {
-        指针 = reinterpret_cast<std::uintptr_t>(节点);
-        主键 = 私有_提取主键(节点);
-    }
-
-    // 功能：按函数名执行对应处理。
-    void 清空() noexcept
-    {
-        指针 = 0;
-        主键.clear();
-    }
-
-private:
-    template<class U节点>
-    static auto 私有_提取主键_impl(U节点* 节点, int) -> decltype(节点->获取主键(), std::string{})
-    {
-        return 节点 ? 节点->获取主键() : std::string{};
-    }
-
-    template<class U节点>
-    static std::string 私有_提取主键_impl(U节点*, long)
-    {
-        return {};
-    }
-
-    template<class T节点>
-    static std::string 私有_提取主键(T节点* 节点)
-    {
-        return 私有_提取主键_impl(节点, 0);
-    }
-};
-
-using 抽象特征引用 = 结构_基础信息轻引用;
-
 struct 结构_统计 {
     时间戳 创建时间 = 0;
     时间戳 最后观测时间 = 0;
@@ -648,9 +599,8 @@ enum class 枚举_比较模式 : std::uint8_t {
     // ====== 3) 特化模式（语义更强）======
 
     颜色距离_BGR = 20,
-    // 适用：颜色_BGR8 或 VecI64(3维)/VecIU64(3维) 的颜色向量表示
+    // 适用：VecI64(3维)/VecIU64(3维) 的颜色向量表示
     // 语义：在 BGR 空间的距离（常用 L1 或 L2）；用于颜色聚合/命中
-    // 备注：如果你保留了 颜色_BGR8 类型，推荐直接针对它实现更省分支
 
     区间关系 = 30
     // 适用：区间摘要（特征节点的区间 side-car），或值节点自带区间时
@@ -856,9 +806,6 @@ enum class 枚举_特征值比较模式 {
 // ===== 基础类型 =====
 struct Color {
     uint8_t r = 255, g = 255, b = 255;
-};
-struct 颜色_BGR8 {
-    std::uint8_t b{}, g{}, r{};
 };
 /////////////////////////////////////////////////////////////////////////////////
 // 相机模块参数

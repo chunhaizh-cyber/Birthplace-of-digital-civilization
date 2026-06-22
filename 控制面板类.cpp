@@ -2303,15 +2303,6 @@ namespace {
         return 输出.str();
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    std::string 私有_轻引用文本(const 结构_基础信息轻引用& 引用)
-    {
-        auto* 指针 = 引用.指针 != 0
-            ? reinterpret_cast<基础信息节点类*>(引用.指针)
-            : nullptr;
-        return 私有_引用文本(指针, 引用.主键);
-    }
-
     template<class T节点>
     constexpr std::string_view 私有_引用展开类型() noexcept
     {
@@ -15031,4 +15022,3 @@ std::filesystem::path 默认控制面板HTML路径()
     }
     return 输出;
 }
-
