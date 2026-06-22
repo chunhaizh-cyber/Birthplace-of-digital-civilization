@@ -197,8 +197,6 @@ struct 结构_任务执行前许可结果 {
     bool 禁止项命中 = false;
     bool 方向证据已提供 = false;
     bool 方向不一致 = false;
-    // 仅供日志展示，不作为机器审批语义。
-    std::string 原因{};
 };
 
 struct 结构_任务权重固化请求 {
