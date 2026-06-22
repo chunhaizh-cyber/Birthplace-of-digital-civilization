@@ -1216,33 +1216,6 @@ struct 点索引 {
     点索引() {}
 };
 using 点簇 = std::vector<点索引>;
-// 统一的图像缓冲：u8（BGR、mask、edge、confidence 都能放）
-// 约定：data 为行优先连续存储，stride_bytes 可选（0=自动= w*c）
-struct 结构体_图像缓冲_u8 {
-    int w = 0, h = 0, c = 0;
-    int stride_bytes = 0;
-    std::vector<std::uint8_t> data;
-
-    // 功能：按函数名执行对应处理。
-    inline bool 有效() const {
-        return w > 0 && h > 0 && c > 0 && !data.empty();
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline void 清空() { w = h = c = stride_bytes = 0; data.clear(); data.shrink_to_fit(); }
-};
-
-// 浮点缓冲：用于法线/权重（建议 float，double 太肥且没必要）
-struct 结构体_图像缓冲_f32 {
-    int w = 0, h = 0, c = 0;       // 法线 c=3, 权重 c=1
-    std::vector<float> data;
-
-    // 功能：按函数名执行对应处理。
-    inline bool 有效() const { return w > 0 && h > 0 && c > 0 && !data.empty(); }
-
-    // 功能：按函数名执行对应处理。
-    inline void 清空() { w = h = c = 0; data.clear(); data.shrink_to_fit(); }
-};
 // 轮廓编码/占据签名：用 uint64_t 表达 bit-block 更贴切
 
 
