@@ -93,7 +93,6 @@ export struct 结构_自我根需求压力评估 {
     需求类::节点类* 安全根需求 = nullptr;
     需求类::节点类* 服务根需求 = nullptr;
     需求类::节点类* 选中需求 = nullptr;
-    std::string 选择原因{};
 };
 
 export class 自我类 {
