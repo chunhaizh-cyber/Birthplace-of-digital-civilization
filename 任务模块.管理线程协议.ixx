@@ -223,7 +223,6 @@ struct 结构_派生需求入树回执 {
     bool 是否阻塞父任务推进 = false;
     时间戳 当前时间 = 0;
     std::string 原派生消息幂等键{};
-    std::string 原派生消息摘要{};
 };
 
 struct 结构_任务调度运行参数 {
@@ -466,7 +465,6 @@ struct 结构_任务界面线程快照 {
     std::string 最近调度事件类型{};
     std::string 最近工作项类型{};
     std::string 最近派生需求入树处理结果{};
-    std::string 最近派生需求入树摘要{};
     std::string 待筹办队列头部任务主键{};
     std::string 待执行队列头部任务主键{};
     I64 待筹办队列头部优先级 = 0;
