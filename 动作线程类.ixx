@@ -9,7 +9,6 @@ module;
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <string>
 #include <thread>
 #include <unordered_map>
 #include <utility>
@@ -49,8 +48,6 @@ struct 结构_动作步骤结果 {
     std::uint64_t 成本_us = 0;
     场景节点类* 结果存在集场景 = nullptr;
     场景节点类* 结果事件集场景 = nullptr;
-
-    std::string 备注{};
 };
 
 using 结构体_动作步骤结果 = 结构_动作步骤结果;
@@ -202,7 +199,6 @@ public:
             输出.质量 = 运行闭环视图.方法执行成功 && !运行闭环视图.有执行缺口() ? 10000 : 0;
             输出.结果存在集场景 = 输出场景;
             输出.结果事件集场景 = 输出场景;
-            输出.备注 = 本能动作运行结果文本(本能运行结果);
             return 输出;
         });
         return true;
@@ -290,7 +286,7 @@ public:
         }
 
         if (!运行中_.load(std::memory_order_acquire) || 停止请求_.load(std::memory_order_acquire)) {
-            return 立即返回失败_(请求.请求ID, 错误_未启动, "动作线程未启动或正在退出");
+            return 立即返回失败_(请求.请求ID, 错误_未启动);
         }
 
         队列项 项{};
@@ -301,7 +297,7 @@ public:
             std::lock_guard<std::mutex> 锁(队列锁_);
 
             if (停止请求_.load(std::memory_order_acquire)) {
-                return 立即返回失败_(项.请求.请求ID, 错误_未启动, "动作线程正在退出");
+                return 立即返回失败_(项.请求.请求ID, 错误_未启动);
             }
 
             队列_.push(std::move(项));
@@ -336,8 +332,7 @@ private:
     // 功能：按函数名执行对应处理。
     static std::future<结构_动作执行结果> 立即返回失败_(
         std::uint64_t 请求ID,
-        std::int64_t 错误码,
-        std::string 备注)
+        std::int64_t 错误码)
     {
         std::promise<结构_动作执行结果> 承诺{};
         auto future = 承诺.get_future();
@@ -348,13 +343,10 @@ private:
         结果.开始_us = 结构体_时间戳::当前_微秒();
         结果.结束_us = 结果.开始_us;
 
-        if (!备注.empty()) {
-            结构_动作步骤结果 步骤{};
-            步骤.动作ID = 枚举_本能方法ID::未定义;
-            步骤.成功码 = 错误码;
-            步骤.备注 = std::move(备注);
-            结果.步骤结果.push_back(std::move(步骤));
-        }
+        结构_动作步骤结果 步骤{};
+        步骤.动作ID = 枚举_本能方法ID::未定义;
+        步骤.成功码 = 错误码;
+        结果.步骤结果.push_back(std::move(步骤));
 
         承诺.set_value(std::move(结果));
         return future;
@@ -420,7 +412,6 @@ private:
                     结构_动作步骤结果 步骤{};
                     步骤.动作ID = 动作ID;
                     步骤.成功码 = 错误_动作未注册;
-                    步骤.备注 = "动作未注册";
                     结果.步骤结果.push_back(std::move(步骤));
 
                     if (结果.总成功码 == 0) {
@@ -456,7 +447,6 @@ private:
                     结构_动作步骤结果 步骤{};
                     步骤.动作ID = 动作ID;
                     步骤.成功码 = 错误_动作异常;
-                    步骤.备注 = 异常.what();
                     结果.步骤结果.push_back(std::move(步骤));
                     项目记录异常日志(异常, "动作线程类::线程函数_");
 
@@ -471,7 +461,6 @@ private:
                     结构_动作步骤结果 步骤{};
                     步骤.动作ID = 动作ID;
                     步骤.成功码 = 错误_动作未知异常;
-                    步骤.备注 = "动作抛出未知异常";
                     结果.步骤结果.push_back(std::move(步骤));
                     项目运行错误日志("动作线程类::线程函数_ 捕获未知异常");
 
