@@ -323,8 +323,6 @@ struct 结构_任务工作结果 {
 
     I64 错误码 = 0;
     std::string 错误说明{};
-    // 仅供程序调试和日志展示，绝不能作为逻辑语义、业务判断、去重、结算或因果依据。
-    std::string 等待原因{};
 
     结构_任务控制态 最新任务控制态{};
     结构_任务局部运行态 最新任务局部运行态{};
@@ -478,7 +476,6 @@ struct 结构_任务界面线程快照 {
     std::string 最近调度动作{};
     std::string 最近调度事件类型{};
     std::string 最近工作项类型{};
-    std::string 最近入队原因{};
     std::string 最近派生需求入树处理结果{};
     std::string 最近派生需求入树摘要{};
     std::string 待筹办队列头部任务主键{};
@@ -487,7 +484,6 @@ struct 结构_任务界面线程快照 {
     I64 待执行队列头部优先级 = 0;
     std::string 待筹办队列头部排序兜底键{};
     std::string 待执行队列头部排序兜底键{};
-    std::string 最近排序原因{};
     std::uint64_t 最近巡检任务数 = 0;
     std::uint64_t 最近巡检入队任务数 = 0;
     std::uint64_t 最近巡检耗时微秒 = 0;
@@ -499,11 +495,9 @@ struct 结构_任务界面线程快照 {
     std::uint64_t 最近巡检跳过缺结构数 = 0;
     std::uint64_t 最近巡检跳过不可推进数 = 0;
     std::uint64_t 最近巡检跳过入队预算数 = 0;
-    std::string 最近不可推进原因{};
     std::string 最近后台worker任务主键{};
     std::string 最近后台worker工作项类型{};
     std::string 最近后台worker状态{};
-    std::string 最近后台worker原因{};
     std::string 最近状态提交确认任务主键{};
     std::string 最近状态提交确认状态{};
     std::string 最近参数保存结果 = "尚未保存";

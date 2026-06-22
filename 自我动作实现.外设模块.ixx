@@ -997,13 +997,6 @@ namespace {
         return s_词;
     }
 
-    // 功能：等待线程、任务、外设或条件变化。
-    inline const 语素入口节点类* 特征_等待原因() noexcept
-    {
-        static const 语素入口节点类* s_词 = 语素集.添加信息入口词("等待原因", 枚举_信息入口类型::特征模板入口);
-        return s_词;
-    }
-
     // 功能：按函数名执行对应处理。
     inline const 语素入口节点类* 特征_派生需求提示() noexcept
     {
