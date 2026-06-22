@@ -2390,15 +2390,6 @@ void 自我类::同步运行态特征_() noexcept
         now);
 }
 
-// 功能：重置对象、线程、任务或运行状态。
-void 自我类::重置时序步长为默认值_() noexcept
-{
-    temporal_forward_step_.store(1, std::memory_order_release);
-    temporal_backward_step_.store(1, std::memory_order_release);
-    service_decay_step_.store(1, std::memory_order_release);
-    standby_mode_.store(false, std::memory_order_release);
-}
-
 // 功能：按函数名执行对应处理。
 void 自我类::重算时序回归步长_按当前双值_() noexcept
 {

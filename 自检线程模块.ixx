@@ -102,7 +102,6 @@ public:
     bool 是否健康运行() const noexcept;
     枚举_自检线程生命周期状态 读取生命周期状态() const noexcept;
     结构_自检线程摘要 读取摘要() const;
-    std::vector<std::string> 读取最近事件列表(std::size_t 上限 = 32) const;
 
 private:
     void 主循环_();

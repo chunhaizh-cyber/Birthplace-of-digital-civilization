@@ -21,14 +21,7 @@ public:
     void 初始化();
 
     std::string 获取基础信息名称(const 基础信息节点类* 节点) const;
-    std::string 生成二次特征反义词结果(const 二次特征节点类* 节点) const;
-    std::string 生成二次特征介词短语(const 二次特征节点类* 节点) const;
     std::string 生成二次特征自然语言(const 二次特征节点类* 节点) const;
-    std::string 生成存在有什么表达(const 存在节点类* 节点, std::size_t 上限 = 5) const;
-    std::string 生成存在是什么表达(const 存在节点类* 节点) const;
-    std::string 生成存在能什么表达(const 存在节点类* 节点, std::size_t 上限 = 5) const;
-    std::string 生成存在会什么表达(const 存在节点类* 节点, std::size_t 上限 = 3) const;
-    std::string 生成存在需要什么表达(const 存在节点类* 节点, std::size_t 上限 = 5) const;
 
     文章节点类* 新建文章(const std::string& 标题, const std::string& 原文);
     段落节点类* 添加段落(文章节点类* 文章节点, std::size_t 在文章中的序号, const std::string& 段落文本);

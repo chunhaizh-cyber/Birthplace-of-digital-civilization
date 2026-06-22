@@ -569,9 +569,7 @@ public:
     std::uint64_t 读取Tick计数() const noexcept;
     std::uint64_t 读取累计故障次数() const noexcept;
     std::uint64_t 读取累计恢复次数() const noexcept;
-    时间戳 读取最近Tick时间() const noexcept;
     结构_自我线程最小状态快照 读取自我线程最小状态快照() const;
-    时间戳 读取上次故障时间() const noexcept;
     std::string 读取上次故障摘要() const;
     std::string 读取最近恢复摘要() const;
     std::string 读取最近故障摘要() const;
@@ -1104,4 +1102,3 @@ export 自我线程类::结构_自我线程最小状态快照 读取自我线程
 export bool 投递治理外部反馈事件(
     const std::string& 摘要,
     const std::string& 来源主观察特征 = "外部反馈/人工注入");
-

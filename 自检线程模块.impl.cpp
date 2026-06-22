@@ -1529,22 +1529,6 @@ bool 自检线程类::是否健康运行() const noexcept
     return 摘要;
 }
 
-// 功能：从指定来源读取数据或状态。
-std::vector<std::string> 自检线程类::读取最近事件列表(std::size_t 上限) const
-{
-    std::lock_guard<std::mutex> 锁(状态锁_);
-    std::vector<std::string> 输出{};
-    const auto 数量 = (std::min)(上限, 最近事件_.size());
-    输出.reserve(数量);
-    auto it = 最近事件_.end();
-    for (std::size_t i = 0; i < 数量; ++i) {
-        --it;
-        输出.push_back(*it);
-    }
-    std::reverse(输出.begin(), 输出.end());
-    return 输出;
-}
-
 // 功能：记录日志、动态、证据或运行痕迹。
 void 自检线程类::记录事件_已加锁(时间戳 now, const std::string& 摘要)
 {
