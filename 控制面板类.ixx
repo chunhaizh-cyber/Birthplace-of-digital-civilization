@@ -372,9 +372,6 @@ struct 结构_控制面板快照 {
 
     std::string 自我线程当前阶段{};
     std::string 自我线程当前最终去向{};
-    std::string 自我线程最近运行摘要{};
-    std::string 自我线程最近恢复摘要{};
-    std::string 自我线程最近故障摘要{};
 
     bool 控制面板摘要线程已启动 = false;
     bool 控制面板摘要线程健康运行 = false;

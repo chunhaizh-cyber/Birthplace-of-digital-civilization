@@ -570,10 +570,6 @@ public:
     std::uint64_t 读取累计故障次数() const noexcept;
     std::uint64_t 读取累计恢复次数() const noexcept;
     结构_自我线程最小状态快照 读取自我线程最小状态快照() const;
-    std::string 读取上次故障摘要() const;
-    std::string 读取最近恢复摘要() const;
-    std::string 读取最近故障摘要() const;
-    std::string 读取最近运行摘要() const;
     结构_需求与权重治理输出快照 读取最近需求与权重治理输出快照() const;
     结构_主派发输出快照 读取最近主派发输出快照() const;
     结构_队列治理输出快照 读取最近队列治理输出快照() const;
@@ -1049,9 +1045,6 @@ private:
     std::uint64_t 累计恢复次数_ = 0;
     时间戳 最近Tick时间_ = 0;
     时间戳 上次故障时间_ = 0;
-    std::string 上次故障摘要_{};
-    std::string 最近恢复摘要_{};
-    std::string 最近故障摘要_{};
     std::deque<结构_治理消息> 治理mailbox_{};
     std::deque<结构_治理消息> 本轮冻结治理批次_{};
     std::unordered_map<std::string, 自我线程消息协议::结构_执行尝试汇总> 执行尝试汇总表_{};
