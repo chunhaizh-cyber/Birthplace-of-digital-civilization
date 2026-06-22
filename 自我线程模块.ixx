@@ -447,7 +447,6 @@ public:
         std::string 恢复建议摘要{};
         std::string 缺口摘要{};
         std::string 故障摘要{};
-        std::string 下一轮唤醒原因{};
         std::string 摘要{};
     };
 
@@ -521,7 +520,6 @@ public:
             std::size_t 请求数 = 0;
             std::uint64_t 首目标任务主键 = 0;
             std::uint64_t 首关联包主键 = 0;
-            std::string 唤醒原因{};
             std::string 摘要{};
         };
         std::vector<结构_恢复请求分组快照> 恢复请求列表{};
@@ -534,7 +532,6 @@ public:
         I64 服务净变化 = 0;
         I64 安全净变化 = 0;
         std::string 固定机制摘要{};
-        std::string 下一轮唤醒原因{};
         动态节点类* 任务完成动作动态 = nullptr;
         结构_双值结算账快照 双值结算账{};
         结构_缺口恢复接口快照 缺口恢复接口{};
@@ -892,7 +889,6 @@ private:
         std::string 父任务协调阶段{};
         std::string 父任务局部更新摘要{};
         std::string 恢复建议摘要{};
-        std::string 下一轮唤醒原因{};
         std::string 结算结论摘要{};
         std::string 缺口摘要{};
         std::string 故障摘要{};
@@ -947,7 +943,6 @@ private:
         std::string 否定项摘要{};
         std::string 缺口摘要{};
         std::string 故障收口摘要{};
-        std::string 下一轮唤醒原因{};
         std::string 摘要{};
     };
 
@@ -1109,5 +1104,4 @@ export 自我线程类::结构_自我线程最小状态快照 读取自我线程
 export bool 投递治理外部反馈事件(
     const std::string& 摘要,
     const std::string& 来源主观察特征 = "外部反馈/人工注入");
-
 
