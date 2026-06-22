@@ -405,7 +405,6 @@ struct 结构_控制面板快照 {
     std::string 任务管理最近缺口类型{};
     std::string 任务管理最近下一步去向{};
     std::string 任务管理最近总控结果{};
-    std::string 任务管理最近恢复摘要{};
 
     bool 任务管理界面线程已启动 = false;
     bool 任务管理界面线程正在处理 = false;
