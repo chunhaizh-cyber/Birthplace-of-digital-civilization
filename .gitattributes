@@ -1,0 +1,19 @@
+* text=auto eol=lf
+
+*.bmp binary !eol
+*.dll binary !eol
+*.exe binary !eol
+*.gif binary !eol
+*.ico binary !eol
+*.jpg binary !eol
+*.jpeg binary !eol
+*.lib binary !eol
+*.nupkg binary !eol
+*.p7s binary !eol
+*.pdb binary !eol
+*.pdf binary !eol
+*.png binary !eol
+*.tlb binary !eol
+*.webp binary !eol
+*.winmd binary !eol
+*.zip binary !eol

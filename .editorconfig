@@ -1,6 +1,8 @@
 root = true
 
-[*.{cpp,h,ixx,inl,vcxproj,filters,props,targets,sln,slnx}]
-charset = utf-8
-end_of_line = crlf
+[*]
+end_of_line = lf
 insert_final_newline = true
+
+[*.{cpp,h,ixx,inl,vcxproj,filters,props,targets,sln,slnx,md,txt,py,ps1,json,xml,tsv,csv,html,css,js,yml,yaml}]
+charset = utf-8
