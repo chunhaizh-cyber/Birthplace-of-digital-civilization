@@ -160,7 +160,6 @@ struct 结构_观察事实更新任务唤醒通知 {
     std::uint64_t 等待项ID = 0;
     bool 安全根路径 = false;
     时间戳 当前时间 = 0;
-    std::string 事件摘要{};
 };
 
 struct 结构_父任务等待条件变化通知 {
@@ -172,14 +171,12 @@ struct 结构_父任务等待条件变化通知 {
     bool 父需求仍需推进 = false;
     bool 子需求已满足 = false;
     时间戳 当前时间 = 0;
-    std::string 事件摘要{};
 };
 
 struct 结构_任务价值结算完成通知 {
     任务节点类* 任务信息节点 = nullptr;
     需求节点类* 来源需求 = nullptr;
     时间戳 当前时间 = 0;
-    std::string 事件摘要{};
 };
 
 struct 结构_任务执行前许可结果 {
