@@ -782,15 +782,6 @@ enum class 枚举_区间语义 : std::uint8_t {
 
 
 
-struct 点阵图
-{
-    std::int32_t 宽 = 0;
-    std::int32_t 高 = 0;
-    // 所有像素按行优先展平，每 64 个像素压缩成一个 64 位整数
-    std::vector<std::uint64_t> 数据;
-};
-
-
 enum class 枚举_世界类型 {
     现实世界,
     文本世界,
