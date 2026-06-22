@@ -84,7 +84,6 @@ export struct 结构_线程状态切换上报参数 {
     std::string 决策者标签{};
     std::string 触发动作{};
     std::string 原因键{};
-    std::string 原因摘要{};
     自我线程消息协议::枚举_存在类型 直属拥有者类型 =
         自我线程消息协议::枚举_存在类型::未定义;
     std::uint64_t 直属拥有者主键 = 0;
