@@ -253,7 +253,6 @@ struct 结构_原语判定结果 {
     bool 需升阶 = false;
     std::string 主域{};
     std::string 小域{};
-    std::string 原因说明{};
     std::string 下一步建议{};
 };
 
@@ -271,7 +270,6 @@ struct 结构_原语判定汇总 {
     bool 可继续推进 = false;
     std::int64_t 综合满足度_Q10000 = 0;
     std::int64_t 综合置信度_Q10000 = 0;
-    std::string 升阶原因{};
     std::vector<结构_原语判定结果> 明细{};
 };
 
@@ -338,7 +336,6 @@ struct 结构_高阶排序请求 {
     I64 比较基准类型值 = 0;
     std::string 比较基准摘要{};
     bool 存在可比对 = false;
-    std::string 未决原因{};
 };
 
 struct 结构_高阶排序结果 {
@@ -350,7 +347,6 @@ struct 结构_高阶排序结果 {
     bool 是否等效 = false;
     bool 是否过头 = false;
     std::int64_t 置信度_Q10000 = 0;
-    std::string 原因说明{};
 };
 
 struct 结构_高阶胜出绑定 {
@@ -365,7 +361,6 @@ struct 结构_高阶胜出绑定 {
     I64 来源锚点类型值 = 0;
     bool 已绑定执行方法 = false;
     std::string 绑定摘要{};
-    std::string 未绑定原因{};
 };
 
 struct 结构_任务管理请求;
@@ -412,7 +407,6 @@ struct 结构_任务管理控制承接记录 {
     bool 是否已执行完成 = false;
     bool 是否超时 = false;
     时间戳 最近回报时间 = 0;
-    std::string 拒绝原因{};
     std::string 说明{};
 };
 
@@ -694,7 +688,6 @@ struct 结构_治理恢复快照 {
     结构_高阶排序请求 当前高阶排序请求{};
     结构_高阶排序结果 当前高阶排序结果{};
     结构_高阶胜出绑定 当前高阶胜出绑定{};
-    std::string 最近原因说明{};
     std::string 最近反馈摘要{};
     std::string 最近条件主键{};
     std::string 最近治理态型{};
