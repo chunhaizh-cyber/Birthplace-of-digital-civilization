@@ -212,7 +212,6 @@ public:
         bool 是否已验证 = false;
         bool 是否建议恢复后解除 = false;
         bool 反项需独立验证 = true;
-        std::string 原因摘要{};
         std::string 摘要{};
     };
 
@@ -456,7 +455,6 @@ public:
         时间戳 发生时间 = 0;
         std::uint64_t 目标任务主键 = 0;
         I64 风险等级 = 0;
-        std::string 原因摘要{};
         std::string 摘要{};
     };
 
@@ -906,7 +904,6 @@ private:
         std::uint64_t 目标任务主键 = 0;
         std::uintptr_t 相关结果节点 = 0;
         I64 风险等级 = 0;
-        std::string 原因摘要{};
         std::string 摘要{};
     };
 
