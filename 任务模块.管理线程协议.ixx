@@ -150,7 +150,6 @@ struct 结构_任务状态推进结果 {
     bool 已提交任务阶段 = false;
     bool 等待缺口唤醒 = false;
     动态节点类* 任务状态动作动态 = nullptr;
-    std::string 摘要{};
 };
 
 struct 结构_观察事实更新任务唤醒通知 {
