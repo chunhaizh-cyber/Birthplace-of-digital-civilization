@@ -375,7 +375,6 @@ struct 结构_控制面板快照 {
     bool 控制面板摘要线程健康运行 = false;
     std::uint8_t 控制面板摘要线程生命周期 = 0;
     std::uint64_t 控制面板摘要快照序号 = 0;
-    std::string 控制面板摘要线程摘要{};
     std::string 控制面板摘要_运行事实{};
     std::string 控制面板摘要_自检{};
     std::uint64_t 自检报告待处理数 = 0;
