@@ -167,8 +167,6 @@
 任务模块.工作线程消息协议.ixx	278	结构_任务管理观察事实承接请求	std::string 目标特征generation{};	是
 任务模块.工作线程消息协议.ixx	279	结构_任务管理观察事实承接请求	std::string 约束generation{};	是
 任务模块.工作线程消息协议.ixx	280	结构_任务管理观察事实承接请求	std::string 来源外设{};	否
-任务模块.工作线程消息协议.ixx	281	结构_任务管理观察事实承接请求	std::string 观察运行模式文本{};	否
-任务模块.工作线程消息协议.ixx	282	结构_任务管理观察事实承接请求	std::string 报告类型文本{};	否
 任务模块.工作线程消息协议.ixx	299	结构_任务管理执行前许可请求消息	std::string 任务主键{};	是
 任务模块.工作线程消息协议.ixx	300	结构_任务管理执行前许可请求消息	std::string 来源需求主键{};	是
 任务模块.工作线程消息协议.ixx	301	结构_任务管理执行前许可请求消息	std::string 当前方法主键{};	是
@@ -185,8 +183,6 @@
 任务模块.管理工作线程.ixx	95	结构_工作线程实例快照	std::string 最近推进状况{};	否
 任务模块.管理工作线程.ixx	96	结构_工作线程实例快照	std::string 最近筹办承接{};	否
 任务模块.管理工作线程.ixx	118	结构_外设消息承接结果	std::string 目标外设{};	否
-任务模块.管理工作线程.ixx	119	结构_外设消息承接结果	std::string 报告类型文本{};	否
-任务模块.管理工作线程.ixx	120	结构_外设消息承接结果	std::string 观察运行模式文本{};	否
 任务模块.管理工作线程.ixx	155	结构_工作线程壳状态	std::vector<std::string> 最近筹办派生需求稳定键集{};	是
 任务模块.管理界面线程.impl.cpp	111	结构_任务界面请求记录	std::string 幂等键{};	是
 任务模块.管理界面线程.impl.cpp	133	结构_任务状态提交确认令牌	std::string 任务主键{};	是
@@ -269,7 +265,6 @@
 日志模块.ixx	298	单文件日志器	std::filesystem::path 生成文件路径(const std::string& yyyymmdd) const {	否
 日志模块.ixx	300	单文件日志器	std::string name = std::format("{}_{}_{}.低值g", 文件前缀, 文件标识, yyyymmdd);	否
 日志模块.ixx	306	单文件日志器	const std::string today = 取日期_YYYYMMDD();	否
-日志模块.ixx	336	单文件日志器	void 写一行(枚举_日志级别 lv, std::string_view msg) {	是
 日志模块.ixx	346	单文件日志器	const std::string ts = 取时间戳_YYYYMMDD_hhmmss_mmm();	否
 日志模块.ixx	347	单文件日志器	std::string 行文本{};	否
 日志模块.ixx	393	单文件日志器	std::string{}.swap(当前日期);	否
