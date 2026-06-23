@@ -304,7 +304,6 @@ struct 结构_任务治理二次特征证据 {
     bool 当前步骤可复用 = false;
     bool 可继续推进 = false;
     std::int64_t 综合置信度_Q10000 = 0;
-    std::string 摘要{};
 };
 
 enum class 枚举_原语候选比较基准类型 : std::uint8_t {
@@ -610,8 +609,6 @@ struct 结构_任务管理结果 {
     std::string 锚点裁决摘要{};
     std::string 来源主观察特征{};
     std::string 当前影子验证状态{ "未触发" };
-    std::string 最近反馈摘要{};
-    std::string 摘要{};
     bool 允许正式资产提交 = false;
 };
 
@@ -637,7 +634,6 @@ struct 结构_治理恢复事件镜像 {
     std::string 来源主观察特征{};
     std::string 影子验证状态{};
     bool 允许正式资产提交 = false;
-    std::string 摘要{};
 };
 
 struct 结构_治理恢复快照 {
@@ -678,7 +674,6 @@ struct 结构_治理恢复快照 {
     结构_高阶排序请求 当前高阶排序请求{};
     结构_高阶排序结果 当前高阶排序结果{};
     结构_高阶胜出绑定 当前高阶胜出绑定{};
-    std::string 最近反馈摘要{};
     std::string 最近条件主键{};
     std::string 最近治理态型{};
     std::string 最近方法位专项动态标题{};
