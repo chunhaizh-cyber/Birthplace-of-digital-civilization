@@ -26,26 +26,6 @@ export module 本能动作管理模块;
 import 本能动作模块;
 import 日志模块;
 
-namespace 本能动作管理模块_detail {
-
-    // 功能：按函数名执行对应处理。
-    inline std::string 默认函数名称(枚举_本能方法ID 动作ID)
-    {
-        const auto* 动作名称 = 本能方法类::查询默认动作名称(动作ID);
-        if (!动作名称) {
-            return {};
-        }
-        return 动作名称;
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline std::vector<枚举_本能方法ID> 默认动作ID列表()
-    {
-        return 本能方法类::枚举默认自我本能方法ID();
-    }
-
-} // namespace 本能动作管理模块_detail
-
 export using 枚举_本能动作ID = 枚举_本能方法ID;
 
 export {
@@ -601,7 +581,6 @@ using 本能函数 = 本能动作函数;
 struct 结构体_本能动作登记信息 {
     本能动作函数 动作函数{};
     方法类::节点类* 方法信息首节点 = nullptr;
-    std::string 函数名称{};
 };
 
 class 本能动作管理类 {
@@ -609,20 +588,15 @@ public:
     bool 注册(
         枚举_本能动作ID 动作ID,
         本能动作函数 动作函数,
-        std::string 函数名称 = {},
         方法类::节点类* 方法首节点 = nullptr)
     {
         if (动作ID == 枚举_本能动作ID::未定义) return false;
+        if (!本能方法类::是有效本能方法能力值(static_cast<I64>(动作ID))) return false;
         if (!动作函数) return false;
-        if (函数名称.empty()) {
-            函数名称 = 本能动作管理模块_detail::默认函数名称(动作ID);
-        }
-        if (函数名称.empty()) return false;
 
         结构体_本能动作登记信息 登记信息{};
         登记信息.动作函数 = std::move(动作函数);
         登记信息.方法信息首节点 = 方法首节点;
-        登记信息.函数名称 = std::move(函数名称);
 
         std::lock_guard 锁(mu_);
         表_[动作ID] = std::move(登记信息);
@@ -643,28 +617,6 @@ public:
         const auto it = 表_.find(动作ID);
         if (it == 表_.end()) return std::nullopt;
         return it->second;
-    }
-
-    // 功能：按函数名执行对应处理。
-    枚举_本能动作ID 查询ID(const std::string& 函数名称) const
-    {
-        if (函数名称.empty()) return 枚举_本能动作ID::未定义;
-
-        {
-            std::lock_guard 锁(mu_);
-            for (const auto& [动作ID, 上下文] : 表_) {
-                if (上下文.函数名称 == 函数名称) {
-                    return 动作ID;
-                }
-            }
-        }
-
-        for (const auto 动作ID : 本能动作管理模块_detail::默认动作ID列表()) {
-            if (本能动作管理模块_detail::默认函数名称(动作ID) == 函数名称) {
-                return 动作ID;
-            }
-        }
-        return 枚举_本能动作ID::未定义;
     }
 
     // 功能：注册方法、模板、对象或运行入口。
@@ -725,11 +677,8 @@ public:
                 return 设置结果(本能动作错误_缺动作入口);
             }
         }
-        else if (const auto* 动作名 = 方法类::方法动作名(方法)) {
-            const auto 解析ID = 查询ID(动作名->获取主键());
-            if (解析ID == 枚举_本能动作ID::未定义 || 解析ID != 动作ID) {
-                return 设置结果(本能动作错误_缺动作入口);
-            }
+        else {
+            return 设置结果(本能动作错误_缺动作入口);
         }
 
         场景节点类* 条件场景 = nullptr;
@@ -871,6 +820,7 @@ public:
                 return;
             }
             std::ostringstream 日志;
+            const auto* 注册动作名 = 本能方法类::查询默认动作名称(动作ID);
             日志 << "本能动作管理/6150动作集入口诊断"
                 << " | 阶段=" << (阶段 ? 阶段 : "未知")
                 << " | 本能ID=" << static_cast<std::uint32_t>(动作ID)
@@ -878,7 +828,7 @@ public:
                 << " | 输入场景=" << 节点主键(reinterpret_cast<const 基础信息节点类*>(输入参数场景))
                 << " | 输出场景=" << 节点主键(reinterpret_cast<const 基础信息节点类*>(输出结果场景))
                 << " | 已注册=" << (已注册动作.has_value() ? 1 : 0)
-                << " | 注册函数名=" << (已注册动作 ? 已注册动作->函数名称 : std::string("空"))
+                << " | 注册动作名=" << (注册动作名 ? 注册动作名 : "空")
                 << " | 已进入动作函数=" << (已进入动作函数 ? 1 : 0)
                 << " | 运行存在=" << 节点主键(reinterpret_cast<const 基础信息节点类*>(运行结果))
                 << " | 运行码=" << 运行码
