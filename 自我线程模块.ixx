@@ -278,7 +278,6 @@ public:
         时间戳 最近更新时间 = 0;
         std::vector<std::uint64_t> 当前成员任务根ID集{};
         std::vector<std::uint64_t> 最近移出任务根ID集{};
-        std::string 成员来源分类摘要{};
         std::vector<结构_队列成员快照> 当前成员列表{};
         std::vector<结构_队列成员事件快照> 最近成员事件列表{};
         std::string 最近裁决{};
@@ -472,7 +471,6 @@ public:
         bool 应申请收束恢复 = false;
         bool 应申请低频整理 = false;
         std::size_t 缺口触发数 = 0;
-        std::string 恢复请求摘要{};
         std::string 摘要{};
         struct 结构_恢复请求分组快照 {
             std::string 请求类型{};
@@ -779,7 +777,6 @@ private:
         时间戳 最近清空时间 = 0;
         std::vector<std::uint64_t> 当前成员任务根ID集{};
         std::vector<std::uint64_t> 最近移出任务根ID集{};
-        std::string 成员来源分类摘要{};
         std::vector<结构_成员对象> 成员对象列表{};
         std::vector<结构_队列成员事件快照> 最近成员事件列表{};
         std::string 最近裁决{};
