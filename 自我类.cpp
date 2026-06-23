@@ -512,9 +512,7 @@ namespace {
         特征节点类* 特征,
         const 特征值& 值,
         时间戳 now,
-        bool 是否变化,
-        const std::string& 原因类别,
-        const std::string& 原因说明) noexcept
+        bool 是否变化) noexcept
     {
         auto* 状态节点 = 世界树.创建状态(场景, 主体, 特征, 值, now, now);
         if (!状态节点) return nullptr;
@@ -525,8 +523,6 @@ namespace {
             主信息->名称 = 特征类型词;
             主信息->类型 = 特征类型词;
         }
-        (void)原因类别;
-        (void)原因说明;
         (void)世界树.标记状态变化(状态节点, 是否变化);
         return 状态节点;
     }
@@ -602,18 +598,14 @@ namespace {
                 特征节点,
                 特征值{ 旧值 },
                 now,
-                false,
-                因动作语义键,
-                "动作前镜像");
+                false);
             结果状态 = 私有_创建状态节点(
                 自我内部世界,
                 自我存在,
                 特征节点,
                 特征值{ 新值 },
                 now,
-                true,
-                因动作语义键,
-                "动作后镜像");
+                true);
         }
 
         auto* 动态节点 = 私有_创建本能动作动态(
@@ -694,9 +686,7 @@ namespace {
                 特征节点,
                 特征值{ 指针句柄{ 旧值 } },
                 now,
-                false,
-                因动作语义键,
-                "动作前镜像");
+                false);
         }
 
         auto* 结果状态 = 私有_创建状态节点(
@@ -705,9 +695,7 @@ namespace {
             特征节点,
             特征值{ 指针句柄{ 新值 } },
             now,
-            true,
-            因动作语义键,
-            "动作后镜像");
+            true);
         if (!结果状态) {
             return false;
         }
@@ -776,9 +764,7 @@ namespace {
                 特征节点,
                 特征值{ 旧值 },
                 now,
-                false,
-                因动作语义键,
-                "动作前镜像");
+                false);
         }
 
         auto* 结果状态 = 私有_创建状态节点(
@@ -787,9 +773,7 @@ namespace {
             特征节点,
             特征值{ 新值 },
             now,
-            true,
-            因动作语义键,
-            "动作后镜像");
+            true);
         if (!结果状态) {
             return false;
         }
@@ -1137,9 +1121,7 @@ bool 自我类::写入自我指针特征当前值(
         特征节点,
         特征值{ 状态值 },
         now,
-        true,
-        "自检原子状态",
-        "自检报告修复决策原子目标");
+        true);
     if (!状态节点) {
         记录失败("状态类拒绝创建状态节点");
     }
@@ -1190,9 +1172,7 @@ bool 自我类::写入自我指针特征当前值(
         特征节点,
         特征值{ 状态值 },
         now,
-        true,
-        "学习原子状态",
-        "学习需求目标原子状态");
+        true);
     if (!状态节点) {
         记录失败("状态类拒绝创建状态节点");
     }
@@ -1318,31 +1298,31 @@ bool 自我类::设置当前主方法(方法类::节点类* 节点, 时间戳 no
 }
 
 // 功能：按函数名执行对应处理。
-void 自我类::安全值增加(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept
+void 自我类::安全值增加(I64 delta) noexcept
 {
-    if (delta > 0) 安全值_上升_(delta, 原因类别, 原因说明);
-    else if (delta < 0) 安全值_下降_(-delta, 原因类别, 原因说明);
+    if (delta > 0) 安全值_上升_(delta);
+    else if (delta < 0) 安全值_下降_(-delta);
 }
 
 // 功能：按函数名执行对应处理。
-void 自我类::安全值减少(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept
+void 自我类::安全值减少(I64 delta) noexcept
 {
-    if (delta > 0) 安全值_下降_(delta, 原因类别, 原因说明);
-    else if (delta < 0) 安全值_上升_(-delta, 原因类别, 原因说明);
+    if (delta > 0) 安全值_下降_(delta);
+    else if (delta < 0) 安全值_上升_(-delta);
 }
 
 // 功能：按函数名执行对应处理。
-void 自我类::服务值增加(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept
+void 自我类::服务值增加(I64 delta) noexcept
 {
-    if (delta > 0) 服务值_上升_(delta, 原因类别, 原因说明);
-    else if (delta < 0) 服务值_下降_(-delta, 原因类别, 原因说明);
+    if (delta > 0) 服务值_上升_(delta);
+    else if (delta < 0) 服务值_下降_(-delta);
 }
 
 // 功能：按函数名执行对应处理。
-void 自我类::服务值减少(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept
+void 自我类::服务值减少(I64 delta) noexcept
 {
-    if (delta > 0) 服务值_下降_(delta, 原因类别, 原因说明);
-    else if (delta < 0) 服务值_上升_(-delta, 原因类别, 原因说明);
+    if (delta > 0) 服务值_下降_(delta);
+    else if (delta < 0) 服务值_上升_(-delta);
 }
 
 // 功能：按函数名执行对应处理。
@@ -1394,9 +1374,7 @@ bool 自我类::应用服务归零待机保护(时间戳 now) noexcept
                     安全特征节点,
                     特征值{ 新安全值 },
                     now,
-                    true,
-                    "服务归零待机保护",
-                    "动作后镜像/安全值")) {
+                    true)) {
                     附加结果状态.push_back(安全结果状态);
                 }
             }
@@ -2273,9 +2251,7 @@ void 自我类::确保主链镜像已初始化_() noexcept
                 特征节点,
                 特征值{ 当前值 },
                 结构体_时间戳::当前_微秒(),
-                false,
-                "根需求当前状态",
-                是安全根需求 ? "安全根需求当前值" : "服务根需求当前值");
+                false);
             私有_写入引用(主信息.被需求当前状态, 当前状态);
         }
         if (状态场景 && 特征节点 && !引用状态有效(主信息.需求状态)) {
@@ -2285,9 +2261,7 @@ void 自我类::确保主链镜像已初始化_() noexcept
                 特征节点,
                 特征值{ 目标值 },
                 结构体_时间戳::当前_微秒(),
-                true,
-                "根需求目标状态",
-                是安全根需求 ? "安全根需求目标值" : "服务根需求目标值");
+                true);
             私有_写入引用(主信息.需求状态, 目标状态);
         }
     }
@@ -2461,7 +2435,7 @@ I64 自我类::读取自我I64特征当前值_(
 }
 
 // 功能：按函数名执行对应处理。
-void 自我类::安全值_上升_(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept
+void 自我类::安全值_上升_(I64 delta) noexcept
 {
     const I64 新值 = 私有_饱和加(获取安全值(), delta);
     (void)写入自我I64特征当前值(
@@ -2469,12 +2443,10 @@ void 自我类::安全值_上升_(I64 delta, const std::string& 原因类别, co
         新值,
         结构体_时间戳::当前_微秒());
     重算时序回归步长_按当前双值_();
-    (void)原因类别;
-    (void)原因说明;
 }
 
 // 功能：按函数名执行对应处理。
-void 自我类::安全值_下降_(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept
+void 自我类::安全值_下降_(I64 delta) noexcept
 {
     const I64 新值 = 私有_饱和减(获取安全值(), delta);
     (void)写入自我I64特征当前值(
@@ -2482,12 +2454,10 @@ void 自我类::安全值_下降_(I64 delta, const std::string& 原因类别, co
         新值,
         结构体_时间戳::当前_微秒());
     重算时序回归步长_按当前双值_();
-    (void)原因类别;
-    (void)原因说明;
 }
 
 // 功能：按函数名执行对应处理。
-void 自我类::服务值_上升_(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept
+void 自我类::服务值_上升_(I64 delta) noexcept
 {
     const I64 新值 = 私有_饱和加(获取服务值(), delta);
     (void)写入自我I64特征当前值(
@@ -2495,12 +2465,10 @@ void 自我类::服务值_上升_(I64 delta, const std::string& 原因类别, co
         新值,
         结构体_时间戳::当前_微秒());
     重算时序回归步长_按当前双值_();
-    (void)原因类别;
-    (void)原因说明;
 }
 
 // 功能：按函数名执行对应处理。
-void 自我类::服务值_下降_(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept
+void 自我类::服务值_下降_(I64 delta) noexcept
 {
     const I64 新值 = 私有_饱和减(获取服务值(), delta);
     (void)写入自我I64特征当前值(
@@ -2508,7 +2476,4 @@ void 自我类::服务值_下降_(I64 delta, const std::string& 原因类别, co
         新值,
         结构体_时间戳::当前_微秒());
     重算时序回归步长_按当前双值_();
-    (void)原因类别;
-    (void)原因说明;
 }
-

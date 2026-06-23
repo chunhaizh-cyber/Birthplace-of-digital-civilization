@@ -208,26 +208,10 @@ public:
         时间戳 now = 结构体_时间戳::当前_微秒()
     ) noexcept;
 
-    void 安全值增加(
-        I64 delta,
-        const std::string& 原因类别 = "安全值增加",
-        const std::string& 原因说明 = {}
-    ) noexcept;
-    void 安全值减少(
-        I64 delta,
-        const std::string& 原因类别 = "安全值减少",
-        const std::string& 原因说明 = {}
-    ) noexcept;
-    void 服务值增加(
-        I64 delta,
-        const std::string& 原因类别 = "服务值增加",
-        const std::string& 原因说明 = {}
-    ) noexcept;
-    void 服务值减少(
-        I64 delta,
-        const std::string& 原因类别 = "服务值减少",
-        const std::string& 原因说明 = {}
-    ) noexcept;
+    void 安全值增加(I64 delta) noexcept;
+    void 安全值减少(I64 delta) noexcept;
+    void 服务值增加(I64 delta) noexcept;
+    void 服务值减少(I64 delta) noexcept;
 
     bool 应用服务归零待机保护(
         时间戳 now = 结构体_时间戳::当前_微秒()
@@ -335,10 +319,10 @@ private:
         I64 缺省值
     ) const noexcept;
 
-    void 安全值_上升_(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept;
-    void 安全值_下降_(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept;
-    void 服务值_上升_(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept;
-    void 服务值_下降_(I64 delta, const std::string& 原因类别, const std::string& 原因说明) noexcept;
+    void 安全值_上升_(I64 delta) noexcept;
+    void 安全值_下降_(I64 delta) noexcept;
+    void 服务值_上升_(I64 delta) noexcept;
+    void 服务值_下降_(I64 delta) noexcept;
 
 private:
     friend bool 自我初始化模块::执行自我初始化(
