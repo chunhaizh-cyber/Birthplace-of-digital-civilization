@@ -57,8 +57,7 @@ bool 确认需求已有关联任务可承接(
     需求节点类* 需求,
     const std::string& 任务主键,
     std::uint64_t 当前时间 = 0,
-    任务节点类** 输出任务 = nullptr,
-    std::string* 输出说明 = nullptr) noexcept;
+    任务节点类** 输出任务 = nullptr) noexcept;
 
 bool 巡检并派发就绪任务(
     自我类& 自我对象,
