@@ -1839,19 +1839,6 @@ namespace {
     }
 
     // 功能：按条件查找目标对象、方法或事实。
-    const 结构_外设观察像素簇摘要* D455_按簇ID查找观察像素簇(
-        const std::vector<结构_外设观察像素簇摘要>& 簇集合,
-        std::int64_t 簇ID) noexcept
-    {
-        for (const auto& 簇 : 簇集合) {
-            if (簇.外设内部簇ID == 簇ID || 簇.来源空间候选ID == 簇ID) {
-                return &簇;
-            }
-        }
-        return nullptr;
-    }
-
-    // 功能：按条件查找目标对象、方法或事实。
     const 结构_外设观察像素簇摘要* D455_按跨帧簇ID查找观察像素簇(
         const std::vector<结构_外设观察像素簇摘要>& 簇集合,
         std::int64_t 跨帧簇ID) noexcept

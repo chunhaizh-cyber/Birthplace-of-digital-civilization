@@ -3345,17 +3345,6 @@ namespace {
         return 判定;
     }
 
-    // 功能：按函数名执行对应处理。
-    inline bool 实际结果场景复现既有结果_条件结果对归并(
-        const 场景节点类* 既有结果场景,
-        const 场景节点类* 实际结果场景) noexcept
-    {
-        const auto 判定 = 判定实际结果场景复现既有结果_条件结果对归并(
-            既有结果场景,
-            实际结果场景);
-        return 判定.可比较 && 判定.复现;
-    }
-
     // 功能：按条件查找目标对象、方法或事实。
     inline 方法类::节点类* 查找等价条件节点_条件结果对归并(
         方法类::节点类* 方法首节点,
@@ -4513,33 +4502,6 @@ namespace {
         auto* 候选 = const_cast<基础信息节点类*>(
             reinterpret_cast<const 基础信息节点类*>(指针));
         return 世界树.基础节点属于当前世界树(候选) ? 候选 : nullptr;
-    }
-
-    // 功能：按条件查找目标对象、方法或事实。
-    inline 抽象特征节点类* 查找抽象特征_按类型(const 语素入口节点类* 特征类型) noexcept
-    {
-        if (!特征类型) return nullptr;
-        for (auto* 节点 : 世界树.枚举节点_按主信息类型<抽象特征主信息类>()) {
-            const auto* 主信息 = 世界树.取抽象特征主信息(
-                static_cast<const 抽象特征节点类*>(节点));
-            if (主信息 && 主信息->类型 == 特征类型) {
-                return static_cast<抽象特征节点类*>(节点);
-            }
-        }
-        return nullptr;
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline bool 抽象节点相同或类型相同(
-        const 基础信息节点类* 节点,
-        const 基础信息节点类* 目标节点,
-        const 语素入口节点类* 目标类型) noexcept
-    {
-        if (!节点) return false;
-        if (目标节点 && 节点 == 目标节点) return true;
-        const auto* 主信息 = 世界树.取抽象特征主信息(
-            static_cast<const 抽象特征节点类*>(节点));
-        return 主信息 && 目标类型 && 主信息->类型 == 目标类型;
     }
 
     // 功能：按函数名执行对应处理。

@@ -680,12 +680,6 @@ namespace {
         初始化项目日志();
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    bool 私有_包含片段(const std::string& 文本, const std::string& 片段) noexcept
-    {
-        return !片段.empty() && 文本.find(片段) != std::string::npos;
-    }
-
     // 功能：记录日志、动态、证据或运行痕迹。
     void 私有_记录自我实现检查日志()
     {

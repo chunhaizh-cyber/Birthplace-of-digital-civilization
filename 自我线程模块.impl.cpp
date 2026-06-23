@@ -14063,12 +14063,6 @@ bool 私有_冻结消息批次_限制观察承接(
     return !冻结批次->empty();
 }
 
-// 功能：服务所在模块的内部辅助流程。
-std::string 私有_文本或默认(const std::string& 文本, const std::string& 默认值)
-{
-    return 文本.empty() ? 默认值 : 文本;
-}
-
 // 功能：按条件查找目标对象、方法或事实。
 const 结构_任务管理线程补充特征* 私有_查找线程补充特征(
     const std::vector<结构_任务管理线程补充特征>& 补充特征集,

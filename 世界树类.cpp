@@ -80,19 +80,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    bool 私有_节点在子树(const 基础信息节点类* 根, const 基础信息节点类* 节点) noexcept
-    {
-        if (!根 || !节点) return false;
-        std::size_t 保护计数 = 0;
-        auto* 当前 = 节点;
-        while (当前 && ++保护计数 < 4096) {
-            if (当前 == 根) return true;
-            当前 = static_cast<const 基础信息节点类*>(当前->父);
-        }
-        return false;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     std::vector<基础信息节点类*> 私有_直接基础信息子节点(
         const 基础信息类& 基础信息,
         const 基础信息节点类* 父节点)

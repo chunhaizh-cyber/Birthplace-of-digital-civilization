@@ -3483,32 +3483,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    std::optional<int> 私有_结果变化方向_控制面板(枚举_结果变化方向 方向) noexcept
-    {
-        switch (方向) {
-        case 枚举_结果变化方向::增加:
-        case 枚举_结果变化方向::趋向目标:
-        case 枚举_结果变化方向::从无到有:
-        case 枚举_结果变化方向::从未完成到完成:
-        case 枚举_结果变化方向::已形成:
-        case 枚举_结果变化方向::已识别:
-        case 枚举_结果变化方向::已配对:
-        case 枚举_结果变化方向::趋向可用:
-        case 枚举_结果变化方向::更完整:
-        case 枚举_结果变化方向::更稳定:
-        case 枚举_结果变化方向::上升:
-            return 1;
-        case 枚举_结果变化方向::减少:
-        case 枚举_结果变化方向::从有到无:
-            return -1;
-        case 枚举_结果变化方向::保持:
-            return 0;
-        default:
-            return std::nullopt;
-        }
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     void 私有_收集方法结果方向_控制面板(
         const 方法节点* 方法,
         std::vector<int>& 输出,
@@ -4428,19 +4402,6 @@ namespace {
         return 输出.str();
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    void 私有_追加唯一片段_控制面板(
-        std::vector<std::string>& 片段集,
-        std::string 片段)
-    {
-        if (片段.empty()) {
-            return;
-        }
-        if (std::find(片段集.begin(), 片段集.end(), 片段) == 片段集.end()) {
-            片段集.push_back(std::move(片段));
-        }
-    }
-
     std::string 私有_拼接片段_控制面板(
         const std::vector<std::string>& 片段集,
         const std::size_t 上限 = 8)
@@ -4460,72 +4421,6 @@ namespace {
             输出 << ";...";
         }
         return 输出.str();
-    }
-
-    // 功能：按条件查找目标对象、方法或事实。
-    const 需求节点* 私有_查找根需求_按目标特征_控制面板(
-        const 语素入口节点类* 目标特征类型) noexcept
-    {
-        if (!目标特征类型 || !世界树.自我指针) {
-            return nullptr;
-        }
-        auto* 需求根节点 = reinterpret_cast<需求节点*>(
-            世界树.获取需求根节点(世界树.自我指针));
-        if (!需求根节点) {
-            return nullptr;
-        }
-        std::size_t 保护 = 0;
-        for (auto* 当前 = reinterpret_cast<需求节点*>(需求根节点->链下);
-             当前 && 当前 != 需求根节点 && 保护 < 8192;
-             当前 = reinterpret_cast<需求节点*>(当前->链下), ++保护) {
-            if (当前
-                && 私有_需求是根层节点_控制面板(当前)
-                && 语素入口同一(
-                    私有_需求目标特征类型_控制面板(当前),
-                    目标特征类型)) {
-                return 当前;
-            }
-        }
-        return nullptr;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    const 任务节点* 私有_需求首个任务_控制面板(const 需求节点* 需求) noexcept
-    {
-        if (!需求) {
-            return nullptr;
-        }
-        if (const auto* 对应任务 = 私有_解析任务引用_控制面板(需求->主信息.对应任务)) {
-            return 对应任务;
-        }
-        for (const auto& 引用 : 需求->主信息.任务列表) {
-            if (const auto* 任务 = 私有_解析任务引用_控制面板(引用)) {
-                return 任务;
-            }
-        }
-        return nullptr;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    基础信息节点类* 私有_需求目标宿主基础节点_控制面板(const 需求节点* 需求) noexcept
-    {
-        if (!需求) {
-            return nullptr;
-        }
-        if (auto* 显式宿主 = 私有_解析基础信息引用_控制面板(需求->主信息.被需求存在)) {
-            return reinterpret_cast<基础信息节点类*>(显式宿主);
-        }
-        auto* 目标状态 = 私有_解析基础信息引用_控制面板(需求->主信息.需求状态);
-        const auto* 目标状态主信息 = 目标状态
-            ? 世界树.取状态主信息(目标状态)
-            : nullptr;
-        if (目标状态主信息 && 目标状态主信息->状态主体.指针) {
-            return reinterpret_cast<基础信息节点类*>(目标状态主信息->状态主体.指针);
-        }
-        if (目标状态主信息 && !目标状态主信息->状态主体.主键.empty()) {
-            return 世界树.按主键解析节点(目标状态主信息->状态主体.主键);
-        }
-        return nullptr;
     }
 
     // 功能：构建运行所需的数据结构或中间结果。

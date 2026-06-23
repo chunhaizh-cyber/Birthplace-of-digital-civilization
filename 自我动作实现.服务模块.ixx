@@ -2749,25 +2749,6 @@ export namespace 自我动作实现模块::服务模块 {
         return 左 < 右 ? 左 : 右;
     }
 
-    // 功能：按函数名执行对应处理。
-    inline long double 服务绝对差距(I64 左, I64 右) noexcept
-    {
-        const long double 差距 = static_cast<long double>(左) - static_cast<long double>(右);
-        return 差距 >= 0.0L ? 差距 : -差距;
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline I64 有效性评分(枚举_服务有效性档位 档位) noexcept
-    {
-        return 约束服务评分(static_cast<I64>(档位));
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline I64 证据强度评分(枚举_服务证据强度档位 档位) noexcept
-    {
-        return 约束服务评分(static_cast<I64>(档位));
-    }
-
     // 功能：确认候选事实、存在、状态或运行结果。
     inline bool 证据强度达到确认阈值(I64 证据强度) noexcept
     {
