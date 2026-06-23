@@ -317,7 +317,6 @@ public:
         bool 已封口任务包 = false;
         bool 已实际派发 = false;
         bool 已形成回流 = false;
-        std::string 错误摘要{};
         std::string 摘要{};
     };
 
@@ -429,7 +428,6 @@ public:
         std::string 回流队列键{};
         std::string 父任务协调键{};
         std::string 父任务协调阶段{};
-        std::string 父任务局部更新摘要{};
         std::string 缺口摘要{};
         std::string 摘要{};
     };
@@ -458,7 +456,6 @@ public:
         std::uint64_t 特征主键 = 0;
         bool 已恢复 = false;
         std::string 动作语义键{};
-        std::string 特征类型摘要{};
         std::string 特征沉淀键{};
         std::string 变化摘要{};
         std::string 来源消息类型{};
@@ -467,7 +464,6 @@ public:
 
     struct 结构_关键中间状态分组快照 {
         std::string 特征沉淀键{};
-        std::string 特征类型摘要{};
         std::string 来源消息类型{};
         std::size_t 条目数 = 0;
         std::size_t 未恢复数 = 0;
@@ -737,7 +733,6 @@ private:
         bool 已封口任务包 = false;
         bool 已实际派发 = false;
         bool 已形成回流 = false;
-        std::string 错误摘要{};
         std::string 摘要{};
     };
 
@@ -836,7 +831,6 @@ private:
         std::uintptr_t 子结果节点 = 0;
         std::string 父任务协调键{};
         std::string 父任务协调阶段{};
-        std::string 父任务局部更新摘要{};
         std::string 摘要{};
     };
 
@@ -855,7 +849,6 @@ private:
         std::string 回流队列键{};
         std::string 父任务协调键{};
         std::string 父任务协调阶段{};
-        std::string 父任务局部更新摘要{};
         std::string 缺口摘要{};
         std::string 摘要{};
     };
@@ -885,7 +878,6 @@ private:
         std::uint64_t 特征主键 = 0;
         bool 已恢复 = false;
         std::string 动作语义键{};
-        std::string 特征类型摘要{};
         std::string 特征沉淀键{};
         std::string 变化摘要{};
         std::string 来源消息类型{};
