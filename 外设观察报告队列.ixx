@@ -288,6 +288,7 @@ export struct 结构_外设观察像素簇摘要 {
     std::int64_t 稳定锚点密度 = 0;
     std::int64_t 稳定锚点覆盖率 = 0;
     std::int64_t 边界锚点覆盖率 = 0;
+    bool 可提交观察区域 = false;
     std::int64_t 像素集合掩码状态 = 0;
     std::int64_t 彩色轮廓局部图状态 = 0;
     std::int64_t 深度轮廓局部图状态 = 0;
@@ -2407,7 +2408,7 @@ std::optional<结构_外设识别提交包> 构造外设识别提交包_由观�
     for (const auto& 簇 : 报告项.观察像素簇集合) {
         ++序号;
         const auto 区域ID = 外设提交_正局部ID(簇.外设内部簇ID, 序号);
-        const bool 有效 = 簇.像素数量 > 0 && 簇.失败原因.empty();
+        const bool 有效 = 簇.可提交观察区域;
         if (有效) {
             包.有效观察区域.push_back(区域ID);
         } else {
