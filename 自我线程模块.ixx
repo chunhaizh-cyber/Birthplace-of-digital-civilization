@@ -122,7 +122,6 @@ public:
         std::string 任务管理当前去向{};
         std::string 最近二次特征摘要{};
         std::string 最近影响项摘要{};
-        std::string 最近主派发判定二次特征摘要{};
         std::string 最近根值摘要{};
         std::string 最近回流摘要{};
         std::string 最近结算摘要{};
@@ -412,7 +411,6 @@ public:
         std::string 多证据联合裁决摘要{};
         std::string 联合阈值细则摘要{};
         std::string 覆盖优先细则摘要{};
-        std::string 根层判定摘要{};
         std::string 主派发判定二次特征摘要{};
         std::string 治理桥预判去向{};
         std::string 治理桥预判摘要{};
@@ -489,7 +487,6 @@ public:
         std::size_t 未恢复数 = 0;
         时间戳 最近发生时间 = 0;
         std::string 最近动作语义键{};
-        std::string 最近变化摘要{};
         std::string 摘要{};
     };
 
@@ -512,7 +509,6 @@ public:
         bool 应申请低频整理 = false;
         std::size_t 缺口触发数 = 0;
         std::string 恢复请求摘要{};
-        std::string 整理请求摘要{};
         std::string 摘要{};
         struct 结构_恢复请求分组快照 {
             std::string 请求类型{};
@@ -934,7 +930,6 @@ private:
         I64 服务净变化 = 0;
         I64 安全净变化 = 0;
         std::string 固定机制摘要{};
-        std::string 否定项摘要{};
         std::string 缺口摘要{};
         std::string 故障收口摘要{};
         std::string 摘要{};

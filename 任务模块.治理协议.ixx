@@ -434,7 +434,6 @@ struct 结构_任务管理请求 {
     bool 存在待消费缺口反馈 = false;
     bool 存在待消费缺口回流 = false;
     bool 存在待消费外部反馈 = false;
-    std::string 恢复重建摘要{};
 };
 
 // 前向单步决策结果。主要承载筹办、可执行判断和允许执行判断的阶段结果。
@@ -613,7 +612,6 @@ struct 结构_任务管理结果 {
     std::string 锚点裁决摘要{};
     std::string 来源主观察特征{};
     std::string 当前影子验证状态{ "未触发" };
-    std::string 最近上层反馈摘要{};
     std::string 最近反馈摘要{};
     std::string 摘要{};
     bool 允许正式资产提交 = false;
