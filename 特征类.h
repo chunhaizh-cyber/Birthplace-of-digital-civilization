@@ -58,7 +58,6 @@ struct 结构_特征状态比较结果 {
     const 语素入口节点类* 特征类型 = nullptr;
     枚举_特征值比较模式 比较方式 = 枚举_特征值比较模式::相等;
     I64 差值 = 0;
-    std::string 说明{};
 };
 
 enum class 枚举_VecU解释规则 : std::uint8_t {
