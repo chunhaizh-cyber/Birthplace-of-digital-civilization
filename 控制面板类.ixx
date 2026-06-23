@@ -149,7 +149,6 @@ struct 结构_控制面板快照 {
     std::string 需求树首个目标绑定异常目标状态主键{};
     std::string 需求树首个目标绑定异常目标宿主主键{};
     std::string 需求树首个目标绑定异常目标特征主键{};
-    std::string 需求树首个目标绑定异常原因{};
     std::size_t 需求树非阻塞需求数 = 0;
     std::size_t 需求树已截止需求数 = 0;
     std::size_t 需求树逻辑组织需求数 = 0;
@@ -177,7 +176,6 @@ struct 结构_控制面板快照 {
     std::string 需求树当前主需求结构形态{};
     std::string 需求树当前主需求目标语义{};
     bool 需求树当前主需求可普通任务化 = false;
-    std::string 需求树当前主需求不可普通任务化原因{};
     std::string 需求树当前主需求OR令牌状态{};
     std::string 需求树当前主需求当前激活路径{};
 
