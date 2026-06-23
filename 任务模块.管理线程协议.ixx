@@ -487,7 +487,6 @@ struct 结构_任务界面线程快照 {
     std::string 最近参数保存结果 = "尚未保存";
     std::string 最近参数错误{};
     std::string 最近参数应用结果 = "尚未应用";
-    std::string 最近说明{};
 };
 
 } // namespace 任务管理线程协议
