@@ -352,7 +352,6 @@ struct 结构_任务工作结果 {
     std::uint64_t 外设观察报告ID = 0;
     std::uint64_t 外设观察承接上行消息数 = 0;
 
-    std::string 摘要{};
 };
 
 struct 结构_任务工作完成项 {
