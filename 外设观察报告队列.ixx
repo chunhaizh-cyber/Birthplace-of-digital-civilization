@@ -645,7 +645,6 @@ export struct 结构_目标观察约束特征组 {
     bool 允许降级 = true;
     bool 允许缓存 = true;
     枚举_目标观察约束状态 状态 = 枚举_目标观察约束状态::未定义;
-    std::string 失效原因{};
 };
 
 export struct 结构_目标观察约束可用性判定 {
@@ -789,9 +788,7 @@ export 结构_目标观察约束可用性判定 判断目标观察约束可用�
     const 结构_目标观察约束特征组& 约束,
     std::int64_t 当前时间毫秒,
     const 结构_外设观察等待项* 等待项);
-export bool 撤销目标观察约束特征组(
-    std::uint64_t 约束ID,
-    const std::string& 原因);
+export bool 撤销目标观察约束特征组(std::uint64_t 约束ID);
 export std::size_t 清理目标观察约束特征组(std::int64_t 当前时间毫秒);
 export std::string 构造目标观察约束摘要(const 结构_目标观察约束特征组& 约束);
 export std::optional<结构_外设观察报告队列项> 读取最新外设观察报告(
@@ -3023,7 +3020,7 @@ bool 完成外设观察等待项(std::uint64_t 等待项ID)
 
     if (约束.状态 == 枚举_目标观察约束状态::已撤销) {
         return 设置(枚举_目标观察约束可用性::已撤销, false, false,
-            约束.失效原因.empty() ? "目标观察约束已撤销" : 约束.失效原因);
+            "目标观察约束已撤销");
     }
     if (约束.状态 == 枚举_目标观察约束状态::已过期
         || (约束.TTL毫秒 > 0
@@ -3051,7 +3048,7 @@ bool 完成外设观察等待项(std::uint64_t 等待项ID)
     }
     if (约束.状态 == 枚举_目标观察约束状态::材料不可回查) {
         return 设置(枚举_目标观察约束可用性::材料不可回查, false, false,
-            约束.失效原因.empty() ? "目标观察约束材料不可回查" : 约束.失效原因);
+            "目标观察约束材料不可回查");
     }
     const std::string* 等待项目标存在 = nullptr;
     if (等待项 && !等待项->目标存在ID.empty()) {
@@ -3233,9 +3230,7 @@ std::vector<结构_目标观察约束特征组> 读取可用目标观察约束�
 }
 
 // 功能：按函数名执行对应处理。
-bool 撤销目标观察约束特征组(
-    std::uint64_t 约束ID,
-    const std::string& 原因)
+bool 撤销目标观察约束特征组(std::uint64_t 约束ID)
 {
     if (约束ID == 0) {
         return false;
@@ -3247,7 +3242,6 @@ bool 撤销目标观察约束特征组(
             continue;
         }
         约束.状态 = 枚举_目标观察约束状态::已撤销;
-        约束.失效原因 = 原因.empty() ? "目标观察约束被撤销" : 原因;
         return true;
     }
     return false;
