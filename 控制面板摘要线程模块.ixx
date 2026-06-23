@@ -48,7 +48,13 @@ export struct 结构_控制面板摘要快照 {
     I64 自我线程Tick计数值 = 0;
     I64 自我线程Mailbox待消费数值 = 0;
 
-    std::string 运行事实摘要{};
+    std::size_t 运行事实有运行证据方法数 = 0;
+    std::size_t 运行事实失败任务数 = 0;
+    std::size_t 运行事实等待任务数 = 0;
+    std::string 运行事实最近方法主键{};
+    时间戳 运行事实最近方法时间 = 0;
+    时间戳 运行事实最近任务时间 = 0;
+
     std::string 自检摘要{};
 
     std::size_t 活跃需求数 = 0;
