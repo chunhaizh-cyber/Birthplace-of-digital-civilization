@@ -922,7 +922,7 @@ std::string 私有_构造任务治理幂等键(
     auto* 任务 = reinterpret_cast<const 任务节点*>(请求.任务信息节点);
     auto* 需求 = reinterpret_cast<const 需求节点*>(请求.来源需求);
     std::ostringstream 输出;
-    输出 << 私有_请求类型文本(类型);
+    输出 << "请求类型值=" << static_cast<int>(类型);
     if (类型 == 任务管理线程协议::枚举_任务管理请求类型::发起任务) {
         输出 << "|需求=" << 私有_安全主键(需求);
         return 输出.str();
@@ -4149,15 +4149,15 @@ bool 私有_按方法供料要求构造外设观察等待项(
     }
 
     输出->幂等键 =
-        "外设观察等待项|任务=" + (任务主键.empty() ? std::string("空") : 任务主键)
-        + "|需求=" + (需求主键.empty() ? std::string("空") : 需求主键)
+        "外设观察等待项|任务=" + (任务主键.empty() ? std::string{} : 任务主键)
+        + "|需求=" + (需求主键.empty() ? std::string{} : 需求主键)
         + "|方法=" + 方法主键
-        + "|结构化口径=" + 私有_外设观察需求口径文本_任务管理(外设观察口径)
-        + "|模式=" + 外设观察运行模式文本(输出->观察运行模式)
-        + "|目标存在ID=" + (输出->目标存在ID.empty() ? std::string("空") : 输出->目标存在ID)
-        + "|目标特征类型ID=" + (输出->目标特征类型ID.empty() ? std::string("空") : 输出->目标特征类型ID)
+        + "|结构化口径值=" + std::to_string(static_cast<int>(外设观察口径))
+        + "|模式值=" + std::to_string(static_cast<int>(输出->观察运行模式))
+        + "|目标存在ID=" + (输出->目标存在ID.empty() ? std::string{} : 输出->目标存在ID)
+        + "|目标特征类型ID=" + (输出->目标特征类型ID.empty() ? std::string{} : 输出->目标特征类型ID)
         + "|目标观察约束ID=" + std::to_string(输出->目标观察约束ID)
-        + "|目标特征generation=" + (输出->目标特征generation.empty() ? std::string("空") : 输出->目标特征generation);
+        + "|目标特征generation=" + (输出->目标特征generation.empty() ? std::string{} : 输出->目标特征generation);
     return true;
 }
 
@@ -4353,11 +4353,11 @@ std::size_t 私有_按稳定子集全量扫描约束提交外设等待项(
         外设等待项.允许降级匹配 = 约束.允许降级 ? 1 : 0;
         外设等待项.幂等键 =
             "稳定子集全量扫描等待项|任务=" + 任务主键
-            + "|需求=" + (!需求主键.empty() ? 需求主键 : std::string("空"))
+            + "|需求=" + (!需求主键.empty() ? 需求主键 : std::string{})
             + "|目标存在ID=" + 约束.目标存在ID
             + "|目标特征类型ID=" + 约束.目标特征类型ID
             + "|目标观察约束ID=" + std::to_string(约束.约束ID)
-            + "|约束generation=" + (约束.约束generation.empty() ? std::string("空") : 约束.约束generation);
+            + "|约束generation=" + (约束.约束generation.empty() ? std::string{} : 约束.约束generation);
         外设等待项.等待项ID = 提交外设观察等待项(外设等待项);
         if (外设等待项.等待项ID == 0) {
             continue;
