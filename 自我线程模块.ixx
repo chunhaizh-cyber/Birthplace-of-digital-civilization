@@ -163,7 +163,6 @@ public:
         时间戳 最近报告时间 = 0;
         时间戳 最近门控时间 = 0;
         std::string 最近报告处置{};
-        std::string 最近门控摘要{};
         std::string 摘要{};
     };
 
