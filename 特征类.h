@@ -164,7 +164,6 @@ struct 结构_三维体素轮廓融合参数 {
 
 struct 结构_三维体素轮廓融合结果 {
     bool 成功 = false;
-    std::string 失败原因{};
     VecIU64 占据位块{};
     std::uint32_t 宽度 = 0;
     std::uint32_t 高度 = 0;
@@ -190,7 +189,6 @@ struct 结构_三维体素存在空间绑定参数 {
 
 struct 结构_三维体素局部轮廓相似度结果 {
     bool 可比较 = false;
-    std::string 不可比较原因{};
     I64 相似度Q10000 = 0;
     I64 命中率Q10000 = 0;
     I64 越界惩罚Q10000 = 0;

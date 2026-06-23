@@ -3715,20 +3715,19 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     结果.输入视角数量 = static_cast<std::uint64_t>(视角集合.size());
     结果.体素边长_mm = 参数.体素边长_mm;
 
-    auto 拒绝 = [&](std::string 原因) {
+    auto 拒绝 = [&]() {
         结果 = {};
-        结果.失败原因 = std::move(原因);
         结果.输入视角数量 = static_cast<std::uint64_t>(视角集合.size());
         结果.体素边长_mm = 参数.体素边长_mm;
         return 结果;
     };
 
-    if (视角集合.empty()) return 拒绝("缺少轮廓图视角");
-    if (视角集合.size() > 64) return 拒绝("轮廓图视角超过64个，无法用位集记录来源");
-    if (参数.体素边长_mm == 0) return 拒绝("体素边长为0");
-    if (参数.最大输出体素数 == 0) return 拒绝("最大输出体素数为0");
+    if (视角集合.empty()) return 拒绝();
+    if (视角集合.size() > 64) return 拒绝();
+    if (参数.体素边长_mm == 0) return 拒绝();
+    if (参数.最大输出体素数 == 0) return 拒绝();
     if (参数.最小确认视角数 == 0 || 参数.最小确认视角数 > 视角集合.size()) {
-        return 拒绝("最小确认视角数非法");
+        return 拒绝();
     }
 
     bool 有效点存在 = false;
@@ -3742,16 +3741,16 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
 
     for (const auto& 视角 : 视角集合) {
         const auto 像素数 = static_cast<std::uint64_t>(视角.宽度) * static_cast<std::uint64_t>(视角.高度);
-        if (视角.宽度 == 0 || 视角.高度 == 0 || 像素数 == 0) return 拒绝("轮廓图尺寸非法");
+        if (视角.宽度 == 0 || 视角.高度 == 0 || 像素数 == 0) return 拒绝();
         if (像素数 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())) {
-            return 拒绝("轮廓图像素数超过平台限制");
+            return 拒绝();
         }
         const auto 期望像素数 = static_cast<std::size_t>(像素数);
-        if (视角.轮廓掩码.size() != 期望像素数) return 拒绝("轮廓掩码尺寸与图像尺寸不一致");
-        if (视角.深度_mm.size() != 期望像素数) return 拒绝("深度图尺寸与图像尺寸不一致");
-        if (视角.空间点_mm.size() != 期望像素数) return 拒绝("空间点尺寸与图像尺寸不一致");
+        if (视角.轮廓掩码.size() != 期望像素数) return 拒绝();
+        if (视角.深度_mm.size() != 期望像素数) return 拒绝();
+        if (视角.空间点_mm.size() != 期望像素数) return 拒绝();
         if (!视角.颜色_RGBA.empty() && 视角.颜色_RGBA.size() != 期望像素数) {
-            return 拒绝("彩图尺寸与图像尺寸不一致");
+            return 拒绝();
         }
         if (!视角.颜色_RGBA.empty()) {
             需要颜色累积 = true;
@@ -3777,7 +3776,7 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
         }
     }
 
-    if (!有效点存在) return 拒绝("轮廓掩码内没有有效深度点");
+    if (!有效点存在) return 拒绝();
 
     const auto 轴体素数 = [&](const I64 最小值, const I64 最大值) -> std::uint32_t {
         const long double 范围 = static_cast<long double>(最大值) - static_cast<long double>(最小值);
@@ -3793,10 +3792,10 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     const std::uint32_t 高度 = 轴体素数(最小Y, 最大Y);
     const std::uint32_t 深度 = 轴体素数(最小Z, 最大Z);
     const auto 总体素数 = 私有_三维体素长方体总数(宽度, 高度, 深度);
-    if (宽度 == 0 || 高度 == 0 || 深度 == 0 || 总体素数 == 0) return 拒绝("输出体素尺寸非法");
-    if (总体素数 > 参数.最大输出体素数) return 拒绝("输出体素数超过上限");
+    if (宽度 == 0 || 高度 == 0 || 深度 == 0 || 总体素数 == 0) return 拒绝();
+    if (总体素数 > 参数.最大输出体素数) return 拒绝();
     if (总体素数 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())) {
-        return 拒绝("输出体素数超过平台限制");
+        return 拒绝();
     }
 
     const auto 稠密大小 = static_cast<std::size_t>(总体素数);
@@ -3911,7 +3910,7 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     }
 
     auto 位块 = 创建三维体素长方体占据位块(宽度, 高度, 深度);
-    if (位块.empty()) return 拒绝("创建长方体体素位块未完成");
+    if (位块.empty()) return 拒绝();
 
     for (std::size_t idx = 0; idx < 稠密大小; ++idx) {
         if (占据[idx] == 0 || 来源视角数[idx] < 参数.最小确认视角数) continue;
@@ -3922,7 +3921,7 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
         }
     }
 
-    if (结果.占据体素数量 == 0) return 拒绝("确认视角过滤后没有占据体素");
+    if (结果.占据体素数量 == 0) return 拒绝();
 
     结果.成功 = true;
     结果.占据位块 = std::move(位块);
@@ -3946,9 +3945,8 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     结构_三维体素局部轮廓相似度结果 结果{};
     结果.请求查询层级 = 查询层级;
 
-    auto 拒绝 = [&](std::string 原因) {
+    auto 拒绝 = [&]() {
         结果.可比较 = false;
-        结果.不可比较原因 = std::move(原因);
         结果.相似度Q10000 = 0;
         结果.命中率Q10000 = 0;
         结果.越界惩罚Q10000 = 0;
@@ -3956,31 +3954,31 @@ bool 特征类::解析三维体素链节点VecU(const VecIU64& 值, 结构_三�
     };
 
     auto* 根节点 = 值池.取节点(存在体素根句柄);
-    if (!根节点) return 拒绝("存在体素根句柄无效");
+    if (!根节点) return 拒绝();
 
     结构_三维体素链节点信息 根信息{};
     const auto* 根值 = 特征值类::取节点VecU只读指针(根节点);
     if (!根值 || !解析三维体素链节点VecU(*根值, 根信息) || !根信息.是根) {
-        return 拒绝("存在体素根节点不是三维体素根VecU");
+        return 拒绝();
     }
-    if (根信息.边长 == 0) return 拒绝("存在体素根节点边长为0");
+    if (根信息.边长 == 0) return 拒绝();
 
     std::uint32_t 存在最小体素边长_mm = 存在空间.最小体素边长_mm;
     if (存在最小体素边长_mm == 0) {
         存在最小体素边长_mm = 根信息.最小体素边长_mm;
     } else if (根信息.最小体素边长_mm != 0 && 根信息.最小体素边长_mm != 存在最小体素边长_mm) {
-        return 拒绝("存在体素边长与根节点元数据不一致");
+        return 拒绝();
     }
-    if (存在最小体素边长_mm == 0) return 拒绝("缺少存在体素最小边长");
+    if (存在最小体素边长_mm == 0) return 拒绝();
 
     结果.存在体素网格边长 = 根信息.边长;
     结果.存在最小体素边长_mm = 存在最小体素边长_mm;
 
     结果.局部体素边长_mm = 局部体素.体素边长_mm;
     结果.局部占据体素数量 = 局部体素.占据体素数量;
-    if (!局部体素.成功) return 拒绝("局部轮廓生成体素失败: " + 局部体素.失败原因);
-    if (局部体素.体素边长_mm == 0) return 拒绝("局部体素边长为0");
-    if (局部体素.占据体素数量 == 0) return 拒绝("局部轮廓没有占据体素");
+    if (!局部体素.成功) return 拒绝();
+    if (局部体素.体素边长_mm == 0) return 拒绝();
+    if (局部体素.占据体素数量 == 0) return 拒绝();
 
     const auto 查询精度层级 = [&]() -> std::uint32_t {
         std::uint32_t 允许层级 = 0;
