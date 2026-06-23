@@ -424,7 +424,6 @@ public:
         std::string 回流队列键{};
         std::string 父任务协调键{};
         std::string 父任务协调阶段{};
-        std::string 缺口摘要{};
         std::string 摘要{};
     };
 
@@ -453,7 +452,6 @@ public:
         bool 已恢复 = false;
         std::string 动作语义键{};
         std::string 特征沉淀键{};
-        std::string 变化摘要{};
         std::string 来源消息类型{};
         std::string 摘要{};
     };
@@ -845,7 +843,6 @@ private:
         std::string 回流队列键{};
         std::string 父任务协调键{};
         std::string 父任务协调阶段{};
-        std::string 缺口摘要{};
         std::string 摘要{};
     };
 
@@ -875,7 +872,6 @@ private:
         bool 已恢复 = false;
         std::string 动作语义键{};
         std::string 特征沉淀键{};
-        std::string 变化摘要{};
         std::string 来源消息类型{};
         std::string 摘要{};
     };
@@ -892,7 +888,6 @@ private:
         std::size_t 新增关键中间状态沉淀数 = 0;
         I64 服务净变化 = 0;
         I64 安全净变化 = 0;
-        std::string 缺口摘要{};
         std::string 摘要{};
     };
 
