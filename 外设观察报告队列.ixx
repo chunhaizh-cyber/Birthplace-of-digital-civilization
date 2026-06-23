@@ -466,7 +466,6 @@ export struct 结构_外设观察报告队列项 {
     std::int64_t 时间戳毫秒 = 0;
     bool 采集成功 = false;
     std::string 配置摘要{};
-    std::string 错误摘要{};
     std::string 失败原因{};
 
     std::int64_t 帧宽度 = 0;
