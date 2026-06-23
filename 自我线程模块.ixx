@@ -1045,4 +1045,4 @@ export bool 投递自检报告消息(
 export 自我线程类::结构_自我线程最小状态快照 读取自我线程最小状态快照();
 export bool 投递治理外部反馈事件(
     const std::string& 摘要,
-    const std::string& 来源主观察特征 = "外部反馈/人工注入");
+    const std::string& 来源主观察特征 = {});
