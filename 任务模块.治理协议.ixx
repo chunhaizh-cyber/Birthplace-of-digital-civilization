@@ -684,7 +684,6 @@ struct 结构_治理恢复快照 {
     std::size_t 待恢复治理事件数 = 0;
     std::vector<结构_治理恢复事件镜像> 待恢复治理事件列表{};
     bool 允许正式资产提交 = false;
-    std::string 摘要{};
 };
 
 } // export
