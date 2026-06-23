@@ -122,9 +122,7 @@ public:
         std::string 任务管理当前去向{};
         std::string 最近二次特征摘要{};
         std::string 最近影响项摘要{};
-        std::string 最近根值摘要{};
         std::string 最近回流摘要{};
-        std::string 最近结算摘要{};
         枚举_自我线程最终去向 当前最终去向 = 枚举_自我线程最终去向::未定义;
         枚举_自我线程运行阶段 当前运行阶段 = 枚举_自我线程运行阶段::未定义;
     };
@@ -146,7 +144,6 @@ public:
         std::uintptr_t 当前任务指针 = 0;
         std::uintptr_t 当前任务虚拟存在指针 = 0;
         std::string 当前任务虚拟存在主键{};
-        std::string 当前任务虚拟存在概念摘要{};
         std::uintptr_t mailbox待消费数抽象特征指针 = 0;
         I64 mailbox待消费数值 = 0;
         std::uintptr_t 健康状态抽象特征指针 = 0;
@@ -165,7 +162,6 @@ public:
         std::uint64_t 最近休眠期门控报告数 = 0;
         时间戳 最近报告时间 = 0;
         时间戳 最近门控时间 = 0;
-        std::string 最近报告摘要{};
         std::string 最近报告处置{};
         std::string 最近门控摘要{};
         std::string 摘要{};
@@ -288,11 +284,9 @@ public:
         std::vector<std::uint64_t> 当前成员任务根ID集{};
         std::vector<std::uint64_t> 最近移出任务根ID集{};
         std::string 成员来源分类摘要{};
-        std::string 成员来源摘要{};
         std::vector<结构_队列成员快照> 当前成员列表{};
         std::vector<结构_队列成员事件快照> 最近成员事件列表{};
         std::string 最近裁决{};
-        std::string 最近动作摘要{};
         std::string 摘要{};
     };
 
@@ -312,7 +306,6 @@ public:
         bool 已下发控制投影 = false;
         bool 已释放占用 = false;
         std::string 占用对象键{};
-        std::string 控制投影摘要{};
         std::string 摘要{};
     };
 
@@ -413,12 +406,10 @@ public:
         std::string 覆盖优先细则摘要{};
         std::string 主派发判定二次特征摘要{};
         std::string 治理桥预判去向{};
-        std::string 治理桥预判摘要{};
         std::string 治理桥功能域{};
         std::string 治理桥状态迁移{};
         std::string 治理桥总控结果{};
         std::string 治理桥去向{};
-        std::string 治理桥摘要{};
         std::string 主派发摘要{};
         std::string 当前去向{};
         std::vector<结构_主派发动作快照> 派发动作列表{};
@@ -441,10 +432,7 @@ public:
         std::string 父任务协调键{};
         std::string 父任务协调阶段{};
         std::string 父任务局部更新摘要{};
-        std::string 结算结论摘要{};
-        std::string 恢复建议摘要{};
         std::string 缺口摘要{};
-        std::string 故障摘要{};
         std::string 摘要{};
     };
 
@@ -527,7 +515,6 @@ public:
         bool 已执行固定机制 = false;
         I64 服务净变化 = 0;
         I64 安全净变化 = 0;
-        std::string 固定机制摘要{};
         动态节点类* 任务完成动作动态 = nullptr;
         结构_双值结算账快照 双值结算账{};
         结构_缺口恢复接口快照 缺口恢复接口{};
@@ -717,9 +704,7 @@ private:
         std::string 覆盖优先细则摘要{};
         std::string 主派发判定二次特征摘要{};
         std::string 治理桥预判去向{};
-        std::string 治理桥预判摘要{};
         std::string 治理桥去向{};
-        std::string 治理桥摘要{};
         std::string 上层反馈摘要{};
         std::string 摘要{};
     };
@@ -771,7 +756,6 @@ private:
         bool 已下发控制投影 = false;
         bool 已释放占用 = false;
         std::string 占用对象键{};
-        std::string 控制投影摘要{};
         std::string 摘要{};
     };
 
@@ -835,11 +819,9 @@ private:
         std::vector<std::uint64_t> 当前成员任务根ID集{};
         std::vector<std::uint64_t> 最近移出任务根ID集{};
         std::string 成员来源分类摘要{};
-        std::string 成员来源摘要{};
         std::vector<结构_成员对象> 成员对象列表{};
         std::vector<结构_队列成员事件快照> 最近成员事件列表{};
         std::string 最近裁决{};
-        std::string 最近动作摘要{};
         std::string 最近摘要{};
     };
 
@@ -878,10 +860,7 @@ private:
         std::string 父任务协调键{};
         std::string 父任务协调阶段{};
         std::string 父任务局部更新摘要{};
-        std::string 恢复建议摘要{};
-        std::string 结算结论摘要{};
         std::string 缺口摘要{};
-        std::string 故障摘要{};
         std::string 摘要{};
     };
 
@@ -929,7 +908,6 @@ private:
         std::size_t 新增关键中间状态沉淀数 = 0;
         I64 服务净变化 = 0;
         I64 安全净变化 = 0;
-        std::string 固定机制摘要{};
         std::string 缺口摘要{};
         std::string 故障收口摘要{};
         std::string 摘要{};
