@@ -341,7 +341,7 @@ public:
         const std::optional<枚举_二次特征域>& 域 = std::nullopt) const noexcept;
     bool 写入治理二次特征(
         场景节点类* 场景,
-        const std::string& 概念名称,
+        const 语素入口节点类* 概念入口,
         枚举_二次特征种类 种类,
         枚举_二次特征域 域,
         枚举_二次特征粒度 粒度,
@@ -669,4 +669,3 @@ private:
 };
 
 extern 世界树类& 世界树;
-
