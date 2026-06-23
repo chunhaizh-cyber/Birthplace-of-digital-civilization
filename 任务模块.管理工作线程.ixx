@@ -3439,7 +3439,7 @@ std::string 构造任务管理外设消息承接结果摘要(
         承接请求.约束generation = !等待项.约束generation.empty()
             ? 等待项.约束generation
             : 报告.约束generation;
-        承接请求.来源外设ID = 报告.来源外设;
+        承接请求.来源外设ID = 报告.来源外设ID;
         承接请求.观察运行模式值 = static_cast<I64>(报告.观察运行模式);
         承接请求.报告类型值 = static_cast<I64>(报告.报告类型);
         承接请求.观察时间 = static_cast<时间戳>(报告.时间戳毫秒);

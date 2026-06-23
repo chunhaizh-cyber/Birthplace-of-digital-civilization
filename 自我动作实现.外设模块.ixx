@@ -12433,7 +12433,7 @@ namespace {
         const std::string& 外设ID,
         枚举_外设观察报告类型 报告类型)
     {
-        if (!外设ID.empty() && 报告.来源外设 != 外设ID) {
+        if (!外设ID.empty() && 报告.来源外设ID != 外设ID) {
             return false;
         }
         if (报告类型 != 枚举_外设观察报告类型::未指定
