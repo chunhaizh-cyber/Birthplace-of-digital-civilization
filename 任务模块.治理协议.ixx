@@ -251,8 +251,6 @@ struct 结构_原语判定结果 {
     std::int64_t 置信度_Q10000 = 0;
     bool 是否冲突 = false;
     bool 需升阶 = false;
-    std::string 主域{};
-    std::string 小域{};
 };
 
 struct 结构_原语判定汇总 {
@@ -337,7 +335,6 @@ struct 结构_高阶排序请求 {
 struct 结构_高阶排序结果 {
     std::string 需求轴键{};
     std::vector<std::string> 候选主键列表{};
-    std::string 排序关系{};
     std::string 胜出候选主键{};
     bool 是否等效 = false;
     bool 是否过头 = false;
@@ -416,8 +413,6 @@ struct 结构_任务管理请求 {
     std::uintptr_t 触发来源抽象特征指针 = 0;
     I64 触发来源值 = 0;
     std::uint64_t 来源最小原语位图 = 0;
-    std::string 来源主观察特征{};
-    std::string 影子验证状态{"未触发"};
     bool 允许正式资产提交 = false;
     结构_任务治理二次特征证据 当前治理二次特征证据{};
     结构_原语判定汇总 当前原语判定汇总{};
@@ -425,7 +420,6 @@ struct 结构_任务管理请求 {
     结构_高阶排序请求 当前高阶排序请求{};
     结构_高阶胜出绑定 当前高阶胜出绑定{};
     结构_任务管理控制承接记录 当前控制承接{};
-    std::string 当前恢复点类型{};
     bool 存在待消费缺口反馈 = false;
     bool 存在待消费缺口回流 = false;
     bool 存在待消费外部反馈 = false;
@@ -467,8 +461,6 @@ struct 结构_任务管理单步决策 {
     std::uintptr_t 当前后果治理抽象特征指针 = 0;
     I64 当前后果治理值 = 0;
     std::uint64_t 来源最小原语位图 = 0;
-    std::string 来源主观察特征{};
-    std::string 影子验证状态{"未触发"};
     bool 允许正式资产提交 = false;
     结构_任务治理二次特征证据 当前治理二次特征证据{};
     结构_原语判定汇总 当前原语判定汇总{};
@@ -603,8 +595,6 @@ struct 结构_任务管理结果 {
     因果模板节点类* 最新抽象因果 = nullptr;
     bool 宿主目标结果已对齐 = false;
     bool 宿主目标结果待推进 = false;
-    std::string 来源主观察特征{};
-    std::string 当前影子验证状态{ "未触发" };
     bool 允许正式资产提交 = false;
 };
 
@@ -627,13 +617,10 @@ struct 结构_治理恢复事件镜像 {
     std::uintptr_t 恢复处理方式抽象特征指针 = 0;
     I64 恢复处理方式值 = 0;
     std::uint64_t 来源最小原语位图 = 0;
-    std::string 来源主观察特征{};
-    std::string 影子验证状态{};
     bool 允许正式资产提交 = false;
 };
 
 struct 结构_治理恢复快照 {
-    std::string 快照版本{ "治理恢复_v3" };
     可解析引用<任务节点类> 宿主任务{};
     枚举_任务管理根层重判结果 最近根层重判结果 = 枚举_任务管理根层重判结果::未定义;
     std::uintptr_t 最近根层重判结果抽象特征指针 = 0;
@@ -671,12 +658,6 @@ struct 结构_治理恢复快照 {
     结构_高阶排序结果 当前高阶排序结果{};
     结构_高阶胜出绑定 当前高阶胜出绑定{};
     std::string 最近条件主键{};
-    std::string 最近治理态型{};
-    std::string 最近方法位专项动态标题{};
-    std::string 最近最小原语动态标题{};
-    std::string 最近来源主观察特征{};
-    std::string 最近影子验证状态{};
-    std::string 当前恢复点类型{};
     bool 存在待消费缺口反馈 = false;
     bool 存在待消费缺口回流 = false;
     bool 存在待消费外部反馈 = false;

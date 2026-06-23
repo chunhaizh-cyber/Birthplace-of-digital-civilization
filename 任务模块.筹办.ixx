@@ -1476,7 +1476,7 @@ namespace {
         const 时间戳 now)
     {
         std::vector<状态节点类*> 条件目标状态集{};
-        std::vector<std::string> 条件缺失证据{};
+        std::vector<结构_因果缺失证据项> 条件缺失证据{};
         世界树.枚举因果条件目标状态(
             因果节点,
             条件目标状态集,
@@ -1904,7 +1904,7 @@ namespace {
         bool 首个命中因果已验证 = false;
         std::vector<因果节点类*> 同向命中因果{};
         std::vector<因果节点类*> 反向命中因果{};
-        std::vector<std::string> 缺失证据{};
+        std::vector<结构_因果缺失证据项> 缺失证据{};
         世界树.查询主果方向命中因果(
             目标比较,
             true,
@@ -2028,7 +2028,7 @@ namespace {
         std::size_t 主果可解析数量 = 0;
         std::vector<因果节点类*> 同向命中因果{};
         std::vector<因果节点类*> 反向命中因果{};
-        std::vector<std::string> 缺失证据{};
+        std::vector<结构_因果缺失证据项> 缺失证据{};
         世界树.查询主果方向命中因果(
             目标比较,
             true,

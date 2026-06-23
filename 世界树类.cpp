@@ -2844,7 +2844,7 @@ bool 世界树类::存在因果条件模板(const 因果节点类* 因果) const
 void 世界树类::枚举因果条件目标状态(
     const 因果节点类* 因果,
     std::vector<状态节点类*>& 条件目标状态集,
-    std::vector<std::string>& 缺失证据) const
+    std::vector<结构_因果缺失证据项>& 缺失证据) const
 {
     因果服务_.枚举因果条件目标状态(因果, 条件目标状态集, 缺失证据);
 }
@@ -2857,7 +2857,7 @@ void 世界树类::查询主果方向命中因果(
     std::size_t& 主果可解析数量,
     std::vector<因果节点类*>& 同向命中因果,
     std::vector<因果节点类*>& 反向命中因果,
-    std::vector<std::string>& 缺失证据) const
+    std::vector<结构_因果缺失证据项>& 缺失证据) const
 {
     因果服务_.查询主果方向命中因果(
         目标比较,
@@ -2899,7 +2899,7 @@ void 世界树类::查询因果链(
     bool 包含未验证路径,
     std::size_t& 边数量,
     std::vector<因果模板节点类*>& 来源因果模板,
-    std::vector<std::string>& 缺失证据) const
+    std::vector<结构_因果缺失证据项>& 缺失证据) const
 {
     因果服务_.查询因果链(
         目标结果状态,
@@ -2921,7 +2921,7 @@ void 世界树类::查询叶子任务目标投影层级(
     std::size_t& 候选投影数量,
     std::vector<std::uint32_t>& 结算贡献层级集,
     std::vector<std::uint32_t>& 因果距离层级集,
-    std::vector<std::string>& 缺失证据,
+    std::vector<结构_因果缺失证据项>& 缺失证据,
     bool& 是否允许形成D0) const
 {
     因果服务_.查询叶子任务目标投影层级(
@@ -2947,7 +2947,7 @@ void 世界树类::查询自检原子目标投影(
     bool 允许未验证路径,
     std::size_t& 候选投影数量,
     std::vector<std::string>& 来源因果主键集,
-    std::vector<std::string>& 缺失证据) const
+    std::vector<结构_因果缺失证据项>& 缺失证据) const
 {
     因果服务_.查询自检原子目标投影(
         固定来源任务,

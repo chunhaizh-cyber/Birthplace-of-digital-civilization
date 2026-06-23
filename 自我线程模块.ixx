@@ -292,7 +292,6 @@ public:
     struct 结构_派发占用登记快照 {
         std::size_t 动作序号 = 0;
         std::string 动作类型{};
-        std::string 占用队列{};
         std::uint64_t 包主键 = 0;
         std::uint64_t 任务根ID = 0;
         bool 已登记占用 = false;
@@ -384,11 +383,6 @@ public:
         bool 局部收益不可覆盖长期根方向 = false;
         bool 收益覆盖禁止付出 = false;
         std::string 优先级链命中层{};
-        std::string 治理桥预判去向{};
-        std::string 治理桥功能域{};
-        std::string 治理桥状态迁移{};
-        std::string 治理桥总控结果{};
-        std::string 治理桥去向{};
         std::string 主派发摘要{};
         std::string 当前去向{};
         std::vector<结构_主派发动作快照> 派发动作列表{};
@@ -663,9 +657,6 @@ private:
         bool 局部收益不可覆盖长期根方向 = false;
         bool 收益覆盖禁止付出 = false;
         std::string 优先级链命中层{};
-        std::string 治理桥预判去向{};
-        std::string 治理桥去向{};
-        std::string 上层反馈摘要{};
         std::string 摘要{};
     };
 
@@ -734,12 +725,6 @@ private:
         std::vector<任务运行包::结构_一步治理任务包> 一步治理任务包集{};
         std::vector<结构_派发占用登记> 派发占用登记集{};
         std::vector<结构_派发回执> 派发回执集{};
-        std::string 可运行队列裁决{};
-        std::string 等待队列裁决{};
-        std::string 回流队列裁决{};
-        std::string 收束停止队列裁决{};
-        std::string 任务管理当前去向{};
-        std::string 摘要{};
     };
 
     struct 结构_队列治理对象 {
@@ -893,8 +878,7 @@ private:
     };
 
     friend bool 投递治理外部反馈事件(
-        const std::string& 摘要,
-        const std::string& 来源主观察特征);
+        const std::string& 摘要);
     friend bool 上报线程状态变化(
         const 自我线程消息协议::结构_线程状态变化消息段& 消息段,
         const 结构_线程存在初始化参数* 线程存在初始化);
@@ -1014,5 +998,4 @@ export bool 投递自检报告消息(
     const 自我线程消息协议::结构_自检报告消息& 报告);
 export 自我线程类::结构_自我线程最小状态快照 读取自我线程最小状态快照();
 export bool 投递治理外部反馈事件(
-    const std::string& 摘要,
-    const std::string& 来源主观察特征 = {});
+    const std::string& 摘要);

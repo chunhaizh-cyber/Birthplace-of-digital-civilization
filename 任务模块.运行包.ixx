@@ -112,7 +112,6 @@ struct 结构_授权约束段 {
     std::vector<枚举_动作类型> 动作白名单{};
     const 语素入口节点类* 动作白名单抽象特征指针 = nullptr;
     std::vector<I64> 动作白名单值集{};
-    std::vector<std::string> 停止条件{};
 };
 
 struct 结构_方法候选项 {
