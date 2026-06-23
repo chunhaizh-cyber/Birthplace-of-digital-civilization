@@ -402,7 +402,6 @@ struct 结构_任务管理控制承接记录 {
     bool 是否已执行完成 = false;
     bool 是否超时 = false;
     时间戳 最近回报时间 = 0;
-    std::string 说明{};
 };
 
 // 治理请求。它是治理前半段的正式输入面，并承载本轮回写所需的结构证据。
@@ -605,8 +604,6 @@ struct 结构_任务管理结果 {
     因果模板节点类* 最新抽象因果 = nullptr;
     bool 宿主目标结果已对齐 = false;
     bool 宿主目标结果待推进 = false;
-    std::string 目标结果差额摘要{};
-    std::string 锚点裁决摘要{};
     std::string 来源主观察特征{};
     std::string 当前影子验证状态{ "未触发" };
     bool 允许正式资产提交 = false;
