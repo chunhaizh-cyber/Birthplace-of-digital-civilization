@@ -249,7 +249,6 @@ public:
         时间戳 最近出队时间 = 0;
         std::string 来源分类{};
         std::string 来源动作{};
-        std::string 来源摘要{};
         std::string 最近事件摘要{};
     };
 
@@ -404,7 +403,6 @@ public:
         std::string 多证据联合裁决摘要{};
         std::string 联合阈值细则摘要{};
         std::string 覆盖优先细则摘要{};
-        std::string 主派发判定二次特征摘要{};
         std::string 治理桥预判去向{};
         std::string 治理桥功能域{};
         std::string 治理桥状态迁移{};
@@ -702,7 +700,6 @@ private:
         std::string 多证据联合裁决摘要{};
         std::string 联合阈值细则摘要{};
         std::string 覆盖优先细则摘要{};
-        std::string 主派发判定二次特征摘要{};
         std::string 治理桥预判去向{};
         std::string 治理桥去向{};
         std::string 上层反馈摘要{};
@@ -793,7 +790,6 @@ private:
             时间戳 最近出队时间 = 0;
             枚举_队列成员来源分类 来源分类 = 枚举_队列成员来源分类::未定义;
             std::string 来源动作{};
-            std::string 来源摘要{};
             std::string 最近事件摘要{};
         };
 
@@ -909,7 +905,6 @@ private:
         I64 服务净变化 = 0;
         I64 安全净变化 = 0;
         std::string 缺口摘要{};
-        std::string 故障收口摘要{};
         std::string 摘要{};
     };
 
