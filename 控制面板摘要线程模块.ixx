@@ -43,9 +43,6 @@ export struct 结构_控制面板摘要快照 {
     时间戳 采集时间 = 0;
 
     std::string 自我线程摘要{};
-    std::string 需求树摘要{};
-    std::string 任务树摘要{};
-    std::string 方法树摘要{};
     std::string 运行事实摘要{};
     std::string 自检摘要{};
 
