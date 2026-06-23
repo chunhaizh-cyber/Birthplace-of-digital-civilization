@@ -81,8 +81,6 @@ export struct 结构_自检线程摘要 {
     I64 最近提交时间值 = 0;
     时间戳 最近提交时间 = 0;
 
-    std::string 最近事件摘要{};
-    std::string 最近需求摘要{};
     std::vector<std::string> 最近事件列表{};
 };
 
@@ -128,7 +126,6 @@ private:
     std::uint64_t 累计发现问题数_ = 0;
     时间戳 最近检查时间_ = 0;
     时间戳 最近提交时间_ = 0;
-    std::string 最近需求摘要_{};
     std::string 最近基础信息预检摘要_{};
     时间戳 最近基础信息预检记录时间_ = 0;
     std::deque<std::string> 最近事件_{};
