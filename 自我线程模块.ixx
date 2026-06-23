@@ -280,7 +280,6 @@ public:
         std::vector<std::uint64_t> 最近移出任务根ID集{};
         std::vector<结构_队列成员快照> 当前成员列表{};
         std::vector<结构_队列成员事件快照> 最近成员事件列表{};
-        std::string 最近裁决{};
         std::string 摘要{};
     };
 
@@ -779,8 +778,6 @@ private:
         std::vector<std::uint64_t> 最近移出任务根ID集{};
         std::vector<结构_成员对象> 成员对象列表{};
         std::vector<结构_队列成员事件快照> 最近成员事件列表{};
-        std::string 最近裁决{};
-        std::string 最近摘要{};
     };
 
     struct 结构_结果路由动作 {
