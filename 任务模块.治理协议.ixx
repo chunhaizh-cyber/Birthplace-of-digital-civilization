@@ -253,7 +253,6 @@ struct 结构_原语判定结果 {
     bool 需升阶 = false;
     std::string 主域{};
     std::string 小域{};
-    std::string 下一步建议{};
 };
 
 struct 结构_原语判定汇总 {
