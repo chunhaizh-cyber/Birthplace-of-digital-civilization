@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <limits>
+#include <utility>
 
 
 using 置信度 = std::uint64_t;
@@ -457,12 +458,12 @@ enum class 枚举_信息存储树 : std::uint8_t {
 
 struct 结构体_分词 {
     std::string 词;
-    std::string  词性;
+    枚举_词性 词性 = 枚举_词性::未定义;
     结构体_分词() = default;
 
-    // 功能：按函数名执行对应处理。
-    结构体_分词(std::string 词_, std::string  词性_)
-        :词(词_), 词性(词性_) {
+    // 功能：保存分词词面和已枚举化的人类词性。
+    结构体_分词(std::string 词_, 枚举_词性 词性_)
+        :词(std::move(词_)), 词性(词性_) {
     }
 
 };
