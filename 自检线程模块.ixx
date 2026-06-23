@@ -126,7 +126,8 @@ private:
     std::uint64_t 累计发现问题数_ = 0;
     时间戳 最近检查时间_ = 0;
     时间戳 最近提交时间_ = 0;
-    std::string 最近基础信息预检摘要_{};
+    std::uint64_t 最近基础信息预检缺项位图_ = 0;
+    bool 最近基础信息预检只读观察模式_ = false;
     时间戳 最近基础信息预检记录时间_ = 0;
     std::deque<std::string> 最近事件_{};
     std::unordered_map<std::string, 时间戳> 去重账_{};
