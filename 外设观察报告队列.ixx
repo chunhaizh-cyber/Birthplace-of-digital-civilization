@@ -256,8 +256,6 @@ export struct 结构_外设观察像素簇摘要 {
     枚举_外设Tracker轨迹状态 轨迹状态 = 枚举_外设Tracker轨迹状态::未指定;
     std::string 轨迹状态generation{};
     std::int64_t 轨迹状态连续帧数 = 0;
-    std::string 轨迹状态变化原因{};
-    std::string 轨迹状态变化动态候选{};
     std::int64_t 平滑中心X = 0;
     std::int64_t 平滑中心Y = 0;
     std::int64_t 平滑中心Z = 0;
@@ -530,8 +528,6 @@ export struct 结构_外设观察报告队列项 {
     枚举_外设Tracker轨迹状态 轨迹状态 = 枚举_外设Tracker轨迹状态::未指定;
     std::string 轨迹状态generation{};
     std::int64_t 轨迹状态连续帧数 = 0;
-    std::string 轨迹状态变化原因{};
-    std::string 轨迹状态变化动态候选{};
 
     std::uint64_t 目标观察约束ID = 0;
     std::string 约束generation{};
@@ -3591,8 +3587,6 @@ std::string 构造外设观察报告摘要(const 结构_外设观察报告队列
             << " | 轨迹状态=" << 外设Tracker轨迹状态文本(报告项.轨迹状态)
             << " | 轨迹连续帧数=" << 报告项.轨迹状态连续帧数
             << " | 轨迹状态generation=" << (报告项.轨迹状态generation.empty() ? "空" : 报告项.轨迹状态generation)
-            << " | 轨迹变化原因=" << (报告项.轨迹状态变化原因.empty() ? "空" : 报告项.轨迹状态变化原因)
-            << " | 轨迹动态候选=" << (报告项.轨迹状态变化动态候选.empty() ? "空" : 报告项.轨迹状态变化动态候选)
             << " | 丢失状态=" << 报告项.丢失状态值
             << " | 连续成功=" << 报告项.连续成功次数
             << " | 失败次数=" << 报告项.失败次数
