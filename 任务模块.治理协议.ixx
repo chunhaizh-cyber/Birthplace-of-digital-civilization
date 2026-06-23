@@ -327,7 +327,6 @@ enum class 枚举_原语候选来源锚点类型 : std::uint8_t {
 struct 结构_高阶排序请求 {
     std::string 需求轴键{};
     std::vector<std::string> 候选主键列表{};
-    std::string 候选摘要{};
     std::string 首候选主键{};
     std::string 次候选主键{};
     std::string 比较特征键{};
@@ -340,7 +339,6 @@ struct 结构_高阶排序请求 {
 struct 结构_高阶排序结果 {
     std::string 需求轴键{};
     std::vector<std::string> 候选主键列表{};
-    std::string 候选摘要{};
     std::string 排序关系{};
     std::string 胜出候选主键{};
     bool 是否等效 = false;
