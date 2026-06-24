@@ -1740,7 +1740,7 @@ std::string 世界树类::获取名称(const 基础信息节点类* 节点) cons
 }
 
 // 功能：把当前世界树本体重写到 SQL Server 查询投影。
-bool 世界树类::重写世界树SQL投影(const char* 来源原因) const noexcept
+bool 世界树类::重写世界树SQL投影(const char* 来源原因, const bool 执行字段恢复比对) const noexcept
 {
     std::lock_guard<std::mutex> SQL锁{ 私有_世界树SQL投影互斥() };
     try {
@@ -1791,7 +1791,7 @@ bool 世界树类::重写世界树SQL投影(const char* 来源原因) const noex
                 私有_构造世界树SQL重写脚本(节点集, 关系集, 原因文本),
                 错误,
                 180)
-            || !私有_验证世界树SQL存储字段(投影库连接串, 节点集, 关系集, 原因文本, 错误)) {
+            || (执行字段恢复比对 && !私有_验证世界树SQL存储字段(投影库连接串, 节点集, 关系集, 原因文本, 错误))) {
             项目运行错误日志(
                 "世界树SQL投影失败"
                 " | 原因=" + 错误
@@ -1805,7 +1805,7 @@ bool 世界树类::重写世界树SQL投影(const char* 来源原因) const noex
             " | 来源=" + 原因文本
             + " | 节点数=" + std::to_string(节点集.size())
             + " | 关系数=" + std::to_string(关系集.size())
-            + " | 字段恢复比对=通过");
+            + " | 字段恢复比对=" + (执行字段恢复比对 ? "通过" : "跳过"));
         return true;
     }
     catch (const std::exception& 异常) {

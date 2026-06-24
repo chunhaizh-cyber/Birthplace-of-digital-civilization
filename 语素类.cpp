@@ -868,7 +868,7 @@ void 语素类::初始化()
 }
 
 // 功能：把当前语素树本体重写到 SQL Server 查询投影。
-bool 语素类::重写语素SQL投影(const char* 来源原因) const noexcept
+bool 语素类::重写语素SQL投影(const char* 来源原因, const bool 执行字段恢复比对) const noexcept
 {
     std::lock_guard<std::mutex> SQL锁{ 私有_语素SQL投影互斥() };
     try {
@@ -894,7 +894,7 @@ bool 语素类::重写语素SQL投影(const char* 来源原因) const noexcept
             || !私有_执行语素ADO命令(投影库连接串, "语素SQL投影建表", 私有_语素SQL建表脚本(), 错误)
             || !私有_执行语素ADO命令(投影库连接串, "语素SQL投影视图", 私有_语素SQL视图脚本(), 错误)
             || !私有_执行语素ADO命令(投影库连接串, "语素SQL投影重写", 私有_构造语素SQL重写脚本(行集, 原因文本), 错误)
-            || !私有_验证语素SQL存储字段(投影库连接串, 行集, 原因文本, 错误)) {
+            || (执行字段恢复比对 && !私有_验证语素SQL存储字段(投影库连接串, 行集, 原因文本, 错误))) {
             项目运行错误日志(
                 "语素SQL投影失败"
                 " | 原因=" + 错误
@@ -906,7 +906,7 @@ bool 语素类::重写语素SQL投影(const char* 来源原因) const noexcept
             "语素SQL投影完成"
             " | 来源=" + 原因文本
             + " | 节点数=" + std::to_string(行集.size())
-            + " | 字段恢复比对=通过");
+            + " | 字段恢复比对=" + (执行字段恢复比对 ? "通过" : "跳过"));
         return true;
     }
     catch (const std::exception& 异常) {

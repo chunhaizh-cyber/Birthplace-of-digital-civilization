@@ -2024,6 +2024,10 @@ namespace {
             if (auto* 现有窗口 = 私有_窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
                 私有_启动诊断码.store(3);
                 PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
+                ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
+                BringWindowToTop(现有窗口);
+                SetWindowPos(现有窗口, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                SetForegroundWindow(现有窗口);
                 启动结果.set_value(true);
                 if (已初始化COM) {
                     CoUninitialize();
@@ -2061,6 +2065,10 @@ namespace {
             私有_启动诊断码.store(6);
             ShowWindow(窗口, SW_SHOW);
             UpdateWindow(窗口);
+            BringWindowToTop(窗口);
+            SetWindowPos(窗口, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            SetForegroundWindow(窗口);
+            项目运行日志("控制面板WebView2/窗口已显示 | 诊断码=6");
             启动结果.set_value(true);
 
             MSG 消息{};
@@ -2095,6 +2103,8 @@ bool 启动控制面板WebView2窗口() noexcept
         if (auto* 现有窗口 = 私有_窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
             PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
             ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
+            BringWindowToTop(现有窗口);
+            SetWindowPos(现有窗口, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
             SetForegroundWindow(现有窗口);
             return true;
         }
@@ -2105,6 +2115,8 @@ bool 启动控制面板WebView2窗口() noexcept
         if (auto* 现有窗口 = 私有_窗口句柄.load(); 现有窗口 && IsWindow(现有窗口)) {
             PostMessageW(现有窗口, 私有_WM_刷新控制面板窗口, 0, 0);
             ShowWindow(现有窗口, IsIconic(现有窗口) ? SW_RESTORE : SW_SHOW);
+            BringWindowToTop(现有窗口);
+            SetWindowPos(现有窗口, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
             SetForegroundWindow(现有窗口);
             return true;
         }
@@ -2117,6 +2129,11 @@ bool 启动控制面板WebView2窗口() noexcept
             私有_记录WebView2诊断(
                 "启动窗口线程返回失败",
                 私有_启动诊断码.load());
+        }
+        else {
+            项目运行日志(
+                "控制面板WebView2/启动窗口线程返回成功 | 诊断码="
+                + std::to_string(私有_启动诊断码.load()));
         }
         return 成功;
     }

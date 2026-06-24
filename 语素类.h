@@ -127,7 +127,7 @@ public:
     std::string 安全获取词(const 语素入口节点类* 语素入口指针) const noexcept;
 
     // 功能：把当前语素树本体重写到 SQL Server 查询投影。
-    bool 重写语素SQL投影(const char* 来源原因) const noexcept;
+    bool 重写语素SQL投影(const char* 来源原因, bool 执行字段恢复比对 = false) const noexcept;
 
 private:
     void 私有_清理主信息_已加锁() noexcept;

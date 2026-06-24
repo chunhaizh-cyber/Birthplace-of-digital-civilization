@@ -99,7 +99,7 @@ public:
     }
     std::string 获取名称(const 基础信息节点类* 节点) const;
     // 功能：把当前世界树本体重写到 SQL Server 查询投影。
-    bool 重写世界树SQL投影(const char* 来源原因) const noexcept;
+    bool 重写世界树SQL投影(const char* 来源原因, bool 执行字段恢复比对 = false) const noexcept;
 
     存在节点类* 取或创建存在概念根();
     bool 是存在概念(const 存在节点类* 节点) const noexcept;

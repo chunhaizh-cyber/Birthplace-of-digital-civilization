@@ -1,5 +1,13 @@
 #include "预处理开关变量.h"
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -89,14 +97,38 @@ namespace {
     }
 #endif
 
-    bool 私有_确保自我环境已初始化(const std::string& 标记, bool 刷新控制面板SQL投影 = false);
-    bool 私有_确保自我线程已启动(const std::string& 标记, bool 刷新控制面板SQL投影 = false);
-    void 私有_刷新启动需求树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
-    void 私有_刷新语素SQL投影(const std::string& 标记, bool 仅首次) noexcept;
-    void 私有_刷新世界树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
-    void 私有_刷新任务树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
-    void 私有_刷新方法树SQL投影(const std::string& 标记, bool 仅首次) noexcept;
-    void 私有_刷新治理SQL投影集(const std::string& 标记, bool 仅首次) noexcept;
+    bool 私有_确保自我环境已初始化(
+        const std::string& 标记,
+        bool 刷新控制面板SQL投影 = false,
+        bool 执行SQL字段恢复比对 = false);
+    bool 私有_确保自我线程已启动(
+        const std::string& 标记,
+        bool 刷新控制面板SQL投影 = false,
+        bool 执行SQL字段恢复比对 = false);
+    void 私有_刷新启动需求树SQL投影(
+        const std::string& 标记,
+        bool 仅首次,
+        bool 执行字段恢复比对 = false) noexcept;
+    void 私有_刷新语素SQL投影(
+        const std::string& 标记,
+        bool 仅首次,
+        bool 执行字段恢复比对 = false) noexcept;
+    void 私有_刷新世界树SQL投影(
+        const std::string& 标记,
+        bool 仅首次,
+        bool 执行字段恢复比对 = false) noexcept;
+    void 私有_刷新任务树SQL投影(
+        const std::string& 标记,
+        bool 仅首次,
+        bool 执行字段恢复比对 = false) noexcept;
+    void 私有_刷新方法树SQL投影(
+        const std::string& 标记,
+        bool 仅首次,
+        bool 执行字段恢复比对 = false) noexcept;
+    void 私有_刷新治理SQL投影集(
+        const std::string& 标记,
+        bool 仅首次,
+        bool 执行字段恢复比对 = false) noexcept;
     void 私有_记录自我实现检查日志();
     void 私有_枚举任务子节点(
         const 任务类::节点类* 父节点,
@@ -1052,7 +1084,10 @@ namespace {
     };
 
     // 功能：初始化相关对象、状态或运行上下文。
-    void 私有_刷新启动需求树SQL投影(const std::string& 标记, const bool 仅首次) noexcept
+    void 私有_刷新启动需求树SQL投影(
+        const std::string& 标记,
+        const bool 仅首次,
+        const bool 执行字段恢复比对) noexcept
     {
         static std::mutex 投影互斥{};
         static bool 启动已成功写入 = false;
@@ -1072,7 +1107,10 @@ namespace {
         const std::string 来源原因 = 仅首次
             ? "启动初始化清空重写"
             : "控制面板读前清空重写";
-        const bool 成功 = 需求类::重写需求树SQL投影(需求根, 来源原因.c_str());
+        const bool 成功 = 需求类::重写需求树SQL投影(
+            需求根,
+            来源原因.c_str(),
+            执行字段恢复比对);
         if (仅首次 && 成功) {
             启动已成功写入 = true;
         }
@@ -1081,11 +1119,15 @@ namespace {
             "启动需求树SQL投影"
             " | 标记=" + 标记
             + " | 仅首次=" + 布尔文本_是或否(仅首次)
+            + " | 字段恢复比对=" + (执行字段恢复比对 ? "开启" : "关闭")
             + " | 成功=" + 布尔文本_是或否(成功));
     }
 
     // 功能：把当前语素树写入 SQL Server 查询投影。
-    void 私有_刷新语素SQL投影(const std::string& 标记, const bool 仅首次) noexcept
+    void 私有_刷新语素SQL投影(
+        const std::string& 标记,
+        const bool 仅首次,
+        const bool 执行字段恢复比对) noexcept
     {
         static std::mutex 投影互斥{};
         static bool 启动已成功写入 = false;
@@ -1098,7 +1140,7 @@ namespace {
         const std::string 来源原因 = 仅首次
             ? "启动初始化清空重写"
             : "程序退出最终重写";
-        const bool 成功 = 语素集.重写语素SQL投影(来源原因.c_str());
+        const bool 成功 = 语素集.重写语素SQL投影(来源原因.c_str(), 执行字段恢复比对);
         if (仅首次 && 成功) {
             启动已成功写入 = true;
         }
@@ -1107,11 +1149,15 @@ namespace {
             "语素SQL投影刷新"
             " | 标记=" + 标记
             + " | 仅首次=" + 布尔文本_是或否(仅首次)
+            + " | 字段恢复比对=" + (执行字段恢复比对 ? "开启" : "关闭")
             + " | 成功=" + 布尔文本_是或否(成功));
     }
 
     // 功能：把当前世界树写入 SQL Server 查询投影。
-    void 私有_刷新世界树SQL投影(const std::string& 标记, const bool 仅首次) noexcept
+    void 私有_刷新世界树SQL投影(
+        const std::string& 标记,
+        const bool 仅首次,
+        const bool 执行字段恢复比对) noexcept
     {
         static std::mutex 投影互斥{};
         static bool 启动已成功写入 = false;
@@ -1124,7 +1170,7 @@ namespace {
         const std::string 来源原因 = 仅首次
             ? "启动初始化清空重写"
             : "程序退出最终重写";
-        const bool 成功 = 世界树.重写世界树SQL投影(来源原因.c_str());
+        const bool 成功 = 世界树.重写世界树SQL投影(来源原因.c_str(), 执行字段恢复比对);
         if (仅首次 && 成功) {
             启动已成功写入 = true;
         }
@@ -1133,11 +1179,15 @@ namespace {
             "世界树SQL投影刷新"
             " | 标记=" + 标记
             + " | 仅首次=" + 布尔文本_是或否(仅首次)
+            + " | 字段恢复比对=" + (执行字段恢复比对 ? "开启" : "关闭")
             + " | 成功=" + 布尔文本_是或否(成功));
     }
 
     // 功能：把当前任务树写入 SQL Server 查询投影。
-    void 私有_刷新任务树SQL投影(const std::string& 标记, const bool 仅首次) noexcept
+    void 私有_刷新任务树SQL投影(
+        const std::string& 标记,
+        const bool 仅首次,
+        const bool 执行字段恢复比对) noexcept
     {
         static std::mutex 投影互斥{};
         static bool 启动已成功写入 = false;
@@ -1157,7 +1207,10 @@ namespace {
         const std::string 来源原因 = 仅首次
             ? "启动初始化清空重写"
             : "程序退出最终重写";
-        const bool 成功 = 任务类::重写任务树SQL投影(任务根, 来源原因.c_str());
+        const bool 成功 = 任务类::重写任务树SQL投影(
+            任务根,
+            来源原因.c_str(),
+            执行字段恢复比对);
         if (仅首次 && 成功) {
             启动已成功写入 = true;
         }
@@ -1166,11 +1219,15 @@ namespace {
             "任务树SQL投影刷新"
             " | 标记=" + 标记
             + " | 仅首次=" + 布尔文本_是或否(仅首次)
+            + " | 字段恢复比对=" + (执行字段恢复比对 ? "开启" : "关闭")
             + " | 成功=" + 布尔文本_是或否(成功));
     }
 
     // 功能：把当前方法树写入 SQL Server 查询投影。
-    void 私有_刷新方法树SQL投影(const std::string& 标记, const bool 仅首次) noexcept
+    void 私有_刷新方法树SQL投影(
+        const std::string& 标记,
+        const bool 仅首次,
+        const bool 执行字段恢复比对) noexcept
     {
         static std::mutex 投影互斥{};
         static bool 启动已成功写入 = false;
@@ -1190,7 +1247,10 @@ namespace {
         const std::string 来源原因 = 仅首次
             ? "启动初始化清空重写"
             : "程序退出最终重写";
-        const bool 成功 = 方法类::重写方法树SQL投影(方法根, 来源原因.c_str());
+        const bool 成功 = 方法类::重写方法树SQL投影(
+            方法根,
+            来源原因.c_str(),
+            执行字段恢复比对);
         if (仅首次 && 成功) {
             启动已成功写入 = true;
         }
@@ -1199,20 +1259,27 @@ namespace {
             "方法树SQL投影刷新"
             " | 标记=" + 标记
             + " | 仅首次=" + 布尔文本_是或否(仅首次)
+            + " | 字段恢复比对=" + (执行字段恢复比对 ? "开启" : "关闭")
             + " | 成功=" + 布尔文本_是或否(成功));
     }
 
     // 功能：刷新控制面板 SQL 查询所需的治理读模型投影。
-    void 私有_刷新治理SQL投影集(const std::string& 标记, const bool 仅首次) noexcept
+    void 私有_刷新治理SQL投影集(
+        const std::string& 标记,
+        const bool 仅首次,
+        const bool 执行字段恢复比对) noexcept
     {
-        私有_刷新世界树SQL投影(标记, 仅首次);
-        私有_刷新任务树SQL投影(标记, 仅首次);
-        私有_刷新方法树SQL投影(标记, 仅首次);
-        私有_刷新语素SQL投影(标记, 仅首次);
+        私有_刷新世界树SQL投影(标记, 仅首次, 执行字段恢复比对);
+        私有_刷新任务树SQL投影(标记, 仅首次, 执行字段恢复比对);
+        私有_刷新方法树SQL投影(标记, 仅首次, 执行字段恢复比对);
+        私有_刷新语素SQL投影(标记, 仅首次, 执行字段恢复比对);
     }
 
     // 功能：初始化相关对象、状态或运行上下文。
-    bool 私有_确保自我环境已初始化(const std::string& 标记, const bool 刷新控制面板SQL投影)
+    bool 私有_确保自我环境已初始化(
+        const std::string& 标记,
+        const bool 刷新控制面板SQL投影,
+        const bool 执行SQL字段恢复比对)
     {
         (void)标记;
         鱼巢_启动说明("自我环境初始化");
@@ -1229,8 +1296,8 @@ namespace {
             if (刷新控制面板SQL投影) {
                 鱼巢_启动说明("按需SQL投影处理");
                 私有_本进程已执行控制面板SQL投影.store(true);
-                私有_刷新治理SQL投影集(标记, false);
-                私有_刷新启动需求树SQL投影(标记, false);
+                私有_刷新治理SQL投影集(标记, false, 执行SQL字段恢复比对);
+                私有_刷新启动需求树SQL投影(标记, false, 执行SQL字段恢复比对);
             }
             else {
                 项目运行日志("启动SQL投影跳过 | 标记=" + 标记 + " | 原因=当前入口不需要控制面板SQL读模型");
@@ -1248,7 +1315,10 @@ namespace {
     }
 
     // 功能：确保目标结构、状态或前置条件存在并可用。
-    bool 私有_确保自我线程已启动(const std::string& 标记, const bool 刷新控制面板SQL投影)
+    bool 私有_确保自我线程已启动(
+        const std::string& 标记,
+        const bool 刷新控制面板SQL投影,
+        const bool 执行SQL字段恢复比对)
     {
         (void)标记;
         鱼巢_启动说明("自我线程启动前环境初始化");
@@ -1265,8 +1335,8 @@ namespace {
             if (刷新控制面板SQL投影) {
                 鱼巢_启动说明("自我线程启动前按需SQL投影处理");
                 私有_本进程已执行控制面板SQL投影.store(true);
-                私有_刷新治理SQL投影集(标记, false);
-                私有_刷新启动需求树SQL投影(标记, false);
+                私有_刷新治理SQL投影集(标记, false, 执行SQL字段恢复比对);
+                私有_刷新启动需求树SQL投影(标记, false, 执行SQL字段恢复比对);
             }
             else {
                 项目运行日志("启动SQL投影跳过 | 标记=" + 标记 + " | 原因=当前入口不需要控制面板SQL读模型");
@@ -1986,12 +2056,7 @@ namespace {
         }
 
         鱼巢_启动说明("控制面板独立窗口");
-        项目运行日志("控制面板独立窗口 | 使用SQL读模型生成页面 | 先刷新SQL读模型");
-        if (!私有_确保自我环境已初始化("鱼巢::main/控制面板/打开窗口", true)) {
-            项目运行错误日志("控制面板独立窗口启动失败 | 原因=SQL读模型刷新前自我环境初始化失败");
-            鱼巢_控制台输出(std::cerr << "自我环境初始化失败，控制面板 SQL 读模型未刷新。\n");
-            return 4;
-        }
+        项目运行日志("控制面板独立窗口 | 使用现有SQL读模型生成页面 | 不同步刷新全量SQL投影 | 不触发自我环境初始化");
         鱼巢_启动说明("控制面板WebView2窗口");
         if (!启动控制面板窗口()) {
             const int 诊断码 = 获取控制面板启动诊断码();
@@ -2002,6 +2067,10 @@ namespace {
 
         鱼巢_控制台输出(std::cout << "控制面板独立窗口已启动。\n");
         if (等待窗口关闭) {
+            if (HWND 控制台窗口 = GetConsoleWindow(); 控制台窗口) {
+                ShowWindow(控制台窗口, SW_MINIMIZE);
+                项目运行日志("控制面板命令/命令行窗口已启动 | 控制台已最小化 | 等待控制面板窗口关闭");
+            }
             等待控制面板窗口关闭();
         }
         return 0;
@@ -2132,7 +2201,7 @@ int main(int argc, char** argv)
         if (私有_命令行包含参数(argc, argv, "--refresh-sql-projection")
             || 私有_命令行包含参数(argc, argv, "--sql-projection-refresh")) {
             鱼巢_启动说明("SQL投影刷新命令");
-            if (!私有_确保自我环境已初始化("鱼巢::main/命令行/刷新SQL投影", true)) {
+            if (!私有_确保自我环境已初始化("鱼巢::main/命令行/刷新SQL投影", true, true)) {
                 项目运行错误日志("SQL投影刷新失败 | 原因=自我环境初始化失败");
                 鱼巢_控制台输出(std::cerr << "自我环境初始化失败，SQL 投影未刷新。\n");
                 return 4;
@@ -2158,7 +2227,7 @@ int main(int argc, char** argv)
         if (命令 != 枚举_控制面板命令::无) {
             鱼巢_启动说明("控制面板命令入口");
             if (命令 == 枚举_控制面板命令::打开窗口) {
-                项目运行日志("命令行控制面板打开窗口 | 跳过自我线程启动前置 | 执行前刷新SQL读模型");
+                项目运行日志("命令行控制面板打开窗口 | 跳过自我线程启动前置 | 使用现有SQL读模型");
             }
             else if (命令 == 枚举_控制面板命令::生成HTML) {
                 项目运行日志("命令行控制面板生成HTML | 跳过自我线程启动前置 | 执行前刷新SQL读模型");

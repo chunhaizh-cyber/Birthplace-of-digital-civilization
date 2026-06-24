@@ -634,7 +634,8 @@ public:
     // 功能：把当前需求树本体重写到 SQL Server 查询投影。
     static bool 重写需求树SQL投影(
         节点类* 需求根节点,
-        const char* 来源原因) noexcept;
+        const char* 来源原因,
+        bool 执行字段恢复比对 = false) noexcept;
 
     static 结构_任务初始化上下文 生成任务初始化上下文(节点类* 需求) noexcept;
 

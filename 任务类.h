@@ -43,7 +43,8 @@ public:
     // 功能：把当前任务树本体重写到 SQL Server 查询投影。
     static bool 重写任务树SQL投影(
         const 节点类* 任务根节点,
-        const char* 来源原因) noexcept;
+        const char* 来源原因,
+        bool 执行字段恢复比对 = false) noexcept;
 
     static bool 写入任务根实体特征(
         节点类* 任务头结点,

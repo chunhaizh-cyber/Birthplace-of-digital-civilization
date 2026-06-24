@@ -55,7 +55,8 @@ public:
     // 功能：把当前方法树本体重写到 SQL Server 查询投影。
     static bool 重写方法树SQL投影(
         const 节点类* 方法根节点,
-        const char* 来源原因) noexcept;
+        const char* 来源原因,
+        bool 执行字段恢复比对 = false) noexcept;
 
     static 场景节点类* 取或创建_方法条件场景(
         节点类* 方法首节点,
