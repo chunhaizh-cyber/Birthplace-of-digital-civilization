@@ -2,6 +2,7 @@ module;
 
 #include "基础数据类型.h"
 
+#include <bit>
 #include <cmath>
 
 export module 全局共享函数类;
@@ -261,6 +262,38 @@ export inline bool 坐标转I64三元(const Vector3D& 坐标, I64& x, I64& y, I6
     return 坐标分量转I64(坐标.x, x)
         && 坐标分量转I64(坐标.y, y)
         && 坐标分量转I64(坐标.z, z);
+}
+
+// 功能：计算边长立方体的三维体素总数，溢出或边长为 0 时返回 0。
+export inline std::uint64_t 三维体素总数(std::uint64_t 边长) noexcept
+{
+    if (边长 == 0 || 边长 > (std::numeric_limits<std::uint64_t>::max)() / 边长) return 0;
+    const auto 面 = 边长 * 边长;
+    if (边长 > (std::numeric_limits<std::uint64_t>::max)() / 面) return 0;
+    return 面 * 边长;
+}
+
+// 功能：计算三维长方体体素总数，任一维为 0 或乘法溢出时返回 0。
+export inline std::uint64_t 三维体素长方体总数(
+    const std::uint64_t 宽度,
+    const std::uint64_t 高度,
+    const std::uint64_t 深度) noexcept
+{
+    if (宽度 == 0 || 高度 == 0 || 深度 == 0) return 0;
+    if (宽度 > (std::numeric_limits<std::uint64_t>::max)() / 高度) return 0;
+    const auto 面 = 宽度 * 高度;
+    if (深度 > (std::numeric_limits<std::uint64_t>::max)() / 面) return 0;
+    return 面 * 深度;
+}
+
+// 功能：统计 VecIU64 位块中的三维体素占据位数量。
+export inline std::uint64_t 统计三维体素占据数(const VecIU64& 占据位块) noexcept
+{
+    std::uint64_t 数量 = 0;
+    for (const auto 块 : 占据位块) {
+        数量 += static_cast<std::uint64_t>(std::popcount(块));
+    }
+    return 数量;
 }
 
 // 功能：把 U64 转换为 I64，超过 I64 上限时饱和。
