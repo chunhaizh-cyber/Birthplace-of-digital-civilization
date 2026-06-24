@@ -1001,16 +1001,6 @@ std::uint64_t g_服务值归零连续Tick_线程侧 = 0;
 const 语素入口节点类* 私有_需求动作动态特征词(const char* 名称) noexcept;
 
 // 功能：服务所在模块的内部辅助流程。
-I64 私有_计数转I64(const std::uint64_t 值) noexcept
-{
-    const auto 上限 = static_cast<std::uint64_t>(std::numeric_limits<I64>::max());
-    if (值 > 上限) {
-        return std::numeric_limits<I64>::max();
-    }
-    return static_cast<I64>(值);
-}
-
-// 功能：服务所在模块的内部辅助流程。
 I64 私有_夹紧非负上限_线程侧(I64 值, I64 上限) noexcept
 {
     if (值 <= 0 || 上限 <= 0) {
@@ -14259,7 +14249,7 @@ std::uint64_t 自我线程类::读取累计恢复次数() const noexcept
         快照.当前任务引用抽象特征指针 = reinterpret_cast<std::uintptr_t>(当前任务特征);
         快照.mailbox待消费数抽象特征指针 = reinterpret_cast<std::uintptr_t>(mailbox特征);
         快照.健康状态抽象特征指针 = reinterpret_cast<std::uintptr_t>(健康特征);
-        快照.Tick计数值 = 私有_计数转I64(Tick计数_);
+        快照.Tick计数值 = U64转I64饱和(Tick计数_);
         快照.最近Tick时间值 = 最近Tick时间_;
         快照.生命周期值 = static_cast<I64>(生命周期_);
         if (最近循环结果_.当前运行阶段 != 枚举_自我线程运行阶段::未定义) {
@@ -14268,7 +14258,7 @@ std::uint64_t 自我线程类::读取累计恢复次数() const noexcept
             快照.最近阶段值 = static_cast<I64>(枚举_自我线程运行阶段::未定义);
         }
         快照.最近去向值 = static_cast<I64>(最近循环结果_.当前最终去向);
-        快照.mailbox待消费数值 = 私有_计数转I64(static_cast<std::uint64_t>(治理mailbox_.size()));
+        快照.mailbox待消费数值 = U64转I64饱和(static_cast<std::uint64_t>(治理mailbox_.size()));
         快照.健康状态值 = 健康运行_ ? 1 : 0;
     }
 
