@@ -174,7 +174,6 @@ struct 结构_控制面板快照 {
     std::string 需求树当前主需求目标主体主键{};
     std::string 需求树当前主需求目标特征主键{};
     std::string 需求树当前主需求结构形态{};
-    std::string 需求树当前主需求目标语义{};
     bool 需求树当前主需求可普通任务化 = false;
     std::string 需求树当前主需求OR令牌状态{};
     std::string 需求树当前主需求当前激活路径{};
@@ -192,8 +191,6 @@ struct 结构_控制面板快照 {
     std::uintptr_t 当前主需求指针 = 0;
     std::uintptr_t 当前主任务指针 = 0;
     std::uintptr_t 当前主方法指针 = 0;
-
-    std::string 自我存在标题{};
 
     bool 自我场景复现有快照 = false;
     std::uintptr_t 自我所在场景指针 = 0;
@@ -454,7 +451,6 @@ struct 结构_控制面板快照 {
     std::string 任务管理界面线程最近需求主键{};
     std::string 任务管理界面线程最近调度动作{};
     std::string 任务管理界面线程最近后台worker任务主键{};
-    std::string 任务管理界面线程最近后台worker工作项类型{};
     std::string 任务管理界面线程最近后台worker状态{};
     std::uint8_t 任务管理工作线程池最近参数保存状态值 = 0;
     std::uint8_t 任务管理工作线程池最近参数错误状态值 = 0;
