@@ -17,6 +17,7 @@
 #include "特征值类.h"
 #include "语素类.h"
 
+import 全局共享函数类;
 
 namespace {
     constexpr I64 私有_默认不同值 = 10000;
@@ -156,13 +157,6 @@ namespace {
     {
         if (值 == I64_MIN) return I64_MAX;
         return 值 < 0 ? -值 : 值;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    I64 私有_尺寸转I64(const std::size_t 值) noexcept
-    {
-        const auto 最大 = static_cast<std::uint64_t>(I64_MAX);
-        return 值 > 最大 ? I64_MAX : static_cast<I64>(值);
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -4156,8 +4150,8 @@ bool 特征类::校验坐标类VecI64_按特征类型(const 语素入口节点�
 
     const std::size_t 左点数 = 左值.size() / 坐标维度;
     const std::size_t 右点数 = 右值.size() / 坐标维度;
-    结果.左点数量 = 私有_尺寸转I64(左点数);
-    结果.右点数量 = 私有_尺寸转I64(右点数);
+    结果.左点数量 = 转换像素计数(左点数);
+    结果.右点数量 = 转换像素计数(右点数);
     结果.点数量差异 = 私有_绝对值饱和(私有_饱和减(结果.左点数量, 结果.右点数量));
 
     if (左点数 != 右点数) {
