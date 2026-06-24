@@ -10295,14 +10295,6 @@ namespace {
     }
 
     // 功能：按函数名执行对应处理。
-    inline void 累加非负I64(I64& 累计, I64 值) noexcept
-    {
-        if (值 <= 0) return;
-        const I64 上限 = std::numeric_limits<I64>::max();
-        累计 = 累计 > 上限 - 值 ? 上限 : 累计 + 值;
-    }
-
-    // 功能：按函数名执行对应处理。
     inline 双目相机本能适配器::空间候选摘要 合并相邻待合并空间候选(
         const std::vector<双目相机本能适配器::空间候选摘要>& 候选集,
         const 双目相机本能适配器::空间候选摘要& 基准,

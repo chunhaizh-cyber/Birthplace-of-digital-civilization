@@ -151,6 +151,14 @@ export inline I64 范围轴重叠率(I64 aMin, I64 aMax, I64 bMin, I64 bMax) noe
     return std::min<I64>(10000, 重叠 * 10000 / std::max(aLen, bLen));
 }
 
+// 功能：只累加正数 I64 增量，超过 I64 上限时饱和到最大值。
+export inline void 累加非负I64(I64& 累计, I64 值) noexcept
+{
+    if (值 <= 0) return;
+    const I64 上限 = std::numeric_limits<I64>::max();
+    累计 = 累计 > 上限 - 值 ? 上限 : 累计 + 值;
+}
+
 // 功能：将布尔值格式化为中文显示文本。
 export constexpr const char* 布尔文本_是或否(bool 值) noexcept
 {
