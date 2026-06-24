@@ -22,6 +22,7 @@
 import 数据库ADO模块;
 import 二次特征应用模块;
 import 自我类.特征定义;
+import 全局共享函数类;
 
 namespace {
     using 方法节点 = 方法类::节点类;
@@ -1115,11 +1116,6 @@ namespace {
         return 输出;
     }
 
-    const char* 私有_方法SQL布尔(const bool 值) noexcept
-    {
-        return 值 ? "1" : "0";
-    }
-
     std::string 私有_方法SQL入口文本(const 语素入口节点类* 入口)
     {
         if (!入口) {
@@ -1470,9 +1466,9 @@ namespace {
                 << 私有_方法SQL字符串(行.结果场景主键) << ", "
                 << 私有_方法SQL字符串(行.主结果特征主键) << ", "
                 << 行.结果项数量 << ", "
-                << 私有_方法SQL布尔(行.允许自动查找) << ", "
-                << 私有_方法SQL布尔(行.有方法动作) << ", "
-                << 私有_方法SQL布尔(行.有结果能力) << ");\n";
+                << 布尔文本_一或零(行.允许自动查找) << ", "
+                << 布尔文本_一或零(行.有方法动作) << ", "
+                << 布尔文本_一或零(行.有结果能力) << ");\n";
         }
         SQL << "IF EXISTS (\n"
             << "    SELECT 1\n"
@@ -1503,11 +1499,6 @@ namespace {
     std::string 私有_方法SQL字段整数(const int 值)
     {
         return std::to_string(值);
-    }
-
-    std::string 私有_方法SQL字段布尔(const bool 值)
-    {
-        return 值 ? "1" : "0";
     }
 
     std::vector<std::vector<std::string>> 私有_方法SQL快照预期字段(
@@ -1564,9 +1555,9 @@ namespace {
                 行.结果场景主键,
                 行.主结果特征主键,
                 私有_方法SQL字段整数(行.结果项数量),
-                私有_方法SQL字段布尔(行.允许自动查找),
-                私有_方法SQL字段布尔(行.有方法动作),
-                私有_方法SQL字段布尔(行.有结果能力),
+                std::string(布尔文本_一或零(行.允许自动查找)),
+                std::string(布尔文本_一或零(行.有方法动作)),
+                std::string(布尔文本_一或零(行.有结果能力)),
             });
         }
         return 输出;
