@@ -10027,12 +10027,6 @@ namespace {
     }
 
     // 功能：按函数名执行对应处理。
-    inline I64 绝对差I64(I64 a, I64 b) noexcept
-    {
-        return a >= b ? a - b : b - a;
-    }
-
-    // 功能：按函数名执行对应处理。
     inline I64 区间间隔I64(I64 aMin, I64 aMax, I64 bMin, I64 bMax) noexcept
     {
         if (aMax < bMin) return bMin - aMax;

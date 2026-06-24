@@ -18,6 +18,7 @@ module;
 
 export module 自我动作实现.扫描;
 
+import 全局共享函数类;
 import 外设观察报告队列;
 import 日志模块;
 
@@ -811,12 +812,6 @@ namespace 自我动作实现模块::扫描模块 {
         }
 
         inline constexpr I64 扫描空间位置最大允许误差毫米 = 300;
-
-        // 功能：按函数名执行对应处理。
-        inline I64 绝对差I64(I64 左, I64 右) noexcept
-        {
-            return 左 >= 右 ? 左 - 右 : 右 - 左;
-        }
 
         // 功能：按函数名执行对应处理。
         inline I64 绝对差F64I64(double 左, I64 右) noexcept

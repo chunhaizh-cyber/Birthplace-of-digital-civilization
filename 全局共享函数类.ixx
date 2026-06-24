@@ -24,6 +24,12 @@ export inline I64 饱和增加(I64 左值, I64 右值) noexcept
     return 左值 + 右值;
 }
 
+// 功能：返回两个 I64 值的非饱和绝对差，保持原调用点既有算术语义。
+export inline I64 绝对差I64(I64 左值, I64 右值) noexcept
+{
+    return 左值 >= 右值 ? 左值 - 右值 : 右值 - 左值;
+}
+
 // 功能：将布尔值格式化为中文显示文本。
 export constexpr const char* 布尔文本_是或否(bool 值) noexcept
 {
