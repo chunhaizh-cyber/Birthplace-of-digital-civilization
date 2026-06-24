@@ -204,8 +204,6 @@ struct 结构_任务管理派生需求消息 {
     bool 是否可能影响安全 = false;
     bool 是否建议线程重判 = false;
     bool 是否疑似需要新任务入口 = false;
-    std::string 触发动作主体主键{};
-    std::string 触发动作语义键{};
     std::uintptr_t 需求特征类型指针 = 0;
     std::string 需求特征类型主键{};
     std::uintptr_t 需求目标主体指针 = 0;
