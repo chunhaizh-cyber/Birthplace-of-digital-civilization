@@ -67,7 +67,6 @@ struct 结构_自我初始化结果 {
 
     bool 初始化完成 = false;
     bool 发生异常 = false;
-    std::vector<std::string> 缺失项{};
     std::vector<结构_自我初始化步骤记录> 步骤记录{};
 };
 
@@ -77,12 +76,12 @@ bool 执行自我初始化(::自我类& 自我对象, 结构_自我初始化结�
 } // namespace 自我初始化模块
 
 export struct 结构_线程存在初始化参数 {
-    std::string 线程标签{};
-    std::string 线程类型{};
+    const 语素入口节点类* 线程名称 = nullptr;
+    const 语素入口节点类* 线程类型 = nullptr;
     bool 是工作线程 = false;
     bool 是自我线程 = false;
-    std::string 所属线程池标签{};
-    std::string 所属线程池类型{};
+    const 语素入口节点类* 所属线程池名称 = nullptr;
+    const 语素入口节点类* 所属线程池类型 = nullptr;
 };
 
 export struct 结构_自我根需求压力评估 {
@@ -122,8 +121,8 @@ public:
     场景节点类* 确保自我内部世界();
     存在节点类* 确保自我存在();
     存在节点类* 确保线程池存在(
-        const std::string& 线程池标签,
-        const std::string& 线程池类型 = "线程池") noexcept;
+        const 语素入口节点类* 线程池名称,
+        const 语素入口节点类* 线程池类型 = nullptr) noexcept;
     存在节点类* 确保线程子存在(
         const 结构_线程存在初始化参数& 参数) noexcept;
 
