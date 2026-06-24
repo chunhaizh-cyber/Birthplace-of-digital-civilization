@@ -9,6 +9,7 @@
 #include "特征类.h"
 #include "语素类.h"
 
+import 全局共享函数类;
 
 namespace {
 
@@ -69,26 +70,6 @@ namespace {
     const 语素入口节点类* 私有_特征_存在坐标置信度() noexcept
     {
         return 私有_特征模板入口性("存在_坐标置信度");
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    bool 私有_坐标分量转I64(double 值, I64& 输出) noexcept
-    {
-        if (!std::isfinite(值)) return false;
-        const long double 下界 = static_cast<long double>((std::numeric_limits<I64>::min)());
-        const long double 上界 = static_cast<long double>((std::numeric_limits<I64>::max)());
-        const long double 待写 = static_cast<long double>(值);
-        if (待写 < 下界 || 待写 > 上界) return false;
-        输出 = static_cast<I64>(std::llround(值));
-        return true;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    bool 私有_坐标转I64三元(const Vector3D& 坐标, I64& x, I64& y, I64& z) noexcept
-    {
-        return 私有_坐标分量转I64(坐标.x, x)
-            && 私有_坐标分量转I64(坐标.y, y)
-            && 私有_坐标分量转I64(坐标.z, z);
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -392,7 +373,7 @@ bool 存在类::计算场景绝对坐标_由参考存在相对坐标(
     I64 x = 0;
     I64 y = 0;
     I64 z = 0;
-    if (!私有_坐标转I64三元(候选, x, y, z)) {
+    if (!坐标转I64三元(候选, x, y, z)) {
         return false;
     }
 
@@ -798,7 +779,7 @@ bool 存在类::写入存在场景绝对坐标(
     I64 x = 0;
     I64 y = 0;
     I64 z = 0;
-    if (!私有_坐标转I64三元(坐标_mm, x, y, z)) {
+    if (!坐标转I64三元(坐标_mm, x, y, z)) {
         return false;
     }
 

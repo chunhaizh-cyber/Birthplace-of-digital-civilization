@@ -183,26 +183,6 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    bool 私有_坐标分量转I64(double 值, I64& 输出) noexcept
-    {
-        if (!std::isfinite(值)) return false;
-        const long double 下界 = static_cast<long double>((std::numeric_limits<I64>::min)());
-        const long double 上界 = static_cast<long double>((std::numeric_limits<I64>::max)());
-        const long double 待写 = static_cast<long double>(值);
-        if (待写 < 下界 || 待写 > 上界) return false;
-        输出 = static_cast<I64>(std::llround(值));
-        return true;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    bool 私有_坐标转I64三元(const Vector3D& 坐标, I64& x, I64& y, I64& z) noexcept
-    {
-        return 私有_坐标分量转I64(坐标.x, x)
-            && 私有_坐标分量转I64(坐标.y, y)
-            && 私有_坐标分量转I64(坐标.z, z);
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     场景节点类* 私有_取存在所在场景(
         const 基础信息类& 基础信息,
         const 存在节点类* 存在) noexcept

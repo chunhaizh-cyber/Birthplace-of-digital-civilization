@@ -11,6 +11,7 @@
 #include "状态类.h"
 #include "语素类.h"
 
+import 全局共享函数类;
 
 namespace {
 
@@ -61,26 +62,6 @@ namespace {
         if (!私有_引用已存在(主信息->二次特征索引, 二次特征节点)) {
             主信息->二次特征索引.push_back(引用);
         }
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    bool 私有_坐标分量转I64(double 值, I64& 输出) noexcept
-    {
-        if (!std::isfinite(值)) return false;
-        const long double 下界 = static_cast<long double>((std::numeric_limits<I64>::min)());
-        const long double 上界 = static_cast<long double>((std::numeric_limits<I64>::max)());
-        const long double 待写 = static_cast<long double>(值);
-        if (待写 < 下界 || 待写 > 上界) return false;
-        输出 = static_cast<I64>(std::llround(值));
-        return true;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    bool 私有_坐标转I64三元(const Vector3D& 坐标, I64& x, I64& y, I64& z) noexcept
-    {
-        return 私有_坐标分量转I64(坐标.x, x)
-            && 私有_坐标分量转I64(坐标.y, y)
-            && 私有_坐标分量转I64(坐标.z, z);
     }
 
 }
@@ -266,7 +247,7 @@ std::vector<结构_场景三维体素轮廓存在比较结果> 场景类::查找
         I64 原点X = 0;
         I64 原点Y = 0;
         I64 原点Z = 0;
-        if (!私有_坐标转I64三元(存在原点, 原点X, 原点Y, 原点Z)) continue;
+        if (!坐标转I64三元(存在原点, 原点X, 原点Y, 原点Z)) continue;
 
         结构_三维体素存在空间绑定参数 存在空间{};
         存在空间.原点X_mm = 原点X;

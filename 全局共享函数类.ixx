@@ -2,6 +2,8 @@ module;
 
 #include "基础数据类型.h"
 
+#include <cmath>
+
 export module 全局共享函数类;
 
 // 没有领域自定义主信息 / 领域类型参与的通用函数统一放在本模块。
@@ -233,6 +235,26 @@ export inline I64 长双非负转I64(long double 值) noexcept
     if (值 <= 0.0L) return 0;
     if (值 >= 9223372036854775807.0L) return 9223372036854775807LL;
     return static_cast<I64>(值 + 0.5L);
+}
+
+// 功能：把有限的坐标分量四舍五入为 I64，越界或非有限值返回 false。
+export inline bool 坐标分量转I64(double 值, I64& 输出) noexcept
+{
+    if (!std::isfinite(值)) return false;
+    const long double 下界 = static_cast<long double>((std::numeric_limits<I64>::min)());
+    const long double 上界 = static_cast<long double>((std::numeric_limits<I64>::max)());
+    const long double 待写 = static_cast<long double>(值);
+    if (待写 < 下界 || 待写 > 上界) return false;
+    输出 = static_cast<I64>(std::llround(值));
+    return true;
+}
+
+// 功能：把 Vector3D 三个坐标分量四舍五入为 I64 三元组。
+export inline bool 坐标转I64三元(const Vector3D& 坐标, I64& x, I64& y, I64& z) noexcept
+{
+    return 坐标分量转I64(坐标.x, x)
+        && 坐标分量转I64(坐标.y, y)
+        && 坐标分量转I64(坐标.z, z);
 }
 
 // 功能：把 U64 转换为 I64，超过 I64 上限时饱和。
