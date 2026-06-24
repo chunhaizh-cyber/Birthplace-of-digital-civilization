@@ -5948,43 +5948,6 @@ export namespace 自我动作实现模块 {
         return true;
     }
 
-    // 功能：按函数名执行对应处理。
-    inline I64 区间中点(I64 下界, I64 上界) noexcept
-    {
-        return 下界 / 2 + 上界 / 2 + (下界 % 2 + 上界 % 2) / 2;
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline std::uint64_t I64有序编码(I64 值) noexcept
-    {
-        return static_cast<std::uint64_t>(值) ^ (std::uint64_t{ 1 } << 63);
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline I64 I64由有序编码(std::uint64_t 编码) noexcept
-    {
-        return static_cast<I64>(编码 ^ (std::uint64_t{ 1 } << 63));
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline std::uint64_t 有效候选预算(I64 最大候选数量) noexcept
-    {
-        if (最大候选数量 <= 0) return 64;
-        constexpr std::uint64_t 上限 = 4096;
-        const auto 值 = static_cast<std::uint64_t>(最大候选数量);
-        return 值 > 上限 ? 上限 : 值;
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline std::uint64_t 安全域大小(std::uint64_t 左侧数量, std::uint64_t 右侧数量) noexcept
-    {
-        constexpr auto 最大值 = (std::numeric_limits<std::uint64_t>::max)();
-        if (最大值 - 左侧数量 <= 右侧数量) {
-            return 最大值;
-        }
-        return 左侧数量 + 右侧数量 + 1;
-    }
-
     // 功能：根据当前输入生成目标数据、场景、动态或回执。
     inline I64 生成区间扩展覆盖I64参数(
         I64 已生成数量,
