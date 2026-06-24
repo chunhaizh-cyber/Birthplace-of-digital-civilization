@@ -165,8 +165,6 @@ public:
     };
 
     struct 结构_需求候选快照 {
-        std::string 候选类型{};
-        std::string 来源消息类型{};
         std::string 当前方法主键{};
         std::uint64_t 关联任务主键 = 0;
         bool 建议升格为正式需求 = false;
@@ -177,7 +175,6 @@ public:
     };
 
     struct 结构_任务权重候选快照 {
-        std::string 对象类型{};
         std::uint64_t 对象主键 = 0;
         I64 原值 = 0;
         I64 候选值 = 0;
@@ -196,8 +193,6 @@ public:
 
     struct 结构_方法禁止项快照 {
         std::string 方法主键{};
-        std::string 来源消息类型{};
-        std::string 方向区间{};
         I64 严重级别 = 0;
         bool 是否阻断 = false;
         bool 是否已验证 = false;
@@ -220,7 +215,6 @@ public:
     };
 
     struct 结构_主派发动作快照 {
-        std::string 动作类型{};
         std::uint64_t 任务根ID = 0;
         bool 允许并发 = true;
         std::uint32_t 并发组 = 0;
@@ -230,7 +224,6 @@ public:
     struct 结构_队列裁决快照 {
         bool 已命中 = false;
         I64 变更数量 = 0;
-        std::string 裁决{};
         std::string 摘要{};
     };
 
@@ -241,7 +234,6 @@ public:
         时间戳 首次入队时间 = 0;
         时间戳 最近入队时间 = 0;
         时间戳 最近出队时间 = 0;
-        std::string 最近事件摘要{};
     };
 
     struct 结构_队列成员事件快照 {
@@ -283,7 +275,6 @@ public:
 
     struct 结构_派发占用登记快照 {
         std::size_t 动作序号 = 0;
-        std::string 动作类型{};
         std::uint64_t 包主键 = 0;
         std::uint64_t 任务根ID = 0;
         bool 已登记占用 = false;
@@ -295,7 +286,6 @@ public:
 
     struct 结构_派发回执快照 {
         std::size_t 动作序号 = 0;
-        std::string 动作类型{};
         std::uint64_t 包主键 = 0;
         std::uint64_t 任务根ID = 0;
         bool 已生成任务包 = false;
@@ -410,7 +400,6 @@ public:
         std::uint64_t 来源任务主键 = 0;
         std::uint64_t 来源方法主键 = 0;
         I64 置信度 = 0;
-        std::string 样本类别{};
         std::string 摘要{};
     };
 
@@ -422,13 +411,11 @@ public:
         bool 已恢复 = false;
         std::string 动作语义键{};
         std::string 特征沉淀键{};
-        std::string 来源消息类型{};
         std::string 摘要{};
     };
 
     struct 结构_关键中间状态分组快照 {
         std::string 特征沉淀键{};
-        std::string 来源消息类型{};
         std::size_t 条目数 = 0;
         std::size_t 未恢复数 = 0;
         时间戳 最近发生时间 = 0;
