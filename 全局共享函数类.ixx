@@ -123,6 +123,17 @@ export constexpr I64 百分比值(I64 基准, I64 百分比) noexcept
     return (基准 / 100) * 百分比 + ((基准 % 100) * 百分比) / 100;
 }
 
+// 功能：合并基础匹配分数与 VecI64 轮廓匹配分数，结果限制在 Q10000 区间。
+export inline I64 合并基础匹配与VecI64轮廓评分(I64 基础评分, I64 轮廓评分) noexcept
+{
+    基础评分 = std::clamp<I64>(基础评分, 0, 10000);
+    轮廓评分 = std::clamp<I64>(轮廓评分, 0, 10000);
+    if (轮廓评分 <= 0) {
+        return 基础评分;
+    }
+    return std::clamp<I64>(基础评分 * 70 / 100 + 轮廓评分 * 30 / 100, 0, 10000);
+}
+
 // 功能：计算闭合 ROI 的像素面积，范围反向时返回 0。
 export inline I64 ROI面积(I64 最小X, I64 最大X, I64 最小Y, I64 最大Y) noexcept
 {
