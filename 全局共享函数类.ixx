@@ -194,6 +194,21 @@ export inline I64 比例万分比(std::size_t 分子, std::size_t 分母) noexce
         / static_cast<unsigned long long>(分母));
 }
 
+// 功能：计算 double 与 I64 的非饱和绝对差，返回 I64 截断结果。
+export inline I64 绝对差F64I64(double 左值, I64 右值) noexcept
+{
+    const double 差 = 左值 - static_cast<double>(右值);
+    return static_cast<I64>(差 >= 0.0 ? 差 : -差);
+}
+
+// 功能：计算当前时间到有效截止时间的剩余毫秒数，过期时返回 0。
+export inline I64 计算TTL毫秒(I64 当前时间毫秒, I64 有效截止时间毫秒) noexcept
+{
+    return 有效截止时间毫秒 > 当前时间毫秒
+        ? 有效截止时间毫秒 - 当前时间毫秒
+        : 0;
+}
+
 // 功能：将布尔值格式化为中文显示文本。
 export constexpr const char* 布尔文本_是或否(bool 值) noexcept
 {

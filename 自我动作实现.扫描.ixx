@@ -814,13 +814,6 @@ namespace 自我动作实现模块::扫描模块 {
         inline constexpr I64 扫描空间位置最大允许误差毫米 = 300;
 
         // 功能：按函数名执行对应处理。
-        inline I64 绝对差F64I64(double 左, I64 右) noexcept
-        {
-            const double 差 = 左 - static_cast<double>(右);
-            return static_cast<I64>(差 >= 0.0 ? 差 : -差);
-        }
-
-        // 功能：按函数名执行对应处理。
         inline bool 外设空间中心有效(const 结构_外设空间中心& 中心) noexcept
         {
             return 中心.Z > 0 || 中心.X != 0 || 中心.Y != 0;
@@ -876,14 +869,6 @@ namespace 自我动作实现模块::扫描模块 {
                 return 读取外设观察报告_按ID(static_cast<std::uint64_t>(指定报告ID));
             }
             return 读取最新外设观察报告({}, 枚举_外设观察报告类型::扫描变化报告);
-        }
-
-        // 功能：计算权重、状态、差值或派生结果。
-        inline I64 计算TTL毫秒(I64 当前时间毫秒, I64 有效截止时间毫秒) noexcept
-        {
-            return 有效截止时间毫秒 > 当前时间毫秒
-                ? 有效截止时间毫秒 - 当前时间毫秒
-                : 0;
         }
 
         // 功能：按函数名执行对应处理。
