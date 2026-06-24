@@ -99,7 +99,6 @@ export class 自我线程类 {
 public:
     struct 结构_需求列表项 {
         const 语素入口节点类* 目标特征类型 = nullptr;
-        std::string 目标特征名称{};
         std::uintptr_t 需求节点指针 = 0;
         std::string 需求节点主键{};
         I64 节点安全权重 = 0;
