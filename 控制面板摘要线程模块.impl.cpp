@@ -21,6 +21,7 @@ import 自我类.特征定义;
 import 自我线程模块;
 import 自检线程模块;
 import 线程生命周期消息模块;
+import 全局共享函数类;
 
 namespace {
     using 需求节点 = 需求类::节点类;
@@ -139,13 +140,6 @@ namespace {
         }
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    std::uint64_t 私有_混合世界版本(std::uint64_t 累积, std::uint64_t 值) noexcept
-    {
-        累积 ^= 值 + 0x9e3779b97f4a7c15ull + (累积 << 6) + (累积 >> 2);
-        return 累积 == 0 ? 1 : 累积;
-    }
-
     template<class 节点类型>
     std::size_t 私有_统计全链(节点类型* 根节点) noexcept
     {
@@ -192,13 +186,13 @@ namespace {
         const auto 自我线程快照 = 读取自我线程最小状态快照();
 
         std::uint64_t 版本 = 1469598103934665603ull;
-        版本 = 私有_混合世界版本(版本, static_cast<std::uint64_t>(自我线程快照.Tick计数值));
-        版本 = 私有_混合世界版本(版本, static_cast<std::uint64_t>(自我线程快照.最近Tick时间值));
-        版本 = 私有_混合世界版本(版本, static_cast<std::uint64_t>(
+        版本 = 混合U64版本(版本, static_cast<std::uint64_t>(自我线程快照.Tick计数值));
+        版本 = 混合U64版本(版本, static_cast<std::uint64_t>(自我线程快照.最近Tick时间值));
+        版本 = 混合U64版本(版本, static_cast<std::uint64_t>(
             私有_统计全链<需求节点>(reinterpret_cast<需求节点*>(需求根))));
-        版本 = 私有_混合世界版本(版本, static_cast<std::uint64_t>(
+        版本 = 混合U64版本(版本, static_cast<std::uint64_t>(
             私有_统计全链<任务节点>(reinterpret_cast<任务节点*>(任务根))));
-        版本 = 私有_混合世界版本(版本, static_cast<std::uint64_t>(
+        版本 = 混合U64版本(版本, static_cast<std::uint64_t>(
             私有_统计全链<方法节点>(reinterpret_cast<方法节点*>(方法根))));
         return 版本;
     }

@@ -307,6 +307,13 @@ export inline std::uint64_t 统计三维体素占据数(const VecIU64& 占据位
     return 数量;
 }
 
+// 功能：把一个 U64 值混入累计版本号，混合结果为 0 时返回 1。
+export inline std::uint64_t 混合U64版本(std::uint64_t 累积, std::uint64_t 值) noexcept
+{
+    累积 ^= 值 + 0x9e3779b97f4a7c15ull + (累积 << 6) + (累积 >> 2);
+    return 累积 == 0 ? 1 : 累积;
+}
+
 // 功能：把 U64 转换为 I64，超过 I64 上限时饱和。
 export inline I64 U64转I64饱和(std::uint64_t 值) noexcept
 {
