@@ -81,6 +81,76 @@ export inline std::uint64_t 安全域大小(std::uint64_t 左侧数量, std::uin
     return 左侧数量 + 右侧数量 + 1;
 }
 
+// 功能：把 I64 值限制到闭区间范围内。
+export inline I64 限制I64(I64 值, I64 下界, I64 上界) noexcept
+{
+    if (值 < 下界) return 下界;
+    if (值 > 上界) return 上界;
+    return 值;
+}
+
+// 功能：计算 I64 比例的万分比，非法分子或分母返回 0。
+export inline I64 计算比例万分比I64(I64 分子, I64 分母) noexcept
+{
+    if (分子 <= 0 || 分母 <= 0) return 0;
+    return std::clamp<I64>(分子 * 10000 / 分母, 0, 10000);
+}
+
+// 功能：计算闭合 ROI 的像素面积，范围反向时返回 0。
+export inline I64 ROI面积(I64 最小X, I64 最大X, I64 最小Y, I64 最大Y) noexcept
+{
+    if (最大X < 最小X || 最大Y < 最小Y) return 0;
+    return (最大X - 最小X + 1) * (最大Y - 最小Y + 1);
+}
+
+// 功能：计算两个闭合 ROI 的重叠面积。
+export inline I64 ROI重叠面积(
+    I64 A最小X,
+    I64 A最大X,
+    I64 A最小Y,
+    I64 A最大Y,
+    I64 B最小X,
+    I64 B最大X,
+    I64 B最小Y,
+    I64 B最大Y) noexcept
+{
+    const I64 交最小X = std::max<I64>(A最小X, B最小X);
+    const I64 交最大X = std::min<I64>(A最大X, B最大X);
+    const I64 交最小Y = std::max<I64>(A最小Y, B最小Y);
+    const I64 交最大Y = std::min<I64>(A最大Y, B最大Y);
+    return ROI面积(交最小X, 交最大X, 交最小Y, 交最大Y);
+}
+
+// 功能：计算 I64 闭区间长度，范围反向时返回 0。
+export inline I64 正范围(I64 最小值, I64 最大值) noexcept
+{
+    return 最大值 >= 最小值 ? (最大值 - 最小值) : 0;
+}
+
+// 功能：计算投影闭区间尺寸，范围缺失时使用兜底值且最小为 1。
+export inline I64 投影尺寸(I64 最小值, I64 最大值, I64 兜底) noexcept
+{
+    if (最大值 >= 最小值) {
+        return std::max<I64>(1, 最大值 - 最小值 + 1);
+    }
+    return std::max<I64>(1, 兜底);
+}
+
+// 功能：返回三个 I64 值中的最大值。
+export inline I64 最大3(I64 a, I64 b, I64 c) noexcept
+{
+    return std::max(a, std::max(b, c));
+}
+
+// 功能：计算两个一维闭区间的重叠率，输出万分比。
+export inline I64 范围轴重叠率(I64 aMin, I64 aMax, I64 bMin, I64 bMax) noexcept
+{
+    const I64 aLen = std::max<I64>(1, 正范围(aMin, aMax));
+    const I64 bLen = std::max<I64>(1, 正范围(bMin, bMax));
+    const I64 重叠 = std::max<I64>(0, std::min(aMax, bMax) - std::max(aMin, bMin));
+    return std::min<I64>(10000, 重叠 * 10000 / std::max(aLen, bLen));
+}
+
 // 功能：将布尔值格式化为中文显示文本。
 export constexpr const char* 布尔文本_是或否(bool 值) noexcept
 {
