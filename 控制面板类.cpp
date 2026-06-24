@@ -1,5 +1,11 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 修改本文件前先阅读本模块；控制面板时序、禁忌和数据加载边界先写在这里。
+// 2. 每次启动前都需要先清数据库，所以控制面板数据需要后加载，等自我运行获取数据后再加载。
+// 3. WebView2 控制面板启动页不得同步强读 SQL 投影；启动页先显示加载提示，后续按区段刷新。
+// 4. 本模块只供人读，不参与机器判断；业务状态仍必须由项目结构或 SQL 投影承载。
+
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -69,6 +75,8 @@ namespace {
     constexpr std::uintptr_t 私有_线程详情_摘要 = 4;
     constexpr std::uintptr_t 私有_线程详情_任务界面 = 5;
     constexpr std::size_t 私有_列表分页大小 = 100;
+    constexpr const char* 私有_SQL控制面板HTML头部规则备注 =
+        "<!-- 规则备注：每次启动前都需要先清数据库，所以控制面板数据需要后加载，等自我运行获取数据后再加载。不要在 WebView2 控制面板启动页同步强读 SQL 投影。 -->\n";
 
     enum class 枚举_控制面板HTML用途 {
         自我场景窗口,
@@ -7616,8 +7624,9 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
         const auto 来源说明 = 私有_SQL字段(数据.批次, 3);
         const bool 初始待加载 = 批次ID == "待加载";
         std::ostringstream 输出;
-        输出 << R"HTML(<!doctype html>
-<html lang="zh-CN">
+        输出 << "<!doctype html>\n"
+            << 私有_SQL控制面板HTML头部规则备注
+            << R"HTML(<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14937,7 +14946,9 @@ std::string 生成SQL控制面板HTML()
     if (!私有_读取SQL控制面板数据(数据, 错误)) {
         项目运行错误日志("控制面板HTML生成失败 | 来源=ADO-SQL | 原因=" + 错误);
         std::ostringstream 输出;
-        输出 << "<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
+        输出 << "<!doctype html>\n"
+            << 私有_SQL控制面板HTML头部规则备注
+            << "<html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
             << "<title>鱼巢控制面板</title></head><body>"
             << "<h1>鱼巢控制面板</h1><p>SQL 投影读取失败。</p><pre>"
             << 私有_转义HTML(错误)
