@@ -517,6 +517,19 @@ namespace {
         return SQL.str();
     }
 
+    std::string 私有_需求树SQL当前视图校验脚本()
+    {
+        return R"SQL(
+SET NOCOUNT ON;
+IF OBJECT_ID(N'[鱼巢].[当前需求主信息]', N'V') IS NULL
+    THROW 51011, N'current demand main view missing', 1;
+IF OBJECT_ID(N'[鱼巢].[当前需求树节点]', N'V') IS NULL
+    THROW 51012, N'current demand tree view missing', 1;
+IF OBJECT_ID(N'[鱼巢].[当前需求面板节点]', N'V') IS NULL
+    THROW 51013, N'current demand panel view missing', 1;
+)SQL";
+    }
+
     std::string 私有_构造需求树SQL重写脚本(
         const std::vector<结构_需求树SQL行>& 行集,
         const std::string& 来源原因,
@@ -607,6 +620,28 @@ namespace {
         std::string ADO错误{};
         if (!执行ADO命令(连接串, SQL, ADO错误)) {
             错误 = 阶段 + "失败 | " + ADO错误;
+            return false;
+        }
+        return true;
+    }
+
+    bool 私有_确保需求树SQL当前视图已存在(
+        const std::string& 连接串,
+        const std::string& 阶段,
+        std::string& 错误)
+    {
+        if (!私有_执行需求树ADO命令(
+            连接串,
+            阶段 + "/创建当前视图",
+            私有_需求树SQL视图脚本(),
+            错误)) {
+            return false;
+        }
+        if (!私有_执行需求树ADO命令(
+            连接串,
+            阶段 + "/校验当前视图",
+            私有_需求树SQL当前视图校验脚本(),
+            错误)) {
             return false;
         }
         return true;
@@ -2435,7 +2470,7 @@ bool 需求类::重写需求树SQL投影(
         std::string 错误{};
         if (!私有_执行需求树ADO命令(主库连接串, "需求树SQL投影建库", 私有_需求树SQL建库脚本(), 错误)
             || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影建表", 私有_需求树SQL建表脚本(), 错误)
-            || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影视图", 私有_需求树SQL视图脚本(), 错误)
+            || !私有_确保需求树SQL当前视图已存在(投影库连接串, "需求树SQL投影视图", 错误)
             || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影重写", 私有_构造需求树SQL重写脚本(行集, 原因文本, 根主键), 错误)
             || (执行字段恢复比对 && !私有_验证需求SQL存储字段(投影库连接串, 行集, 原因文本, 根主键, 错误))) {
             项目运行错误日志(

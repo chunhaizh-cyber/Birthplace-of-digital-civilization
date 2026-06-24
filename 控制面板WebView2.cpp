@@ -1349,7 +1349,7 @@ namespace {
             const auto 快照 = 读取控制面板快照(10, 24);
             return 生成自我场景独立窗口HTML(快照);
         }
-        return 生成SQL控制面板HTML();
+        return 生成SQL控制面板启动HTML();
     }
 
     // 功能：服务所在模块的内部辅助流程。

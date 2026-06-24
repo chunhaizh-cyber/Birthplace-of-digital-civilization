@@ -7614,6 +7614,7 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
         const auto 创建时间 = 私有_SQL字段(数据.批次, 1);
         const auto 工作区 = 私有_SQL字段(数据.批次, 2);
         const auto 来源说明 = 私有_SQL字段(数据.批次, 3);
+        const bool 初始待加载 = 批次ID == "待加载";
         std::ostringstream 输出;
         输出 << R"HTML(<!doctype html>
 <html lang="zh-CN">
@@ -7651,7 +7652,9 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
             << "；工作区：" << 私有_转义HTML(工作区) << "</p>"
             << "<div class=\"top-actions\">"
             << "<button id=\"openCameraWindow\" class=\"secondary\" type=\"button\">打开相机窗口</button>"
-            << "<span id=\"panelStatus\">点击菜单只刷新当前页面数据</span></div></header>\n"
+            << "<span id=\"panelStatus\">"
+            << (初始待加载 ? "数据加载中，等待自我运行写入 SQL 投影" : "点击菜单只刷新当前页面数据")
+            << "</span></div></header>\n"
             << "<div class=\"panel-shell\"><aside class=\"menu-bar\"><nav class=\"menu-group\" aria-label=\"控制面板菜单\">"
             << "<div class=\"menu-title\">运行</div>"
             << "<button class=\"active\" data-menu-index=\"1\" data-target=\"metrics\">1. 面板指标</button>"
@@ -7879,6 +7882,7 @@ let selectedGenericNode=null;
 let menuNumberBuffer='';
 let menuNumberTimer=0;
 let sqlSubtreeRequestSeq=0;
+let sqlRefreshRetryTimer=0;
 const sqlSubtreeRequests=new Map();
 const causalInfoByKey=new Map(causalInfoRows.map(row=>[row.key,row]));
 const causalRelationsByOwner=new Map();
@@ -8483,12 +8487,22 @@ function 请求刷新当前SQL区段(target){
   if(panelStatus)panelStatus.textContent='静态 HTML 预览未连接实时刷新接口。';
   return false;
 }
+function 当前SQL区段(){
+  const activeButton=buttons.find(item=>item.classList.contains('active'));
+  return activeButton?.dataset.target||buttons[0]?.dataset.target||'metrics';
+}
+function 安排SQL区段重试(target){
+  clearTimeout(sqlRefreshRetryTimer);
+  sqlRefreshRetryTimer=window.setTimeout(()=>请求刷新当前SQL区段(target||当前SQL区段()),2000);
+}
 function 应用SQL区段刷新(data){
   if(!data||typeof data!=='object')return;
   if(!data.ok){
-    if(panelStatus)panelStatus.textContent=data.error?`刷新失败：${data.error}`:'刷新失败。';
+    if(panelStatus)panelStatus.textContent=data.error?`数据加载中：${data.error}`:'数据加载中，等待 SQL 投影写入。';
+    安排SQL区段重试(data.page||当前SQL区段());
     return;
   }
+  clearTimeout(sqlRefreshRetryTimer);
   if(data.kind==='sql-table')renderSQLTableSection(data);
   else if(data.kind==='sql-causal-info')renderSQLCausalInfoSection(data);
   else if(data.kind==='sql-causal-chain')renderSQLCausalChainSection(data);
@@ -8788,6 +8802,7 @@ try{
   const savedButton=savedTarget?buttons.find(item=>item.dataset.target===savedTarget):null;
   if(savedButton)activateMenuButton(savedButton);else activateMenuButton(buttons[0]);
 }catch(_){activateMenuButton(buttons[0]);}
+window.setTimeout(()=>{if(window.chrome&&window.chrome.webview)请求刷新当前SQL区段(当前SQL区段());},300);
 window.__panelApplyCameraWindowState=function(data){
   if(panelStatus&&data&&typeof data==='object'){
     panelStatus.textContent=data.message||(data.ok?'相机窗口已打开。':'相机窗口打开失败。');
@@ -14929,6 +14944,19 @@ std::string 生成SQL控制面板HTML()
             << "</pre></body></html>";
         return 输出.str();
     }
+    return 私有_生成SQL控制面板HTML(数据);
+}
+
+// 功能：生成不预读 SQL 数据的控制面板启动页，后续由页面按区段加载投影数据。
+std::string 生成SQL控制面板启动HTML()
+{
+    结构_SQL控制面板数据 数据{};
+    数据.批次 = {
+        "待加载",
+        "",
+        "",
+        "数据加载中，等待自我运行写入 SQL 投影后再刷新当前页。"
+    };
     return 私有_生成SQL控制面板HTML(数据);
 }
 

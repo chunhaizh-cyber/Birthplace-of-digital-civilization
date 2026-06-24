@@ -531,6 +531,8 @@ std::string 生成自我场景独立窗口HTML(
 
 std::string 生成SQL控制面板HTML();
 
+std::string 生成SQL控制面板启动HTML();
+
 std::string 读取控制面板节点子项JSON(
     std::string_view 展开类型,
     std::uintptr_t 节点指针,
