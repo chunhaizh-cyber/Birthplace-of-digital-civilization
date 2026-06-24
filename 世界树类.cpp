@@ -18,6 +18,7 @@
 
 import 二次特征应用模块;
 import 数据库ADO模块;
+import 全局共享函数类;
 
 namespace {
 
@@ -157,22 +158,6 @@ namespace {
             全部成功 = 私有_确保概念特征槽(世界树对象, 概念, 特征名) && 全部成功;
         }
         return 全部成功;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    I64 私有_饱和减(I64 a, I64 b) noexcept
-    {
-        if (b == I64_MIN) return I64_MAX;
-        if (b > 0 && a < I64_MIN + b) return I64_MIN;
-        if (b < 0 && a > I64_MAX + b) return I64_MAX;
-        return a - b;
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    I64 私有_绝对值饱和(I64 值) noexcept
-    {
-        if (值 == I64_MIN) return I64_MAX;
-        return 值 < 0 ? -值 : 值;
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -3826,7 +3811,7 @@ I64 世界树类::默认特征差异度(const 特征值& 左值, const 特征值
 
     if (const auto* 左标量 = std::get_if<I64>(&左值)) {
         const auto* 右标量 = std::get_if<I64>(&右值);
-        return 右标量 ? 私有_绝对值饱和(私有_饱和减(*左标量, *右标量)) : 10000;
+        return 右标量 ? 饱和绝对值I64(饱和减少(*左标量, *右标量)) : 10000;
     }
 
     if (const auto* 左句柄 = std::get_if<VecU句柄>(&左值)) {

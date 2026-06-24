@@ -24,6 +24,24 @@ export inline I64 饱和增加(I64 左值, I64 右值) noexcept
     return 左值 + 右值;
 }
 
+// 功能：对 I64 执行带上下限保护的饱和减法。
+export inline I64 饱和减少(I64 左值, I64 右值) noexcept
+{
+    if (右值 == (std::numeric_limits<I64>::min)()) {
+        return (std::numeric_limits<I64>::max)();
+    }
+    return 饱和增加(左值, -右值);
+}
+
+// 功能：返回 I64 的饱和绝对值，I64 最小值返回 I64 最大值。
+export inline I64 饱和绝对值I64(I64 值) noexcept
+{
+    if (值 == (std::numeric_limits<I64>::min)()) {
+        return (std::numeric_limits<I64>::max)();
+    }
+    return 值 < 0 ? -值 : 值;
+}
+
 // 功能：返回两个 I64 值的非饱和绝对差，保持原调用点既有算术语义。
 export inline I64 绝对差I64(I64 左值, I64 右值) noexcept
 {
