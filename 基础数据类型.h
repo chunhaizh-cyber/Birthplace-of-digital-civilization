@@ -247,11 +247,6 @@ inline bool 特征值有效(const 特征值& v) noexcept {
     return !std::holds_alternative<std::monostate>(v);
 }
 
-// 功能：按函数名执行对应处理。
-inline bool 特征快照有值(const 特征快照值& v) noexcept {
-    return 特征值有效(v);
-}
-
 struct 特征稳态 {
     特征值 值{};
     std::optional<I64区间> 区间{};
@@ -539,12 +534,6 @@ struct 结构体_时间戳 {
             );
     }
 
-    // 计算时间差（微秒，返回无符号；如果担心顺序，提供一个有符号版本更安全）
-
-    // 功能：计算时间差（微秒，返回无符号；如果担心顺序，提供一个有符号版本更安全）
-    static 时间戳 时间差_微秒(时间戳 t0, 时间戳 t1) noexcept {
-        return (t1 >= t0) ? (t1 - t0) : (t0 - t1);
-    }
 };
 
 
@@ -1120,13 +1109,6 @@ struct 结构体_原始场景帧 {
         return static_cast<std::size_t>(v) * static_cast<std::size_t>(宽度) + static_cast<std::size_t>(u);
     }
 
-    // 功能：按函数名执行对应处理。
-    [[nodiscard]] inline double 深度_at(int u, int v) const noexcept { return 深度[索引(u, v)]; }
-
-    // 功能：按函数名执行对应处理。
-    [[nodiscard]] inline Color 颜色_at(int u, int v) const noexcept {
-        return 有效颜色() ? 颜色[索引(u, v)] : Color{ 255, 255, 255 };
-    }
 };
 
 
