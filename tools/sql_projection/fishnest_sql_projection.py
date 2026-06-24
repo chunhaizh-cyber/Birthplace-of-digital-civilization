@@ -64,6 +64,93 @@ SQL_INTEGER_COLUMNS = {
     "value_number",
 }
 SQL_DATETIME2_COLUMNS = {"log_time"}
+SQL_COLUMN_NAMES = {
+    "id": "记录标识",
+    "run_id": "批次标识",
+    "created_at": "创建时间",
+    "workspace": "工作目录",
+    "source_note": "来源备注",
+    "feature_name": "特征名称",
+    "source_kind": "来源类型",
+    "source_path": "来源路径",
+    "source_line": "来源行号",
+    "symbol_name": "符号名称",
+    "raw_text": "原始文本",
+    "parent_feature": "父特征",
+    "child_feature": "子特征",
+    "relation_type": "关系类型",
+    "event_seq": "事件序号",
+    "log_file": "日志文件",
+    "line_no": "行号",
+    "log_time": "日志时间",
+    "level": "级别",
+    "thread_id": "线程标识",
+    "event_name": "事件名称",
+    "event_class": "事件类别",
+    "method_name": "方法名称",
+    "task_key": "任务主键",
+    "demand_key": "需求主键",
+    "host_key": "宿主主键",
+    "feature_key": "特征主键",
+    "current_state": "当前状态",
+    "target_state": "目标状态",
+    "result_state": "结果状态",
+    "action_dynamic": "动作动态",
+    "source_action_dynamic": "来源动作动态",
+    "causal_key": "因果主键",
+    "source_causal_key": "来源因果主键",
+    "source_report_id": "来源报告标识",
+    "fields_json": "字段数据",
+    "metric_key": "指标键",
+    "cxx_type": "代码类型",
+    "panel_struct": "控制面板结构",
+    "data_group": "数据分组",
+    "metric_group": "指标分组",
+    "value_text": "值文本",
+    "value_number": "数值",
+    "row_index": "行号",
+    "logical_id": "逻辑标识",
+    "thread_name": "线程名称",
+    "thread_purpose": "线程用途",
+    "thread_category": "线程类别",
+    "module_name": "模块名称",
+    "creator_logical_id": "创建者逻辑标识",
+    "creator_name": "创建者名称",
+    "thread_pool_id": "线程池标识",
+    "thread_pool_name": "线程池名称",
+    "lifecycle_state": "生命周期状态",
+    "runtime_state": "运行状态",
+    "system_thread_id": "系统线程标识",
+    "first_message_id": "首次消息标识",
+    "latest_message_id": "最近消息标识",
+    "created_time_us": "创建时间微秒",
+    "updated_time_us": "更新时间微秒",
+    "exit_time_us": "退出时间微秒",
+    "is_blocked": "是否阻塞",
+    "is_paused": "是否暂停",
+    "is_healthy": "是否健康",
+    "is_exited": "是否已退出",
+    "is_fault": "是否故障",
+    "creation_message_seen": "创建消息已到",
+    "task_id": "任务标识",
+    "work_item_id": "工作项标识",
+    "latest_event_type": "最近事件类型",
+    "latest_reason_key": "最近原因键",
+    "latest_event_summary": "最近事件摘要",
+    "version": "版本",
+    "late_message_count": "迟到消息数",
+    "message_id": "消息标识",
+    "event_type_code": "事件类型代码",
+    "event_type": "事件类型",
+    "occurred_time_us": "发生时间微秒",
+    "old_lifecycle_state": "旧生命周期状态",
+    "new_lifecycle_state": "新生命周期状态",
+    "old_runtime_state": "旧运行状态",
+    "new_runtime_state": "新运行状态",
+    "is_normal_exit": "是否正常退出",
+    "reason_key": "原因键",
+    "display_summary": "显示摘要",
+}
 
 
 def read_text(path: Path) -> str:
@@ -505,7 +592,7 @@ def extract_runtime_events(root: Path, logs: list[Path], max_events: int) -> lis
                     "source_action_dynamic": source_action_dynamic,
                     "causal_key": causal_key,
                     "source_causal_key": source_causal_key,
-                    "source_report_id": fields.get("来源报告ID") or fields.get("扫描报告ID") or "",
+                    "source_report_id": fields.get("来源报告标识") or fields.get("扫描报告ID") or "",
                     "fields_json": json.dumps(fields, ensure_ascii=False, separators=(",", ":")),
                     "raw_text": line,
                 }
@@ -706,7 +793,12 @@ def sql_identifier(name: str) -> str:
     return "[" + name.replace("]", "]]") + "]"
 
 
+def sql_column_identifier(source_key: str) -> str:
+    return sql_identifier(SQL_COLUMN_NAMES.get(source_key, source_key))
+
+
 def write_insert_lines(out: list[str], table: str, columns: list[str], rows: list[dict[str, Any]], run_id: str) -> None:
+    sql_columns = [sql_column_identifier(column) for column in columns]
     for index, row in enumerate(rows, 1):
         values = []
         for column in columns:
@@ -719,7 +811,7 @@ def write_insert_lines(out: list[str], table: str, columns: list[str], rows: lis
                 values.append("CONVERT(datetime2(3), " + sql_string(value) + ", 121)" if value else "NULL")
             else:
                 values.append(sql_string(row.get(column)))
-        out.append(f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(values)});")
+        out.append(f"INSERT INTO {table} ({', '.join(sql_columns)}) VALUES ({', '.join(values)});")
         if index % 400 == 0:
             out.append("GO")
 
@@ -743,182 +835,190 @@ def build_sql(database: str, run_id: str, root: Path, payload: dict[str, Any]) -
         "IF SCHEMA_ID(N'鱼巢') IS NULL EXEC(N'CREATE SCHEMA [鱼巢]');",
         "GO",
         """
-IF OBJECT_ID(N'[鱼巢].[投影批次]', N'U') IS NULL
+DROP VIEW IF EXISTS [鱼巢].[最新控制面板线程生命周期事件];
+DROP VIEW IF EXISTS [鱼巢].[最新控制面板线程信息];
+DROP VIEW IF EXISTS [鱼巢].[最新控制面板运行指标];
+DROP VIEW IF EXISTS [鱼巢].[最新控制面板字段目录];
+DROP VIEW IF EXISTS [鱼巢].[最新特征关系];
+DROP VIEW IF EXISTS [鱼巢].[最新特征类型];
+DROP VIEW IF EXISTS [鱼巢].[最新动作动态];
+DROP VIEW IF EXISTS [鱼巢].[最新批次];
+DROP TABLE IF EXISTS [鱼巢].[控制面板线程生命周期事件];
+DROP TABLE IF EXISTS [鱼巢].[控制面板线程信息];
+DROP TABLE IF EXISTS [鱼巢].[控制面板运行指标];
+DROP TABLE IF EXISTS [鱼巢].[控制面板字段目录];
+DROP TABLE IF EXISTS [鱼巢].[运行事件];
+DROP TABLE IF EXISTS [鱼巢].[特征关系];
+DROP TABLE IF EXISTS [鱼巢].[特征类型];
+DROP TABLE IF EXISTS [鱼巢].[投影批次];
 CREATE TABLE [鱼巢].[投影批次] (
-    run_id uniqueidentifier NOT NULL PRIMARY KEY,
-    created_at datetime2(0) NOT NULL,
-    workspace nvarchar(500) NOT NULL,
-    source_note nvarchar(max) NULL
+    [批次标识] uniqueidentifier NOT NULL PRIMARY KEY,
+    [创建时间] datetime2(0) NOT NULL,
+    [工作目录] nvarchar(500) NOT NULL,
+    [来源备注] nvarchar(max) NULL
 );
-IF OBJECT_ID(N'[鱼巢].[特征类型]', N'U') IS NULL
 CREATE TABLE [鱼巢].[特征类型] (
-    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    run_id uniqueidentifier NOT NULL,
-    feature_name nvarchar(300) NOT NULL,
-    source_kind nvarchar(80) NOT NULL,
-    source_path nvarchar(500) NULL,
-    source_line int NULL,
-    symbol_name nvarchar(300) NULL,
-    raw_text nvarchar(max) NULL
+    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [批次标识] uniqueidentifier NOT NULL,
+    [特征名称] nvarchar(300) NOT NULL,
+    [来源类型] nvarchar(80) NOT NULL,
+    [来源路径] nvarchar(500) NULL,
+    [来源行号] int NULL,
+    [符号名称] nvarchar(300) NULL,
+    [原始文本] nvarchar(max) NULL
 );
-IF OBJECT_ID(N'[鱼巢].[特征关系]', N'U') IS NULL
 CREATE TABLE [鱼巢].[特征关系] (
-    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    run_id uniqueidentifier NOT NULL,
-    parent_feature nvarchar(300) NOT NULL,
-    child_feature nvarchar(300) NOT NULL,
-    relation_type nvarchar(80) NOT NULL,
-    source_path nvarchar(500) NULL,
-    source_line int NULL,
-    raw_text nvarchar(max) NULL
+    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [批次标识] uniqueidentifier NOT NULL,
+    [父特征] nvarchar(300) NOT NULL,
+    [子特征] nvarchar(300) NOT NULL,
+    [关系类型] nvarchar(80) NOT NULL,
+    [来源路径] nvarchar(500) NULL,
+    [来源行号] int NULL,
+    [原始文本] nvarchar(max) NULL
 );
-IF OBJECT_ID(N'[鱼巢].[运行事件]', N'U') IS NULL
 CREATE TABLE [鱼巢].[运行事件] (
-    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    run_id uniqueidentifier NOT NULL,
-    event_seq int NOT NULL,
-    log_file nvarchar(500) NOT NULL,
-    line_no int NOT NULL,
-    log_time datetime2(3) NULL,
-    level nvarchar(20) NULL,
-    thread_id nvarchar(40) NULL,
-    event_name nvarchar(300) NOT NULL,
-    event_class nvarchar(80) NOT NULL,
-    method_name nvarchar(300) NULL,
-    task_key nvarchar(80) NULL,
-    demand_key nvarchar(80) NULL,
-    host_key nvarchar(80) NULL,
-    feature_key nvarchar(300) NULL,
-    current_state nvarchar(120) NULL,
-    target_state nvarchar(120) NULL,
-    result_state nvarchar(120) NULL,
-    action_dynamic nvarchar(120) NULL,
-    source_action_dynamic nvarchar(120) NULL,
-    causal_key nvarchar(120) NULL,
-    source_causal_key nvarchar(120) NULL,
-    source_report_id nvarchar(120) NULL,
-    fields_json nvarchar(max) NULL,
-    raw_text nvarchar(max) NULL
+    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [批次标识] uniqueidentifier NOT NULL,
+    [事件序号] int NOT NULL,
+    [日志文件] nvarchar(500) NOT NULL,
+    [行号] int NOT NULL,
+    [日志时间] datetime2(3) NULL,
+    [级别] nvarchar(20) NULL,
+    [线程标识] nvarchar(40) NULL,
+    [事件名称] nvarchar(300) NOT NULL,
+    [事件类别] nvarchar(80) NOT NULL,
+    [方法名称] nvarchar(300) NULL,
+    [任务主键] nvarchar(80) NULL,
+    [需求主键] nvarchar(80) NULL,
+    [宿主主键] nvarchar(80) NULL,
+    [特征主键] nvarchar(300) NULL,
+    [当前状态] nvarchar(120) NULL,
+    [目标状态] nvarchar(120) NULL,
+    [结果状态] nvarchar(120) NULL,
+    [动作动态] nvarchar(120) NULL,
+    [来源动作动态] nvarchar(120) NULL,
+    [因果主键] nvarchar(120) NULL,
+    [来源因果主键] nvarchar(120) NULL,
+    [来源报告标识] nvarchar(120) NULL,
+    [字段数据] nvarchar(max) NULL,
+    [原始文本] nvarchar(max) NULL
 );
-IF OBJECT_ID(N'[鱼巢].[控制面板字段目录]', N'U') IS NULL
 CREATE TABLE [鱼巢].[控制面板字段目录] (
-    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    run_id uniqueidentifier NOT NULL,
-    metric_key nvarchar(300) NOT NULL,
-    cxx_type nvarchar(160) NOT NULL,
-    panel_struct nvarchar(160) NOT NULL,
-    data_group nvarchar(80) NOT NULL,
-    source_kind nvarchar(80) NOT NULL,
-    source_path nvarchar(500) NULL,
-    source_line int NULL,
-    raw_text nvarchar(max) NULL
+    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [批次标识] uniqueidentifier NOT NULL,
+    [指标键] nvarchar(300) NOT NULL,
+    [代码类型] nvarchar(160) NOT NULL,
+    [控制面板结构] nvarchar(160) NOT NULL,
+    [数据分组] nvarchar(80) NOT NULL,
+    [来源类型] nvarchar(80) NOT NULL,
+    [来源路径] nvarchar(500) NULL,
+    [来源行号] int NULL,
+    [原始文本] nvarchar(max) NULL
 );
-IF OBJECT_ID(N'[鱼巢].[控制面板运行指标]', N'U') IS NULL
 CREATE TABLE [鱼巢].[控制面板运行指标] (
-    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    run_id uniqueidentifier NOT NULL,
-    metric_key nvarchar(300) NOT NULL,
-    metric_group nvarchar(80) NOT NULL,
-    value_text nvarchar(max) NULL,
-    value_number bigint NULL,
-    source_kind nvarchar(80) NOT NULL,
-    source_path nvarchar(500) NULL,
-    source_line int NULL,
-    raw_text nvarchar(max) NULL
+    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [批次标识] uniqueidentifier NOT NULL,
+    [指标键] nvarchar(300) NOT NULL,
+    [指标分组] nvarchar(80) NOT NULL,
+    [值文本] nvarchar(max) NULL,
+    [数值] bigint NULL,
+    [来源类型] nvarchar(80) NOT NULL,
+    [来源路径] nvarchar(500) NULL,
+    [来源行号] int NULL,
+    [原始文本] nvarchar(max) NULL
 );
-IF OBJECT_ID(N'[鱼巢].[控制面板线程信息]', N'U') IS NULL
 CREATE TABLE [鱼巢].[控制面板线程信息] (
-    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    run_id uniqueidentifier NOT NULL,
-    row_index int NOT NULL,
-    logical_id nvarchar(160) NOT NULL,
-    thread_name nvarchar(300) NULL,
-    thread_purpose nvarchar(max) NULL,
-    thread_category nvarchar(120) NULL,
-    module_name nvarchar(300) NULL,
-    creator_logical_id nvarchar(160) NULL,
-    creator_name nvarchar(300) NULL,
-    thread_pool_id nvarchar(160) NULL,
-    thread_pool_name nvarchar(300) NULL,
-    lifecycle_state nvarchar(80) NULL,
-    runtime_state nvarchar(160) NULL,
-    system_thread_id bigint NULL,
-    first_message_id bigint NULL,
-    latest_message_id bigint NULL,
-    created_time_us bigint NULL,
-    updated_time_us bigint NULL,
-    exit_time_us bigint NULL,
-    is_blocked bit NULL,
-    is_paused bit NULL,
-    is_healthy bit NULL,
-    is_exited bit NULL,
-    is_fault bit NULL,
-    creation_message_seen bit NULL,
-    task_id bigint NULL,
-    work_item_id bigint NULL,
-    latest_event_type nvarchar(120) NULL,
-    latest_reason_key nvarchar(300) NULL,
-    latest_event_summary nvarchar(max) NULL,
-    version bigint NULL,
-    late_message_count bigint NULL,
-    source_path nvarchar(500) NULL,
-    fields_json nvarchar(max) NULL
+    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [批次标识] uniqueidentifier NOT NULL,
+    [行号] int NOT NULL,
+    [逻辑标识] nvarchar(160) NOT NULL,
+    [线程名称] nvarchar(300) NULL,
+    [线程用途] nvarchar(max) NULL,
+    [线程类别] nvarchar(120) NULL,
+    [模块名称] nvarchar(300) NULL,
+    [创建者逻辑标识] nvarchar(160) NULL,
+    [创建者名称] nvarchar(300) NULL,
+    [线程池标识] nvarchar(160) NULL,
+    [线程池名称] nvarchar(300) NULL,
+    [生命周期状态] nvarchar(80) NULL,
+    [运行状态] nvarchar(160) NULL,
+    [系统线程标识] bigint NULL,
+    [首次消息标识] bigint NULL,
+    [最近消息标识] bigint NULL,
+    [创建时间微秒] bigint NULL,
+    [更新时间微秒] bigint NULL,
+    [退出时间微秒] bigint NULL,
+    [是否阻塞] bit NULL,
+    [是否暂停] bit NULL,
+    [是否健康] bit NULL,
+    [是否已退出] bit NULL,
+    [是否故障] bit NULL,
+    [创建消息已到] bit NULL,
+    [任务标识] bigint NULL,
+    [工作项标识] bigint NULL,
+    [最近事件类型] nvarchar(120) NULL,
+    [最近原因键] nvarchar(300) NULL,
+    [最近事件摘要] nvarchar(max) NULL,
+    [版本] bigint NULL,
+    [迟到消息数] bigint NULL,
+    [来源路径] nvarchar(500) NULL,
+    [字段数据] nvarchar(max) NULL
 );
-IF OBJECT_ID(N'[鱼巢].[控制面板线程生命周期事件]', N'U') IS NULL
 CREATE TABLE [鱼巢].[控制面板线程生命周期事件] (
-    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
-    run_id uniqueidentifier NOT NULL,
-    message_id bigint NOT NULL,
-    event_type_code int NULL,
-    event_type nvarchar(120) NULL,
-    occurred_time_us bigint NULL,
-    logical_id nvarchar(160) NULL,
-    system_thread_id bigint NULL,
-    thread_name nvarchar(300) NULL,
-    thread_purpose nvarchar(max) NULL,
-    thread_category nvarchar(120) NULL,
-    module_name nvarchar(300) NULL,
-    creator_logical_id nvarchar(160) NULL,
-    creator_name nvarchar(300) NULL,
-    thread_pool_id nvarchar(160) NULL,
-    thread_pool_name nvarchar(300) NULL,
-    old_lifecycle_state nvarchar(80) NULL,
-    new_lifecycle_state nvarchar(80) NULL,
-    old_runtime_state nvarchar(160) NULL,
-    new_runtime_state nvarchar(160) NULL,
-    is_blocked bit NULL,
-    is_paused bit NULL,
-    is_healthy bit NULL,
-    is_normal_exit bit NULL,
-    task_id bigint NULL,
-    work_item_id bigint NULL,
-    reason_key nvarchar(300) NULL,
-    display_summary nvarchar(max) NULL,
-    source_path nvarchar(500) NULL,
-    fields_json nvarchar(max) NULL
+    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [批次标识] uniqueidentifier NOT NULL,
+    [消息标识] bigint NOT NULL,
+    [事件类型代码] int NULL,
+    [事件类型] nvarchar(120) NULL,
+    [发生时间微秒] bigint NULL,
+    [逻辑标识] nvarchar(160) NULL,
+    [系统线程标识] bigint NULL,
+    [线程名称] nvarchar(300) NULL,
+    [线程用途] nvarchar(max) NULL,
+    [线程类别] nvarchar(120) NULL,
+    [模块名称] nvarchar(300) NULL,
+    [创建者逻辑标识] nvarchar(160) NULL,
+    [创建者名称] nvarchar(300) NULL,
+    [线程池标识] nvarchar(160) NULL,
+    [线程池名称] nvarchar(300) NULL,
+    [旧生命周期状态] nvarchar(80) NULL,
+    [新生命周期状态] nvarchar(80) NULL,
+    [旧运行状态] nvarchar(160) NULL,
+    [新运行状态] nvarchar(160) NULL,
+    [是否阻塞] bit NULL,
+    [是否暂停] bit NULL,
+    [是否健康] bit NULL,
+    [是否正常退出] bit NULL,
+    [任务标识] bigint NULL,
+    [工作项标识] bigint NULL,
+    [原因键] nvarchar(300) NULL,
+    [显示摘要] nvarchar(max) NULL,
+    [来源路径] nvarchar(500) NULL,
+    [字段数据] nvarchar(max) NULL
 );
 """,
         "GO",
         """
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_feature_type_run_name' AND object_id = OBJECT_ID(N'[鱼巢].[特征类型]'))
-    CREATE INDEX IX_feature_type_run_name ON [鱼巢].[特征类型](run_id, feature_name);
+    CREATE INDEX IX_feature_type_run_name ON [鱼巢].[特征类型]([批次标识], [特征名称]);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_feature_relation_run_parent' AND object_id = OBJECT_ID(N'[鱼巢].[特征关系]'))
-    CREATE INDEX IX_feature_relation_run_parent ON [鱼巢].[特征关系](run_id, parent_feature, child_feature);
+    CREATE INDEX IX_feature_relation_run_parent ON [鱼巢].[特征关系]([批次标识], [父特征], [子特征]);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_run_class' AND object_id = OBJECT_ID(N'[鱼巢].[运行事件]'))
-    CREATE INDEX IX_runtime_event_run_class ON [鱼巢].[运行事件](run_id, event_class, log_time);
+    CREATE INDEX IX_runtime_event_run_class ON [鱼巢].[运行事件]([批次标识], [事件类别], [日志时间]);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_action_dynamic' AND object_id = OBJECT_ID(N'[鱼巢].[运行事件]'))
-    CREATE INDEX IX_runtime_event_action_dynamic ON [鱼巢].[运行事件](run_id, action_dynamic) WHERE action_dynamic IS NOT NULL;
+    CREATE INDEX IX_runtime_event_action_dynamic ON [鱼巢].[运行事件]([批次标识], [动作动态]) WHERE [动作动态] IS NOT NULL;
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_metric_catalog_run_key' AND object_id = OBJECT_ID(N'[鱼巢].[控制面板字段目录]'))
-    CREATE INDEX IX_panel_metric_catalog_run_key ON [鱼巢].[控制面板字段目录](run_id, metric_key);
+    CREATE INDEX IX_panel_metric_catalog_run_key ON [鱼巢].[控制面板字段目录]([批次标识], [指标键]);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_runtime_metric_run_key' AND object_id = OBJECT_ID(N'[鱼巢].[控制面板运行指标]'))
-    CREATE INDEX IX_panel_runtime_metric_run_key ON [鱼巢].[控制面板运行指标](run_id, metric_key);
+    CREATE INDEX IX_panel_runtime_metric_run_key ON [鱼巢].[控制面板运行指标]([批次标识], [指标键]);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_info_run_logical' AND object_id = OBJECT_ID(N'[鱼巢].[控制面板线程信息]'))
-    CREATE INDEX IX_panel_thread_info_run_logical ON [鱼巢].[控制面板线程信息](run_id, logical_id);
+    CREATE INDEX IX_panel_thread_info_run_logical ON [鱼巢].[控制面板线程信息]([批次标识], [逻辑标识]);
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_lifecycle_run_logical' AND object_id = OBJECT_ID(N'[鱼巢].[控制面板线程生命周期事件]'))
-    CREATE INDEX IX_panel_thread_lifecycle_run_logical ON [鱼巢].[控制面板线程生命周期事件](run_id, logical_id, occurred_time_us);
+    CREATE INDEX IX_panel_thread_lifecycle_run_logical ON [鱼巢].[控制面板线程生命周期事件]([批次标识], [逻辑标识], [发生时间微秒]);
 """,
         "GO",
-        f"INSERT INTO [鱼巢].[投影批次] (run_id, created_at, workspace, source_note) VALUES ('{run_id}', CONVERT(datetime2(0), N'{now}', 126), {sql_string(str(root))}, {sql_string(payload['source_note'])});",
+        f"INSERT INTO [鱼巢].[投影批次] ([批次标识], [创建时间], [工作目录], [来源备注]) VALUES ('{run_id}', CONVERT(datetime2(0), N'{now}', 126), {sql_string(str(root))}, {sql_string(payload['source_note'])});",
     ]
 
     write_insert_lines(
@@ -1067,57 +1167,57 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_lifecycl
 CREATE OR ALTER VIEW [鱼巢].[最新批次] AS
 SELECT TOP (1) *
 FROM [鱼巢].[投影批次]
-ORDER BY created_at DESC;
+ORDER BY [创建时间] DESC;
 """,
             "GO",
             """
 CREATE OR ALTER VIEW [鱼巢].[最新动作动态] AS
 SELECT e.*
 FROM [鱼巢].[运行事件] e
-WHERE e.run_id = (SELECT run_id FROM [鱼巢].[最新批次])
-  AND e.action_dynamic IS NOT NULL;
+WHERE e.[批次标识] = (SELECT [批次标识] FROM [鱼巢].[最新批次])
+  AND e.[动作动态] IS NOT NULL;
 """,
             "GO",
             """
 CREATE OR ALTER VIEW [鱼巢].[最新特征类型] AS
 SELECT f.*
 FROM [鱼巢].[特征类型] f
-WHERE f.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
+WHERE f.[批次标识] = (SELECT [批次标识] FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
 CREATE OR ALTER VIEW [鱼巢].[最新特征关系] AS
 SELECT r.*
 FROM [鱼巢].[特征关系] r
-WHERE r.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
+WHERE r.[批次标识] = (SELECT [批次标识] FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
 CREATE OR ALTER VIEW [鱼巢].[最新控制面板字段目录] AS
 SELECT c.*
 FROM [鱼巢].[控制面板字段目录] c
-WHERE c.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
+WHERE c.[批次标识] = (SELECT [批次标识] FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
 CREATE OR ALTER VIEW [鱼巢].[最新控制面板运行指标] AS
 SELECT m.*
 FROM [鱼巢].[控制面板运行指标] m
-WHERE m.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
+WHERE m.[批次标识] = (SELECT [批次标识] FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
 CREATE OR ALTER VIEW [鱼巢].[最新控制面板线程信息] AS
 SELECT t.*
 FROM [鱼巢].[控制面板线程信息] t
-WHERE t.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
+WHERE t.[批次标识] = (SELECT [批次标识] FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
 CREATE OR ALTER VIEW [鱼巢].[最新控制面板线程生命周期事件] AS
 SELECT e.*
 FROM [鱼巢].[控制面板线程生命周期事件] e
-WHERE e.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
+WHERE e.[批次标识] = (SELECT [批次标识] FROM [鱼巢].[最新批次]);
 """,
             "GO",
         ]

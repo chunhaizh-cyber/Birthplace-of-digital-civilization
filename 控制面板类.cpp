@@ -6697,10 +6697,10 @@ namespace {
             "最新批次",
             R"SQL(
 SELECT
-    CONVERT(nvarchar(36), run_id) AS run_id,
-    CONVERT(nvarchar(19), created_at, 120) AS created_at,
-    COALESCE(workspace, N'') AS workspace,
-    COALESCE(source_note, N'') AS source_note
+    CONVERT(nvarchar(36), [批次标识]) AS [批次标识],
+    CONVERT(nvarchar(19), [创建时间], 120) AS [创建时间],
+    COALESCE([工作目录], N'') AS [工作目录],
+    COALESCE([来源备注], N'') AS [来源备注]
 FROM [鱼巢].[最新批次];
 )SQL",
             批次结果,
@@ -6718,13 +6718,13 @@ FROM [鱼巢].[最新批次];
                 "面板指标",
                 R"SQL(
 SELECT TOP (80)
-    COALESCE(metric_key, N'') AS metric_key,
-    COALESCE(metric_group, N'') AS metric_group,
-    COALESCE(value_text, N'') AS value_text,
-    COALESCE(source_kind, N'') AS source_kind,
-    COALESCE(source_path, N'') AS source_path
+    COALESCE([指标键], N'') AS [指标键],
+    COALESCE([指标分组], N'') AS [指标分组],
+    COALESCE([值文本], N'') AS [值文本],
+    COALESCE([来源类型], N'') AS [来源类型],
+    COALESCE([来源路径], N'') AS [来源路径]
 FROM [鱼巢].[最新控制面板运行指标]
-ORDER BY id;
+ORDER BY [记录标识];
 )SQL",
                 &结构_SQL控制面板数据::指标
             },
@@ -6732,15 +6732,15 @@ ORDER BY id;
                 "线程信息",
                 R"SQL(
 SELECT TOP (120)
-    COALESCE(logical_id, N'') AS logical_id,
-    COALESCE(thread_name, N'') AS thread_name,
-    COALESCE(lifecycle_state, N'') AS lifecycle_state,
-    COALESCE(runtime_state, N'') AS runtime_state,
-    CONVERT(nvarchar(10), COALESCE(is_healthy, 0)) AS is_healthy,
-    COALESCE(module_name, N'') AS module_name,
-    COALESCE(latest_reason_key, N'') AS latest_reason_key
+    COALESCE([逻辑标识], N'') AS [逻辑标识],
+    COALESCE([线程名称], N'') AS [线程名称],
+    COALESCE([生命周期状态], N'') AS [生命周期状态],
+    COALESCE([运行状态], N'') AS [运行状态],
+    CONVERT(nvarchar(10), COALESCE([是否健康], 0)) AS [是否健康],
+    COALESCE([模块名称], N'') AS [模块名称],
+    COALESCE([最近原因键], N'') AS [最近原因键]
 FROM [鱼巢].[最新控制面板线程信息]
-ORDER BY row_index;
+ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::线程
             },
@@ -6748,15 +6748,15 @@ ORDER BY row_index;
                 "线程生命周期事件",
                 R"SQL(
 SELECT TOP (120)
-    CONVERT(nvarchar(40), message_id) AS message_id,
-    COALESCE(event_type, N'') AS event_type,
-    COALESCE(logical_id, N'') AS logical_id,
-    COALESCE(old_lifecycle_state, N'') AS old_lifecycle_state,
-    COALESCE(new_lifecycle_state, N'') AS new_lifecycle_state,
-    COALESCE(reason_key, N'') AS reason_key,
-    COALESCE(display_summary, N'') AS display_summary
+    CONVERT(nvarchar(40), [消息标识]) AS [消息标识],
+    COALESCE([事件类型], N'') AS [事件类型],
+    COALESCE([逻辑标识], N'') AS [逻辑标识],
+    COALESCE([旧生命周期状态], N'') AS [旧生命周期状态],
+    COALESCE([新生命周期状态], N'') AS [新生命周期状态],
+    COALESCE([原因键], N'') AS [原因键],
+    COALESCE([显示摘要], N'') AS [显示摘要]
 FROM [鱼巢].[最新控制面板线程生命周期事件]
-ORDER BY occurred_time_us DESC, message_id DESC;
+ORDER BY [发生时间微秒] DESC, [消息标识] DESC;
 )SQL",
                 &结构_SQL控制面板数据::线程事件
             },
@@ -6764,15 +6764,15 @@ ORDER BY occurred_time_us DESC, message_id DESC;
                 "动作动态",
                 R"SQL(
 SELECT TOP (120)
-    CONVERT(nvarchar(23), log_time, 121) AS log_time,
-    COALESCE(event_class, N'') AS event_class,
-    COALESCE(event_name, N'') AS event_name,
-    COALESCE(method_name, N'') AS method_name,
-    COALESCE(feature_key, N'') AS feature_key,
-    COALESCE(action_dynamic, N'') AS action_dynamic,
-    COALESCE(source_action_dynamic, N'') AS source_action_dynamic
+    CONVERT(nvarchar(23), [日志时间], 121) AS [日志时间],
+    COALESCE([事件类别], N'') AS [事件类别],
+    COALESCE([事件名称], N'') AS [事件名称],
+    COALESCE([方法名称], N'') AS [方法名称],
+    COALESCE([特征主键], N'') AS [特征主键],
+    COALESCE([动作动态], N'') AS [动作动态],
+    COALESCE([来源动作动态], N'') AS [来源动作动态]
 FROM [鱼巢].[最新动作动态]
-ORDER BY log_time DESC, event_seq DESC;
+ORDER BY [日志时间] DESC, [事件序号] DESC;
 )SQL",
                 &结构_SQL控制面板数据::动作动态
             },
@@ -6780,25 +6780,25 @@ ORDER BY log_time DESC, event_seq DESC;
                 "因果信息",
                 R"SQL(
 SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind, N'') AS node_kind,
-    COALESCE(display_text, N'') AS display_text,
-    COALESCE(type_text, N'') AS type_text,
-    COALESCE(value_kind, N'') AS value_kind,
-    COALESCE(value_text, N'') AS value_text,
-    COALESCE(auxiliary_text, N'') AS auxiliary_text
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点类型], N'') AS [节点类型],
+    COALESCE([显示文本], N'') AS [显示文本],
+    COALESCE([类型文本], N'') AS [类型文本],
+    COALESCE([值类别], N'') AS [值类别],
+    COALESCE([值文本], N'') AS [值文本],
+    COALESCE([辅助文本], N'') AS [辅助文本]
 FROM [鱼巢].[当前世界树节点] n
-WHERE n.node_kind = N'因果'
+WHERE n.[节点类型] = N'因果'
   AND NOT EXISTS (
       SELECT 1
       FROM [鱼巢].[当前世界树节点] ancestor
-      WHERE ancestor.node_kind = N'因果'
-        AND ancestor.node_key <> n.node_key
-        AND n.path_text LIKE ancestor.path_text + N'/%'
+      WHERE ancestor.[节点类型] = N'因果'
+        AND ancestor.[节点主键] <> n.[节点主键]
+        AND n.[路径文本] LIKE ancestor.[路径文本] + N'/%'
   )
-ORDER BY row_index;
+ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::因果信息
             },
@@ -6806,26 +6806,26 @@ ORDER BY row_index;
                 "因果信息关系",
                 R"SQL(
 SELECT
-    COALESCE(owner_key, N'') AS owner_key,
-    COALESCE(relation_name, N'') AS relation_name,
-    COALESCE(target_kind, N'') AS target_kind,
-    COALESCE(target_key, N'') AS target_key,
-    COALESCE(target_text, N'') AS target_text,
-    CONVERT(nvarchar(20), ordinal_index) AS ordinal_index
+    COALESCE([宿主主键], N'') AS [宿主主键],
+    COALESCE([关系名], N'') AS [关系名],
+    COALESCE([目标类别], N'') AS [目标类别],
+    COALESCE([目标主键], N'') AS [目标主键],
+    COALESCE([目标文本], N'') AS [目标文本],
+    CONVERT(nvarchar(20), [序号]) AS [序号]
 FROM [鱼巢].[当前世界树关系]
-WHERE owner_key IN (
-    SELECT node_key
+WHERE [宿主主键] IN (
+    SELECT [节点主键]
     FROM [鱼巢].[当前世界树节点] n
-    WHERE n.node_kind = N'因果'
+    WHERE n.[节点类型] = N'因果'
       AND NOT EXISTS (
           SELECT 1
           FROM [鱼巢].[当前世界树节点] ancestor
-          WHERE ancestor.node_kind = N'因果'
-            AND ancestor.node_key <> n.node_key
-            AND n.path_text LIKE ancestor.path_text + N'/%'
+          WHERE ancestor.[节点类型] = N'因果'
+            AND ancestor.[节点主键] <> n.[节点主键]
+            AND n.[路径文本] LIKE ancestor.[路径文本] + N'/%'
       )
 )
-ORDER BY owner_key, ordinal_index, relation_name;
+ORDER BY [宿主主键], [序号], [关系名];
 )SQL",
                 &结构_SQL控制面板数据::因果信息关系
             },
@@ -6833,13 +6833,13 @@ ORDER BY owner_key, ordinal_index, relation_name;
                 "特征类型",
                 R"SQL(
 SELECT TOP (120)
-    COALESCE(feature_name, N'') AS feature_name,
-    COALESCE(source_kind, N'') AS source_kind,
-    COALESCE(symbol_name, N'') AS symbol_name,
-    COALESCE(source_path, N'') AS source_path,
-    CONVERT(nvarchar(20), COALESCE(source_line, 0)) AS source_line
+    COALESCE([特征名称], N'') AS [特征名称],
+    COALESCE([来源类型], N'') AS [来源类型],
+    COALESCE([符号名称], N'') AS [符号名称],
+    COALESCE([来源路径], N'') AS [来源路径],
+    CONVERT(nvarchar(20), COALESCE([来源行号], 0)) AS [来源行号]
 FROM [鱼巢].[最新特征类型]
-ORDER BY feature_name;
+ORDER BY [特征名称];
 )SQL",
                 &结构_SQL控制面板数据::特征
             },
@@ -6847,14 +6847,14 @@ ORDER BY feature_name;
                 "控制面板字段目录",
                 R"SQL(
 SELECT TOP (160)
-    COALESCE(metric_key, N'') AS metric_key,
-    COALESCE(data_group, N'') AS data_group,
-    COALESCE(cxx_type, N'') AS cxx_type,
-    COALESCE(panel_struct, N'') AS panel_struct,
-    COALESCE(source_path, N'') AS source_path,
-    CONVERT(nvarchar(20), COALESCE(source_line, 0)) AS source_line
+    COALESCE([指标键], N'') AS [指标键],
+    COALESCE([数据分组], N'') AS [数据分组],
+    COALESCE([代码类型], N'') AS [代码类型],
+    COALESCE([控制面板结构], N'') AS [控制面板结构],
+    COALESCE([来源路径], N'') AS [来源路径],
+    CONVERT(nvarchar(20), COALESCE([来源行号], 0)) AS [来源行号]
 FROM [鱼巢].[最新控制面板字段目录]
-ORDER BY data_group, metric_key;
+ORDER BY [数据分组], [指标键];
 )SQL",
                 &结构_SQL控制面板数据::字段目录
             },
@@ -6862,54 +6862,54 @@ ORDER BY data_group, metric_key;
                 "需求树",
                 R"SQL(
 SELECT TOP (400)
-    COALESCE(display_node_id, N'') AS display_node_id,
-    COALESCE(display_parent_id, N'') AS display_parent_id,
-    CONVERT(nvarchar(20), COALESCE(display_depth, 0)) AS depth,
-    COALESCE(node_name, N'') AS node_name,
-    COALESCE(tree_shape, N'') AS tree_shape,
-    COALESCE(target_semantics, N'') AS target_semantics,
-    COALESCE(target_feature_display, N'') AS target_feature_display,
-    COALESCE(task_display, N'') AS task_display,
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(logic_group_type, N'') AS logic_group_type,
-    COALESCE(target_feature_type, N'') AS target_feature_type,
-    COALESCE(target_feature_key, N'') AS target_feature_key,
-    COALESCE(task_type, N'') AS task_type,
-    COALESCE(task_key, N'') AS task_key,
-    COALESCE(subject_display_name, N'') AS subject_display_name,
-    COALESCE(subject_type_name, N'') AS subject_type_name,
-    COALESCE(subject_key, N'') AS subject_key,
-    COALESCE(scene_display_name, N'') AS scene_display_name,
-    COALESCE(scene_type_name, N'') AS scene_type_name,
-    COALESCE(scene_key, N'') AS scene_key,
-    COALESCE(target_host_display_name, N'') AS target_host_display_name,
-    COALESCE(target_host_type_name, N'') AS target_host_type_name,
-    COALESCE(target_host_key, N'') AS target_host_key,
-    COALESCE(current_state_display_name, N'') AS current_state_display_name,
-    COALESCE(current_state_type_name, N'') AS current_state_type_name,
-    COALESCE(current_state_key, N'') AS current_state_key,
-    COALESCE(target_state_display_name, N'') AS target_state_display_name,
-    COALESCE(target_state_type_name, N'') AS target_state_type_name,
-    COALESCE(target_state_key, N'') AS target_state_key,
-    CONVERT(nvarchar(20), COALESCE(relation_mask, 0)) AS relation_mask,
-    CONVERT(nvarchar(20), COALESCE(safety_weight, 0)) AS safety_weight,
-    CONVERT(nvarchar(20), COALESCE(service_weight, 0)) AS service_weight,
-    CONVERT(nvarchar(20), COALESCE(safety_settled, 0)) AS safety_settled,
-    CONVERT(nvarchar(20), COALESCE(service_settled, 0)) AS service_settled,
-    CONVERT(nvarchar(20), COALESCE(valid_until_us, 0)) AS valid_until_us,
-    COALESCE(recent_settlement_task_display_name, N'') AS recent_settlement_task_display_name,
-    COALESCE(recent_settlement_task_type_name, N'') AS recent_settlement_task_type_name,
-    COALESCE(recent_settlement_task_key, N'') AS recent_settlement_task_key,
-    CONVERT(nvarchar(20), COALESCE(recent_settlement_time_us, 0)) AS recent_settlement_time_us,
-    COALESCE(description_key, N'') AS description_key,
-    CONVERT(nvarchar(20), COALESCE(stat_created_time_us, 0)) AS stat_created_time_us,
-    CONVERT(nvarchar(20), COALESCE(stat_last_observed_time_us, 0)) AS stat_last_observed_time_us,
-    CONVERT(nvarchar(20), COALESCE(stat_hit_count, 0)) AS stat_hit_count,
-    CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
-    CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent
+    COALESCE([显示节点标识], N'') AS [显示节点标识],
+    COALESCE([显示父节点标识], N'') AS [显示父节点标识],
+    CONVERT(nvarchar(20), COALESCE([显示深度], 0)) AS [深度],
+    COALESCE([节点名称], N'') AS [节点名称],
+    COALESCE([树形摘要], N'') AS [树形摘要],
+    COALESCE([目标语义], N'') AS [目标语义],
+    COALESCE([目标特征显示], N'') AS [目标特征显示],
+    COALESCE([任务显示], N'') AS [任务显示],
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([逻辑组织类型], N'') AS [逻辑组织类型],
+    COALESCE([目标特征类型], N'') AS [目标特征类型],
+    COALESCE([目标特征主键], N'') AS [目标特征主键],
+    COALESCE([任务类型], N'') AS [任务类型],
+    COALESCE([任务主键], N'') AS [任务主键],
+    COALESCE([主体显示名], N'') AS [主体显示名],
+    COALESCE([主体类型名], N'') AS [主体类型名],
+    COALESCE([主体主键], N'') AS [主体主键],
+    COALESCE([场景显示名], N'') AS [场景显示名],
+    COALESCE([场景类型名], N'') AS [场景类型名],
+    COALESCE([场景主键], N'') AS [场景主键],
+    COALESCE([目标宿主显示名], N'') AS [目标宿主显示名],
+    COALESCE([目标宿主类型名], N'') AS [目标宿主类型名],
+    COALESCE([目标宿主主键], N'') AS [目标宿主主键],
+    COALESCE([当前状态显示名], N'') AS [当前状态显示名],
+    COALESCE([当前状态类型名], N'') AS [当前状态类型名],
+    COALESCE([当前状态主键], N'') AS [当前状态主键],
+    COALESCE([目标状态显示名], N'') AS [目标状态显示名],
+    COALESCE([目标状态类型名], N'') AS [目标状态类型名],
+    COALESCE([目标状态主键], N'') AS [目标状态主键],
+    CONVERT(nvarchar(20), COALESCE([满足关系掩码], 0)) AS [满足关系掩码],
+    CONVERT(nvarchar(20), COALESCE([安全权重], 0)) AS [安全权重],
+    CONVERT(nvarchar(20), COALESCE([服务权重], 0)) AS [服务权重],
+    CONVERT(nvarchar(20), COALESCE([累计安全结算], 0)) AS [累计安全结算],
+    CONVERT(nvarchar(20), COALESCE([累计服务结算], 0)) AS [累计服务结算],
+    CONVERT(nvarchar(20), COALESCE([有效截止微秒], 0)) AS [有效截止微秒],
+    COALESCE([最近结算任务显示名], N'') AS [最近结算任务显示名],
+    COALESCE([最近结算任务类型名], N'') AS [最近结算任务类型名],
+    COALESCE([最近结算任务主键], N'') AS [最近结算任务主键],
+    CONVERT(nvarchar(20), COALESCE([最近结算时间微秒], 0)) AS [最近结算时间微秒],
+    COALESCE([描述主键], N'') AS [描述主键],
+    CONVERT(nvarchar(20), COALESCE([统计创建时间微秒], 0)) AS [统计创建时间微秒],
+    CONVERT(nvarchar(20), COALESCE([统计最后观测时间微秒], 0)) AS [统计最后观测时间微秒],
+    CONVERT(nvarchar(20), COALESCE([统计命中次数], 0)) AS [统计命中次数],
+    CONVERT(nvarchar(1), COALESCE([已截止], 0)) AS [已截止],
+    CONVERT(nvarchar(1), COALESCE([阻塞父任务], 0)) AS [阻塞父任务]
 FROM [鱼巢].[当前需求面板节点]
-WHERE COALESCE(display_parent_id, N'') = N''
-ORDER BY row_index;
+WHERE COALESCE([显示父节点标识], N'') = N''
+ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::需求树
             },
@@ -6917,17 +6917,17 @@ ORDER BY row_index;
                 "任务树",
                 R"SQL(
 SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind_text, N'') AS node_kind_text,
-    COALESCE(task_state_text, N'') AS task_state_text,
-    COALESCE(demand_key, N'') AS demand_key,
-    COALESCE(target_state_key, N'') AS target_state_key,
-    COALESCE(result_state_key, N'') AS result_state_key
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点种类文本], N'') AS [节点种类文本],
+    COALESCE([任务状态文本], N'') AS [任务状态文本],
+    COALESCE([需求主键], N'') AS [需求主键],
+    COALESCE([目标状态主键], N'') AS [目标状态主键],
+    COALESCE([结果状态主键], N'') AS [结果状态主键]
 FROM [鱼巢].[当前任务树节点]
-WHERE COALESCE(parent_key, N'') = N''
-ORDER BY row_index;
+WHERE COALESCE([父节点主键], N'') = N''
+ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::任务树
             },
@@ -6935,18 +6935,18 @@ ORDER BY row_index;
                 "方法树",
                 R"SQL(
 SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind_text, N'') AS node_kind_text,
-    COALESCE(action_name, N'') AS action_name,
-    COALESCE(action_handle, N'') AS action_handle,
-    COALESCE(source_text, N'') AS source_text,
-    COALESCE(primary_result_feature_key, N'') AS primary_result_feature_key,
-    CONVERT(nvarchar(20), COALESCE(result_item_count, 0)) AS result_item_count
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点种类文本], N'') AS [节点种类文本],
+    COALESCE([动作名称], N'') AS [动作名称],
+    COALESCE([动作句柄], N'') AS [动作句柄],
+    COALESCE([来源文本], N'') AS [来源文本],
+    COALESCE([主结果特征主键], N'') AS [主结果特征主键],
+    CONVERT(nvarchar(20), COALESCE([结果项数量], 0)) AS [结果项数量]
 FROM [鱼巢].[当前方法树节点]
-WHERE COALESCE(parent_key, N'') = N''
-ORDER BY row_index;
+WHERE COALESCE([父节点主键], N'') = N''
+ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::方法树
             },
@@ -6954,18 +6954,18 @@ ORDER BY row_index;
                 "世界树",
                 R"SQL(
 SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind, N'') AS node_kind,
-    COALESCE(display_text, N'') AS display_text,
-    COALESCE(type_text, N'') AS type_text,
-    COALESCE(value_kind, N'') AS value_kind,
-    COALESCE(value_text, N'') AS value_text,
-    COALESCE(auxiliary_text, N'') AS auxiliary_text
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点类型], N'') AS [节点类型],
+    COALESCE([显示文本], N'') AS [显示文本],
+    COALESCE([类型文本], N'') AS [类型文本],
+    COALESCE([值类别], N'') AS [值类别],
+    COALESCE([值文本], N'') AS [值文本],
+    COALESCE([辅助文本], N'') AS [辅助文本]
 FROM [鱼巢].[当前世界树节点]
-WHERE COALESCE(parent_key, N'') = N''
-ORDER BY row_index;
+WHERE COALESCE([父节点主键], N'') = N''
+ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::世界树
             },
@@ -6973,14 +6973,14 @@ ORDER BY row_index;
                 "世界树关系",
                 R"SQL(
 SELECT TOP (2000)
-    COALESCE(owner_key, N'') AS owner_key,
-    COALESCE(relation_name, N'') AS relation_name,
-    COALESCE(target_kind, N'') AS target_kind,
-    COALESCE(target_key, N'') AS target_key,
-    COALESCE(target_text, N'') AS target_text,
-    CONVERT(nvarchar(20), COALESCE(ordinal_index, 0)) AS ordinal_index
+    COALESCE([宿主主键], N'') AS [宿主主键],
+    COALESCE([关系名], N'') AS [关系名],
+    COALESCE([目标类别], N'') AS [目标类别],
+    COALESCE([目标主键], N'') AS [目标主键],
+    COALESCE([目标文本], N'') AS [目标文本],
+    CONVERT(nvarchar(20), COALESCE([序号], 0)) AS [序号]
 FROM [鱼巢].[当前世界树关系]
-ORDER BY row_index;
+ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::世界树关系
             },
@@ -6988,17 +6988,17 @@ ORDER BY row_index;
                 "语素树",
                 R"SQL(
 SELECT
-    COALESCE(node_key, N'') AS node_key,
-    COALESCE(parent_key, N'') AS parent_key,
-    CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-    COALESCE(node_kind, N'') AS node_kind,
-    COALESCE(word_text, N'') AS word_text,
-    COALESCE(entry_type_text, N'') AS entry_type_text,
-    COALESCE(mapped_main_type_text, N'') AS mapped_main_type_text,
-    COALESCE(bound_basic_key, N'') AS bound_basic_key
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点类型], N'') AS [节点类型],
+    COALESCE([词面文本], N'') AS [词面文本],
+    COALESCE([信息入口类型文本], N'') AS [信息入口类型文本],
+    COALESCE([映射主信息类型文本], N'') AS [映射主信息类型文本],
+    COALESCE([绑定基础信息主键], N'') AS [绑定基础信息主键]
 FROM [鱼巢].[当前语素节点]
-WHERE COALESCE(parent_key, N'') = N''
-ORDER BY row_index;
+WHERE COALESCE([父节点主键], N'') = N''
+ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::语素树
             },
@@ -7285,7 +7285,7 @@ ORDER BY row_index;
         SQL += 父键字段;
         SQL += ", N'') = ";
         SQL += 私有_SQL字符串字面量(父节点键);
-        SQL += " ORDER BY row_index;";
+        SQL += " ORDER BY [行号];";
 
         return 私有_读取SQL控制面板子链行集(查询名, SQL, 行集, 错误);
     }
@@ -7314,16 +7314,16 @@ ORDER BY row_index;
             }
             std::string SQL = R"SQL(
 SELECT
-    COALESCE(owner_key, N'') AS owner_key,
-    COALESCE(relation_name, N'') AS relation_name,
-    COALESCE(target_kind, N'') AS target_kind,
-    COALESCE(target_key, N'') AS target_key,
-    COALESCE(target_text, N'') AS target_text,
-    CONVERT(nvarchar(20), COALESCE(ordinal_index, 0)) AS ordinal_index
+    COALESCE([宿主主键], N'') AS [宿主主键],
+    COALESCE([关系名], N'') AS [关系名],
+    COALESCE([目标类别], N'') AS [目标类别],
+    COALESCE([目标主键], N'') AS [目标主键],
+    COALESCE([目标文本], N'') AS [目标文本],
+    CONVERT(nvarchar(20), COALESCE([序号], 0)) AS [序号]
 FROM [鱼巢].[当前世界树关系]
-WHERE owner_key IN ()SQL";
+WHERE [宿主主键] IN ()SQL";
             SQL += IN列表;
-            SQL += ") ORDER BY row_index;";
+            SQL += ") ORDER BY [行号];";
 
             std::vector<std::vector<std::string>> 本批行集{};
             if (!私有_读取SQL控制面板子链行集("世界树子链关系", SQL, 本批行集, 错误)) {
@@ -7369,114 +7369,114 @@ WHERE owner_key IN ()SQL";
         std::string 错误{};
         if (区段ID == "demandTree") {
             constexpr std::string_view 字段 = R"SQL(
-COALESCE(display_node_id, N'') AS display_node_id,
-COALESCE(display_parent_id, N'') AS display_parent_id,
-CONVERT(nvarchar(20), COALESCE(display_depth, 0)) AS depth,
-COALESCE(node_name, N'') AS node_name,
-COALESCE(tree_shape, N'') AS tree_shape,
-COALESCE(target_semantics, N'') AS target_semantics,
-COALESCE(target_feature_display, N'') AS target_feature_display,
-COALESCE(task_display, N'') AS task_display,
-COALESCE(node_key, N'') AS node_key,
-COALESCE(logic_group_type, N'') AS logic_group_type,
-COALESCE(target_feature_type, N'') AS target_feature_type,
-COALESCE(target_feature_key, N'') AS target_feature_key,
-COALESCE(task_type, N'') AS task_type,
-COALESCE(task_key, N'') AS task_key,
-COALESCE(subject_display_name, N'') AS subject_display_name,
-COALESCE(subject_type_name, N'') AS subject_type_name,
-COALESCE(subject_key, N'') AS subject_key,
-COALESCE(scene_display_name, N'') AS scene_display_name,
-COALESCE(scene_type_name, N'') AS scene_type_name,
-COALESCE(scene_key, N'') AS scene_key,
-COALESCE(target_host_display_name, N'') AS target_host_display_name,
-COALESCE(target_host_type_name, N'') AS target_host_type_name,
-COALESCE(target_host_key, N'') AS target_host_key,
-COALESCE(current_state_display_name, N'') AS current_state_display_name,
-COALESCE(current_state_type_name, N'') AS current_state_type_name,
-COALESCE(current_state_key, N'') AS current_state_key,
-COALESCE(target_state_display_name, N'') AS target_state_display_name,
-COALESCE(target_state_type_name, N'') AS target_state_type_name,
-COALESCE(target_state_key, N'') AS target_state_key,
-CONVERT(nvarchar(20), COALESCE(relation_mask, 0)) AS relation_mask,
-CONVERT(nvarchar(20), COALESCE(safety_weight, 0)) AS safety_weight,
-CONVERT(nvarchar(20), COALESCE(service_weight, 0)) AS service_weight,
-CONVERT(nvarchar(20), COALESCE(safety_settled, 0)) AS safety_settled,
-CONVERT(nvarchar(20), COALESCE(service_settled, 0)) AS service_settled,
-CONVERT(nvarchar(20), COALESCE(valid_until_us, 0)) AS valid_until_us,
-COALESCE(recent_settlement_task_display_name, N'') AS recent_settlement_task_display_name,
-COALESCE(recent_settlement_task_type_name, N'') AS recent_settlement_task_type_name,
-COALESCE(recent_settlement_task_key, N'') AS recent_settlement_task_key,
-CONVERT(nvarchar(20), COALESCE(recent_settlement_time_us, 0)) AS recent_settlement_time_us,
-COALESCE(description_key, N'') AS description_key,
-CONVERT(nvarchar(20), COALESCE(stat_created_time_us, 0)) AS stat_created_time_us,
-CONVERT(nvarchar(20), COALESCE(stat_last_observed_time_us, 0)) AS stat_last_observed_time_us,
-CONVERT(nvarchar(20), COALESCE(stat_hit_count, 0)) AS stat_hit_count,
-CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
-CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent)SQL";
-            if (!私有_读取SQL树直接子层("需求树子层", "[鱼巢].[当前需求面板节点]", "display_parent_id", 字段, 节点键, 行集, 错误)) {
+COALESCE([显示节点标识], N'') AS [显示节点标识],
+COALESCE([显示父节点标识], N'') AS [显示父节点标识],
+CONVERT(nvarchar(20), COALESCE([显示深度], 0)) AS [深度],
+COALESCE([节点名称], N'') AS [节点名称],
+COALESCE([树形摘要], N'') AS [树形摘要],
+COALESCE([目标语义], N'') AS [目标语义],
+COALESCE([目标特征显示], N'') AS [目标特征显示],
+COALESCE([任务显示], N'') AS [任务显示],
+COALESCE([节点主键], N'') AS [节点主键],
+COALESCE([逻辑组织类型], N'') AS [逻辑组织类型],
+COALESCE([目标特征类型], N'') AS [目标特征类型],
+COALESCE([目标特征主键], N'') AS [目标特征主键],
+COALESCE([任务类型], N'') AS [任务类型],
+COALESCE([任务主键], N'') AS [任务主键],
+COALESCE([主体显示名], N'') AS [主体显示名],
+COALESCE([主体类型名], N'') AS [主体类型名],
+COALESCE([主体主键], N'') AS [主体主键],
+COALESCE([场景显示名], N'') AS [场景显示名],
+COALESCE([场景类型名], N'') AS [场景类型名],
+COALESCE([场景主键], N'') AS [场景主键],
+COALESCE([目标宿主显示名], N'') AS [目标宿主显示名],
+COALESCE([目标宿主类型名], N'') AS [目标宿主类型名],
+COALESCE([目标宿主主键], N'') AS [目标宿主主键],
+COALESCE([当前状态显示名], N'') AS [当前状态显示名],
+COALESCE([当前状态类型名], N'') AS [当前状态类型名],
+COALESCE([当前状态主键], N'') AS [当前状态主键],
+COALESCE([目标状态显示名], N'') AS [目标状态显示名],
+COALESCE([目标状态类型名], N'') AS [目标状态类型名],
+COALESCE([目标状态主键], N'') AS [目标状态主键],
+CONVERT(nvarchar(20), COALESCE([满足关系掩码], 0)) AS [满足关系掩码],
+CONVERT(nvarchar(20), COALESCE([安全权重], 0)) AS [安全权重],
+CONVERT(nvarchar(20), COALESCE([服务权重], 0)) AS [服务权重],
+CONVERT(nvarchar(20), COALESCE([累计安全结算], 0)) AS [累计安全结算],
+CONVERT(nvarchar(20), COALESCE([累计服务结算], 0)) AS [累计服务结算],
+CONVERT(nvarchar(20), COALESCE([有效截止微秒], 0)) AS [有效截止微秒],
+COALESCE([最近结算任务显示名], N'') AS [最近结算任务显示名],
+COALESCE([最近结算任务类型名], N'') AS [最近结算任务类型名],
+COALESCE([最近结算任务主键], N'') AS [最近结算任务主键],
+CONVERT(nvarchar(20), COALESCE([最近结算时间微秒], 0)) AS [最近结算时间微秒],
+COALESCE([描述主键], N'') AS [描述主键],
+CONVERT(nvarchar(20), COALESCE([统计创建时间微秒], 0)) AS [统计创建时间微秒],
+CONVERT(nvarchar(20), COALESCE([统计最后观测时间微秒], 0)) AS [统计最后观测时间微秒],
+CONVERT(nvarchar(20), COALESCE([统计命中次数], 0)) AS [统计命中次数],
+CONVERT(nvarchar(1), COALESCE([已截止], 0)) AS [已截止],
+CONVERT(nvarchar(1), COALESCE([阻塞父任务], 0)) AS [阻塞父任务])SQL";
+            if (!私有_读取SQL树直接子层("需求树子层", "[鱼巢].[当前需求面板节点]", "[显示父节点标识]", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 46);
         }
         if (区段ID == "taskTree") {
             constexpr std::string_view 字段 = R"SQL(
-COALESCE(node_key, N'') AS node_key,
-COALESCE(parent_key, N'') AS parent_key,
-CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-COALESCE(node_kind_text, N'') AS node_kind_text,
-COALESCE(task_state_text, N'') AS task_state_text,
-COALESCE(demand_key, N'') AS demand_key,
-COALESCE(target_state_key, N'') AS target_state_key,
-COALESCE(result_state_key, N'') AS result_state_key)SQL";
-            if (!私有_读取SQL树直接子层("任务树子层", "[鱼巢].[当前任务树节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
+COALESCE([节点主键], N'') AS [节点主键],
+COALESCE([父节点主键], N'') AS [父节点主键],
+CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+COALESCE([节点种类文本], N'') AS [节点种类文本],
+COALESCE([任务状态文本], N'') AS [任务状态文本],
+COALESCE([需求主键], N'') AS [需求主键],
+COALESCE([目标状态主键], N'') AS [目标状态主键],
+COALESCE([结果状态主键], N'') AS [结果状态主键])SQL";
+            if (!私有_读取SQL树直接子层("任务树子层", "[鱼巢].[当前任务树节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 8);
         }
         if (区段ID == "methodTree") {
             constexpr std::string_view 字段 = R"SQL(
-COALESCE(node_key, N'') AS node_key,
-COALESCE(parent_key, N'') AS parent_key,
-CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-COALESCE(node_kind_text, N'') AS node_kind_text,
-COALESCE(action_name, N'') AS action_name,
-COALESCE(action_handle, N'') AS action_handle,
-COALESCE(source_text, N'') AS source_text,
-COALESCE(primary_result_feature_key, N'') AS primary_result_feature_key,
-CONVERT(nvarchar(20), COALESCE(result_item_count, 0)) AS result_item_count)SQL";
-            if (!私有_读取SQL树直接子层("方法树子层", "[鱼巢].[当前方法树节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
+COALESCE([节点主键], N'') AS [节点主键],
+COALESCE([父节点主键], N'') AS [父节点主键],
+CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+COALESCE([节点种类文本], N'') AS [节点种类文本],
+COALESCE([动作名称], N'') AS [动作名称],
+COALESCE([动作句柄], N'') AS [动作句柄],
+COALESCE([来源文本], N'') AS [来源文本],
+COALESCE([主结果特征主键], N'') AS [主结果特征主键],
+CONVERT(nvarchar(20), COALESCE([结果项数量], 0)) AS [结果项数量])SQL";
+            if (!私有_读取SQL树直接子层("方法树子层", "[鱼巢].[当前方法树节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 9);
         }
         if (区段ID == "lexemeTree") {
             constexpr std::string_view 字段 = R"SQL(
-COALESCE(node_key, N'') AS node_key,
-COALESCE(parent_key, N'') AS parent_key,
-CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-COALESCE(node_kind, N'') AS node_kind,
-COALESCE(word_text, N'') AS word_text,
-COALESCE(entry_type_text, N'') AS entry_type_text,
-COALESCE(mapped_main_type_text, N'') AS mapped_main_type_text,
-COALESCE(bound_basic_key, N'') AS bound_basic_key)SQL";
-            if (!私有_读取SQL树直接子层("语素树子层", "[鱼巢].[当前语素节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
+COALESCE([节点主键], N'') AS [节点主键],
+COALESCE([父节点主键], N'') AS [父节点主键],
+CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+COALESCE([节点类型], N'') AS [节点类型],
+COALESCE([词面文本], N'') AS [词面文本],
+COALESCE([信息入口类型文本], N'') AS [信息入口类型文本],
+COALESCE([映射主信息类型文本], N'') AS [映射主信息类型文本],
+COALESCE([绑定基础信息主键], N'') AS [绑定基础信息主键])SQL";
+            if (!私有_读取SQL树直接子层("语素树子层", "[鱼巢].[当前语素节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 8);
         }
         if (区段ID == "worldTree") {
             constexpr std::string_view 字段 = R"SQL(
-COALESCE(node_key, N'') AS node_key,
-COALESCE(parent_key, N'') AS parent_key,
-CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-COALESCE(node_kind, N'') AS node_kind,
-COALESCE(display_text, N'') AS display_text,
-COALESCE(type_text, N'') AS type_text,
-COALESCE(value_kind, N'') AS value_kind,
-COALESCE(value_text, N'') AS value_text,
-COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
-            if (!私有_读取SQL树直接子层("世界树子层", "[鱼巢].[当前世界树节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
+COALESCE([节点主键], N'') AS [节点主键],
+COALESCE([父节点主键], N'') AS [父节点主键],
+CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+COALESCE([节点类型], N'') AS [节点类型],
+COALESCE([显示文本], N'') AS [显示文本],
+COALESCE([类型文本], N'') AS [类型文本],
+COALESCE([值类别], N'') AS [值类别],
+COALESCE([值文本], N'') AS [值文本],
+COALESCE([辅助文本], N'') AS [辅助文本])SQL";
+            if (!私有_读取SQL树直接子层("世界树子层", "[鱼巢].[当前世界树节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             std::vector<std::vector<std::string>> 关系行集{};
@@ -7487,16 +7487,16 @@ COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
         }
         if (区段ID == "causalInfo") {
             constexpr std::string_view 字段 = R"SQL(
-COALESCE(node_key, N'') AS node_key,
-COALESCE(parent_key, N'') AS parent_key,
-CONVERT(nvarchar(20), COALESCE(depth, 0)) AS depth,
-COALESCE(node_kind, N'') AS node_kind,
-COALESCE(display_text, N'') AS display_text,
-COALESCE(type_text, N'') AS type_text,
-COALESCE(value_kind, N'') AS value_kind,
-COALESCE(value_text, N'') AS value_text,
-COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
-            if (!私有_读取SQL树直接子层("因果信息子层", "[鱼巢].[当前世界树节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
+COALESCE([节点主键], N'') AS [节点主键],
+COALESCE([父节点主键], N'') AS [父节点主键],
+CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+COALESCE([节点类型], N'') AS [节点类型],
+COALESCE([显示文本], N'') AS [显示文本],
+COALESCE([类型文本], N'') AS [类型文本],
+COALESCE([值类别], N'') AS [值类别],
+COALESCE([值文本], N'') AS [值文本],
+COALESCE([辅助文本], N'') AS [辅助文本])SQL";
+            if (!私有_读取SQL树直接子层("因果信息子层", "[鱼巢].[当前世界树节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             std::vector<std::vector<std::string>> 关系行集{};
