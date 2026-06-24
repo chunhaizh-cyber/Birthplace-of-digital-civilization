@@ -17,6 +17,7 @@ struct 结构_控制面板树节点 {
     std::string 文本{};
     bool 默认展开 = false;
     bool 可延迟展开 = false;
+    bool 是字段分组 = false;
     std::string 展开类型{};
     std::vector<结构_控制面板树节点> 子项{};
     std::vector<结构_控制面板树节点> 详情{};

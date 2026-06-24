@@ -5259,6 +5259,7 @@ namespace {
         }
 
         auto 字段节点 = 私有_新节点("节点字段");
+        字段节点.是字段分组 = true;
         私有_追加基础信息通用字段(字段节点, 节点, 上下文, 剩余深度, 路径);
 
         if (const auto* 主信息 = 节点->主信息) {
@@ -5382,6 +5383,7 @@ namespace {
         }
 
         auto 字段节点 = 私有_新节点("节点字段");
+        字段节点.是字段分组 = true;
         私有_追加叶字段(字段节点, "主键", 私有_节点主键_控制面板(节点));
         私有_追加叶字段(字段节点, "节点地址", 私有_十六进制指针(私有_地址(节点)));
         私有_追加叶字段(字段节点, "描述信息", 私有_自然句文本(节点->主信息.描述信息));
@@ -5579,6 +5581,7 @@ namespace {
         }
 
         auto 字段节点 = 私有_新节点("节点字段");
+        字段节点.是字段分组 = true;
         私有_追加叶字段(字段节点, "主键", 节点->获取主键());
         私有_追加叶字段(字段节点, "节点地址", 私有_十六进制指针(私有_地址(节点)));
         私有_追加叶字段(字段节点, "名称", 私有_词文本(节点->主信息.名称));
@@ -5724,6 +5727,7 @@ namespace {
         }
 
         auto 字段节点 = 私有_新节点("节点字段");
+        字段节点.是字段分组 = true;
         私有_追加叶字段(字段节点, "主键", 节点->获取主键());
         私有_追加叶字段(字段节点, "节点地址", 私有_十六进制指针(私有_地址(节点)));
         if (方法类::方法是首节点(节点)) {
@@ -6662,7 +6666,7 @@ namespace {
     // 功能：生成控制面板 SQL 读模型 ADO 连接串。
     std::string 私有_SQL控制面板ADO连接串()
     {
-        return 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "FishnestProjection");
+        return 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "鱼巢投影库");
     }
 
     // 功能：通过 ADO 执行控制面板 SQL 查询。
@@ -6697,7 +6701,7 @@ SELECT
     CONVERT(nvarchar(19), created_at, 120) AS created_at,
     COALESCE(workspace, N'') AS workspace,
     COALESCE(source_note, N'') AS source_note
-FROM fishnest.v_latest_run;
+FROM [鱼巢].[最新批次];
 )SQL",
             批次结果,
             错误)) {
@@ -6719,7 +6723,7 @@ SELECT TOP (80)
     COALESCE(value_text, N'') AS value_text,
     COALESCE(source_kind, N'') AS source_kind,
     COALESCE(source_path, N'') AS source_path
-FROM fishnest.v_latest_panel_runtime_metrics
+FROM [鱼巢].[最新控制面板运行指标]
 ORDER BY id;
 )SQL",
                 &结构_SQL控制面板数据::指标
@@ -6735,7 +6739,7 @@ SELECT TOP (120)
     CONVERT(nvarchar(10), COALESCE(is_healthy, 0)) AS is_healthy,
     COALESCE(module_name, N'') AS module_name,
     COALESCE(latest_reason_key, N'') AS latest_reason_key
-FROM fishnest.v_latest_panel_thread_info
+FROM [鱼巢].[最新控制面板线程信息]
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::线程
@@ -6751,7 +6755,7 @@ SELECT TOP (120)
     COALESCE(new_lifecycle_state, N'') AS new_lifecycle_state,
     COALESCE(reason_key, N'') AS reason_key,
     COALESCE(display_summary, N'') AS display_summary
-FROM fishnest.v_latest_panel_thread_lifecycle_events
+FROM [鱼巢].[最新控制面板线程生命周期事件]
 ORDER BY occurred_time_us DESC, message_id DESC;
 )SQL",
                 &结构_SQL控制面板数据::线程事件
@@ -6767,7 +6771,7 @@ SELECT TOP (120)
     COALESCE(feature_key, N'') AS feature_key,
     COALESCE(action_dynamic, N'') AS action_dynamic,
     COALESCE(source_action_dynamic, N'') AS source_action_dynamic
-FROM fishnest.v_latest_action_dynamics
+FROM [鱼巢].[最新动作动态]
 ORDER BY log_time DESC, event_seq DESC;
 )SQL",
                 &结构_SQL控制面板数据::动作动态
@@ -6785,11 +6789,11 @@ SELECT
     COALESCE(value_kind, N'') AS value_kind,
     COALESCE(value_text, N'') AS value_text,
     COALESCE(auxiliary_text, N'') AS auxiliary_text
-FROM fishnest.v_current_world_tree_nodes n
+FROM [鱼巢].[当前世界树节点] n
 WHERE n.node_kind = N'因果'
   AND NOT EXISTS (
       SELECT 1
-      FROM fishnest.v_current_world_tree_nodes ancestor
+      FROM [鱼巢].[当前世界树节点] ancestor
       WHERE ancestor.node_kind = N'因果'
         AND ancestor.node_key <> n.node_key
         AND n.path_text LIKE ancestor.path_text + N'/%'
@@ -6808,14 +6812,14 @@ SELECT
     COALESCE(target_key, N'') AS target_key,
     COALESCE(target_text, N'') AS target_text,
     CONVERT(nvarchar(20), ordinal_index) AS ordinal_index
-FROM fishnest.v_current_world_tree_relations
+FROM [鱼巢].[当前世界树关系]
 WHERE owner_key IN (
     SELECT node_key
-    FROM fishnest.v_current_world_tree_nodes n
+    FROM [鱼巢].[当前世界树节点] n
     WHERE n.node_kind = N'因果'
       AND NOT EXISTS (
           SELECT 1
-          FROM fishnest.v_current_world_tree_nodes ancestor
+          FROM [鱼巢].[当前世界树节点] ancestor
           WHERE ancestor.node_kind = N'因果'
             AND ancestor.node_key <> n.node_key
             AND n.path_text LIKE ancestor.path_text + N'/%'
@@ -6834,7 +6838,7 @@ SELECT TOP (120)
     COALESCE(symbol_name, N'') AS symbol_name,
     COALESCE(source_path, N'') AS source_path,
     CONVERT(nvarchar(20), COALESCE(source_line, 0)) AS source_line
-FROM fishnest.v_latest_features
+FROM [鱼巢].[最新特征类型]
 ORDER BY feature_name;
 )SQL",
                 &结构_SQL控制面板数据::特征
@@ -6849,7 +6853,7 @@ SELECT TOP (160)
     COALESCE(panel_struct, N'') AS panel_struct,
     COALESCE(source_path, N'') AS source_path,
     CONVERT(nvarchar(20), COALESCE(source_line, 0)) AS source_line
-FROM fishnest.v_latest_panel_metric_catalog
+FROM [鱼巢].[最新控制面板字段目录]
 ORDER BY data_group, metric_key;
 )SQL",
                 &结构_SQL控制面板数据::字段目录
@@ -6903,7 +6907,7 @@ SELECT TOP (400)
     CONVERT(nvarchar(20), COALESCE(stat_hit_count, 0)) AS stat_hit_count,
     CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
     CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent
-FROM fishnest.v_current_demand_panel_nodes
+FROM [鱼巢].[当前需求面板节点]
 WHERE COALESCE(display_parent_id, N'') = N''
 ORDER BY row_index;
 )SQL",
@@ -6921,7 +6925,7 @@ SELECT
     COALESCE(demand_key, N'') AS demand_key,
     COALESCE(target_state_key, N'') AS target_state_key,
     COALESCE(result_state_key, N'') AS result_state_key
-FROM fishnest.v_current_task_tree_nodes
+FROM [鱼巢].[当前任务树节点]
 WHERE COALESCE(parent_key, N'') = N''
 ORDER BY row_index;
 )SQL",
@@ -6940,7 +6944,7 @@ SELECT
     COALESCE(source_text, N'') AS source_text,
     COALESCE(primary_result_feature_key, N'') AS primary_result_feature_key,
     CONVERT(nvarchar(20), COALESCE(result_item_count, 0)) AS result_item_count
-FROM fishnest.v_current_method_tree_nodes
+FROM [鱼巢].[当前方法树节点]
 WHERE COALESCE(parent_key, N'') = N''
 ORDER BY row_index;
 )SQL",
@@ -6959,7 +6963,7 @@ SELECT
     COALESCE(value_kind, N'') AS value_kind,
     COALESCE(value_text, N'') AS value_text,
     COALESCE(auxiliary_text, N'') AS auxiliary_text
-FROM fishnest.v_current_world_tree_nodes
+FROM [鱼巢].[当前世界树节点]
 WHERE COALESCE(parent_key, N'') = N''
 ORDER BY row_index;
 )SQL",
@@ -6975,7 +6979,7 @@ SELECT TOP (2000)
     COALESCE(target_key, N'') AS target_key,
     COALESCE(target_text, N'') AS target_text,
     CONVERT(nvarchar(20), COALESCE(ordinal_index, 0)) AS ordinal_index
-FROM fishnest.v_current_world_tree_relations
+FROM [鱼巢].[当前世界树关系]
 ORDER BY row_index;
 )SQL",
                 &结构_SQL控制面板数据::世界树关系
@@ -6992,7 +6996,7 @@ SELECT
     COALESCE(entry_type_text, N'') AS entry_type_text,
     COALESCE(mapped_main_type_text, N'') AS mapped_main_type_text,
     COALESCE(bound_basic_key, N'') AS bound_basic_key
-FROM fishnest.v_current_lexeme_nodes
+FROM [鱼巢].[当前语素节点]
 WHERE COALESCE(parent_key, N'') = N''
 ORDER BY row_index;
 )SQL",
@@ -7316,7 +7320,7 @@ SELECT
     COALESCE(target_key, N'') AS target_key,
     COALESCE(target_text, N'') AS target_text,
     CONVERT(nvarchar(20), COALESCE(ordinal_index, 0)) AS ordinal_index
-FROM fishnest.v_current_world_tree_relations
+FROM [鱼巢].[当前世界树关系]
 WHERE owner_key IN ()SQL";
             SQL += IN列表;
             SQL += ") ORDER BY row_index;";
@@ -7410,7 +7414,7 @@ CONVERT(nvarchar(20), COALESCE(stat_last_observed_time_us, 0)) AS stat_last_obse
 CONVERT(nvarchar(20), COALESCE(stat_hit_count, 0)) AS stat_hit_count,
 CONVERT(nvarchar(1), COALESCE(is_closed, 0)) AS is_closed,
 CONVERT(nvarchar(1), COALESCE(blocks_parent, 0)) AS blocks_parent)SQL";
-            if (!私有_读取SQL树直接子层("需求树子层", "fishnest.v_current_demand_panel_nodes", "display_parent_id", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("需求树子层", "[鱼巢].[当前需求面板节点]", "display_parent_id", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 46);
@@ -7425,7 +7429,7 @@ COALESCE(task_state_text, N'') AS task_state_text,
 COALESCE(demand_key, N'') AS demand_key,
 COALESCE(target_state_key, N'') AS target_state_key,
 COALESCE(result_state_key, N'') AS result_state_key)SQL";
-            if (!私有_读取SQL树直接子层("任务树子层", "fishnest.v_current_task_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("任务树子层", "[鱼巢].[当前任务树节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 8);
@@ -7441,7 +7445,7 @@ COALESCE(action_handle, N'') AS action_handle,
 COALESCE(source_text, N'') AS source_text,
 COALESCE(primary_result_feature_key, N'') AS primary_result_feature_key,
 CONVERT(nvarchar(20), COALESCE(result_item_count, 0)) AS result_item_count)SQL";
-            if (!私有_读取SQL树直接子层("方法树子层", "fishnest.v_current_method_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("方法树子层", "[鱼巢].[当前方法树节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 9);
@@ -7456,7 +7460,7 @@ COALESCE(word_text, N'') AS word_text,
 COALESCE(entry_type_text, N'') AS entry_type_text,
 COALESCE(mapped_main_type_text, N'') AS mapped_main_type_text,
 COALESCE(bound_basic_key, N'') AS bound_basic_key)SQL";
-            if (!私有_读取SQL树直接子层("语素树子层", "fishnest.v_current_lexeme_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("语素树子层", "[鱼巢].[当前语素节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 8);
@@ -7472,7 +7476,7 @@ COALESCE(type_text, N'') AS type_text,
 COALESCE(value_kind, N'') AS value_kind,
 COALESCE(value_text, N'') AS value_text,
 COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
-            if (!私有_读取SQL树直接子层("世界树子层", "fishnest.v_current_world_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("世界树子层", "[鱼巢].[当前世界树节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             std::vector<std::vector<std::string>> 关系行集{};
@@ -7492,7 +7496,7 @@ COALESCE(type_text, N'') AS type_text,
 COALESCE(value_kind, N'') AS value_kind,
 COALESCE(value_text, N'') AS value_text,
 COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
-            if (!私有_读取SQL树直接子层("因果信息子层", "fishnest.v_current_world_tree_nodes", "parent_key", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("因果信息子层", "[鱼巢].[当前世界树节点]", "parent_key", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             std::vector<std::vector<std::string>> 关系行集{};
@@ -7642,7 +7646,7 @@ COALESCE(auxiliary_text, N'') AS auxiliary_text)SQL";
 <body>
 )HTML";
         输出 << "<header><h1>鱼巢控制面板</h1>"
-            << "<p>数据来源：ADO / SQL Server <code>.\\SQLEXPRESS</code> / <code>FishnestProjection</code> / <code>fishnest</code> SQL 投影视图</p>"
+            << "<p>数据来源：ADO / SQL Server <code>.\\SQLEXPRESS</code> / <code>鱼巢投影库</code> / <code>[鱼巢]</code> SQL 投影视图</p>"
             << "<p>批次：<code>" << 私有_转义HTML(批次ID) << "</code>；创建时间：" << 私有_转义HTML(创建时间)
             << "；工作区：" << 私有_转义HTML(工作区) << "</p>"
             << "<div class=\"top-actions\">"
@@ -9257,7 +9261,7 @@ window.__panelApplyDetail=function(){};
                 节点.子项.begin(),
                 节点.子项.end(),
                 [](const 结构_控制面板树节点& 子项) {
-                    return 子项.文本 == "节点字段";
+                    return 子项.是字段分组;
                 }),
             节点.子项.end());
     }
@@ -9267,7 +9271,7 @@ window.__panelApplyDetail=function(){};
     {
         std::vector<结构_控制面板树节点> 结果{};
         for (const auto& 子项 : 节点.子项) {
-            if (子项.文本 == "节点字段") {
+            if (子项.是字段分组) {
                 结果.push_back(子项);
             }
         }
@@ -10646,6 +10650,7 @@ std::string 读取控制面板节点详情JSON(
         (void)任务管理界面线程::读取任务管理界面线程快照(&界面线程快照);
 
         auto 字段节点 = 私有_新节点("节点字段");
+        字段节点.是字段分组 = true;
         if (展开类型 == "thread-self") {
             私有_追加叶字段(字段节点, "生命周期", 私有_线程生命周期文本(static_cast<枚举_线程生命周期状态>(快照.自我线程生命周期)));
             私有_追加叶字段(字段节点, "当前阶段", 快照.自我线程当前阶段);
