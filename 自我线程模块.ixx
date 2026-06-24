@@ -660,55 +660,6 @@ private:
         std::string 摘要{};
     };
 
-    struct 结构_主派发动作 {
-        bool 已生成 = false;
-        枚举_主派发动作类型 动作类型 = 枚举_主派发动作类型::未定义;
-        std::uint64_t 任务根ID = 0;
-        std::uintptr_t 主导任务节点 = 0;
-        bool 允许并发 = true;
-        std::uint32_t 并发组 = 0;
-        std::string 目标队列{};
-        std::string 摘要{};
-    };
-
-    struct 结构_队列裁决 {
-        bool 已生成 = false;
-        枚举_治理队列类型 队列类型 = 枚举_治理队列类型::未定义;
-        bool 已命中 = false;
-        I64 变更数量 = 0;
-        std::string 队列名称{};
-        std::string 裁决{};
-        std::string 摘要{};
-    };
-
-    struct 结构_派发回执 {
-        bool 已生成 = false;
-        std::size_t 动作序号 = 0;
-        枚举_主派发动作类型 动作类型 = 枚举_主派发动作类型::未定义;
-        std::uint64_t 包主键 = 0;
-        std::uint64_t 任务根ID = 0;
-        bool 已生成任务包 = false;
-        bool 已封口任务包 = false;
-        bool 已实际派发 = false;
-        bool 已形成回流 = false;
-        std::string 摘要{};
-    };
-
-    struct 结构_派发占用登记 {
-        bool 已生成 = false;
-        std::size_t 动作序号 = 0;
-        枚举_主派发动作类型 动作类型 = 枚举_主派发动作类型::未定义;
-        枚举_治理队列类型 占用队列类型 = 枚举_治理队列类型::未定义;
-        std::uint64_t 包主键 = 0;
-        std::uint64_t 任务根ID = 0;
-        std::uintptr_t 主导任务节点 = 0;
-        bool 已登记占用 = false;
-        bool 已下发控制投影 = false;
-        bool 已释放占用 = false;
-        std::string 占用对象键{};
-        std::string 摘要{};
-    };
-
     struct 结构_主派发决议 {
         bool 已生成 = false;
         结构_根层判定结果 根层判定{};
@@ -720,130 +671,6 @@ private:
         std::uintptr_t 主导任务节点 = 0;
         bool 允许任务入口实例化 = false;
         bool 允许工作线程推进 = false;
-        std::vector<结构_主派发动作> 派发动作列表{};
-        std::vector<结构_队列裁决> 队列裁决列表{};
-        std::vector<任务运行包::结构_一步治理任务包> 一步治理任务包集{};
-        std::vector<结构_派发占用登记> 派发占用登记集{};
-        std::vector<结构_派发回执> 派发回执集{};
-    };
-
-    struct 结构_队列治理对象 {
-        struct 结构_成员对象 {
-            std::string 成员稳定键{};
-            std::uint64_t 任务根ID = 0;
-            bool 当前在队列 = false;
-            时间戳 首次入队时间 = 0;
-            时间戳 最近入队时间 = 0;
-            时间戳 最近出队时间 = 0;
-            枚举_队列成员来源分类 来源分类 = 枚举_队列成员来源分类::未定义;
-            std::string 来源动作{};
-            std::string 最近事件摘要{};
-        };
-
-        bool 已初始化 = false;
-        枚举_治理队列类型 队列类型 = 枚举_治理队列类型::未定义;
-        std::string 队列名称{};
-        时间戳 最近更新时间 = 0;
-        std::uint64_t 最近任务根ID = 0;
-        bool 当前已命中 = false;
-        bool 当前活跃 = false;
-        I64 本轮变更数量 = 0;
-        std::uint64_t 累计命中次数 = 0;
-        I64 累计变更数量 = 0;
-        std::uint64_t 连续活跃轮数 = 0;
-        std::uint64_t 累计活跃轮数 = 0;
-        std::uint64_t 累计清空次数 = 0;
-        std::size_t 本轮动作数 = 0;
-        std::size_t 当前可见数量 = 0;
-        std::size_t 历史峰值数量 = 0;
-        std::string 数量口径{};
-        时间戳 最近激活时间 = 0;
-        时间戳 最近清空时间 = 0;
-        std::vector<std::uint64_t> 当前成员任务根ID集{};
-        std::vector<std::uint64_t> 最近移出任务根ID集{};
-        std::vector<结构_成员对象> 成员对象列表{};
-        std::vector<结构_队列成员事件快照> 最近成员事件列表{};
-    };
-
-    struct 结构_结果路由动作 {
-        bool 已生成 = false;
-        bool 已完成全局判断 = false;
-        bool 已路由父任务 = false;
-        bool 已补记父任务影响 = false;
-        bool 已加入回流队列 = false;
-        bool 是否最终结果 = false;
-        bool 是否需要父任务处理 = false;
-        bool 是否形成否定项候选 = false;
-        std::uint64_t 任务根ID = 0;
-        std::uint64_t 回流结算包主键 = 0;
-        std::uintptr_t 父任务节点 = 0;
-        std::uintptr_t 子结果节点 = 0;
-        std::string 父任务协调键{};
-        std::string 父任务协调阶段{};
-        std::string 摘要{};
-    };
-
-    struct 结构_回流结算草稿 {
-        bool 已生成 = false;
-        bool 已封口 = false;
-        std::uint64_t 包主键 = 0;
-        std::uint64_t 任务根ID = 0;
-        std::uint64_t 父任务主键 = 0;
-        std::uintptr_t 父任务节点 = 0;
-        std::uintptr_t 结果节点 = 0;
-        bool 是否有效推进 = false;
-        bool 建议进入收束 = false;
-        bool 建议重试 = false;
-        bool 需要父任务协调 = false;
-        std::string 回流队列键{};
-        std::string 父任务协调键{};
-        std::string 父任务协调阶段{};
-        std::string 摘要{};
-    };
-
-    struct 结构_否定项候选 {
-        时间戳 发生时间 = 0;
-        std::uint64_t 目标任务主键 = 0;
-        std::uintptr_t 相关结果节点 = 0;
-        I64 风险等级 = 0;
-        std::string 摘要{};
-    };
-
-    struct 结构_缺口触发项 {
-        时间戳 发生时间 = 0;
-        std::uint64_t 锚点主键 = 0;
-        std::uint64_t 来源任务主键 = 0;
-        std::uint64_t 来源方法主键 = 0;
-        I64 置信度 = 0;
-        std::string 样本类别{};
-        std::string 摘要{};
-    };
-
-    struct 结构_关键中间状态沉淀项 {
-        时间戳 发生时间 = 0;
-        std::uint64_t 动作主体主键 = 0;
-        std::uint64_t 变化主体主键 = 0;
-        std::uint64_t 特征主键 = 0;
-        bool 已恢复 = false;
-        std::string 动作语义键{};
-        std::string 特征沉淀键{};
-        std::string 来源消息类型{};
-        std::string 摘要{};
-    };
-
-    struct 结构_本轮结算封口 {
-        bool 已生成 = false;
-        bool 是否有效推进 = false;
-        bool 已执行固定机制 = false;
-        bool 已生成否定项候选 = false;
-        bool 已触发缺口承接 = false;
-        bool 已生成故障收口摘要 = false;
-        std::size_t 新增否定项候选数 = 0;
-        std::size_t 新增缺口触发数 = 0;
-        std::size_t 新增关键中间状态沉淀数 = 0;
-        I64 服务净变化 = 0;
-        I64 安全净变化 = 0;
-        std::string 摘要{};
     };
 
     struct 结构_主循环骨架上下文 {
@@ -858,8 +685,6 @@ private:
         结构_任务根节点 本轮任务根节点{};
         结构_任务控制态 本轮任务控制态{};
         结构_主派发决议 本轮主派发决议{};
-        结构_结果路由动作 本轮结果路由动作{};
-        结构_本轮结算封口 本轮结算封口{};
         任务管理线程协议::结构_任务界面承接结果 任务界面承接结果{};
         I64 本轮服务净变化 = 0;
         I64 本轮安全净变化 = 0;
@@ -957,12 +782,6 @@ private:
     结构_主派发输出快照 最近主派发输出快照_{};
     结构_队列治理输出快照 最近队列治理输出快照_{};
     结构_结算治理输出快照 最近结算治理输出快照_{};
-    std::vector<结构_队列治理对象> 队列治理对象集_{};
-    std::deque<结构_结果路由动作> 回流队列_{};
-    std::deque<结构_回流结算草稿> 回流结算包草稿池_{};
-    std::deque<结构_否定项候选> 否定项候选池_{};
-    std::deque<结构_缺口触发项> 缺口候选池_{};
-    std::deque<结构_关键中间状态沉淀项> 关键中间状态池_{};
     struct 结构_待处理自检报告项 {
         std::uint64_t 报告ID = 0;
         std::uint64_t 候选序号 = 0;
@@ -971,10 +790,7 @@ private:
         I64 严重程度值 = 0;
         bool 仅休眠期修复 = true;
         bool 需要映射确认 = true;
-        std::string 处置类型{};
-        std::string 休眠期候选动作{};
         std::string 幂等键{};
-        std::string 摘要{};
     };
     std::deque<结构_待处理自检报告项> 待处理自检报告队列_{};
     结构_自检报告修复治理快照 最近自检报告修复治理快照_{};
