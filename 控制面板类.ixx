@@ -194,9 +194,6 @@ struct 结构_控制面板快照 {
     std::uintptr_t 当前主方法指针 = 0;
 
     std::string 自我存在标题{};
-    std::string 当前主需求标题{};
-    std::string 当前主任务标题{};
-    std::string 当前主方法标题{};
 
     bool 自我场景复现有快照 = false;
     std::uintptr_t 自我所在场景指针 = 0;
@@ -407,13 +404,8 @@ struct 结构_控制面板快照 {
     bool 任务管理工作线程已收到请求 = false;
     std::uint64_t 任务管理工作线程累计推进次数 = 0;
     std::uint64_t 任务管理工作线程当前排队数 = 0;
-    std::string 任务管理工作线程最近因果链状态{};
     std::string 任务管理工作线程最近缺口归类{};
     std::uint64_t 任务管理工作线程最近特征变化数 = 0;
-    std::string 任务管理最近功能域{};
-    std::string 任务管理最近缺口类型{};
-    std::string 任务管理最近下一步去向{};
-    std::string 任务管理最近总控结果{};
 
     bool 任务管理界面线程已启动 = false;
     bool 任务管理界面线程正在处理 = false;
@@ -493,10 +485,6 @@ struct 结构_控制面板快照 {
     bool 应触发缺口承接 = false;
     bool 缺口应申请重试恢复 = false;
     bool 缺口应申请收束恢复 = false;
-    std::string 缺口当前阶段{};
-    std::string 缺口当前状态{};
-    std::string 缺口当前任务标题{};
-    std::string 缺口当前方法标题{};
     std::string 缺口最近反馈摘要{};
     结构_控制面板树节点 线程状态树根{};
     结构_控制面板树节点 世界树根{};

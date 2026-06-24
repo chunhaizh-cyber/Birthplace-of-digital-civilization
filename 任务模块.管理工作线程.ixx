@@ -89,7 +89,6 @@ struct 结构_工作线程实例快照 {
     std::string 最近方法主键{};
     std::string 最近下一步去向{};
     std::string 最近总控结果{};
-    std::string 最近因果链状态{};
     std::string 最近缺口归类{};
     std::string 最近推进阶段{};
     std::string 最近推进状况{};
