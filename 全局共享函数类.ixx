@@ -217,6 +217,16 @@ export inline I64 长双非负转I64(long double 值) noexcept
     return static_cast<I64>(值 + 0.5L);
 }
 
+// 功能：把 U64 转换为 I64，超过 I64 上限时饱和。
+export inline I64 U64转I64饱和(std::uint64_t 值) noexcept
+{
+    constexpr auto 最大值 = static_cast<std::uint64_t>((std::numeric_limits<I64>::max)());
+    if (值 > 最大值) {
+        return (std::numeric_limits<I64>::max)();
+    }
+    return static_cast<I64>(值);
+}
+
 // 功能：将布尔值格式化为中文显示文本。
 export constexpr const char* 布尔文本_是或否(bool 值) noexcept
 {
