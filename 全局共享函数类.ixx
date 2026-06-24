@@ -209,6 +209,14 @@ export inline I64 计算TTL毫秒(I64 当前时间毫秒, I64 有效截止时间
         : 0;
 }
 
+// 功能：把非负 long double 四舍五入转换为 I64，负数返回 0，超过 I64 上限时饱和。
+export inline I64 长双非负转I64(long double 值) noexcept
+{
+    if (值 <= 0.0L) return 0;
+    if (值 >= 9223372036854775807.0L) return 9223372036854775807LL;
+    return static_cast<I64>(值 + 0.5L);
+}
+
 // 功能：将布尔值格式化为中文显示文本。
 export constexpr const char* 布尔文本_是或否(bool 值) noexcept
 {

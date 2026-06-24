@@ -13,6 +13,8 @@ module;
 
 export module 自我动作实现.服务模块;
 
+import 全局共享函数类;
+
 export namespace 自我动作实现模块::服务模块 {
     using 本能动作函数 = 存在节点类* (*)(
         方法类::节点类* 方法首节点,
@@ -3506,14 +3508,6 @@ export namespace 自我动作实现模块::服务模块 {
         default:
             return 0;
         }
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline I64 长双非负转I64(long double 值) noexcept
-    {
-        if (值 <= 0.0L) return 0;
-        if (值 >= 9223372036854775807.0L) return 9223372036854775807LL;
-        return static_cast<I64>(值 + 0.5L);
     }
 
     // 功能：记录日志、动态、证据或运行痕迹。
