@@ -30,6 +30,20 @@ export inline I64 绝对差I64(I64 左值, I64 右值) noexcept
     return 左值 >= 右值 ? 左值 - 右值 : 右值 - 左值;
 }
 
+// 功能：返回两个 I64 边界值的非负正向差，反向时返回 0。
+export inline I64 正差I64(I64 最大值, I64 最小值) noexcept
+{
+    return 最大值 >= 最小值 ? 最大值 - 最小值 : 0;
+}
+
+// 功能：返回两个闭区间之间的 I64 间隔，区间重叠时返回 0。
+export inline I64 区间间隔I64(I64 第一最小值, I64 第一最大值, I64 第二最小值, I64 第二最大值) noexcept
+{
+    if (第一最大值 < 第二最小值) return 第二最小值 - 第一最大值;
+    if (第二最大值 < 第一最小值) return 第一最小值 - 第二最大值;
+    return 0;
+}
+
 // 功能：将布尔值格式化为中文显示文本。
 export constexpr const char* 布尔文本_是或否(bool 值) noexcept
 {

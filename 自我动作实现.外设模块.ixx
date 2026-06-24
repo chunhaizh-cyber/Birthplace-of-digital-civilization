@@ -10021,20 +10021,6 @@ namespace {
     }
 
     // 功能：按函数名执行对应处理。
-    inline I64 正差I64(I64 最大值, I64 最小值) noexcept
-    {
-        return 最大值 >= 最小值 ? 最大值 - 最小值 : 0;
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline I64 区间间隔I64(I64 aMin, I64 aMax, I64 bMin, I64 bMax) noexcept
-    {
-        if (aMax < bMin) return bMin - aMax;
-        if (bMax < aMin) return aMin - bMax;
-        return 0;
-    }
-
-    // 功能：按函数名执行对应处理。
     inline bool 空间候选范围有效(const 双目相机本能适配器::空间候选摘要& 候选) noexcept
     {
         return 候选.像素数量 > 0
