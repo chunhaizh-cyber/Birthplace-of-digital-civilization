@@ -17,6 +17,7 @@
 #include "双目相机本能适配器.h"
 
 import D455相机模块;
+import 全局共享函数类;
 
 namespace {
     HMODULE g_RealSense运行时模块 = nullptr;
@@ -112,30 +113,6 @@ namespace {
         }
     }
 
-    // 功能：把输入数据转换为目标类型、语义或结构。
-    std::int64_t 转换像素计数(std::size_t 值) noexcept
-    {
-        constexpr auto 上限 = static_cast<std::size_t>(std::numeric_limits<std::int64_t>::max());
-        return 值 > 上限 ? std::numeric_limits<std::int64_t>::max() : static_cast<std::int64_t>(值);
-    }
-
-    // 功能：把输入数据转换为目标类型、语义或结构。
-    std::int64_t 转换毫米(double 值) noexcept
-    {
-        if (!std::isfinite(值)) {
-            return 0;
-        }
-        const double 下限 = static_cast<double>(std::numeric_limits<std::int64_t>::min());
-        const double 上限 = static_cast<double>(std::numeric_limits<std::int64_t>::max());
-        if (值 <= 下限) {
-            return std::numeric_limits<std::int64_t>::min();
-        }
-        if (值 >= 上限) {
-            return std::numeric_limits<std::int64_t>::max();
-        }
-        return static_cast<std::int64_t>(std::llround(值));
-    }
-
     // 功能：按函数名执行对应处理。
     bool 帧像素有有效空间点(const 结构体_原始场景帧& 帧, std::size_t 索引) noexcept
     {
@@ -169,17 +146,6 @@ namespace {
         const double dy = A.y - B.y;
         const double dz = A.z - B.z;
         return dx * dx + dy * dy + dz * dz <= 空间阈值 * 空间阈值;
-    }
-
-    // 功能：按函数名执行对应处理。
-    std::int64_t 比例万分比(std::size_t 分子, std::size_t 分母) noexcept
-    {
-        if (分母 == 0) {
-            return 0;
-        }
-        return static_cast<std::int64_t>(
-            (static_cast<unsigned long long>(分子) * 10000ULL)
-            / static_cast<unsigned long long>(分母));
     }
 
     // 功能：按函数名执行对应处理。
@@ -220,12 +186,6 @@ namespace {
         for (std::size_t i = 0; i < 深度.size(); ++i) {
             输出.push_back(深度向量像素有效(深度, 有效掩膜, i) ? 转换毫米(深度[i]) : 0);
         }
-    }
-
-    // 功能：按函数名执行对应处理。
-    std::int64_t 绝对差毫米(std::int64_t a, std::int64_t b) noexcept
-    {
-        return a >= b ? a - b : b - a;
     }
 
     // 功能：按函数名执行对应处理。
@@ -294,7 +254,7 @@ namespace {
 
             std::int64_t 稳定性 = 0;
             if (原始有效 && 滤波有效) {
-                稳定性 = 深度差异评分(绝对差毫米(结果.原始深度毫米[i], 结果.滤波深度毫米[i]));
+                稳定性 = 深度差异评分(绝对差I64(结果.原始深度毫米[i], 结果.滤波深度毫米[i]));
             } else if (原始有效) {
                 稳定性 = 8500;
             } else if (滤波有效) {
@@ -337,7 +297,7 @@ namespace {
                         if (邻居深度 <= 0) {
                             continue;
                         }
-                        差异累计 += 绝对差毫米(当前深度, 邻居深度);
+                        差异累计 += 绝对差I64(当前深度, 邻居深度);
                         ++邻居数量;
                     }
                     if (邻居数量 == 0) {
@@ -421,7 +381,7 @@ namespace {
             std::int64_t 绝对偏差累计 = 0;
             std::int64_t 平方偏差累计 = 0;
             for (const std::int64_t 样本值 : 样本) {
-                const std::int64_t 偏差 = 绝对差毫米(样本值, 中位数);
+                const std::int64_t 偏差 = 绝对差I64(样本值, 中位数);
                 绝对偏差累计 += 偏差;
                 if (偏差 > 0
                     && 偏差 > std::numeric_limits<std::int64_t>::max() / std::max<std::int64_t>(1, 偏差)) {

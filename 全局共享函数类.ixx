@@ -159,6 +159,41 @@ export inline void 累加非负I64(I64& 累计, I64 值) noexcept
     累计 = 累计 > 上限 - 值 ? 上限 : 累计 + 值;
 }
 
+// 功能：把 size_t 计数转换为 I64，超过 I64 上限时饱和。
+export inline I64 转换像素计数(std::size_t 值) noexcept
+{
+    constexpr auto 上限 = static_cast<std::size_t>(std::numeric_limits<I64>::max());
+    return 值 > 上限 ? std::numeric_limits<I64>::max() : static_cast<I64>(值);
+}
+
+// 功能：把浮点毫米值四舍五入转换为 I64，非有限值返回 0，越界时饱和。
+export inline I64 转换毫米(double 值) noexcept
+{
+    if (!std::isfinite(值)) {
+        return 0;
+    }
+    const double 下限 = static_cast<double>(std::numeric_limits<I64>::min());
+    const double 上限 = static_cast<double>(std::numeric_limits<I64>::max());
+    if (值 <= 下限) {
+        return std::numeric_limits<I64>::min();
+    }
+    if (值 >= 上限) {
+        return std::numeric_limits<I64>::max();
+    }
+    return static_cast<I64>(std::llround(值));
+}
+
+// 功能：计算 size_t 比例的万分比，分母为 0 时返回 0，保持原有未截断比例语义。
+export inline I64 比例万分比(std::size_t 分子, std::size_t 分母) noexcept
+{
+    if (分母 == 0) {
+        return 0;
+    }
+    return static_cast<I64>(
+        (static_cast<unsigned long long>(分子) * 10000ULL)
+        / static_cast<unsigned long long>(分母));
+}
+
 // 功能：将布尔值格式化为中文显示文本。
 export constexpr const char* 布尔文本_是或否(bool 值) noexcept
 {
