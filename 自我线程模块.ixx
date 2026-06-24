@@ -383,7 +383,6 @@ public:
         I64 联合僵持差值阈值 = 0;
         bool 局部收益不可覆盖长期根方向 = false;
         bool 收益覆盖禁止付出 = false;
-        std::string 优先级链命中层{};
         std::string 主派发摘要{};
         std::string 当前去向{};
         std::vector<结构_主派发动作快照> 派发动作列表{};
@@ -657,8 +656,6 @@ private:
         I64 联合僵持差值阈值 = 0;
         bool 局部收益不可覆盖长期根方向 = false;
         bool 收益覆盖禁止付出 = false;
-        std::string 优先级链命中层{};
-        std::string 摘要{};
     };
 
     struct 结构_主派发决议 {
