@@ -253,11 +253,6 @@ bool 执行ADO查询(
 
         ADODB::FieldsPtr 字段集 = 记录集->Fields;
         const long 字段数量 = 字段集->Count;
-        结果.列名.reserve(static_cast<std::size_t>(字段数量));
-        for (long i = 0; i < 字段数量; ++i) {
-            ADODB::FieldPtr 字段 = 字段集->GetItem(_variant_t(i));
-            结果.列名.push_back(私有_BSTR转UTF8(字段->Name));
-        }
 
         while (!记录集->GetADOEOF()) {
             std::vector<std::string> 行;

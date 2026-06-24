@@ -7,7 +7,6 @@ module;
 export module 数据库ADO模块;
 
 export struct 结构_ADO查询结果 {
-    std::vector<std::string> 列名{};
     std::vector<std::vector<std::string>> 行集{};
 };
 
