@@ -197,7 +197,6 @@ public:
     struct 结构_方法禁止项快照 {
         std::string 方法主键{};
         std::string 来源消息类型{};
-        std::string 禁止项类别{};
         std::string 方向区间{};
         I64 严重级别 = 0;
         bool 是否阻断 = false;
@@ -225,12 +224,10 @@ public:
         std::uint64_t 任务根ID = 0;
         bool 允许并发 = true;
         std::uint32_t 并发组 = 0;
-        std::string 目标队列{};
         std::string 摘要{};
     };
 
     struct 结构_队列裁决快照 {
-        std::string 队列名称{};
         bool 已命中 = false;
         I64 变更数量 = 0;
         std::string 裁决{};
@@ -244,8 +241,6 @@ public:
         时间戳 首次入队时间 = 0;
         时间戳 最近入队时间 = 0;
         时间戳 最近出队时间 = 0;
-        std::string 来源分类{};
-        std::string 来源动作{};
         std::string 最近事件摘要{};
     };
 
@@ -254,13 +249,10 @@ public:
         std::uint64_t 任务根ID = 0;
         bool 是否入队 = false;
         时间戳 发生时间 = 0;
-        std::string 来源分类{};
-        std::string 来源动作{};
         std::string 摘要{};
     };
 
     struct 结构_队列治理状态快照 {
-        std::string 队列名称{};
         bool 已命中 = false;
         bool 当前活跃 = false;
         I64 本轮变更数量 = 0;
@@ -272,7 +264,6 @@ public:
         std::size_t 本轮动作数 = 0;
         std::size_t 当前可见数量 = 0;
         std::size_t 历史峰值数量 = 0;
-        std::string 数量口径{};
         std::uint64_t 最近任务根ID = 0;
         时间戳 最近激活时间 = 0;
         时间戳 最近清空时间 = 0;
@@ -403,7 +394,6 @@ public:
         bool 需要父任务协调 = false;
         std::string 回流队列键{};
         std::string 父任务协调键{};
-        std::string 父任务协调阶段{};
         std::string 摘要{};
     };
 
