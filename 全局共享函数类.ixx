@@ -116,6 +116,12 @@ export inline I64 计算比例万分比I64(I64 分子, I64 分母) noexcept
     return std::clamp<I64>(分子 * 10000 / 分母, 0, 10000);
 }
 
+// 功能：按整数百分比计算 I64 基准值的百分比结果，避免直接相乘先溢出。
+export constexpr I64 百分比值(I64 基准, I64 百分比) noexcept
+{
+    return (基准 / 100) * 百分比 + ((基准 % 100) * 百分比) / 100;
+}
+
 // 功能：计算闭合 ROI 的像素面积，范围反向时返回 0。
 export inline I64 ROI面积(I64 最小X, I64 最大X, I64 最小Y, I64 最大Y) noexcept
 {
