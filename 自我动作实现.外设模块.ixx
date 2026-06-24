@@ -25,6 +25,7 @@ export module 自我动作实现.外设模块;
 
 import 本能动作管理模块;
 import 日志模块;
+import 全局共享函数类;
 import 外设观察报告队列;
 import 自我类.特征定义;
 import 二次特征应用模块;
@@ -8534,18 +8535,6 @@ namespace {
         return 最近连续成功次数 > 3
             ? 方法状态_好用()
             : 方法状态_可用();
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline I64 饱和增加(I64 左值, I64 右值) noexcept
-    {
-        if (右值 > 0 && 左值 > (std::numeric_limits<I64>::max)() - 右值) {
-            return (std::numeric_limits<I64>::max)();
-        }
-        if (右值 < 0 && 左值 < (std::numeric_limits<I64>::min)() - 右值) {
-            return (std::numeric_limits<I64>::min)();
-        }
-        return 左值 + 右值;
     }
 
     // 功能：按函数名执行对应处理。

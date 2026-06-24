@@ -12,6 +12,18 @@ export module 全局共享函数类;
 // 涉及语素、基础信息、主信息类、存在、场景、需求、任务、方法等领域类型的共享函数，
 // 放入对应功能类、专用类或对应功能头文件，不进入本模块。
 
+// 功能：对 I64 执行带上下限保护的饱和加法。
+export inline I64 饱和增加(I64 左值, I64 右值) noexcept
+{
+    if (右值 > 0 && 左值 > (std::numeric_limits<I64>::max)() - 右值) {
+        return (std::numeric_limits<I64>::max)();
+    }
+    if (右值 < 0 && 左值 < (std::numeric_limits<I64>::min)() - 右值) {
+        return (std::numeric_limits<I64>::min)();
+    }
+    return 左值 + 右值;
+}
+
 // 功能：将布尔值格式化为中文显示文本。
 export constexpr const char* 布尔文本_是或否(bool 值) noexcept
 {

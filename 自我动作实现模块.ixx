@@ -29,6 +29,7 @@ import 自我类;
 import 本能动作管理模块;
 import 任务模块.筹办;
 import 日志模块;
+import 全局共享函数类;
 import 自我动作实现.内部模块;
 import 自我动作实现.外部模块;
 import 自我动作实现.扫描;
@@ -3809,18 +3810,6 @@ namespace {
             结果场景,
             now);
         return 节点.条件节点 && 节点.结果节点;
-    }
-
-    // 功能：按函数名执行对应处理。
-    inline I64 饱和增加(I64 左值, I64 右值) noexcept
-    {
-        if (右值 > 0 && 左值 > (std::numeric_limits<I64>::max)() - 右值) {
-            return (std::numeric_limits<I64>::max)();
-        }
-        if (右值 < 0 && 左值 < (std::numeric_limits<I64>::min)() - 右值) {
-            return (std::numeric_limits<I64>::min)();
-        }
-        return 左值 + 右值;
     }
 
     // 功能：按函数名执行对应处理。
