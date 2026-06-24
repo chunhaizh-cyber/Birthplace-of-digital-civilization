@@ -697,9 +697,13 @@ def sql_int(value: Any) -> str:
 
 
 def validate_database_name(name: str) -> str:
-    if not re.match(r"^[A-Za-z0-9_]+$", name):
-        raise ValueError("Database name must contain only letters, digits and underscore.")
+    if not name or any(char in name for char in "\0\r\n"):
+        raise ValueError("Database name must not be empty or contain control line breaks.")
     return name
+
+
+def sql_identifier(name: str) -> str:
+    return "[" + name.replace("]", "]]") + "]"
 
 
 def write_insert_lines(out: list[str], table: str, columns: list[str], rows: list[dict[str, Any]], run_id: str) -> None:
@@ -722,30 +726,32 @@ def write_insert_lines(out: list[str], table: str, columns: list[str], rows: lis
 
 def build_sql(database: str, run_id: str, root: Path, payload: dict[str, Any]) -> str:
     database = validate_database_name(database)
+    database_literal = sql_string(database, null_empty=False)
+    database_identifier = sql_identifier(database)
     now = _dt.datetime.now().isoformat(timespec="seconds")
     lines: list[str] = [
         "SET NOCOUNT ON;",
         "SET ANSI_NULLS ON;",
         "SET QUOTED_IDENTIFIER ON;",
-        f"IF DB_ID(N'{database}') IS NULL CREATE DATABASE [{database}];",
+        f"IF DB_ID({database_literal}) IS NULL CREATE DATABASE {database_identifier};",
         "GO",
-        f"USE [{database}];",
+        f"USE {database_identifier};",
         "GO",
         "SET ANSI_NULLS ON;",
         "SET QUOTED_IDENTIFIER ON;",
         "GO",
-        "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');",
+        "IF SCHEMA_ID(N'鱼巢') IS NULL EXEC(N'CREATE SCHEMA [鱼巢]');",
         "GO",
         """
-IF OBJECT_ID(N'fishnest.projection_run', N'U') IS NULL
-CREATE TABLE fishnest.projection_run (
+IF OBJECT_ID(N'[鱼巢].[投影批次]', N'U') IS NULL
+CREATE TABLE [鱼巢].[投影批次] (
     run_id uniqueidentifier NOT NULL PRIMARY KEY,
     created_at datetime2(0) NOT NULL,
     workspace nvarchar(500) NOT NULL,
     source_note nvarchar(max) NULL
 );
-IF OBJECT_ID(N'fishnest.feature_type', N'U') IS NULL
-CREATE TABLE fishnest.feature_type (
+IF OBJECT_ID(N'[鱼巢].[特征类型]', N'U') IS NULL
+CREATE TABLE [鱼巢].[特征类型] (
     id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
     run_id uniqueidentifier NOT NULL,
     feature_name nvarchar(300) NOT NULL,
@@ -755,8 +761,8 @@ CREATE TABLE fishnest.feature_type (
     symbol_name nvarchar(300) NULL,
     raw_text nvarchar(max) NULL
 );
-IF OBJECT_ID(N'fishnest.feature_relation', N'U') IS NULL
-CREATE TABLE fishnest.feature_relation (
+IF OBJECT_ID(N'[鱼巢].[特征关系]', N'U') IS NULL
+CREATE TABLE [鱼巢].[特征关系] (
     id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
     run_id uniqueidentifier NOT NULL,
     parent_feature nvarchar(300) NOT NULL,
@@ -766,8 +772,8 @@ CREATE TABLE fishnest.feature_relation (
     source_line int NULL,
     raw_text nvarchar(max) NULL
 );
-IF OBJECT_ID(N'fishnest.runtime_event', N'U') IS NULL
-CREATE TABLE fishnest.runtime_event (
+IF OBJECT_ID(N'[鱼巢].[运行事件]', N'U') IS NULL
+CREATE TABLE [鱼巢].[运行事件] (
     id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
     run_id uniqueidentifier NOT NULL,
     event_seq int NOT NULL,
@@ -794,8 +800,8 @@ CREATE TABLE fishnest.runtime_event (
     fields_json nvarchar(max) NULL,
     raw_text nvarchar(max) NULL
 );
-IF OBJECT_ID(N'fishnest.panel_metric_catalog', N'U') IS NULL
-CREATE TABLE fishnest.panel_metric_catalog (
+IF OBJECT_ID(N'[鱼巢].[控制面板字段目录]', N'U') IS NULL
+CREATE TABLE [鱼巢].[控制面板字段目录] (
     id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
     run_id uniqueidentifier NOT NULL,
     metric_key nvarchar(300) NOT NULL,
@@ -807,8 +813,8 @@ CREATE TABLE fishnest.panel_metric_catalog (
     source_line int NULL,
     raw_text nvarchar(max) NULL
 );
-IF OBJECT_ID(N'fishnest.panel_runtime_metric', N'U') IS NULL
-CREATE TABLE fishnest.panel_runtime_metric (
+IF OBJECT_ID(N'[鱼巢].[控制面板运行指标]', N'U') IS NULL
+CREATE TABLE [鱼巢].[控制面板运行指标] (
     id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
     run_id uniqueidentifier NOT NULL,
     metric_key nvarchar(300) NOT NULL,
@@ -820,8 +826,8 @@ CREATE TABLE fishnest.panel_runtime_metric (
     source_line int NULL,
     raw_text nvarchar(max) NULL
 );
-IF OBJECT_ID(N'fishnest.panel_thread_info', N'U') IS NULL
-CREATE TABLE fishnest.panel_thread_info (
+IF OBJECT_ID(N'[鱼巢].[控制面板线程信息]', N'U') IS NULL
+CREATE TABLE [鱼巢].[控制面板线程信息] (
     id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
     run_id uniqueidentifier NOT NULL,
     row_index int NOT NULL,
@@ -858,8 +864,8 @@ CREATE TABLE fishnest.panel_thread_info (
     source_path nvarchar(500) NULL,
     fields_json nvarchar(max) NULL
 );
-IF OBJECT_ID(N'fishnest.panel_thread_lifecycle_event', N'U') IS NULL
-CREATE TABLE fishnest.panel_thread_lifecycle_event (
+IF OBJECT_ID(N'[鱼巢].[控制面板线程生命周期事件]', N'U') IS NULL
+CREATE TABLE [鱼巢].[控制面板线程生命周期事件] (
     id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,
     run_id uniqueidentifier NOT NULL,
     message_id bigint NOT NULL,
@@ -894,44 +900,44 @@ CREATE TABLE fishnest.panel_thread_lifecycle_event (
 """,
         "GO",
         """
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_feature_type_run_name' AND object_id = OBJECT_ID(N'fishnest.feature_type'))
-    CREATE INDEX IX_feature_type_run_name ON fishnest.feature_type(run_id, feature_name);
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_feature_relation_run_parent' AND object_id = OBJECT_ID(N'fishnest.feature_relation'))
-    CREATE INDEX IX_feature_relation_run_parent ON fishnest.feature_relation(run_id, parent_feature, child_feature);
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_run_class' AND object_id = OBJECT_ID(N'fishnest.runtime_event'))
-    CREATE INDEX IX_runtime_event_run_class ON fishnest.runtime_event(run_id, event_class, log_time);
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_action_dynamic' AND object_id = OBJECT_ID(N'fishnest.runtime_event'))
-    CREATE INDEX IX_runtime_event_action_dynamic ON fishnest.runtime_event(run_id, action_dynamic) WHERE action_dynamic IS NOT NULL;
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_metric_catalog_run_key' AND object_id = OBJECT_ID(N'fishnest.panel_metric_catalog'))
-    CREATE INDEX IX_panel_metric_catalog_run_key ON fishnest.panel_metric_catalog(run_id, metric_key);
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_runtime_metric_run_key' AND object_id = OBJECT_ID(N'fishnest.panel_runtime_metric'))
-    CREATE INDEX IX_panel_runtime_metric_run_key ON fishnest.panel_runtime_metric(run_id, metric_key);
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_info_run_logical' AND object_id = OBJECT_ID(N'fishnest.panel_thread_info'))
-    CREATE INDEX IX_panel_thread_info_run_logical ON fishnest.panel_thread_info(run_id, logical_id);
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_lifecycle_run_logical' AND object_id = OBJECT_ID(N'fishnest.panel_thread_lifecycle_event'))
-    CREATE INDEX IX_panel_thread_lifecycle_run_logical ON fishnest.panel_thread_lifecycle_event(run_id, logical_id, occurred_time_us);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_feature_type_run_name' AND object_id = OBJECT_ID(N'[鱼巢].[特征类型]'))
+    CREATE INDEX IX_feature_type_run_name ON [鱼巢].[特征类型](run_id, feature_name);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_feature_relation_run_parent' AND object_id = OBJECT_ID(N'[鱼巢].[特征关系]'))
+    CREATE INDEX IX_feature_relation_run_parent ON [鱼巢].[特征关系](run_id, parent_feature, child_feature);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_run_class' AND object_id = OBJECT_ID(N'[鱼巢].[运行事件]'))
+    CREATE INDEX IX_runtime_event_run_class ON [鱼巢].[运行事件](run_id, event_class, log_time);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_runtime_event_action_dynamic' AND object_id = OBJECT_ID(N'[鱼巢].[运行事件]'))
+    CREATE INDEX IX_runtime_event_action_dynamic ON [鱼巢].[运行事件](run_id, action_dynamic) WHERE action_dynamic IS NOT NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_metric_catalog_run_key' AND object_id = OBJECT_ID(N'[鱼巢].[控制面板字段目录]'))
+    CREATE INDEX IX_panel_metric_catalog_run_key ON [鱼巢].[控制面板字段目录](run_id, metric_key);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_runtime_metric_run_key' AND object_id = OBJECT_ID(N'[鱼巢].[控制面板运行指标]'))
+    CREATE INDEX IX_panel_runtime_metric_run_key ON [鱼巢].[控制面板运行指标](run_id, metric_key);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_info_run_logical' AND object_id = OBJECT_ID(N'[鱼巢].[控制面板线程信息]'))
+    CREATE INDEX IX_panel_thread_info_run_logical ON [鱼巢].[控制面板线程信息](run_id, logical_id);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_lifecycle_run_logical' AND object_id = OBJECT_ID(N'[鱼巢].[控制面板线程生命周期事件]'))
+    CREATE INDEX IX_panel_thread_lifecycle_run_logical ON [鱼巢].[控制面板线程生命周期事件](run_id, logical_id, occurred_time_us);
 """,
         "GO",
-        f"INSERT INTO fishnest.projection_run (run_id, created_at, workspace, source_note) VALUES ('{run_id}', CONVERT(datetime2(0), N'{now}', 126), {sql_string(str(root))}, {sql_string(payload['source_note'])});",
+        f"INSERT INTO [鱼巢].[投影批次] (run_id, created_at, workspace, source_note) VALUES ('{run_id}', CONVERT(datetime2(0), N'{now}', 126), {sql_string(str(root))}, {sql_string(payload['source_note'])});",
     ]
 
     write_insert_lines(
         lines,
-        "fishnest.feature_type",
+        "[鱼巢].[特征类型]",
         ["run_id", "feature_name", "source_kind", "source_path", "source_line", "symbol_name", "raw_text"],
         payload["features"],
         run_id,
     )
     write_insert_lines(
         lines,
-        "fishnest.feature_relation",
+        "[鱼巢].[特征关系]",
         ["run_id", "parent_feature", "child_feature", "relation_type", "source_path", "source_line", "raw_text"],
         payload["feature_relations"],
         run_id,
     )
     write_insert_lines(
         lines,
-        "fishnest.runtime_event",
+        "[鱼巢].[运行事件]",
         [
             "run_id",
             "event_seq",
@@ -963,21 +969,21 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_lifecycl
     )
     write_insert_lines(
         lines,
-        "fishnest.panel_metric_catalog",
+        "[鱼巢].[控制面板字段目录]",
         ["run_id", "metric_key", "cxx_type", "panel_struct", "data_group", "source_kind", "source_path", "source_line", "raw_text"],
         payload["panel_metric_catalog"],
         run_id,
     )
     write_insert_lines(
         lines,
-        "fishnest.panel_runtime_metric",
+        "[鱼巢].[控制面板运行指标]",
         ["run_id", "metric_key", "metric_group", "value_text", "value_number", "source_kind", "source_path", "source_line", "raw_text"],
         payload["panel_runtime_metrics"],
         run_id,
     )
     write_insert_lines(
         lines,
-        "fishnest.panel_thread_info",
+        "[鱼巢].[控制面板线程信息]",
         [
             "run_id",
             "row_index",
@@ -1019,7 +1025,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_lifecycl
     )
     write_insert_lines(
         lines,
-        "fishnest.panel_thread_lifecycle_event",
+        "[鱼巢].[控制面板线程生命周期事件]",
         [
             "run_id",
             "message_id",
@@ -1058,60 +1064,60 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_panel_thread_lifecycl
         [
             "GO",
             """
-CREATE OR ALTER VIEW fishnest.v_latest_run AS
+CREATE OR ALTER VIEW [鱼巢].[最新批次] AS
 SELECT TOP (1) *
-FROM fishnest.projection_run
+FROM [鱼巢].[投影批次]
 ORDER BY created_at DESC;
 """,
             "GO",
             """
-CREATE OR ALTER VIEW fishnest.v_latest_action_dynamics AS
+CREATE OR ALTER VIEW [鱼巢].[最新动作动态] AS
 SELECT e.*
-FROM fishnest.runtime_event e
-WHERE e.run_id = (SELECT run_id FROM fishnest.v_latest_run)
+FROM [鱼巢].[运行事件] e
+WHERE e.run_id = (SELECT run_id FROM [鱼巢].[最新批次])
   AND e.action_dynamic IS NOT NULL;
 """,
             "GO",
             """
-CREATE OR ALTER VIEW fishnest.v_latest_features AS
+CREATE OR ALTER VIEW [鱼巢].[最新特征类型] AS
 SELECT f.*
-FROM fishnest.feature_type f
-WHERE f.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+FROM [鱼巢].[特征类型] f
+WHERE f.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
-CREATE OR ALTER VIEW fishnest.v_latest_feature_relations AS
+CREATE OR ALTER VIEW [鱼巢].[最新特征关系] AS
 SELECT r.*
-FROM fishnest.feature_relation r
-WHERE r.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+FROM [鱼巢].[特征关系] r
+WHERE r.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
-CREATE OR ALTER VIEW fishnest.v_latest_panel_metric_catalog AS
+CREATE OR ALTER VIEW [鱼巢].[最新控制面板字段目录] AS
 SELECT c.*
-FROM fishnest.panel_metric_catalog c
-WHERE c.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+FROM [鱼巢].[控制面板字段目录] c
+WHERE c.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
-CREATE OR ALTER VIEW fishnest.v_latest_panel_runtime_metrics AS
+CREATE OR ALTER VIEW [鱼巢].[最新控制面板运行指标] AS
 SELECT m.*
-FROM fishnest.panel_runtime_metric m
-WHERE m.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+FROM [鱼巢].[控制面板运行指标] m
+WHERE m.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
-CREATE OR ALTER VIEW fishnest.v_latest_panel_thread_info AS
+CREATE OR ALTER VIEW [鱼巢].[最新控制面板线程信息] AS
 SELECT t.*
-FROM fishnest.panel_thread_info t
-WHERE t.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+FROM [鱼巢].[控制面板线程信息] t
+WHERE t.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
 """,
             "GO",
             """
-CREATE OR ALTER VIEW fishnest.v_latest_panel_thread_lifecycle_events AS
+CREATE OR ALTER VIEW [鱼巢].[最新控制面板线程生命周期事件] AS
 SELECT e.*
-FROM fishnest.panel_thread_lifecycle_event e
-WHERE e.run_id = (SELECT run_id FROM fishnest.v_latest_run);
+FROM [鱼巢].[控制面板线程生命周期事件] e
+WHERE e.run_id = (SELECT run_id FROM [鱼巢].[最新批次]);
 """,
             "GO",
         ]
@@ -1183,7 +1189,7 @@ def write_html(path: Path, payload: dict[str, Any], run_id: str, database: str, 
       <div class="metric"><b>{summary['panel_thread_info_count']}</b><span>线程信息项</span></div>
       <div class="metric"><b>{summary['panel_thread_event_count']}</b><span>线程生命周期事件</span></div>
     </div>
-    <p class="note">常用 SQL 视图：<code>fishnest.v_latest_features</code>、<code>fishnest.v_latest_feature_relations</code>、<code>fishnest.v_latest_action_dynamics</code>、<code>fishnest.v_latest_panel_runtime_metrics</code>、<code>fishnest.v_latest_panel_thread_info</code>。</p>
+    <p class="note">常用 SQL 视图：<code>[鱼巢].[最新特征类型]</code>、<code>[鱼巢].[最新特征关系]</code>、<code>[鱼巢].[最新动作动态]</code>、<code>[鱼巢].[最新控制面板运行指标]</code>、<code>[鱼巢].[最新控制面板线程信息]</code>。</p>
     <input id="filter" type="search" placeholder="过滤当前页表格文本">
     <div class="tabs">
       <button class="active" data-target="panelMetrics">面板指标</button>
@@ -1315,7 +1321,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Create SQL Server projection and HTML view for Fishnest data.")
     parser.add_argument("--workspace", default=".", help="Project root, default current directory.")
     parser.add_argument("--server", default=r".\SQLEXPRESS", help="SQL Server instance.")
-    parser.add_argument("--database", default="FishnestProjection", help="Target database name.")
+    parser.add_argument("--database", default="鱼巢投影库", help="Target database name.")
     parser.add_argument("--latest-runs", type=int, default=2, help="Number of latest 鱼巢_run logs to read.")
     parser.add_argument("--log", action="append", default=[], help="Additional or explicit log path. Can be repeated.")
     parser.add_argument("--max-events", type=int, default=60000, help="Maximum runtime events to import; 0 means no cap.")

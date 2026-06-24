@@ -13,7 +13,7 @@ export struct 结构_ADO查询结果 {
 // 功能：生成 SQL Server Windows 身份认证 ADO 连接串。
 export std::string 生成SQLServerWindows认证ADO连接串(
     std::string_view 服务器 = R"(.\SQLEXPRESS)",
-    std::string_view 数据库 = "FishnestProjection");
+    std::string_view 数据库 = "鱼巢投影库");
 
 // 功能：通过 ADO 执行 SQL 查询并返回文本化结果集。
 export bool 执行ADO查询(

@@ -943,7 +943,7 @@ namespace {
     {
         std::ostringstream SQL;
         SQL << "SET NOCOUNT ON;\n"
-            << "IF DB_ID(N'FishnestProjection') IS NULL CREATE DATABASE [FishnestProjection];\n";
+            << "IF DB_ID(N'鱼巢投影库') IS NULL CREATE DATABASE [鱼巢投影库];\n";
         return SQL.str();
     }
 
@@ -951,9 +951,9 @@ namespace {
     {
         std::ostringstream SQL;
         SQL << "SET NOCOUNT ON;\n"
-            << "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');\n"
-            << "IF OBJECT_ID(N'fishnest.task_tree_snapshot', N'U') IS NULL\n"
-            << "CREATE TABLE fishnest.task_tree_snapshot (\n"
+            << "IF SCHEMA_ID(N'鱼巢') IS NULL EXEC(N'CREATE SCHEMA [鱼巢]');\n"
+            << "IF OBJECT_ID(N'[鱼巢].[任务树快照]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[任务树快照] (\n"
             << "    snapshot_id uniqueidentifier NOT NULL PRIMARY KEY,\n"
             << "    captured_at datetime2(3) NOT NULL,\n"
             << "    source_kind nvarchar(80) NOT NULL,\n"
@@ -961,8 +961,8 @@ namespace {
             << "    root_key nvarchar(80) NULL,\n"
             << "    node_count int NOT NULL\n"
             << ");\n"
-            << "IF OBJECT_ID(N'fishnest.task_tree_node', N'U') IS NULL\n"
-            << "CREATE TABLE fishnest.task_tree_node (\n"
+            << "IF OBJECT_ID(N'[鱼巢].[任务树节点]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[任务树节点] (\n"
             << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
             << "    snapshot_id uniqueidentifier NOT NULL,\n"
             << "    row_index int NOT NULL,\n"
@@ -973,8 +973,8 @@ namespace {
             << "    direct_child_count int NOT NULL,\n"
             << "    path_text nvarchar(1000) NULL\n"
             << ");\n"
-            << "IF OBJECT_ID(N'fishnest.task_main_info', N'U') IS NULL\n"
-            << "CREATE TABLE fishnest.task_main_info (\n"
+            << "IF OBJECT_ID(N'[鱼巢].[任务主信息]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[任务主信息] (\n"
             << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
             << "    snapshot_id uniqueidentifier NOT NULL,\n"
             << "    node_key nvarchar(80) NOT NULL,\n"
@@ -994,25 +994,25 @@ namespace {
             << "    started_time_us bigint NULL,\n"
             << "    completed_time_us bigint NULL\n"
             << ");\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_task_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.task_tree_node'))\n"
-            << "    CREATE INDEX IX_task_tree_node_key ON fishnest.task_tree_node(snapshot_id, node_key, parent_key);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_task_tree_node_row' AND object_id = OBJECT_ID(N'fishnest.task_tree_node'))\n"
-            << "    CREATE INDEX IX_task_tree_node_row ON fishnest.task_tree_node(snapshot_id, row_index);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_task_main_info_node' AND object_id = OBJECT_ID(N'fishnest.task_main_info'))\n"
-            << "    CREATE INDEX IX_task_main_info_node ON fishnest.task_main_info(snapshot_id, node_key);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_task_main_info_node_row' AND object_id = OBJECT_ID(N'fishnest.task_main_info'))\n"
-            << "    CREATE INDEX IX_task_main_info_node_row ON fishnest.task_main_info(snapshot_id, node_row_index);\n";
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_task_tree_node_key' AND object_id = OBJECT_ID(N'[鱼巢].[任务树节点]'))\n"
+            << "    CREATE INDEX IX_task_tree_node_key ON [鱼巢].[任务树节点](snapshot_id, node_key, parent_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_task_tree_node_row' AND object_id = OBJECT_ID(N'[鱼巢].[任务树节点]'))\n"
+            << "    CREATE INDEX IX_task_tree_node_row ON [鱼巢].[任务树节点](snapshot_id, row_index);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_task_main_info_node' AND object_id = OBJECT_ID(N'[鱼巢].[任务主信息]'))\n"
+            << "    CREATE INDEX IX_task_main_info_node ON [鱼巢].[任务主信息](snapshot_id, node_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_task_main_info_node_row' AND object_id = OBJECT_ID(N'[鱼巢].[任务主信息]'))\n"
+            << "    CREATE INDEX IX_task_main_info_node_row ON [鱼巢].[任务主信息](snapshot_id, node_row_index);\n";
         return SQL.str();
     }
 
     std::string 私有_任务树SQL视图脚本()
     {
         std::ostringstream SQL;
-        SQL << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_task_main_info AS\n"
+        SQL << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前任务主信息] AS\n"
             << "SELECT m.*\n"
-            << "FROM fishnest.task_main_info m\n"
-            << "WHERE m.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.task_tree_snapshot ORDER BY captured_at DESC);');\n"
-            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_task_tree_nodes AS\n"
+            << "FROM [鱼巢].[任务主信息] m\n"
+            << "WHERE m.snapshot_id = (SELECT TOP (1) snapshot_id FROM [鱼巢].[任务树快照] ORDER BY captured_at DESC);');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前任务树节点] AS\n"
             << "SELECT\n"
             << "    n.id,\n"
             << "    n.snapshot_id,\n"
@@ -1039,11 +1039,11 @@ namespace {
             << "    m.created_time_us,\n"
             << "    m.started_time_us,\n"
             << "    m.completed_time_us\n"
-            << "FROM fishnest.task_tree_node n\n"
-            << "LEFT JOIN fishnest.task_main_info m\n"
+            << "FROM [鱼巢].[任务树节点] n\n"
+            << "LEFT JOIN [鱼巢].[任务主信息] m\n"
             << "    ON m.snapshot_id = n.snapshot_id\n"
             << "    AND m.node_row_index = n.row_index\n"
-            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.task_tree_snapshot ORDER BY captured_at DESC);');\n";
+            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM [鱼巢].[任务树快照] ORDER BY captured_at DESC);');\n";
         return SQL.str();
     }
 
@@ -1056,45 +1056,45 @@ namespace {
         SQL << "SET NOCOUNT ON;\n"
             << "SET XACT_ABORT ON;\n"
             << "BEGIN TRANSACTION;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'node_kind_value') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN node_kind_value;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'node_kind_text') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN node_kind_text;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'task_state_value') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN task_state_value;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'task_state_text') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN task_state_text;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'name_text') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN name_text;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'type_text') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN type_text;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'demand_key') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN demand_key;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'virtual_exist_key') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN virtual_exist_key;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'scene_key') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN scene_key;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'target_state_key') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN target_state_key;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'result_state_key') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN result_state_key;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'created_time_us') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN created_time_us;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'started_time_us') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN started_time_us;\n"
-            << "IF COL_LENGTH(N'fishnest.task_tree_node', N'completed_time_us') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.task_tree_node DROP COLUMN completed_time_us;\n"
-            << "DELETE FROM fishnest.task_main_info;\n"
-            << "DELETE FROM fishnest.task_tree_node;\n"
-            << "DELETE FROM fishnest.task_tree_snapshot;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'node_kind_value') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN node_kind_value;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'node_kind_text') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN node_kind_text;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'task_state_value') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN task_state_value;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'task_state_text') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN task_state_text;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'name_text') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN name_text;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'type_text') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN type_text;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'demand_key') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN demand_key;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'virtual_exist_key') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN virtual_exist_key;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'scene_key') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN scene_key;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'target_state_key') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN target_state_key;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'result_state_key') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN result_state_key;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'created_time_us') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN created_time_us;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'started_time_us') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN started_time_us;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[任务树节点]', N'completed_time_us') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[任务树节点] DROP COLUMN completed_time_us;\n"
+            << "DELETE FROM [鱼巢].[任务主信息];\n"
+            << "DELETE FROM [鱼巢].[任务树节点];\n"
+            << "DELETE FROM [鱼巢].[任务树快照];\n"
             << "DECLARE @snapshot_id uniqueidentifier = NEWID();\n"
-            << "INSERT INTO fishnest.task_tree_snapshot (snapshot_id, captured_at, source_kind, source_reason, root_key, node_count)\n"
+            << "INSERT INTO [鱼巢].[任务树快照] (snapshot_id, captured_at, source_kind, source_reason, root_key, node_count)\n"
             << "VALUES (@snapshot_id, SYSUTCDATETIME(), N'task_tree_projection', "
             << 私有_任务SQL字符串(来源原因)
             << ", " << 私有_任务SQL字符串(根主键)
             << ", " << 行集.size() << ");\n";
         for (const auto& 行 : 行集) {
-            SQL << "INSERT INTO fishnest.task_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO [鱼巢].[任务树节点] (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text) VALUES (@snapshot_id, "
                 << 行.行号 << ", "
                 << 私有_任务SQL字符串(行.节点主键, false) << ", "
                 << 私有_任务SQL字符串(行.父节点主键) << ", "
@@ -1102,7 +1102,7 @@ namespace {
                 << 行.同层序号 << ", "
                 << 行.直接子数量 << ", "
                 << 私有_任务SQL字符串(行.路径) << ");\n";
-            SQL << "INSERT INTO fishnest.task_main_info (snapshot_id, node_key, node_row_index, node_kind_value, node_kind_text, task_state_value, task_state_text, name_text, type_text, demand_key, virtual_exist_key, scene_key, target_state_key, result_state_key, created_time_us, started_time_us, completed_time_us) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO [鱼巢].[任务主信息] (snapshot_id, node_key, node_row_index, node_kind_value, node_kind_text, task_state_value, task_state_text, name_text, type_text, demand_key, virtual_exist_key, scene_key, target_state_key, result_state_key, created_time_us, started_time_us, completed_time_us) VALUES (@snapshot_id, "
                 << 私有_任务SQL字符串(行.节点主键, false) << ", "
                 << 行.行号 << ", "
                 << 行.节点种类值 << ", "
@@ -1122,8 +1122,8 @@ namespace {
         }
         SQL << "IF EXISTS (\n"
             << "    SELECT 1\n"
-            << "    FROM fishnest.task_main_info info\n"
-            << "    LEFT JOIN fishnest.task_tree_node node\n"
+            << "    FROM [鱼巢].[任务主信息] info\n"
+            << "    LEFT JOIN [鱼巢].[任务树节点] node\n"
             << "        ON node.snapshot_id = info.snapshot_id AND node.row_index = info.node_row_index\n"
             << "    WHERE info.snapshot_id = @snapshot_id AND node.row_index IS NULL\n"
             << ")\n"
@@ -1173,7 +1173,7 @@ bool 任务类::重写任务树SQL投影(
         const auto 根主键 = 任务根节点->获取主键();
         const auto 原因文本 = 来源原因 ? std::string(来源原因) : std::string{};
         const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");
-        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "FishnestProjection");
+        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "鱼巢投影库");
         std::string 错误{};
         if (!私有_执行任务树ADO命令(主库连接串, "任务树SQL投影建库", 私有_任务树SQL建库脚本(), 错误)
             || !私有_执行任务树ADO命令(投影库连接串, "任务树SQL投影建表", 私有_任务树SQL建表脚本(), 错误)

@@ -1282,7 +1282,7 @@ namespace {
     {
         std::ostringstream SQL;
         SQL << "SET NOCOUNT ON;\n"
-            << "IF DB_ID(N'FishnestProjection') IS NULL CREATE DATABASE [FishnestProjection];\n";
+            << "IF DB_ID(N'鱼巢投影库') IS NULL CREATE DATABASE [鱼巢投影库];\n";
         return SQL.str();
     }
 
@@ -1290,9 +1290,9 @@ namespace {
     {
         std::ostringstream SQL;
         SQL << "SET NOCOUNT ON;\n"
-            << "IF SCHEMA_ID(N'fishnest') IS NULL EXEC(N'CREATE SCHEMA fishnest');\n"
-            << "IF OBJECT_ID(N'fishnest.method_tree_snapshot', N'U') IS NULL\n"
-            << "CREATE TABLE fishnest.method_tree_snapshot (\n"
+            << "IF SCHEMA_ID(N'鱼巢') IS NULL EXEC(N'CREATE SCHEMA [鱼巢]');\n"
+            << "IF OBJECT_ID(N'[鱼巢].[方法树快照]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[方法树快照] (\n"
             << "    snapshot_id uniqueidentifier NOT NULL PRIMARY KEY,\n"
             << "    captured_at datetime2(3) NOT NULL,\n"
             << "    source_kind nvarchar(80) NOT NULL,\n"
@@ -1300,8 +1300,8 @@ namespace {
             << "    root_key nvarchar(80) NULL,\n"
             << "    node_count int NOT NULL\n"
             << ");\n"
-            << "IF OBJECT_ID(N'fishnest.method_tree_node', N'U') IS NULL\n"
-            << "CREATE TABLE fishnest.method_tree_node (\n"
+            << "IF OBJECT_ID(N'[鱼巢].[方法树节点]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[方法树节点] (\n"
             << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
             << "    snapshot_id uniqueidentifier NOT NULL,\n"
             << "    row_index int NOT NULL,\n"
@@ -1312,8 +1312,8 @@ namespace {
             << "    direct_child_count int NOT NULL,\n"
             << "    path_text nvarchar(1000) NULL\n"
             << ");\n"
-            << "IF OBJECT_ID(N'fishnest.method_main_info', N'U') IS NULL\n"
-            << "CREATE TABLE fishnest.method_main_info (\n"
+            << "IF OBJECT_ID(N'[鱼巢].[方法主信息]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[方法主信息] (\n"
             << "    id bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
             << "    snapshot_id uniqueidentifier NOT NULL,\n"
             << "    node_key nvarchar(80) NOT NULL,\n"
@@ -1333,31 +1333,31 @@ namespace {
             << "    has_action bit NOT NULL,\n"
             << "    has_result_ability bit NOT NULL\n"
             << ");\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_method_tree_node_key' AND object_id = OBJECT_ID(N'fishnest.method_tree_node'))\n"
-            << "    CREATE INDEX IX_method_tree_node_key ON fishnest.method_tree_node(snapshot_id, node_key, parent_key);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_method_tree_node_row' AND object_id = OBJECT_ID(N'fishnest.method_tree_node'))\n"
-            << "    CREATE INDEX IX_method_tree_node_row ON fishnest.method_tree_node(snapshot_id, row_index);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_method_main_info_node' AND object_id = OBJECT_ID(N'fishnest.method_main_info'))\n"
-            << "    CREATE INDEX IX_method_main_info_node ON fishnest.method_main_info(snapshot_id, node_key);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_method_main_info_node_row' AND object_id = OBJECT_ID(N'fishnest.method_main_info'))\n"
-            << "    CREATE INDEX IX_method_main_info_node_row ON fishnest.method_main_info(snapshot_id, node_row_index);\n";
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_method_tree_node_key' AND object_id = OBJECT_ID(N'[鱼巢].[方法树节点]'))\n"
+            << "    CREATE INDEX IX_method_tree_node_key ON [鱼巢].[方法树节点](snapshot_id, node_key, parent_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_method_tree_node_row' AND object_id = OBJECT_ID(N'[鱼巢].[方法树节点]'))\n"
+            << "    CREATE INDEX IX_method_tree_node_row ON [鱼巢].[方法树节点](snapshot_id, row_index);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_method_main_info_node' AND object_id = OBJECT_ID(N'[鱼巢].[方法主信息]'))\n"
+            << "    CREATE INDEX IX_method_main_info_node ON [鱼巢].[方法主信息](snapshot_id, node_key);\n"
+            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_method_main_info_node_row' AND object_id = OBJECT_ID(N'[鱼巢].[方法主信息]'))\n"
+            << "    CREATE INDEX IX_method_main_info_node_row ON [鱼巢].[方法主信息](snapshot_id, node_row_index);\n";
         return SQL.str();
     }
 
     std::string 私有_方法树SQL视图脚本()
     {
         std::ostringstream SQL;
-        SQL << "IF OBJECT_ID(N'fishnest.v_current_method_tree_nodes', N'V') IS NOT NULL\n"
-            << "    DROP VIEW fishnest.v_current_method_tree_nodes;\n"
-            << "IF OBJECT_ID(N'fishnest.v_current_method_main_info', N'V') IS NOT NULL\n"
-            << "    DROP VIEW fishnest.v_current_method_main_info;\n"
-            << "IF COL_LENGTH(N'fishnest.method_main_info', N'condition_group_count') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_main_info DROP COLUMN condition_group_count;\n"
-            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_method_main_info AS\n"
+        SQL << "IF OBJECT_ID(N'[鱼巢].[当前方法树节点]', N'V') IS NOT NULL\n"
+            << "    DROP VIEW [鱼巢].[当前方法树节点];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前方法主信息]', N'V') IS NOT NULL\n"
+            << "    DROP VIEW [鱼巢].[当前方法主信息];\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法主信息]', N'condition_group_count') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法主信息] DROP COLUMN condition_group_count;\n"
+            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前方法主信息] AS\n"
             << "SELECT m.*\n"
-            << "FROM fishnest.method_main_info m\n"
-            << "WHERE m.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.method_tree_snapshot ORDER BY captured_at DESC);');\n"
-            << "EXEC(N'CREATE OR ALTER VIEW fishnest.v_current_method_tree_nodes AS\n"
+            << "FROM [鱼巢].[方法主信息] m\n"
+            << "WHERE m.snapshot_id = (SELECT TOP (1) snapshot_id FROM [鱼巢].[方法树快照] ORDER BY captured_at DESC);');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前方法树节点] AS\n"
             << "SELECT\n"
             << "    n.id,\n"
             << "    n.snapshot_id,\n"
@@ -1384,11 +1384,11 @@ namespace {
             << "    m.allow_auto_find,\n"
             << "    m.has_action,\n"
             << "    m.has_result_ability\n"
-            << "FROM fishnest.method_tree_node n\n"
-            << "LEFT JOIN fishnest.method_main_info m\n"
+            << "FROM [鱼巢].[方法树节点] n\n"
+            << "LEFT JOIN [鱼巢].[方法主信息] m\n"
             << "    ON m.snapshot_id = n.snapshot_id\n"
             << "    AND m.node_row_index = n.row_index\n"
-            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM fishnest.method_tree_snapshot ORDER BY captured_at DESC);');\n";
+            << "WHERE n.snapshot_id = (SELECT TOP (1) snapshot_id FROM [鱼巢].[方法树快照] ORDER BY captured_at DESC);');\n";
         return SQL.str();
     }
 
@@ -1401,49 +1401,49 @@ namespace {
         SQL << "SET NOCOUNT ON;\n"
             << "SET XACT_ABORT ON;\n"
             << "BEGIN TRANSACTION;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'node_kind_value') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN node_kind_value;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'node_kind_text') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN node_kind_text;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'action_name') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN action_name;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'action_handle') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN action_handle;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'source_value') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN source_value;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'source_text') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN source_text;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'method_virtual_exist_key') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN method_virtual_exist_key;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'condition_scene_key') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN condition_scene_key;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'result_scene_key') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN result_scene_key;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'primary_result_feature_key') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN primary_result_feature_key;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'condition_group_count') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN condition_group_count;\n"
-            << "IF COL_LENGTH(N'fishnest.method_main_info', N'condition_group_count') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_main_info DROP COLUMN condition_group_count;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'result_item_count') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN result_item_count;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'allow_auto_find') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN allow_auto_find;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'has_action') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN has_action;\n"
-            << "IF COL_LENGTH(N'fishnest.method_tree_node', N'has_result_ability') IS NOT NULL\n"
-            << "    ALTER TABLE fishnest.method_tree_node DROP COLUMN has_result_ability;\n"
-            << "DELETE FROM fishnest.method_main_info;\n"
-            << "DELETE FROM fishnest.method_tree_node;\n"
-            << "DELETE FROM fishnest.method_tree_snapshot;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'node_kind_value') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN node_kind_value;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'node_kind_text') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN node_kind_text;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'action_name') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN action_name;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'action_handle') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN action_handle;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'source_value') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN source_value;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'source_text') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN source_text;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'method_virtual_exist_key') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN method_virtual_exist_key;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'condition_scene_key') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN condition_scene_key;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'result_scene_key') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN result_scene_key;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'primary_result_feature_key') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN primary_result_feature_key;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'condition_group_count') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN condition_group_count;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法主信息]', N'condition_group_count') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法主信息] DROP COLUMN condition_group_count;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'result_item_count') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN result_item_count;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'allow_auto_find') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN allow_auto_find;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'has_action') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN has_action;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'has_result_ability') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN has_result_ability;\n"
+            << "DELETE FROM [鱼巢].[方法主信息];\n"
+            << "DELETE FROM [鱼巢].[方法树节点];\n"
+            << "DELETE FROM [鱼巢].[方法树快照];\n"
             << "DECLARE @snapshot_id uniqueidentifier = NEWID();\n"
-            << "INSERT INTO fishnest.method_tree_snapshot (snapshot_id, captured_at, source_kind, source_reason, root_key, node_count)\n"
+            << "INSERT INTO [鱼巢].[方法树快照] (snapshot_id, captured_at, source_kind, source_reason, root_key, node_count)\n"
             << "VALUES (@snapshot_id, SYSUTCDATETIME(), N'method_tree_projection', "
             << 私有_方法SQL字符串(来源原因)
             << ", " << 私有_方法SQL字符串(根主键)
             << ", " << 行集.size() << ");\n";
         for (const auto& 行 : 行集) {
-            SQL << "INSERT INTO fishnest.method_tree_node (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO [鱼巢].[方法树节点] (snapshot_id, row_index, node_key, parent_key, depth, sibling_index, direct_child_count, path_text) VALUES (@snapshot_id, "
                 << 行.行号 << ", "
                 << 私有_方法SQL字符串(行.节点主键, false) << ", "
                 << 私有_方法SQL字符串(行.父节点主键) << ", "
@@ -1451,7 +1451,7 @@ namespace {
                 << 行.同层序号 << ", "
                 << 行.直接子数量 << ", "
                 << 私有_方法SQL字符串(行.路径) << ");\n";
-            SQL << "INSERT INTO fishnest.method_main_info (snapshot_id, node_key, node_row_index, node_kind_value, node_kind_text, action_name, action_handle, source_value, source_text, method_virtual_exist_key, condition_scene_key, result_scene_key, primary_result_feature_key, result_item_count, allow_auto_find, has_action, has_result_ability) VALUES (@snapshot_id, "
+            SQL << "INSERT INTO [鱼巢].[方法主信息] (snapshot_id, node_key, node_row_index, node_kind_value, node_kind_text, action_name, action_handle, source_value, source_text, method_virtual_exist_key, condition_scene_key, result_scene_key, primary_result_feature_key, result_item_count, allow_auto_find, has_action, has_result_ability) VALUES (@snapshot_id, "
                 << 私有_方法SQL字符串(行.节点主键, false) << ", "
                 << 行.行号 << ", "
                 << 行.节点种类值 << ", "
@@ -1471,8 +1471,8 @@ namespace {
         }
         SQL << "IF EXISTS (\n"
             << "    SELECT 1\n"
-            << "    FROM fishnest.method_main_info info\n"
-            << "    LEFT JOIN fishnest.method_tree_node node\n"
+            << "    FROM [鱼巢].[方法主信息] info\n"
+            << "    LEFT JOIN [鱼巢].[方法树节点] node\n"
             << "        ON node.snapshot_id = info.snapshot_id AND node.row_index = info.node_row_index\n"
             << "    WHERE info.snapshot_id = @snapshot_id AND node.row_index IS NULL\n"
             << ")\n"
@@ -2002,7 +2002,7 @@ bool 方法类::重写方法树SQL投影(
         const auto 根主键 = 方法根节点->获取主键();
         const auto 原因文本 = 来源原因 ? std::string(来源原因) : std::string{};
         const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");
-        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "FishnestProjection");
+        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "鱼巢投影库");
         std::string 错误{};
         if (!私有_执行方法树ADO命令(主库连接串, "方法树SQL投影建库", 私有_方法树SQL建库脚本(), 错误)
             || !私有_执行方法树ADO命令(投影库连接串, "方法树SQL投影建表", 私有_方法树SQL建表脚本(), 错误)
