@@ -612,6 +612,207 @@ namespace {
         return true;
     }
 
+    std::string 私有_需求SQL字段整数(const int 值)
+    {
+        return std::to_string(值);
+    }
+
+    std::string 私有_需求SQL字段整数(const std::int64_t 值)
+    {
+        return std::to_string(值);
+    }
+
+    std::string 私有_需求SQL字段整数(const std::uint64_t 值)
+    {
+        return std::to_string(值);
+    }
+
+    std::string 私有_需求SQL字段可空父行号(const int 值)
+    {
+        return 值 > 0 ? std::to_string(值) : std::string{};
+    }
+
+    std::string 私有_需求SQL字段布尔(const bool 值)
+    {
+        return 值 ? "1" : "0";
+    }
+
+    std::vector<std::vector<std::string>> 私有_需求SQL快照预期字段(
+        const std::string& 来源原因,
+        const std::string& 根主键,
+        const std::size_t 节点数)
+    {
+        return {
+            {
+                "demand_tree_update",
+                来源原因,
+                根主键,
+                std::to_string(节点数),
+            },
+        };
+    }
+
+    std::vector<std::vector<std::string>> 私有_需求SQL节点预期字段(
+        const std::vector<结构_需求树SQL行>& 行集)
+    {
+        std::vector<std::vector<std::string>> 输出;
+        输出.reserve(行集.size());
+        for (const auto& 行 : 行集) {
+            输出.push_back({
+                私有_需求SQL字段整数(行.行号),
+                行.节点主键,
+                行.父节点主键,
+                私有_需求SQL字段可空父行号(行.父节点行号),
+                私有_需求SQL字段整数(行.深度),
+                私有_需求SQL字段整数(行.同层序号),
+                私有_需求SQL字段整数(行.直接子数量),
+                行.路径,
+                行.节点名称,
+                行.目标语义,
+                行.逻辑组织类型,
+            });
+        }
+        return 输出;
+    }
+
+    std::vector<std::vector<std::string>> 私有_需求SQL主信息预期字段(
+        const std::vector<结构_需求树SQL行>& 行集)
+    {
+        std::vector<std::vector<std::string>> 输出;
+        输出.reserve(行集.size());
+        for (const auto& 行 : 行集) {
+            输出.push_back({
+                行.节点主键,
+                私有_需求SQL字段整数(行.行号),
+                行.描述信息主键,
+                私有_需求SQL字段整数(行.统计创建时间),
+                私有_需求SQL字段整数(行.统计最后观测时间),
+                私有_需求SQL字段整数(行.统计命中次数),
+                私有_需求SQL字段布尔(行.已截止),
+                私有_需求SQL字段布尔(行.阻塞父任务执行),
+                行.需求主体主键,
+                行.需求场景主键,
+                行.被需求存在主键,
+                行.当前状态主键,
+                行.目标状态主键,
+                行.目标特征类型主键,
+                行.对应任务主键,
+                私有_需求SQL字段整数(行.满足关系),
+                私有_需求SQL字段整数(行.安全权重),
+                私有_需求SQL字段整数(行.服务权重),
+                私有_需求SQL字段整数(行.累计安全结算),
+                私有_需求SQL字段整数(行.累计服务结算),
+                私有_需求SQL字段整数(行.需求有效截止),
+                行.最近结算任务主键,
+                私有_需求SQL字段整数(行.最近结算时间),
+            });
+        }
+        return 输出;
+    }
+
+    bool 私有_执行需求SQL字段恢复比对(
+        const std::string& 连接串,
+        const std::string& 阶段,
+        const std::string& SQL,
+        const std::vector<std::vector<std::string>>& 预期行集,
+        std::string& 错误)
+    {
+        结构_ADO字段恢复比对结果 比对{};
+        std::string ADO错误{};
+        if (!执行ADO字段恢复比对(连接串, SQL, 预期行集, 比对, ADO错误)) {
+            错误 = 阶段 + "查询失败 | " + ADO错误;
+            return false;
+        }
+        if (!比对.匹配) {
+            错误 = 阶段 + "字段比对失败 | " + 比对.首个差异;
+            return false;
+        }
+        return true;
+    }
+
+    bool 私有_验证需求SQL存储字段(
+        const std::string& 连接串,
+        const std::vector<结构_需求树SQL行>& 行集,
+        const std::string& 来源原因,
+        const std::string& 根主键,
+        std::string& 错误)
+    {
+        constexpr const char* 快照SQL = R"SQL(
+SELECT
+    COALESCE([来源类型], N''),
+    COALESCE([来源原因], N''),
+    COALESCE([根主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [节点数量]), N'')
+FROM [鱼巢].[需求树快照]
+ORDER BY [捕获时间] DESC;
+)SQL";
+        constexpr const char* 节点SQL = R"SQL(
+SELECT
+    COALESCE(CONVERT(nvarchar(30), [行号]), N''),
+    COALESCE([节点主键], N''),
+    COALESCE([父节点主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [父节点行号]), N''),
+    COALESCE(CONVERT(nvarchar(30), [深度]), N''),
+    COALESCE(CONVERT(nvarchar(30), [同层序号]), N''),
+    COALESCE(CONVERT(nvarchar(30), [直接子数量]), N''),
+    COALESCE([路径文本], N''),
+    COALESCE([节点名称], N''),
+    COALESCE([目标语义], N''),
+    COALESCE([逻辑组织类型], N'')
+FROM [鱼巢].[需求树节点]
+WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[需求树快照] ORDER BY [捕获时间] DESC)
+ORDER BY [行号];
+)SQL";
+        constexpr const char* 主信息SQL = R"SQL(
+SELECT
+    COALESCE([节点主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [节点行号]), N''),
+    COALESCE([描述主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [统计创建时间微秒]), N''),
+    COALESCE(CONVERT(nvarchar(30), [统计最后观测时间微秒]), N''),
+    COALESCE(CONVERT(nvarchar(30), [统计命中次数]), N''),
+    COALESCE(CONVERT(nvarchar(1), [已截止]), N''),
+    COALESCE(CONVERT(nvarchar(1), [阻塞父任务]), N''),
+    COALESCE([主体主键], N''),
+    COALESCE([场景主键], N''),
+    COALESCE([目标宿主主键], N''),
+    COALESCE([当前状态主键], N''),
+    COALESCE([目标状态主键], N''),
+    COALESCE([目标特征主键], N''),
+    COALESCE([任务主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [满足关系掩码]), N''),
+    COALESCE(CONVERT(nvarchar(30), [安全权重]), N''),
+    COALESCE(CONVERT(nvarchar(30), [服务权重]), N''),
+    COALESCE(CONVERT(nvarchar(30), [累计安全结算]), N''),
+    COALESCE(CONVERT(nvarchar(30), [累计服务结算]), N''),
+    COALESCE(CONVERT(nvarchar(30), [有效截止微秒]), N''),
+    COALESCE([最近结算任务主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [最近结算时间微秒]), N'')
+FROM [鱼巢].[需求主信息]
+WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[需求树快照] ORDER BY [捕获时间] DESC)
+ORDER BY [节点行号];
+)SQL";
+
+        return 私有_执行需求SQL字段恢复比对(
+            连接串,
+            "需求SQL字段恢复比对/快照",
+            快照SQL,
+            私有_需求SQL快照预期字段(来源原因, 根主键, 行集.size()),
+            错误)
+            && 私有_执行需求SQL字段恢复比对(
+                连接串,
+                "需求SQL字段恢复比对/节点",
+                节点SQL,
+                私有_需求SQL节点预期字段(行集),
+                错误)
+            && 私有_执行需求SQL字段恢复比对(
+                连接串,
+                "需求SQL字段恢复比对/主信息",
+                主信息SQL,
+                私有_需求SQL主信息预期字段(行集),
+                错误);
+    }
+
     // 功能：解析输入文本、消息、场景或运行包。
     状态节点类* 私有_解析状态引用(const 可解析引用<状态节点类>& 引用) noexcept
     {
@@ -2234,7 +2435,8 @@ bool 需求类::重写需求树SQL投影(
         if (!私有_执行需求树ADO命令(主库连接串, "需求树SQL投影建库", 私有_需求树SQL建库脚本(), 错误)
             || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影建表", 私有_需求树SQL建表脚本(), 错误)
             || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影视图", 私有_需求树SQL视图脚本(), 错误)
-            || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影重写", 私有_构造需求树SQL重写脚本(行集, 原因文本, 根主键), 错误)) {
+            || !私有_执行需求树ADO命令(投影库连接串, "需求树SQL投影重写", 私有_构造需求树SQL重写脚本(行集, 原因文本, 根主键), 错误)
+            || !私有_验证需求SQL存储字段(投影库连接串, 行集, 原因文本, 根主键, 错误)) {
             项目运行错误日志(
                 "需求树SQL投影失败"
                 " | 原因=" + 错误
@@ -2246,7 +2448,8 @@ bool 需求类::重写需求树SQL投影(
             "需求树SQL投影完成"
             " | 来源=" + 原因文本
             + " | 根=" + 根主键
-            + " | 节点数=" + std::to_string(行集.size()));
+            + " | 节点数=" + std::to_string(行集.size())
+            + " | 字段恢复比对=通过");
         return true;
     }
     catch (const std::exception& 异常) {

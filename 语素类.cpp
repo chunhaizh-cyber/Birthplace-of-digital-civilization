@@ -678,6 +678,165 @@ namespace {
         return true;
     }
 
+    std::string 私有_语素SQL字段整数(const int 值)
+    {
+        return std::to_string(值);
+    }
+
+    std::string 私有_语素SQL字段可空整数(const bool 有值, const int 值)
+    {
+        return 有值 ? std::to_string(值) : std::string{};
+    }
+
+    std::string 私有_语素SQL字段布尔(const bool 值)
+    {
+        return 值 ? "1" : "0";
+    }
+
+    std::vector<std::vector<std::string>> 私有_语素SQL快照预期字段(
+        const std::string& 来源原因,
+        const std::size_t 节点数)
+    {
+        return {
+            {
+                "lexeme_tree_projection",
+                来源原因,
+                std::to_string(节点数),
+            },
+        };
+    }
+
+    std::vector<std::vector<std::string>> 私有_语素SQL节点预期字段(
+        const std::vector<结构_语素SQL行>& 行集)
+    {
+        std::vector<std::vector<std::string>> 输出;
+        输出.reserve(行集.size());
+        for (const auto& 行 : 行集) {
+            输出.push_back({
+                私有_语素SQL字段整数(行.行号),
+                行.节点主键,
+                行.父节点主键,
+                私有_语素SQL字段整数(行.深度),
+                私有_语素SQL字段整数(行.同层序号),
+                私有_语素SQL字段整数(行.直接子数量),
+                行.路径,
+            });
+        }
+        return 输出;
+    }
+
+    std::vector<std::vector<std::string>> 私有_语素SQL主信息预期字段(
+        const std::vector<结构_语素SQL行>& 行集)
+    {
+        std::vector<std::vector<std::string>> 输出;
+        输出.reserve(行集.size());
+        for (const auto& 行 : 行集) {
+            输出.push_back({
+                行.节点主键,
+                私有_语素SQL字段整数(行.行号),
+                行.节点类型,
+                行.词面,
+                行.显示文本,
+                私有_语素SQL字段可空整数(行.有词性, 行.词性值),
+                行.词性文本,
+                私有_语素SQL字段可空整数(行.有信息入口类型, 行.信息入口类型值),
+                行.信息入口类型文本,
+                私有_语素SQL字段可空整数(行.有基础信息类型, 行.基础信息类型值),
+                行.基础信息类型文本,
+                行.对应基础信息主键,
+                私有_语素SQL字段布尔(行.已绑定基础信息),
+            });
+        }
+        return 输出;
+    }
+
+    bool 私有_执行语素SQL字段恢复比对(
+        const std::string& 连接串,
+        const std::string& 阶段,
+        const std::string& SQL,
+        const std::vector<std::vector<std::string>>& 预期行集,
+        std::string& 错误)
+    {
+        结构_ADO字段恢复比对结果 比对{};
+        std::string ADO错误{};
+        if (!执行ADO字段恢复比对(连接串, SQL, 预期行集, 比对, ADO错误)) {
+            错误 = 阶段 + "查询失败 | " + ADO错误;
+            return false;
+        }
+        if (!比对.匹配) {
+            错误 = 阶段 + "字段比对失败 | " + 比对.首个差异;
+            return false;
+        }
+        return true;
+    }
+
+    bool 私有_验证语素SQL存储字段(
+        const std::string& 连接串,
+        const std::vector<结构_语素SQL行>& 行集,
+        const std::string& 来源原因,
+        std::string& 错误)
+    {
+        constexpr const char* 快照SQL = R"SQL(
+SELECT
+    COALESCE([来源类型], N''),
+    COALESCE([来源原因], N''),
+    COALESCE(CONVERT(nvarchar(30), [节点数量]), N'')
+FROM [鱼巢].[语素快照]
+ORDER BY [捕获时间] DESC;
+)SQL";
+        constexpr const char* 节点SQL = R"SQL(
+SELECT
+    COALESCE(CONVERT(nvarchar(30), [行号]), N''),
+    COALESCE([节点主键], N''),
+    COALESCE([父节点主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [深度]), N''),
+    COALESCE(CONVERT(nvarchar(30), [同层序号]), N''),
+    COALESCE(CONVERT(nvarchar(30), [直接子数量]), N''),
+    COALESCE([路径文本], N'')
+FROM [鱼巢].[语素节点]
+WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[语素快照] ORDER BY [捕获时间] DESC)
+ORDER BY [行号];
+)SQL";
+        constexpr const char* 主信息SQL = R"SQL(
+SELECT
+    COALESCE([节点主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [节点行号]), N''),
+    COALESCE([节点类型], N''),
+    COALESCE([词面文本], N''),
+    COALESCE([显示文本], N''),
+    COALESCE(CONVERT(nvarchar(30), [词性值]), N''),
+    COALESCE([词性文本], N''),
+    COALESCE(CONVERT(nvarchar(30), [信息入口类型值]), N''),
+    COALESCE([信息入口类型文本], N''),
+    COALESCE(CONVERT(nvarchar(30), [映射主信息类型值]), N''),
+    COALESCE([映射主信息类型文本], N''),
+    COALESCE([绑定基础信息主键], N''),
+    COALESCE(CONVERT(nvarchar(1), [已绑定基础信息]), N'')
+FROM [鱼巢].[语素主信息]
+WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[语素快照] ORDER BY [捕获时间] DESC)
+ORDER BY [节点行号];
+)SQL";
+
+        return 私有_执行语素SQL字段恢复比对(
+            连接串,
+            "语素SQL字段恢复比对/快照",
+            快照SQL,
+            私有_语素SQL快照预期字段(来源原因, 行集.size()),
+            错误)
+            && 私有_执行语素SQL字段恢复比对(
+                连接串,
+                "语素SQL字段恢复比对/节点",
+                节点SQL,
+                私有_语素SQL节点预期字段(行集),
+                错误)
+            && 私有_执行语素SQL字段恢复比对(
+                连接串,
+                "语素SQL字段恢复比对/主信息",
+                主信息SQL,
+                私有_语素SQL主信息预期字段(行集),
+                错误);
+    }
+
 }
 
 语素类 语素集{};
@@ -734,7 +893,8 @@ bool 语素类::重写语素SQL投影(const char* 来源原因) const noexcept
         if (!私有_执行语素ADO命令(主库连接串, "语素SQL投影建库", 私有_语素SQL建库脚本(), 错误)
             || !私有_执行语素ADO命令(投影库连接串, "语素SQL投影建表", 私有_语素SQL建表脚本(), 错误)
             || !私有_执行语素ADO命令(投影库连接串, "语素SQL投影视图", 私有_语素SQL视图脚本(), 错误)
-            || !私有_执行语素ADO命令(投影库连接串, "语素SQL投影重写", 私有_构造语素SQL重写脚本(行集, 原因文本), 错误)) {
+            || !私有_执行语素ADO命令(投影库连接串, "语素SQL投影重写", 私有_构造语素SQL重写脚本(行集, 原因文本), 错误)
+            || !私有_验证语素SQL存储字段(投影库连接串, 行集, 原因文本, 错误)) {
             项目运行错误日志(
                 "语素SQL投影失败"
                 " | 原因=" + 错误
@@ -745,7 +905,8 @@ bool 语素类::重写语素SQL投影(const char* 来源原因) const noexcept
         项目运行日志(
             "语素SQL投影完成"
             " | 来源=" + 原因文本
-            + " | 节点数=" + std::to_string(行集.size()));
+            + " | 节点数=" + std::to_string(行集.size())
+            + " | 字段恢复比对=通过");
         return true;
     }
     catch (const std::exception& 异常) {

@@ -2,6 +2,7 @@ module;
 
 #include <comdef.h>
 #include <cstdint>
+#include <cstddef>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -203,6 +204,16 @@ namespace {
         catch (...) {
         }
     }
+
+    // 功能：截断字段差异文本，避免日志输出整行大字段。
+    std::string 私有_截断字段差异文本(const std::string& 文本)
+    {
+        constexpr std::size_t 上限 = 160;
+        if (文本.size() <= 上限) {
+            return 文本;
+        }
+        return 文本.substr(0, 上限) + "...";
+    }
 }
 
 // 功能：生成 SQL Server Windows 身份认证 ADO 连接串。
@@ -275,6 +286,65 @@ bool 执行ADO查询(
         私有_关闭ADO连接(连接);
         return false;
     }
+}
+
+// 功能：从 SQL Server 恢复字段行集并与原始字段值逐项比较。
+bool 执行ADO字段恢复比对(
+    const std::string& 连接串,
+    const std::string& SQL,
+    const std::vector<std::vector<std::string>>& 预期行集,
+    结构_ADO字段恢复比对结果& 比对结果,
+    std::string& 错误)
+{
+    比对结果 = {};
+    错误.clear();
+
+    结构_ADO查询结果 恢复结果{};
+    if (!执行ADO查询(连接串, SQL, 恢复结果, 错误)) {
+        return false;
+    }
+
+    比对结果.预期行数 = 预期行集.size();
+    比对结果.恢复行数 = 恢复结果.行集.size();
+    if (比对结果.预期行数 != 比对结果.恢复行数) {
+        比对结果.首个差异 = "行数不一致 | 预期="
+            + std::to_string(比对结果.预期行数)
+            + " | 恢复="
+            + std::to_string(比对结果.恢复行数);
+        return true;
+    }
+
+    for (std::size_t 行号 = 0; 行号 < 预期行集.size(); ++行号) {
+        const auto& 预期行 = 预期行集[行号];
+        const auto& 恢复行 = 恢复结果.行集[行号];
+        if (预期行.size() != 恢复行.size()) {
+            比对结果.首个差异 = "字段数不一致 | 行="
+                + std::to_string(行号 + 1)
+                + " | 预期="
+                + std::to_string(预期行.size())
+                + " | 恢复="
+                + std::to_string(恢复行.size());
+            return true;
+        }
+
+        for (std::size_t 字段号 = 0; 字段号 < 预期行.size(); ++字段号) {
+            if (预期行[字段号] == 恢复行[字段号]) {
+                continue;
+            }
+            比对结果.首个差异 = "字段值不一致 | 行="
+                + std::to_string(行号 + 1)
+                + " | 字段="
+                + std::to_string(字段号 + 1)
+                + " | 预期="
+                + 私有_截断字段差异文本(预期行[字段号])
+                + " | 恢复="
+                + 私有_截断字段差异文本(恢复行[字段号]);
+            return true;
+        }
+    }
+
+    比对结果.匹配 = true;
+    return true;
 }
 
 // 功能：通过 ADO 执行不返回结果集的 SQL 命令。

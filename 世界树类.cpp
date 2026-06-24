@@ -1096,6 +1096,454 @@ namespace {
         }
         return true;
     }
+
+    std::string 私有_世界树SQL字段整数(const int 值)
+    {
+        return std::to_string(值);
+    }
+
+    std::string 私有_世界树SQL字段可空整数(const bool 有值, const int 值)
+    {
+        return 有值 ? std::to_string(值) : std::string{};
+    }
+
+    bool 私有_世界树SQL路径属于根(const std::string& 路径, const std::string& 根路径)
+    {
+        return 路径 == 根路径
+            || (!根路径.empty()
+                && 路径.size() > 根路径.size()
+                && 路径.compare(0, 根路径.size(), 根路径) == 0
+                && 路径[根路径.size()] == '/');
+    }
+
+    std::vector<const 结构_世界树SQL节点行*> 私有_世界树SQL根节点集(
+        const std::vector<结构_世界树SQL节点行>& 节点集)
+    {
+        std::vector<const 结构_世界树SQL节点行*> 输出;
+        for (const auto& 行 : 节点集) {
+            if (行.父节点主键 == "WORLD_ROOT") {
+                输出.push_back(&行);
+            }
+        }
+        return 输出;
+    }
+
+    std::vector<std::vector<std::string>> 私有_世界树SQL快照预期字段(
+        const std::string& 来源原因,
+        const std::size_t 节点数,
+        const std::size_t 关系数)
+    {
+        return {
+            {
+                "world_tree_projection",
+                来源原因,
+                std::to_string(节点数),
+                std::to_string(关系数),
+            },
+        };
+    }
+
+    std::vector<std::string> 私有_世界树SQL节点字段(
+        const 结构_世界树SQL节点行& 行)
+    {
+        return {
+            私有_世界树SQL字段整数(行.行号),
+            行.节点主键,
+            行.父节点主键,
+            私有_世界树SQL字段整数(行.深度),
+            私有_世界树SQL字段整数(行.同层序号),
+            私有_世界树SQL字段整数(行.直接子数量),
+            行.路径,
+            行.节点类别,
+            行.显示文本,
+            私有_世界树SQL字段可空整数(行.有主信息类型, 行.主信息类型值),
+            行.主信息类型文本,
+            行.名称主键,
+            行.名称文本,
+            行.类型主键,
+            行.类型文本,
+            行.值类别,
+            行.值文本,
+            行.辅助文本,
+        };
+    }
+
+    std::vector<std::vector<std::string>> 私有_世界树SQL节点预期字段(
+        const std::vector<结构_世界树SQL节点行>& 节点集)
+    {
+        std::vector<std::vector<std::string>> 输出;
+        输出.reserve(节点集.size());
+        for (const auto& 行 : 节点集) {
+            输出.push_back(私有_世界树SQL节点字段(行));
+        }
+        return 输出;
+    }
+
+    std::vector<std::string> 私有_世界树SQL关系字段(
+        const 结构_世界树SQL关系行& 行)
+    {
+        return {
+            私有_世界树SQL字段整数(行.行号),
+            私有_世界树SQL字段整数(行.宿主行号),
+            私有_世界树SQL字段可空整数(行.目标行号 > 0, 行.目标行号),
+            行.宿主主键,
+            行.关系名,
+            行.目标类别,
+            行.目标主键,
+            行.目标文本,
+            私有_世界树SQL字段整数(行.序号),
+        };
+    }
+
+    std::vector<std::vector<std::string>> 私有_世界树SQL关系预期字段(
+        const std::vector<结构_世界树SQL关系行>& 关系集)
+    {
+        std::vector<std::vector<std::string>> 输出;
+        输出.reserve(关系集.size());
+        for (const auto& 行 : 关系集) {
+            输出.push_back(私有_世界树SQL关系字段(行));
+        }
+        return 输出;
+    }
+
+    std::vector<std::vector<std::string>> 私有_世界树SQL根树节点预期字段(
+        const std::vector<结构_世界树SQL节点行>& 节点集)
+    {
+        const auto 根集 = 私有_世界树SQL根节点集(节点集);
+        std::vector<std::vector<std::string>> 输出;
+        for (const auto* 根 : 根集) {
+            if (!根) {
+                continue;
+            }
+            for (const auto& 节点 : 节点集) {
+                if (!私有_世界树SQL路径属于根(节点.路径, 根->路径)) {
+                    continue;
+                }
+                输出.push_back({
+                    根->节点主键,
+                    私有_世界树SQL字段整数(节点.深度 - 根->深度),
+                    私有_世界树SQL字段整数(节点.行号),
+                    节点.节点主键,
+                    节点.父节点主键,
+                    私有_世界树SQL字段整数(节点.深度),
+                    私有_世界树SQL字段整数(节点.同层序号),
+                    私有_世界树SQL字段整数(节点.直接子数量),
+                    节点.路径,
+                });
+            }
+        }
+        return 输出;
+    }
+
+    std::vector<std::vector<std::string>> 私有_世界树SQL根树主信息预期字段(
+        const std::vector<结构_世界树SQL节点行>& 节点集)
+    {
+        const auto 根集 = 私有_世界树SQL根节点集(节点集);
+        std::vector<std::vector<std::string>> 输出;
+        for (const auto* 根 : 根集) {
+            if (!根) {
+                continue;
+            }
+            for (const auto& 节点 : 节点集) {
+                if (!私有_世界树SQL路径属于根(节点.路径, 根->路径)) {
+                    continue;
+                }
+                输出.push_back({
+                    根->节点主键,
+                    私有_世界树SQL字段整数(节点.行号),
+                    节点.节点主键,
+                    节点.节点类别,
+                    节点.显示文本,
+                    私有_世界树SQL字段可空整数(节点.有主信息类型, 节点.主信息类型值),
+                    节点.主信息类型文本,
+                    节点.名称主键,
+                    节点.名称文本,
+                    节点.类型主键,
+                    节点.类型文本,
+                    节点.值类别,
+                    节点.值文本,
+                    节点.辅助文本,
+                });
+            }
+        }
+        return 输出;
+    }
+
+    std::vector<std::vector<std::string>> 私有_世界树SQL根树关系预期字段(
+        const std::vector<结构_世界树SQL节点行>& 节点集,
+        const std::vector<结构_世界树SQL关系行>& 关系集)
+    {
+        const auto 根集 = 私有_世界树SQL根节点集(节点集);
+        std::unordered_map<int, const 结构_世界树SQL节点行*> 行号到节点;
+        for (const auto& 节点 : 节点集) {
+            行号到节点.emplace(节点.行号, &节点);
+        }
+
+        std::vector<std::vector<std::string>> 输出;
+        for (const auto* 根 : 根集) {
+            if (!根) {
+                continue;
+            }
+            for (const auto& 关系 : 关系集) {
+                const auto 节点迭代 = 行号到节点.find(关系.宿主行号);
+                if (节点迭代 == 行号到节点.end()
+                    || !节点迭代->second
+                    || !私有_世界树SQL路径属于根(节点迭代->second->路径, 根->路径)) {
+                    continue;
+                }
+                输出.push_back({
+                    根->节点主键,
+                    私有_世界树SQL字段整数(关系.行号),
+                    私有_世界树SQL字段整数(关系.宿主行号),
+                    私有_世界树SQL字段可空整数(关系.目标行号 > 0, 关系.目标行号),
+                    关系.宿主主键,
+                    关系.关系名,
+                    关系.目标类别,
+                    关系.目标主键,
+                    关系.目标文本,
+                    私有_世界树SQL字段整数(关系.序号),
+                });
+            }
+        }
+        return 输出;
+    }
+
+    std::vector<std::vector<std::string>> 私有_世界树SQL根树预期字段(
+        const std::vector<结构_世界树SQL节点行>& 节点集,
+        const std::vector<结构_世界树SQL关系行>& 关系集)
+    {
+        const auto 根集 = 私有_世界树SQL根节点集(节点集);
+        std::unordered_map<int, const 结构_世界树SQL节点行*> 行号到节点;
+        for (const auto& 节点 : 节点集) {
+            行号到节点.emplace(节点.行号, &节点);
+        }
+
+        std::vector<std::vector<std::string>> 输出;
+        for (const auto* 根 : 根集) {
+            if (!根) {
+                continue;
+            }
+            int 子树节点数量 = 0;
+            for (const auto& 节点 : 节点集) {
+                if (私有_世界树SQL路径属于根(节点.路径, 根->路径)) {
+                    ++子树节点数量;
+                }
+            }
+
+            int 子树关系数量 = 0;
+            for (const auto& 关系 : 关系集) {
+                const auto 节点迭代 = 行号到节点.find(关系.宿主行号);
+                if (节点迭代 != 行号到节点.end()
+                    && 节点迭代->second
+                    && 私有_世界树SQL路径属于根(节点迭代->second->路径, 根->路径)) {
+                    ++子树关系数量;
+                }
+            }
+
+            输出.push_back({
+                根->节点主键,
+                私有_世界树SQL字段整数(根->行号),
+                私有_世界树SQL字段整数(根->深度),
+                私有_世界树SQL字段整数(根->同层序号),
+                私有_世界树SQL字段整数(根->直接子数量),
+                根->路径,
+                私有_世界树SQL字段整数(子树节点数量),
+                私有_世界树SQL字段整数(子树关系数量),
+            });
+        }
+        return 输出;
+    }
+
+    bool 私有_执行世界树SQL字段恢复比对(
+        const std::string& 连接串,
+        const std::string& 阶段,
+        const std::string& SQL,
+        const std::vector<std::vector<std::string>>& 预期行集,
+        std::string& 错误)
+    {
+        结构_ADO字段恢复比对结果 比对{};
+        std::string ADO错误{};
+        if (!执行ADO字段恢复比对(连接串, SQL, 预期行集, 比对, ADO错误)) {
+            错误 = 阶段 + "查询失败 | " + ADO错误;
+            return false;
+        }
+        if (!比对.匹配) {
+            错误 = 阶段 + "字段比对失败 | " + 比对.首个差异;
+            return false;
+        }
+        return true;
+    }
+
+    bool 私有_验证世界树SQL存储字段(
+        const std::string& 连接串,
+        const std::vector<结构_世界树SQL节点行>& 节点集,
+        const std::vector<结构_世界树SQL关系行>& 关系集,
+        const std::string& 来源原因,
+        std::string& 错误)
+    {
+        constexpr const char* 快照SQL = R"SQL(
+SELECT
+    COALESCE([来源类型], N''),
+    COALESCE([来源原因], N''),
+    COALESCE(CONVERT(nvarchar(30), [节点数量]), N''),
+    COALESCE(CONVERT(nvarchar(30), [关系数量]), N'')
+FROM [鱼巢].[世界树快照]
+ORDER BY [捕获时间] DESC;
+)SQL";
+        constexpr const char* 节点SQL = R"SQL(
+SELECT
+    COALESCE(CONVERT(nvarchar(30), [行号]), N''),
+    COALESCE([节点主键], N''),
+    COALESCE([父节点主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [深度]), N''),
+    COALESCE(CONVERT(nvarchar(30), [同层序号]), N''),
+    COALESCE(CONVERT(nvarchar(30), [直接子数量]), N''),
+    COALESCE([路径文本], N''),
+    COALESCE([节点类型], N''),
+    COALESCE([显示文本], N''),
+    COALESCE(CONVERT(nvarchar(30), [主信息类型值]), N''),
+    COALESCE([主信息类型文本], N''),
+    COALESCE([名称主键], N''),
+    COALESCE([名称文本], N''),
+    COALESCE([类型主键], N''),
+    COALESCE([类型文本], N''),
+    COALESCE([值类别], N''),
+    COALESCE([值文本], N''),
+    COALESCE([辅助文本], N'')
+FROM [鱼巢].[世界树节点]
+WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
+ORDER BY [行号];
+)SQL";
+        constexpr const char* 关系SQL = R"SQL(
+SELECT
+    COALESCE(CONVERT(nvarchar(30), [行号]), N''),
+    COALESCE(CONVERT(nvarchar(30), [宿主行号]), N''),
+    COALESCE(CONVERT(nvarchar(30), [目标行号]), N''),
+    COALESCE([宿主主键], N''),
+    COALESCE([关系名], N''),
+    COALESCE([目标类别], N''),
+    COALESCE([目标主键], N''),
+    COALESCE([目标文本], N''),
+    COALESCE(CONVERT(nvarchar(30), [序号]), N'')
+FROM [鱼巢].[世界树节点关系]
+WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
+ORDER BY [行号];
+)SQL";
+        constexpr const char* 根树SQL = R"SQL(
+SELECT
+    COALESCE([根主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [根行号]), N''),
+    COALESCE(CONVERT(nvarchar(30), [根深度]), N''),
+    COALESCE(CONVERT(nvarchar(30), [根同层序号]), N''),
+    COALESCE(CONVERT(nvarchar(30), [根直接子数量]), N''),
+    COALESCE([根路径文本], N''),
+    COALESCE(CONVERT(nvarchar(30), [子树节点数量]), N''),
+    COALESCE(CONVERT(nvarchar(30), [子树关系数量]), N'')
+FROM [鱼巢].[世界树根树]
+WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
+ORDER BY [根行号];
+)SQL";
+        constexpr const char* 根树节点SQL = R"SQL(
+SELECT
+    COALESCE(n.[根主键], N''),
+    COALESCE(CONVERT(nvarchar(30), n.[根相对深度]), N''),
+    COALESCE(CONVERT(nvarchar(30), n.[行号]), N''),
+    COALESCE(n.[节点主键], N''),
+    COALESCE(n.[父节点主键], N''),
+    COALESCE(CONVERT(nvarchar(30), n.[深度]), N''),
+    COALESCE(CONVERT(nvarchar(30), n.[同层序号]), N''),
+    COALESCE(CONVERT(nvarchar(30), n.[直接子数量]), N''),
+    COALESCE(n.[路径文本], N'')
+FROM [鱼巢].[世界树根树节点] n
+JOIN [鱼巢].[世界树根树] t
+    ON t.[快照标识] = n.[快照标识] AND t.[根主键] = n.[根主键]
+WHERE n.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
+ORDER BY t.[根行号], n.[行号];
+)SQL";
+        constexpr const char* 根树主信息SQL = R"SQL(
+SELECT
+    COALESCE(m.[根主键], N''),
+    COALESCE(CONVERT(nvarchar(30), m.[节点行号]), N''),
+    COALESCE(m.[节点主键], N''),
+    COALESCE(m.[节点类型], N''),
+    COALESCE(m.[显示文本], N''),
+    COALESCE(CONVERT(nvarchar(30), m.[主信息类型值]), N''),
+    COALESCE(m.[主信息类型文本], N''),
+    COALESCE(m.[名称主键], N''),
+    COALESCE(m.[名称文本], N''),
+    COALESCE(m.[类型主键], N''),
+    COALESCE(m.[类型文本], N''),
+    COALESCE(m.[值类别], N''),
+    COALESCE(m.[值文本], N''),
+    COALESCE(m.[辅助文本], N'')
+FROM [鱼巢].[世界树根树节点主信息] m
+JOIN [鱼巢].[世界树根树] t
+    ON t.[快照标识] = m.[快照标识] AND t.[根主键] = m.[根主键]
+WHERE m.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
+ORDER BY t.[根行号], m.[节点行号];
+)SQL";
+        constexpr const char* 根树关系SQL = R"SQL(
+SELECT
+    COALESCE(r.[根主键], N''),
+    COALESCE(CONVERT(nvarchar(30), r.[行号]), N''),
+    COALESCE(CONVERT(nvarchar(30), r.[宿主行号]), N''),
+    COALESCE(CONVERT(nvarchar(30), r.[目标行号]), N''),
+    COALESCE(r.[宿主主键], N''),
+    COALESCE(r.[关系名], N''),
+    COALESCE(r.[目标类别], N''),
+    COALESCE(r.[目标主键], N''),
+    COALESCE(r.[目标文本], N''),
+    COALESCE(CONVERT(nvarchar(30), r.[序号]), N'')
+FROM [鱼巢].[世界树根树关系] r
+JOIN [鱼巢].[世界树根树] t
+    ON t.[快照标识] = r.[快照标识] AND t.[根主键] = r.[根主键]
+WHERE r.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
+ORDER BY t.[根行号], r.[行号];
+)SQL";
+
+        return 私有_执行世界树SQL字段恢复比对(
+            连接串,
+            "世界树SQL字段恢复比对/快照",
+            快照SQL,
+            私有_世界树SQL快照预期字段(来源原因, 节点集.size(), 关系集.size()),
+            错误)
+            && 私有_执行世界树SQL字段恢复比对(
+                连接串,
+                "世界树SQL字段恢复比对/节点",
+                节点SQL,
+                私有_世界树SQL节点预期字段(节点集),
+                错误)
+            && 私有_执行世界树SQL字段恢复比对(
+                连接串,
+                "世界树SQL字段恢复比对/关系",
+                关系SQL,
+                私有_世界树SQL关系预期字段(关系集),
+                错误)
+            && 私有_执行世界树SQL字段恢复比对(
+                连接串,
+                "世界树SQL字段恢复比对/根树",
+                根树SQL,
+                私有_世界树SQL根树预期字段(节点集, 关系集),
+                错误)
+            && 私有_执行世界树SQL字段恢复比对(
+                连接串,
+                "世界树SQL字段恢复比对/根树节点",
+                根树节点SQL,
+                私有_世界树SQL根树节点预期字段(节点集),
+                错误)
+            && 私有_执行世界树SQL字段恢复比对(
+                连接串,
+                "世界树SQL字段恢复比对/根树主信息",
+                根树主信息SQL,
+                私有_世界树SQL根树主信息预期字段(节点集),
+                错误)
+            && 私有_执行世界树SQL字段恢复比对(
+                连接串,
+                "世界树SQL字段恢复比对/根树关系",
+                根树关系SQL,
+                私有_世界树SQL根树关系预期字段(节点集, 关系集),
+                错误);
+    }
 }
 
 世界树类& 世界树 = *new 世界树类{};
@@ -1342,7 +1790,8 @@ bool 世界树类::重写世界树SQL投影(const char* 来源原因) const noex
                 "世界树SQL投影重写",
                 私有_构造世界树SQL重写脚本(节点集, 关系集, 原因文本),
                 错误,
-                180)) {
+                180)
+            || !私有_验证世界树SQL存储字段(投影库连接串, 节点集, 关系集, 原因文本, 错误)) {
             项目运行错误日志(
                 "世界树SQL投影失败"
                 " | 原因=" + 错误
@@ -1355,7 +1804,8 @@ bool 世界树类::重写世界树SQL投影(const char* 来源原因) const noex
             "世界树SQL投影完成"
             " | 来源=" + 原因文本
             + " | 节点数=" + std::to_string(节点集.size())
-            + " | 关系数=" + std::to_string(关系集.size()));
+            + " | 关系数=" + std::to_string(关系集.size())
+            + " | 字段恢复比对=通过");
         return true;
     }
     catch (const std::exception& 异常) {
