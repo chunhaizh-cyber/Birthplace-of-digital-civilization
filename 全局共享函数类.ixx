@@ -314,6 +314,142 @@ export inline std::uint64_t 混合U64版本(std::uint64_t 累积, std::uint64_t 
     return 累积 == 0 ? 1 : 累积;
 }
 
+// 功能：把方向值归一为 -1、0、1 三种练习差值。
+export inline I64 练习方向转差值(I64 方向) noexcept
+{
+    if (方向 > 0) return 1;
+    if (方向 < 0) return -1;
+    return 0;
+}
+
+// 功能：根据已生成数量生成无目标 I64 候选值。
+export inline I64 生成无目的未出现I64参数(I64 已生成数量) noexcept
+{
+    auto x = static_cast<std::uint64_t>(已生成数量) + 0x9E3779B97F4A7C15ull;
+    x ^= x >> 30;
+    x *= 0xBF58476D1CE4E5B9ull;
+    x ^= x >> 27;
+    x *= 0x94D049BB133111EBull;
+    x ^= x >> 31;
+    return static_cast<I64>(x);
+}
+
+// 功能：从区间中点向两侧扩展生成 I64 候选值。
+export inline I64 生成区间扩展覆盖I64参数(
+    I64 已生成数量,
+    I64 下界,
+    I64 上界,
+    I64 中点,
+    I64 最大候选数量,
+    I64& 输出策略) noexcept
+{
+    输出策略 = 2;
+    const auto 下界码 = I64有序编码(下界);
+    const auto 上界码 = I64有序编码(上界);
+    const auto 中点码 = I64有序编码(中点);
+    const auto 左侧数量 = 中点码 - 下界码;
+    const auto 右侧数量 = 上界码 - 中点码;
+
+    auto 序号 = 已生成数量 < 0
+        ? std::uint64_t{ 0 }
+        : static_cast<std::uint64_t>(已生成数量);
+    const auto 总数 = 安全域大小(左侧数量, 右侧数量);
+    const auto 预算 = 有效候选预算(最大候选数量);
+    const bool 值域过大 = 总数 > 预算;
+    if (值域过大) {
+        序号 %= 预算;
+        const auto 步幅 = 总数 / 预算 + ((总数 % 预算) ? 1 : 0);
+        if (序号 > 0 && 步幅 > 1) {
+            序号 *= 步幅;
+            if (序号 >= 总数) {
+                序号 = 总数 - 1;
+            }
+        }
+        输出策略 = 4;
+    } else if (序号 >= 总数) {
+        序号 %= 总数;
+    }
+    if (序号 == 0) {
+        return 中点;
+    }
+
+    const auto 公共侧数量 = (左侧数量 < 右侧数量)
+        ? 左侧数量
+        : 右侧数量;
+    const auto 公共覆盖数量 = std::uint64_t{ 1 } + 公共侧数量 * std::uint64_t{ 2 };
+    if (序号 < 公共覆盖数量) {
+        const auto 步长 = (序号 + 1) / 2;
+        if ((序号 % 2) == 1) {
+            return I64由有序编码(中点码 - 步长);
+        }
+        return I64由有序编码(中点码 + 步长);
+    }
+
+    const auto 剩余序号 = 序号 - 公共覆盖数量;
+    const auto 步长 = 公共侧数量 + std::uint64_t{ 1 } + 剩余序号;
+    if (左侧数量 > 右侧数量) {
+        return I64由有序编码(中点码 - 步长);
+    }
+    return I64由有序编码(中点码 + 步长);
+}
+
+// 功能：在指定区间内生成 I64 候选值，优先中点并按两侧扩展覆盖。
+export inline I64 生成区间内I64参数(
+    I64 已生成数量,
+    I64 下界,
+    I64 上界,
+    bool 有历史值,
+    I64 历史值,
+    I64 最大候选数量,
+    I64& 输出策略) noexcept
+{
+    输出策略 = 0;
+    if (下界 > 上界) {
+        下界 = 上界 = 0;
+    }
+    if (有历史值 && 下界 <= 历史值 && 历史值 <= 上界
+        && 已生成数量 > 0
+        && 已生成数量 % 17 == 0) {
+        输出策略 = 1;
+        return 历史值;
+    }
+    const I64 中点 = 区间中点(下界, 上界);
+    return 生成区间扩展覆盖I64参数(
+        已生成数量,
+        下界,
+        上界,
+        中点,
+        最大候选数量,
+        输出策略);
+}
+
+// 功能：从离散集合中按中点向两侧扩展选择候选索引。
+export inline std::size_t 离散集合扩展索引(std::size_t 数量, I64 已生成数量) noexcept
+{
+    if (数量 == 0) return 0;
+    auto 序号 = 已生成数量 < 0
+        ? std::size_t{ 0 }
+        : static_cast<std::size_t>(已生成数量);
+    序号 %= 数量;
+    const auto 中点 = (数量 - 1) / 2;
+    if (序号 == 0) return 中点;
+
+    const auto 左侧数量 = 中点;
+    const auto 右侧数量 = 数量 - 1 - 中点;
+    const auto 公共侧数量 = (左侧数量 < 右侧数量) ? 左侧数量 : 右侧数量;
+    const auto 公共覆盖数量 = std::size_t{ 1 } + 公共侧数量 * std::size_t{ 2 };
+    if (序号 < 公共覆盖数量) {
+        const auto 步长 = (序号 + 1) / 2;
+        return (序号 % 2) == 1 ? 中点 - 步长 : 中点 + 步长;
+    }
+
+    const auto 剩余序号 = 序号 - 公共覆盖数量;
+    if (左侧数量 > 右侧数量) {
+        return 中点 - (公共侧数量 + std::size_t{ 1 } + 剩余序号);
+    }
+    return 中点 + (公共侧数量 + std::size_t{ 1 } + 剩余序号);
+}
+
 // 功能：把 U64 转换为 I64，超过 I64 上限时饱和。
 export inline I64 U64转I64饱和(std::uint64_t 值) noexcept
 {
