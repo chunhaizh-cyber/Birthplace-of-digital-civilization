@@ -495,6 +495,7 @@ public:
     std::uint64_t 读取Tick计数() const noexcept;
     std::uint64_t 读取累计故障次数() const noexcept;
     std::uint64_t 读取累计恢复次数() const noexcept;
+    自我初始化模块::结构_自我初始化结果 读取最近初始化结果() const;
     结构_自我线程最小状态快照 读取自我线程最小状态快照() const;
     结构_需求与权重治理输出快照 读取最近需求与权重治理输出快照() const;
     结构_主派发输出快照 读取最近主派发输出快照() const;
@@ -739,6 +740,7 @@ private:
     bool 健康运行_ = false;
     bool 首轮运行已完成_ = false;
     bool 本次启动来自故障恢复_ = false;
+    自我初始化模块::结构_自我初始化结果 最近初始化结果_{};
     bool 待故障恢复启动_ = false;
     std::uint64_t Tick计数_ = 0;
     bool 安全因果风险树已尝试外层维护_ = false;
@@ -775,6 +777,7 @@ private:
 
 export 自我线程类& 获取全局自我线程() noexcept;
 export bool 初始化自我环境();
+export 自我初始化模块::结构_自我初始化结果 读取最近自我环境初始化结果();
 export bool 启动自我线程();
 export void 停止自我线程();
 export bool 上报线程状态变化(

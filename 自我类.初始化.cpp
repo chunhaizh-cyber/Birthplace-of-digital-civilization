@@ -1,6 +1,7 @@
 module;
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <exception>
 #include <string>
@@ -41,12 +42,14 @@ namespace {
         自我初始化模块::结构_自我初始化结果& 结果,
         自我初始化模块::枚举_自我初始化阶段 阶段,
         std::string 名称,
-        bool 成功)
+        bool 成功,
+        std::int64_t 耗时ms = 0)
     {
         自我初始化模块::结构_自我初始化步骤记录 记录{};
         记录.阶段 = 阶段;
         记录.名称 = std::move(名称);
         记录.成功 = 成功;
+        记录.耗时ms = 耗时ms;
         结果.步骤记录.push_back(std::move(记录));
     }
 
@@ -65,26 +68,40 @@ namespace {
         T函数&& 函数) noexcept
     {
         const char* 阶段名称 = 名称 ? 名称 : 私有_自我初始化阶段文本(阶段);
+        const auto 步骤开始 = std::chrono::steady_clock::now();
         try {
             const bool 成功 = static_cast<bool>(函数());
-            私有_记录初始化步骤(结果, 阶段, 阶段名称, 成功);
+            const auto 耗时ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - 步骤开始).count();
+            私有_记录初始化步骤(结果, 阶段, 阶段名称, 成功, 耗时ms);
+            项目运行日志(std::string("自我初始化步骤耗时 | 阶段=")
+                + 私有_自我初始化阶段文本(阶段)
+                + " | 名称=" + 阶段名称
+                + " | 成功=" + (成功 ? "是" : "否")
+                + " | 耗时ms=" + std::to_string(耗时ms));
             return 成功;
         }
         catch (const std::exception& 异常) {
             结果.发生异常 = true;
-            私有_记录初始化步骤(结果, 阶段, 阶段名称, false);
+            const auto 耗时ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - 步骤开始).count();
+            私有_记录初始化步骤(结果, 阶段, 阶段名称, false, 耗时ms);
             项目运行日志(std::string("自我初始化步骤异常 | 阶段=")
                 + 私有_自我初始化阶段文本(阶段)
                 + " | 名称=" + 阶段名称
+                + " | 耗时ms=" + std::to_string(耗时ms)
                 + " | 错误=" + 异常.what());
             return false;
         }
         catch (...) {
             结果.发生异常 = true;
-            私有_记录初始化步骤(结果, 阶段, 阶段名称, false);
+            const auto 耗时ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - 步骤开始).count();
+            私有_记录初始化步骤(结果, 阶段, 阶段名称, false, 耗时ms);
             项目运行日志(std::string("自我初始化步骤异常 | 阶段=")
                 + 私有_自我初始化阶段文本(阶段)
                 + " | 名称=" + 阶段名称
+                + " | 耗时ms=" + std::to_string(耗时ms)
                 + " | 错误=unknown");
             return false;
         }
