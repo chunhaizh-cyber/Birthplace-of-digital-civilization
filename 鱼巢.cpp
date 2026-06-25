@@ -1327,6 +1327,7 @@ namespace {
     {
         (void)标记;
         鱼巢_启动说明("自我环境初始化");
+        私有_初始化控制面板运行态SQL投影(标记);
         const auto 开始 = std::chrono::steady_clock::now();
         const bool 已初始化 = 初始化自我环境();
         const auto 初始化耗时 = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -1367,6 +1368,7 @@ namespace {
     {
         (void)标记;
         鱼巢_启动说明("自我线程启动前环境初始化");
+        私有_初始化控制面板运行态SQL投影(标记);
         const auto 初始化开始 = std::chrono::steady_clock::now();
         const bool 已初始化 = 初始化自我环境();
         const auto 初始化耗时 = std::chrono::duration_cast<std::chrono::milliseconds>(
