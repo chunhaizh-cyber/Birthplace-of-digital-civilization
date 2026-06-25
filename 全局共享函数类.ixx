@@ -5,6 +5,7 @@ module;
 #include <bit>
 #include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <string_view>
@@ -209,6 +210,19 @@ export inline std::string 转义键值字段值(std::string_view 文本)
 export inline void 写入转义键值字段行(std::ostream& 输出, std::string_view 键, std::string_view 值)
 {
     输出 << 键 << '=' << 转义键值字段值(值) << '\n';
+}
+
+// 功能：生成按索引分组的文本键值字段名，格式为 `项.<索引>.<键>`。
+export inline std::string 索引项字段键(std::size_t 索引, std::string_view 键)
+{
+    const auto 索引文本 = std::to_string(索引);
+    std::string 输出;
+    输出.reserve(2 + 索引文本.size() + 1 + 键.size());
+    输出 += "项.";
+    输出 += 索引文本;
+    输出 += '.';
+    输出 += 键;
+    return 输出;
 }
 
 // 功能：把稳定主键文本折叠为 U64；仅用于主键/标识压缩，不用于自由文本业务判断。
