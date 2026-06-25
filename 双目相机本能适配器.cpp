@@ -1,3 +1,10 @@
+// 文件头部规则注释模块：
+// 1. 修改本文件前先阅读本模块；双目相机适配器只把外设观测转换为结构化观察材料。
+// 2. 评分、比例和坐标等纯数值工具优先复用全局共享函数，不在本文件保留重复包装。
+// 3. 本模块只供人读，不参与机器判断；业务状态仍必须由项目通用结构承载。
+
+#include "基础数据类型.h"
+
 #include <exception>
 #include <algorithm>
 #include <cmath>
@@ -13,7 +20,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include "基础数据类型.h"
 #include "双目相机本能适配器.h"
 
 import D455相机模块;
@@ -186,18 +192,6 @@ namespace {
         for (std::size_t i = 0; i < 深度.size(); ++i) {
             输出.push_back(深度向量像素有效(深度, 有效掩膜, i) ? 转换毫米(深度[i]) : 0);
         }
-    }
-
-    // 功能：按函数名执行对应处理。
-    std::int64_t 深度差异评分(std::int64_t 差异毫米) noexcept
-    {
-        if (差异毫米 <= 5) {
-            return 10000;
-        }
-        if (差异毫米 >= 250) {
-            return 0;
-        }
-        return 10000 - ((差异毫米 - 5) * 10000 / 245);
     }
 
     // 功能：按函数名执行对应处理。

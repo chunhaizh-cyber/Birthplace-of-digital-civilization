@@ -255,6 +255,18 @@ export inline I64 比例万分比(std::size_t 分子, std::size_t 分母) noexce
         / static_cast<unsigned long long>(分母));
 }
 
+// 功能：按毫米差异计算 Q10000 深度稳定性评分，5mm 内满分，250mm 及以上为 0。
+export inline I64 深度差异评分(I64 差异毫米) noexcept
+{
+    if (差异毫米 <= 5) {
+        return 10000;
+    }
+    if (差异毫米 >= 250) {
+        return 0;
+    }
+    return 10000 - ((差异毫米 - 5) * 10000 / 245);
+}
+
 // 功能：计算 double 与 I64 的非饱和绝对差，返回 I64 截断结果。
 export inline I64 绝对差F64I64(double 左值, I64 右值) noexcept
 {
