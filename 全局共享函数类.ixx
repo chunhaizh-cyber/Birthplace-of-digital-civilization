@@ -5,6 +5,7 @@ module;
 #include <bit>
 #include <cmath>
 #include <string>
+#include <string_view>
 
 export module 全局共享函数类;
 
@@ -101,6 +102,17 @@ export inline void 写入可选错误文本(std::string* 错误, const char* 文
     if (错误) {
         *错误 = 文本 ? 文本 : "";
     }
+}
+
+// 功能：把稳定主键文本折叠为 U64；仅用于主键/标识压缩，不用于自由文本业务判断。
+export inline std::uint64_t 折叠字符串主键(std::string_view 主键) noexcept
+{
+    std::uint64_t 值 = 1469598103934665603ull;
+    for (const unsigned char 字节 : 主键) {
+        值 ^= static_cast<std::uint64_t>(字节);
+        值 *= 1099511628211ull;
+    }
+    return 值;
 }
 
 // 功能：计算左右扩展数量合并后的安全域大小，溢出时返回 U64 最大值。
