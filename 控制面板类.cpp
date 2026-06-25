@@ -14,6 +14,7 @@ module;
 #include <fstream>
 #include <iomanip>
 #include <initializer_list>
+#include <iterator>
 #include <limits>
 #include <mutex>
 #include <optional>
@@ -6653,6 +6654,14 @@ namespace {
 
     struct 结构_SQL控制面板数据 {
         std::vector<std::string> 批次{};
+        std::vector<std::vector<std::string>> 运行批次{};
+        std::vector<std::vector<std::string>> 同步状态{};
+        std::vector<std::vector<std::string>> 事件流水{};
+        std::vector<std::vector<std::string>> 当前任务{};
+        std::vector<std::vector<std::string>> 当前需求{};
+        std::vector<std::vector<std::string>> 当前方法{};
+        std::vector<std::vector<std::string>> 当前世界{};
+        std::vector<std::vector<std::string>> 当前动态{};
         std::vector<std::vector<std::string>> 指标{};
         std::vector<std::vector<std::string>> 线程{};
         std::vector<std::vector<std::string>> 线程事件{};
@@ -6667,6 +6676,7 @@ namespace {
         std::vector<std::vector<std::string>> 世界树{};
         std::vector<std::vector<std::string>> 世界树关系{};
         std::vector<std::vector<std::string>> 语素树{};
+        std::string 投影读取错误{};
     };
 
     using SQL控制面板目标行集 = std::vector<std::vector<std::string>> 结构_SQL控制面板数据::*;
@@ -6699,27 +6709,149 @@ namespace {
         数据 = {};
         const auto 连接串 = 私有_SQL控制面板ADO连接串();
 
-        结构_ADO查询结果 批次结果{};
-        if (!私有_执行ADO控制面板查询(
-            连接串,
-            "最新批次",
-            R"SQL(
-SELECT
-    CONVERT(nvarchar(36), [批次标识]) AS [批次标识],
-    CONVERT(nvarchar(19), [创建时间], 120) AS [创建时间],
-    COALESCE([工作目录], N'') AS [工作目录],
-    COALESCE([来源备注], N'') AS [来源备注]
-FROM [鱼巢].[最新批次];
+        const std::vector<std::tuple<std::string_view, std::string_view, SQL控制面板目标行集>> 运行态查询集{
+            {
+                "控制面板运行批次",
+                R"SQL(
+SELECT TOP (1)
+    CONVERT(nvarchar(36), [运行ID]) AS [运行ID],
+    CONVERT(nvarchar(19), [启动时间], 120) AS [启动时间],
+    COALESCE([来源标记], N'') AS [来源标记],
+    CONVERT(nvarchar(20), COALESCE([进程ID], 0)) AS [进程ID],
+    CONVERT(nvarchar(5), COALESCE([同步开关], 0)) AS [同步开关],
+    COALESCE([状态], N'') AS [状态]
+FROM [鱼巢].[控制面板运行批次]
+ORDER BY [启动时间] DESC;
 )SQL",
-            批次结果,
-            错误)) {
+                &结构_SQL控制面板数据::运行批次
+            },
+            {
+                "SQL投影同步状态",
+                R"SQL(
+SELECT
+    COALESCE([同步域], N'') AS [同步域],
+    COALESCE([最近阶段], N'') AS [最近阶段],
+    COALESCE([最近状态], N'') AS [最近状态],
+    CONVERT(nvarchar(19), [更新时间], 120) AS [更新时间],
+    COALESCE([最近错误], N'') AS [最近错误]
+FROM [鱼巢].[SQL投影同步状态]
+ORDER BY [更新时间] DESC, [同步域];
+)SQL",
+                &结构_SQL控制面板数据::同步状态
+            },
+            {
+                "控制面板事件流水",
+                R"SQL(
+SELECT TOP (300)
+    CONVERT(nvarchar(19), [发生时间], 120) AS [发生时间],
+    COALESCE([领域], N'') AS [领域],
+    COALESCE([操作], N'') AS [操作],
+    COALESCE([对象主键], N'') AS [对象主键],
+    COALESCE([显示摘要], N'') AS [显示摘要]
+FROM [鱼巢].[控制面板事件流水]
+ORDER BY [发生时间] DESC, [事件ID] DESC;
+)SQL",
+                &结构_SQL控制面板数据::事件流水
+            },
+            {
+                "当前任务显示项",
+                R"SQL(
+SELECT
+    COALESCE([任务主键], N'') AS [任务主键],
+    COALESCE([父任务主键], N'') AS [父任务主键],
+    CONVERT(nvarchar(20), COALESCE([状态值], 0)) AS [状态值],
+    COALESCE([状态文本], N'') AS [状态文本],
+    CONVERT(nvarchar(19), [更新时间], 120) AS [更新时间],
+    COALESCE([显示摘要], N'') AS [显示摘要]
+FROM [鱼巢].[当前任务显示项]
+ORDER BY [更新时间] DESC, [任务主键];
+)SQL",
+                &结构_SQL控制面板数据::当前任务
+            },
+            {
+                "当前需求显示项",
+                R"SQL(
+SELECT
+    COALESCE([需求主键], N'') AS [需求主键],
+    COALESCE([父需求主键], N'') AS [父需求主键],
+    CONVERT(nvarchar(20), COALESCE([满足关系掩码], 0)) AS [满足关系掩码],
+    CONVERT(nvarchar(1), COALESCE([已满足], 0)) AS [已满足],
+    CONVERT(nvarchar(19), [更新时间], 120) AS [更新时间],
+    COALESCE([显示摘要], N'') AS [显示摘要]
+FROM [鱼巢].[当前需求显示项]
+ORDER BY [更新时间] DESC, [需求主键];
+)SQL",
+                &结构_SQL控制面板数据::当前需求
+            },
+            {
+                "当前方法显示项",
+                R"SQL(
+SELECT
+    COALESCE([方法主键], N'') AS [方法主键],
+    COALESCE([父方法主键], N'') AS [父方法主键],
+    CONVERT(nvarchar(20), COALESCE([状态值], 0)) AS [状态值],
+    CONVERT(nvarchar(19), [更新时间], 120) AS [更新时间],
+    COALESCE([显示摘要], N'') AS [显示摘要]
+FROM [鱼巢].[当前方法显示项]
+ORDER BY [更新时间] DESC, [方法主键];
+)SQL",
+                &结构_SQL控制面板数据::当前方法
+            },
+            {
+                "当前世界显示项",
+                R"SQL(
+SELECT
+    COALESCE([对象主键], N'') AS [对象主键],
+    COALESCE([父对象主键], N'') AS [父对象主键],
+    COALESCE([对象类型], N'') AS [对象类型],
+    CONVERT(nvarchar(19), [更新时间], 120) AS [更新时间],
+    COALESCE([显示摘要], N'') AS [显示摘要]
+FROM [鱼巢].[当前世界显示项]
+ORDER BY [更新时间] DESC, [对象主键];
+)SQL",
+                &结构_SQL控制面板数据::当前世界
+            },
+            {
+                "当前动态显示项",
+                R"SQL(
+SELECT
+    COALESCE([动态主键], N'') AS [动态主键],
+    COALESCE([来源主键], N'') AS [来源主键],
+    COALESCE([动态类型], N'') AS [动态类型],
+    CONVERT(nvarchar(19), [更新时间], 120) AS [更新时间],
+    COALESCE([显示摘要], N'') AS [显示摘要]
+FROM [鱼巢].[当前动态显示项]
+ORDER BY [更新时间] DESC, [动态主键];
+)SQL",
+                &结构_SQL控制面板数据::当前动态
+            },
+        };
+
+        for (const auto& [名称, SQL, 目标行集] : 运行态查询集) {
+            结构_ADO查询结果 查询结果{};
+            if (!私有_执行ADO控制面板查询(
+                连接串,
+                名称,
+                SQL,
+                查询结果,
+                错误)) {
+                return false;
+            }
+            (数据.*目标行集) = std::move(查询结果.行集);
+        }
+        if (数据.运行批次.empty()) {
+            错误 = "SQL 控制面板运行批次为空";
             return false;
         }
-        if (批次结果.行集.empty()) {
-            错误 = "SQL 最新批次为空";
-            return false;
-        }
-        数据.批次 = std::move(批次结果.行集.front());
+        const auto 读取行字段 = [](const std::vector<std::string>& 行, const std::size_t 索引) {
+            return 索引 < 行.size() ? 行[索引] : std::string{};
+        };
+        数据.批次 = {
+            读取行字段(数据.运行批次.front(), 0),
+            读取行字段(数据.运行批次.front(), 1),
+            读取行字段(数据.运行批次.front(), 2),
+            std::string("运行态SQL显示镜像 | 状态=") + 读取行字段(数据.运行批次.front(), 5)
+        };
 
         const std::vector<std::tuple<std::string_view, std::string_view, SQL控制面板目标行集>> 查询集{
             {
@@ -7020,10 +7152,55 @@ ORDER BY [行号];
                 SQL,
                 查询结果,
                 错误)) {
-                return false;
+                if (数据.投影读取错误.empty()) {
+                    数据.投影读取错误 = 错误;
+                }
+                continue;
             }
             (数据.*目标行集) = std::move(查询结果.行集);
         }
+
+        std::vector<std::vector<std::string>> 运行态指标{};
+        const auto 添加运行态指标 = [&](std::string 名称, const std::size_t 数量, std::string 来源) {
+            运行态指标.push_back({
+                std::move(名称),
+                "运行态SQL",
+                std::to_string(数量),
+                std::move(来源),
+                "控制面板运行态表"
+            });
+        };
+        添加运行态指标("运行批次", 数据.运行批次.size(), "[鱼巢].[控制面板运行批次]");
+        添加运行态指标("同步状态", 数据.同步状态.size(), "[鱼巢].[SQL投影同步状态]");
+        添加运行态指标("事件流水", 数据.事件流水.size(), "[鱼巢].[控制面板事件流水]");
+        添加运行态指标("当前任务", 数据.当前任务.size(), "[鱼巢].[当前任务显示项]");
+        添加运行态指标("当前需求", 数据.当前需求.size(), "[鱼巢].[当前需求显示项]");
+        添加运行态指标("当前方法", 数据.当前方法.size(), "[鱼巢].[当前方法显示项]");
+        添加运行态指标("当前世界", 数据.当前世界.size(), "[鱼巢].[当前世界显示项]");
+        添加运行态指标("当前动态", 数据.当前动态.size(), "[鱼巢].[当前动态显示项]");
+        if (!数据.投影读取错误.empty()) {
+            运行态指标.push_back({
+                "旧全量投影读取",
+                "校准路径",
+                "失败",
+                "可选读模型",
+                数据.投影读取错误
+            });
+        }
+        else {
+            运行态指标.push_back({
+                "旧全量投影读取",
+                "校准路径",
+                "可用",
+                "可选读模型",
+                "旧投影视图已读取"
+            });
+        }
+        运行态指标.insert(
+            运行态指标.end(),
+            std::make_move_iterator(数据.指标.begin()),
+            std::make_move_iterator(数据.指标.end()));
+        数据.指标 = std::move(运行态指标);
         return true;
     }
 
@@ -7534,6 +7711,30 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
         if (区段ID == "metrics") {
             return 私有_SQL控制面板表格区段刷新JSON(区段ID, "面板指标", { "指标", "分组", "值", "来源", "文件" }, 数据.指标);
         }
+        if (区段ID == "runtimeBatch") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "运行批次", { "运行ID", "启动时间", "来源", "进程ID", "同步开关", "状态" }, 数据.运行批次);
+        }
+        if (区段ID == "syncStatus") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "同步状态", { "同步域", "最近阶段", "状态", "更新时间", "最近错误" }, 数据.同步状态);
+        }
+        if (区段ID == "eventFlow") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "事件流水", { "时间", "领域", "操作", "对象", "摘要" }, 数据.事件流水);
+        }
+        if (区段ID == "currentTasks") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "当前任务", { "任务", "父任务", "状态值", "状态文本", "更新时间", "摘要" }, 数据.当前任务);
+        }
+        if (区段ID == "currentDemands") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "当前需求", { "需求", "父需求", "满足掩码", "已满足", "更新时间", "摘要" }, 数据.当前需求);
+        }
+        if (区段ID == "currentMethods") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "当前方法", { "方法", "父方法", "状态值", "更新时间", "摘要" }, 数据.当前方法);
+        }
+        if (区段ID == "currentWorld") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "当前世界", { "对象", "父对象", "类型", "更新时间", "摘要" }, 数据.当前世界);
+        }
+        if (区段ID == "currentDynamics") {
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "当前动态", { "动态", "来源", "类型", "更新时间", "摘要" }, 数据.当前动态);
+        }
         if (区段ID == "threads") {
             return 私有_SQL控制面板表格区段刷新JSON(区段ID, "线程信息", { "逻辑ID", "线程名", "生命周期", "运行状态", "健康", "模块", "最近事件" }, 数据.线程);
         }
@@ -7600,6 +7801,14 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
     bool 私有_是SQL控制面板区段(std::string_view 区段ID) noexcept
     {
         return 区段ID == "metrics"
+            || 区段ID == "runtimeBatch"
+            || 区段ID == "syncStatus"
+            || 区段ID == "eventFlow"
+            || 区段ID == "currentTasks"
+            || 区段ID == "currentDemands"
+            || 区段ID == "currentMethods"
+            || 区段ID == "currentWorld"
+            || 区段ID == "currentDynamics"
             || 区段ID == "threads"
             || 区段ID == "threadEvents"
             || 区段ID == "actions"
@@ -7667,21 +7876,29 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
             << "<div class=\"panel-shell\"><aside class=\"menu-bar\"><nav class=\"menu-group\" aria-label=\"控制面板菜单\">"
             << "<div class=\"menu-title\">运行</div>"
             << "<button class=\"active\" data-menu-index=\"1\" data-target=\"metrics\">1. 面板指标</button>"
-            << "<button data-menu-index=\"2\" data-target=\"threads\">2. 线程信息</button>"
-            << "<button data-menu-index=\"3\" data-target=\"threadEvents\">3. 线程事件</button>"
-            << "<button data-menu-index=\"4\" data-target=\"actions\">4. 动作动态</button>"
+            << "<button data-menu-index=\"2\" data-target=\"runtimeBatch\">2. 运行批次</button>"
+            << "<button data-menu-index=\"3\" data-target=\"syncStatus\">3. 同步状态</button>"
+            << "<button data-menu-index=\"4\" data-target=\"eventFlow\">4. 事件流水</button>"
+            << "<button data-menu-index=\"5\" data-target=\"currentTasks\">5. 当前任务</button>"
+            << "<button data-menu-index=\"6\" data-target=\"currentDemands\">6. 当前需求</button>"
+            << "<button data-menu-index=\"7\" data-target=\"currentMethods\">7. 当前方法</button>"
+            << "<button data-menu-index=\"8\" data-target=\"currentWorld\">8. 当前世界</button>"
+            << "<button data-menu-index=\"9\" data-target=\"currentDynamics\">9. 当前动态</button>"
+            << "<button data-menu-index=\"10\" data-target=\"threads\">10. 线程信息</button>"
+            << "<button data-menu-index=\"11\" data-target=\"threadEvents\">11. 线程事件</button>"
+            << "<button data-menu-index=\"12\" data-target=\"actions\">12. 动作动态</button>"
             << "<div class=\"menu-title\">治理</div>"
-            << "<button data-menu-index=\"5\" data-target=\"causalInfo\">5. 因果信息</button>"
-            << "<button data-menu-index=\"6\" data-target=\"causalChain\">6. 因果链查询</button>"
-            << "<button data-menu-index=\"7\" data-target=\"demandTree\">7. 需求树</button>"
-            << "<button data-menu-index=\"8\" data-target=\"taskTree\">8. 任务树</button>"
-            << "<button data-menu-index=\"9\" data-target=\"methodTree\">9. 方法树</button>"
-            << "<button data-menu-index=\"10\" data-target=\"worldTree\">10. 世界树</button>"
-            << "<button data-menu-index=\"11\" data-target=\"worldRelations\">11. 世界关系</button>"
-            << "<button data-menu-index=\"12\" data-target=\"lexemeTree\">12. 语素树</button>"
+            << "<button data-menu-index=\"13\" data-target=\"causalInfo\">13. 因果信息</button>"
+            << "<button data-menu-index=\"14\" data-target=\"causalChain\">14. 因果链查询</button>"
+            << "<button data-menu-index=\"15\" data-target=\"demandTree\">15. 需求树</button>"
+            << "<button data-menu-index=\"16\" data-target=\"taskTree\">16. 任务树</button>"
+            << "<button data-menu-index=\"17\" data-target=\"methodTree\">17. 方法树</button>"
+            << "<button data-menu-index=\"18\" data-target=\"worldTree\">18. 世界树</button>"
+            << "<button data-menu-index=\"19\" data-target=\"worldRelations\">19. 世界关系</button>"
+            << "<button data-menu-index=\"20\" data-target=\"lexemeTree\">20. 语素树</button>"
             << "<div class=\"menu-title\">基础</div>"
-            << "<button data-menu-index=\"13\" data-target=\"features\">13. 特征类型</button>"
-            << "<button data-menu-index=\"14\" data-target=\"catalog\">14. 字段目录</button>"
+            << "<button data-menu-index=\"21\" data-target=\"features\">21. 特征类型</button>"
+            << "<button data-menu-index=\"22\" data-target=\"catalog\">22. 字段目录</button>"
             << "</nav></aside><main class=\"content\">\n"
             << "<input id=\"filter\" type=\"search\" placeholder=\"过滤当前页表格和世界树文本\">\n"
             << "<section id=\"metrics\" class=\"active\" data-section-title=\"面板指标\"><h2>面板指标</h2>\n"
@@ -7706,6 +7923,14 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
         }
         输出 << "</tbody></table></div></section>\n";
 
+        私有_追加SQL控制面板表(输出, "运行批次", "runtimeBatch", { "运行ID", "启动时间", "来源", "进程ID", "同步开关", "状态" }, 数据.运行批次);
+        私有_追加SQL控制面板表(输出, "同步状态", "syncStatus", { "同步域", "最近阶段", "状态", "更新时间", "最近错误" }, 数据.同步状态);
+        私有_追加SQL控制面板表(输出, "事件流水", "eventFlow", { "时间", "领域", "操作", "对象", "摘要" }, 数据.事件流水);
+        私有_追加SQL控制面板表(输出, "当前任务", "currentTasks", { "任务", "父任务", "状态值", "状态文本", "更新时间", "摘要" }, 数据.当前任务);
+        私有_追加SQL控制面板表(输出, "当前需求", "currentDemands", { "需求", "父需求", "满足掩码", "已满足", "更新时间", "摘要" }, 数据.当前需求);
+        私有_追加SQL控制面板表(输出, "当前方法", "currentMethods", { "方法", "父方法", "状态值", "更新时间", "摘要" }, 数据.当前方法);
+        私有_追加SQL控制面板表(输出, "当前世界", "currentWorld", { "对象", "父对象", "类型", "更新时间", "摘要" }, 数据.当前世界);
+        私有_追加SQL控制面板表(输出, "当前动态", "currentDynamics", { "动态", "来源", "类型", "更新时间", "摘要" }, 数据.当前动态);
         私有_追加SQL控制面板表(输出, "线程信息", "threads", { "逻辑ID", "线程名", "生命周期", "运行状态", "健康", "模块", "最近事件" }, 数据.线程);
         私有_追加SQL控制面板表(输出, "线程生命周期事件", "threadEvents", { "消息ID", "事件", "线程", "旧生命周期", "新生命周期", "原因", "摘要" }, 数据.线程事件);
         私有_追加SQL控制面板表(输出, "动作动态", "actions", { "时间", "类", "事件", "方法", "特征", "动作动态", "来源动态" }, 数据.动作动态);
