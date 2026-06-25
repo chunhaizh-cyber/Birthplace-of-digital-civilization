@@ -1,5 +1,10 @@
 #include "语素类.h"
 
+// 文件头部规则注释模块：
+// 1. 修改本文件前先阅读本模块；语素入口只作为身份入口，机器逻辑不得用词面文本替代项目结构身份。
+// 2. SQL 投影和字段恢复比对只用于显示 / 诊断 / 存储验证，不得反向作为语素业务判断来源。
+// 3. 本模块只供人读，不参与机器判断；业务状态仍必须由语素节点、主信息和项目通用结构承载。
+
 #include "基础信息类.h"
 #include "场景类.h"
 #include "日志接入.h"
@@ -12,6 +17,7 @@
 #include <unordered_map>
 
 import 数据库ADO模块;
+import 全局共享函数类;
 
 namespace {
 
@@ -335,11 +341,6 @@ namespace {
         return 输出;
     }
 
-    std::string 私有_SQL布尔(const bool 值)
-    {
-        return 值 ? "1" : "0";
-    }
-
     std::string 私有_SQL可空整数(const bool 有值, const int 值)
     {
         return 有值 ? std::to_string(值) : "NULL";
@@ -650,7 +651,7 @@ namespace {
                 << 私有_SQL可空整数(行.有基础信息类型, 行.基础信息类型值) << ", "
                 << 私有_SQL字符串(行.基础信息类型文本) << ", "
                 << 私有_SQL字符串(行.对应基础信息主键) << ", "
-                << 私有_SQL布尔(行.已绑定基础信息) << ");\n";
+                << 布尔文本_一或零(行.已绑定基础信息) << ");\n";
         }
         SQL << "IF EXISTS (\n"
             << "    SELECT 1\n"
@@ -686,11 +687,6 @@ namespace {
     std::string 私有_语素SQL字段可空整数(const bool 有值, const int 值)
     {
         return 有值 ? std::to_string(值) : std::string{};
-    }
-
-    std::string 私有_语素SQL字段布尔(const bool 值)
-    {
-        return 值 ? "1" : "0";
     }
 
     std::vector<std::vector<std::string>> 私有_语素SQL快照预期字段(
@@ -744,7 +740,7 @@ namespace {
                 私有_语素SQL字段可空整数(行.有基础信息类型, 行.基础信息类型值),
                 行.基础信息类型文本,
                 行.对应基础信息主键,
-                私有_语素SQL字段布尔(行.已绑定基础信息),
+                std::string(布尔文本_一或零(行.已绑定基础信息)),
             });
         }
         return 输出;
