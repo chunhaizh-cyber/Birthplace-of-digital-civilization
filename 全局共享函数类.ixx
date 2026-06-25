@@ -4,6 +4,7 @@ module;
 
 #include <bit>
 #include <cmath>
+#include <ostream>
 #include <string>
 #include <string_view>
 
@@ -102,6 +103,39 @@ export inline void 写入可选错误文本(std::string* 错误, const char* 文
     if (错误) {
         *错误 = 文本 ? 文本 : "";
     }
+}
+
+// 功能：转义文本键值文件字段值中的反斜杠、换行、回车和制表符。
+export inline std::string 转义键值字段值(std::string_view 文本)
+{
+    std::string 输出;
+    输出.reserve(文本.size());
+    for (const char 字符 : 文本) {
+        switch (字符) {
+        case '\\':
+            输出 += "\\\\";
+            break;
+        case '\n':
+            输出 += "\\n";
+            break;
+        case '\r':
+            输出 += "\\r";
+            break;
+        case '\t':
+            输出 += "\\t";
+            break;
+        default:
+            输出.push_back(字符);
+            break;
+        }
+    }
+    return 输出;
+}
+
+// 功能：按 `键=转义值` 格式写入一行文本键值字段。
+export inline void 写入转义键值字段行(std::ostream& 输出, std::string_view 键, std::string_view 值)
+{
+    输出 << 键 << '=' << 转义键值字段值(值) << '\n';
 }
 
 // 功能：把稳定主键文本折叠为 U64；仅用于主键/标识压缩，不用于自由文本业务判断。
