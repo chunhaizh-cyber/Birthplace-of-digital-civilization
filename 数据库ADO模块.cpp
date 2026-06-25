@@ -1,5 +1,10 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 本模块只提供 SQL Server ADO 访问基础能力，不承载业务权威事实。
+// 2. ADO 写命令受 预处理开关变量.h 中 SQL 控制面板同步写入开关控制；关闭时不得实际写库。
+// 3. 查询和字段恢复比对只服务显示 / 诊断 / 存储验证，不得反向作为业务判断来源。
+
 #include <comdef.h>
 #include <cstdint>
 #include <cstddef>
@@ -13,6 +18,8 @@ module;
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+#include "预处理开关变量.h"
 
 #import "C:\\Program Files\\Common Files\\System\\ado\\msado15.dll" \
     rename("EOF", "ADOEOF") \
@@ -356,6 +363,13 @@ bool 执行ADO命令(
 {
     错误.clear();
 
+#if !鱼巢_开关_启用SQL控制面板同步写入
+    (void)连接串;
+    (void)SQL;
+    (void)命令超时秒;
+    错误 = "ADO命令写入已被预处理开关关闭 | 开关=鱼巢_开关_启用SQL控制面板同步写入";
+    return false;
+#else
     const 结构_COM初始化 COM初始化{};
     if (!COM初始化.可继续) {
         错误 = "ADO命令COM初始化失败 | HRESULT=" + 私有_HRESULT文本(COM初始化.结果);
@@ -385,4 +399,5 @@ bool 执行ADO命令(
         私有_关闭ADO连接(连接);
         return false;
     }
+#endif
 }
