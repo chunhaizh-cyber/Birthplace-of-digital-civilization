@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>需求生成与治理闭环流程图 v0.3</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; position: sticky; top: 0; z-index: 2; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    h2 { margin: 0 0 12px; font-size: 18px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    .diagram { margin-bottom: 20px; }
+    .canvas { min-width: 1760px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 1720px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    .notes ul { margin: 8px 0 0; padding-left: 20px; }
+    .notes li { margin: 4px 0; }
+    code { background: #f6f8fa; padding: 1px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>需求生成与治理闭环流程图 v0.3</h1>
+    <p class="hint">总图 + 模块图。v0.3 补入拒绝回执治理闭环，并将代码缺陷型拒绝固定为开发诊断闭环，不进入普通需求树。</p>
+  </header>
+  <main>
+    <section class="diagram">
+      <h2>总图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    Start(["开始：进入需求生成与治理闭环"]) --&gt; M1[["模块 1：来源发现&lt;br/&gt;发现需求前材料"]]
+    M1 --&gt; A[/接口 A：需求前材料&lt;br/&gt;候选 / 报告 / 草案 / 回查信号&lt;br/&gt;不是正式需求/]
+    A --&gt; M2[["模块 2：目标归一与消息规范化&lt;br/&gt;差距确认、补槽、幂等"]]
+    M2 --&gt; B[/接口 B：入树请求&lt;br/&gt;新增指令或派生需求消息/]
+    B --&gt; M3[["模块 3：自我线程入树裁决&lt;br/&gt;校验、去重、合并、执行更新指令"]]
+
+    M3 --&gt; COK[(正式需求节点&lt;br/&gt;统一需求树)]
+    M3 --&gt; CREJ[/需求入树拒绝回执&lt;br/&gt;已进入治理闭环/]
+    CREJ --&gt; M35[["模块 3.5：拒绝回执治理处理&lt;br/&gt;分类、转派、隔离、关闭"]]
+
+    COK --&gt; M4[["模块 4：任务化与任务推进&lt;br/&gt;任务承接、筹办、执行"]]
+    M4 --&gt; D[/接口 D：结果事实 / 新缺口&lt;br/&gt;输出场景、动作动态、回执/]
+    D --&gt; M5[["模块 5：结果验证与满足回写&lt;br/&gt;事实可信、需求满足、结算闸门"]]
+    M5 --&gt; Root{"父链 / 根状态&lt;br/&gt;是否需要重判？"}
+    Root -- "需要继续推进" --&gt; M1
+    Root -- "本轮重判完成" --&gt; Next(["结束：等待下一轮状态触发"])
+
+    M35 -- "补槽后重提 / 观察验证 / 学习 / 材料处理" --&gt; M2
+    M35 -- "合并 / 冷却 / 来源任务内部闭合" --&gt; M4
+    M35 -- "开发诊断闭环：等待代码修复" --&gt; StopDiag(["暂停该来源路径&lt;br/&gt;不得普通需求化"])
+
+    B1["边界：候选、报告、草案不是正式需求"] -.-> A
+    B2["边界：正式需求只能经自我线程裁决和需求类::执行更新指令入树"] -.-> M3
+    B3["边界：拒绝入树可以，拒绝治理不可以"] -.-> M35
+    B4["边界：代码缺陷不是需求缺口，只能走开发诊断闭环"] -.-> StopDiag
+    B5["边界：任务筹办 / 任务执行不是本能方法或动作来源"] -.-> M4
+        </pre>
+      </div>
+    </section>
+
+    <section class="diagram">
+      <h2>模块 1：来源发现</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    In(["开始：扫描来源"]) --&gt; Root["读取根特征状态&lt;br/&gt;安全 / 服务 / 抽象根特征定义"]
+    Root --&gt; RootGap{"根特征存在缺口？"}
+    RootGap -- "是" --&gt; RootMat[/根特征缺口材料/]
+    RootGap -- "否" --&gt; RootIdle["根需求保持低压或等待"]
+
+    In --&gt; Self["自检 / 主动报送"]
+    Self --&gt; SelfKind{"材料类型？"}
+    SelfKind -- "差距" --&gt; SelfGap[/自检差距材料/]
+    SelfKind -- "代码缺陷" --&gt; CodeMat[/代码缺陷报告&lt;br/&gt;仍是需求前材料/]
+    SelfKind -- "诊断" --&gt; SelfDiag[/诊断报告/]
+
+    In --&gt; Body["身体反馈 / 观察反馈"]
+    Body --&gt; BodyMat[/反馈材料&lt;br/&gt;实时值、观察事实、证据状态/]
+
+    In --&gt; Prep["任务筹办不能一步就绪"]
+    Prep --&gt; Causal["路径筹办&lt;br/&gt;读取来源需求目标和世界树因果"]
+    Causal --&gt; LearnSplit{"缺口类型？"}
+    LearnSplit -- "方法 / 动作 / 条件结果对 / 参数映射 / 验证方法" --&gt; LearnMat[/学习或方法补全缺口材料/]
+    LearnSplit -- "条件 / 证据 / 副作用 / 因果路径" --&gt; PrepMat[/筹办缺口材料或派生草案/]
+
+    In --&gt; Exec["任务执行未满足来源需求"]
+    Exec --&gt; ExecMat[/执行缺口材料或派生草案/]
+
+    In --&gt; Parent["子需求满足 / 任务完成"]
+    Parent --&gt; ParentMat[/父目标回查材料/]
+
+    RootMat --&gt; Out[/接口 A：需求前材料/]
+    SelfGap --&gt; Out
+    CodeMat --&gt; Out
+    SelfDiag --&gt; Out
+    BodyMat --&gt; Out
+    LearnMat --&gt; Out
+    PrepMat --&gt; Out
+    ExecMat --&gt; Out
+    ParentMat --&gt; Out
+        </pre>
+      </div>
+    </section>
+
+    <section class="diagram">
+      <h2>模块 2：目标归一与消息规范化</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    In[/接口 A：需求前材料/] --&gt; Kind{"来源形态？"}
+
+    Kind -- "自检 / 反馈 / 根缺口" --&gt; Translate["翻译获取途径&lt;br/&gt;裁决父域和目标宿主"]
+    Translate --&gt; CodeDefect{"代码缺陷型报告？"}
+    CodeDefect -- "是" --&gt; CodeReceipt[/拒绝回执&lt;br/&gt;闭环类型=开发诊断闭环/]
+    CodeDefect -- "否" --&gt; Atomic["检查原子目标完整性&lt;br/&gt;父需求、目标宿主、目标特征、当前状态、目标状态、满足关系"]
+    Atomic --&gt; Complete{"目标字段完整？"}
+    Complete -- "否" --&gt; MissingReceipt[/拒绝回执&lt;br/&gt;字段缺失或目标不可判定/]
+    Complete -- "是" --&gt; Compare{"三态比较 / 差距确认&lt;br/&gt;当前状态 vs 目标状态"}
+    Compare -- "已满足" --&gt; Natural[(自然闭合记录&lt;br/&gt;不入普通需求树)]
+    Compare -- "不可判定" --&gt; ObserveMat[/观察验证缺口材料/]
+    Compare -- "未满足" --&gt; NewInstr[/新增原子需求指令/]
+
+    Kind -- "筹办 / 执行派生草案" --&gt; Build["构造结构_任务管理派生需求消息"]
+    Build --&gt; Normalize["规范化消息&lt;br/&gt;补主键槽、语义槽、版本号、幂等键"]
+    Normalize --&gt; MsgComplete{"字段完整？"}
+    MsgComplete -- "否" --&gt; BuildReceipt[/拒绝回执&lt;br/&gt;退回来源补槽/]
+    MsgComplete -- "是" --&gt; Internal{"外设内部材料字段&lt;br/&gt;或仅参数诊断？"}
+    Internal -- "外设材料" --&gt; MaterialReceipt[/拒绝普通需求化&lt;br/&gt;闭环类型=外设材料闭环/]
+    Internal -- "参数诊断" --&gt; ParamReceipt[/拒绝普通需求化&lt;br/&gt;闭环类型=来源任务内部闭环或学习闭环/]
+    Internal -- "否" --&gt; Dedup{"同批 / 近期重复？"}
+    Dedup -- "是" --&gt; MergeReceipt[/拒绝回执&lt;br/&gt;闭环类型=合并冷却闭环/]
+    Dedup -- "否" --&gt; UpMsg[/上报派生需求消息&lt;br/&gt;直接写需求树=0/]
+
+    NewInstr --&gt; Out[/接口 B：入树请求/]
+    UpMsg --&gt; Out
+    ObserveMat --&gt; BackA((回到模块 1&lt;br/&gt;继续补证据))
+
+    CodeReceipt --&gt; Reject[/进入模块 3.5/]
+    MissingReceipt --&gt; Reject
+    BuildReceipt --&gt; Reject
+    MaterialReceipt --&gt; Reject
+    ParamReceipt --&gt; Reject
+    MergeReceipt --&gt; Reject
+        </pre>
+      </div>
+    </section>
+
+    <section class="diagram">
+      <h2>模块 3：自我线程入树裁决</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    In[/接口 B：入树请求/] --&gt; Shape{"请求形态？"}
+    Shape -- "新增原子需求指令" --&gt; Entry["需求类::执行更新指令"]
+    Shape -- "派生需求消息" --&gt; Receive["自我线程接收派生需求消息"]
+    Receive --&gt; Ensure["私有_确保派生需求节点"]
+    Ensure --&gt; Gate{"入树闸门通过？"}
+
+    Gate -- "父需求非法" --&gt; RejectDev[/拒绝回执&lt;br/&gt;开发诊断闭环/]
+    Gate -- "父为结构根且无合法映射" --&gt; RejectDev
+    Gate -- "父子目标自复制" --&gt; RejectDev
+    Gate -- "本应存在的动态为空 / 结构损坏" --&gt; RejectDev
+    Gate -- "逻辑上不允许的空指针 / 非法枚举" --&gt; RejectDev
+
+    Gate -- "字段可补 / 主体可观察 / 证据可补" --&gt; RejectGov[/拒绝回执&lt;br/&gt;可治理闭环/]
+    Gate -- "外设材料 / 参数诊断 / 重复" --&gt; RejectOther[/拒绝回执&lt;br/&gt;材料、来源任务内部或合并冷却闭环/]
+
+    Gate -- "通过" --&gt; Same{"同父已有目标重叠子需求？"}
+    Same -- "有" --&gt; Merge["复用 / 合并既有需求&lt;br/&gt;补证据和版本"]
+    Same -- "无" --&gt; NewDemand["构造新增原子需求指令"]
+    Merge --&gt; Entry
+    NewDemand --&gt; Entry
+
+    Entry --&gt; Result{"更新指令结果？"}
+    Result -- "新增 / 更新 / 合并成功" --&gt; Node[(正式需求节点&lt;br/&gt;统一需求树)]
+    Result -- "服务拒绝 / 结构异常" --&gt; RejectService[/拒绝回执&lt;br/&gt;按原因分类/]
+
+    Node --&gt; Refresh["刷新子需求权重、结构角色、调度摘要"]
+    Refresh --&gt; Success[/派生需求入树成功回执/]
+    Success --&gt; Out[/接口 C：正式需求节点/]
+
+    RejectDev --&gt; ROut[/进入模块 3.5/]
+    RejectGov --&gt; ROut
+    RejectOther --&gt; ROut
+    RejectService --&gt; ROut
+        </pre>
+      </div>
+    </section>
+
+    <section class="diagram">
+      <h2>模块 3.5：拒绝回执治理处理</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    In[/需求入树拒绝回执/] --&gt; Ledger[(拒绝回执账本&lt;br/&gt;原因、阶段、版本、幂等键)]
+    Ledger --&gt; HasPlan{"拒绝原因有处理方案？"}
+    HasPlan -- "否" --&gt; SpecBlock["不得进入正式规范 / 正式枚举&lt;br/&gt;升级为规范缺口或开发诊断"]
+    HasPlan -- "是" --&gt; Type{"拒绝闭环类型？"}
+
+    Type -- "内部治理闭环" --&gt; Fill["自动补槽 / 重判父域 / 重建语义槽"]
+    Fill --&gt; Retry{"可重提入树？"}
+    Retry -- "是" --&gt; RetryOut[/修复后重提到模块 2/]
+    Retry -- "否" --&gt; Escalate["升级为诊断或来源补槽"]
+
+    Type -- "观察验证闭环" --&gt; Observe["生成观察验证材料&lt;br/&gt;记录来源版本和证据缺口"]
+    Observe --&gt; ObserveOut[/回到模块 1 或模块 2/]
+
+    Type -- "学习闭环" --&gt; Learn["生成学习缺口材料&lt;br/&gt;区分缺方法、缺动作、缺条件结果对、缺参数映射、缺验证方法"]
+    Learn --&gt; LearnOut[/回到模块 1 或模块 2/]
+
+    Type -- "来源任务内部闭环" --&gt; SourceTask["绑定来源任务&lt;br/&gt;参数重绑、方法候选降权或重筹办"]
+    SourceTask --&gt; SourceDone[(来源任务处理状态更新)]
+
+    Type -- "外设材料闭环" --&gt; Peripheral["转外设材料仓库 / 观察结果包 / 方法内部材料依赖"]
+    Peripheral --&gt; MaterialDone[(材料闭合或来源任务降级)]
+
+    Type -- "合并冷却闭环" --&gt; Cool["绑定既有需求 / 任务 / 回执&lt;br/&gt;合并证据、更新冷却"]
+    Cool --&gt; CoolDone[(冷却或合并关闭)]
+
+    Type -- "开发诊断闭环" --&gt; Diag[["开发诊断闭环子流程"]]
+    Diag --&gt; DevItem[(结构_开发诊断项&lt;br/&gt;复现上下文、来源对象、版本信息)]
+    DevItem --&gt; Isolate["阻断 / 降级 / 隔离来源路径"]
+    Isolate --&gt; FailReceipt[/向来源任务返回实现缺陷阻断回执/]
+    FailReceipt --&gt; Alert[/日志 + 弹窗 / 报错 / 通知开发者/]
+    Alert --&gt; WaitFix(["等待开发者修正代码"])
+    WaitFix --&gt; Build["编译 / 预编译检查"]
+    Build --&gt; Regression{"回归测试通过？"}
+    Regression -- "否" --&gt; WaitFix
+    Regression -- "是" --&gt; CloseDiag[(关闭开发诊断项&lt;br/&gt;允许恢复或替换路径)]
+
+    SpecBlock --&gt; DevItem
+        </pre>
+      </div>
+    </section>
+
+    <section class="diagram">
+      <h2>模块 4：任务化与任务推进</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    In[/接口 C：正式需求节点/] --&gt; List["从需求树构建服务优先 / 安全优先需求列表"]
+    List --&gt; Main["选择当前主需求候选"]
+    Main --&gt; Taskable{"普通可任务化叶子需求？"}
+    Taskable -- "否" --&gt; WaitNode["等待子需求、逻辑组织聚合&lt;br/&gt;或父任务重筹办"]
+    Taskable -- "是" --&gt; Intent["提交活动需求任务化意图"]
+    Intent --&gt; TaskHead["任务管理界面线程&lt;br/&gt;创建或复用任务头 / 任务虚拟存在"]
+    TaskHead --&gt; Prep["任务管理工作线程筹办"]
+
+    Prep --&gt; Path["路径筹办&lt;br/&gt;临时因果视图、条件、证据、副作用、学习缺口"]
+    Path --&gt; BlockGap{"发现阻塞派生需求？"}
+    BlockGap -- "是" --&gt; Suspend["冻结 / 挂起来源任务&lt;br/&gt;记录派生需求幂等键"]
+    Suspend --&gt; BackM2[/回到模块 2&lt;br/&gt;规范化派生需求消息/]
+    Suspend --&gt; WaitReceipt{"收到入树成功或拒绝回执？"}
+    WaitReceipt -- "入树成功" --&gt; WaitChild["等待派生需求完成"]
+    WaitReceipt -- "可治理拒绝" --&gt; Replan["按回执补槽、转学习、转观察或重筹办"]
+    WaitReceipt -- "开发诊断拒绝" --&gt; StopPath["来源任务进入实现缺陷阻断&lt;br/&gt;停止当前路径重复筹办"]
+
+    BlockGap -- "否" --&gt; MethodPlan["方法筹办&lt;br/&gt;按结果能力填充候选方法集"]
+    MethodPlan --&gt; Select["从候选集中确定当前方法"]
+    Select --&gt; Ready{"方法、条件、参数、入口就绪？"}
+    Ready -- "否" --&gt; Suspend
+    Ready -- "是" --&gt; Execute["执行当前方法&lt;br/&gt;任务执行仍是生命周期普通函数"]
+    Execute --&gt; Result["输出结果场景 / 运行存在 / 动作动态"]
+    Result --&gt; Hit{"来源需求目标实际达成？"}
+    Hit -- "否" --&gt; ExecGap[/执行缺失回执或派生需求草案/]
+    ExecGap --&gt; Suspend
+    Hit -- "是" --&gt; Out[/接口 D：结果事实/]
+        </pre>
+      </div>
+    </section>
+
+    <section class="diagram">
+      <h2>模块 5：结果验证与满足回写</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart TD
+    In[/接口 D：结果事实/] --&gt; Fact["读取任务完成回执&lt;br/&gt;输出事实、运行存在、动作动态、需求目标"]
+    Fact --&gt; Trust{"结果事实可信？"}
+    Trust -- "证据不足" --&gt; ObsNeed[/观察验证或诊断材料/]
+    Trust -- "事实冲突" --&gt; Conflict[/冲突缺口材料&lt;br/&gt;降低路径排序/]
+    Trust -- "可信" --&gt; Satisfied{"来源需求满足？"}
+
+    ObsNeed --&gt; BackM1((回到模块 1))
+    Conflict --&gt; BackM1
+
+    Satisfied -- "否" --&gt; NotDone["记录路径失败或证据不足&lt;br/&gt;来源任务重筹办或生成更细材料"]
+    NotDone --&gt; BackM1
+
+    Satisfied -- "是" --&gt; WriteBack["回写需求满足状态&lt;br/&gt;退出活动集"]
+    WriteBack --&gt; SettleGate{"价值结算硬闸门通过？"}
+    SettleGate -- "否" --&gt; NoSettle["不结算安全 / 服务值&lt;br/&gt;只记录任务完成事实"]
+    SettleGate -- "是" --&gt; Settle["叶子任务价值反馈链&lt;br/&gt;实际结果、完成度、权重、因果证据"]
+
+    NoSettle --&gt; ParentCheck["回查父需求目标特征"]
+    Settle --&gt; ParentCheck
+    ParentCheck --&gt; ParentDone{"父目标达成？"}
+    ParentDone -- "否" --&gt; Rebatch["唤醒父任务重筹办&lt;br/&gt;子需求完成不等于父需求满足"]
+    Rebatch --&gt; BackM1
+    ParentDone -- "是" --&gt; Root["继续向上回查父链&lt;br/&gt;刷新根状态、主需求和调度摘要"]
+    Root --&gt; BackM1
+        </pre>
+      </div>
+    </section>
+
+    <section class="diagram">
+      <h2>线程泳道图</h2>
+      <div class="canvas">
+        <pre class="mermaid">
+flowchart LR
+    subgraph Self["自我线程"]
+        S1["接收需求前材料 / 入树请求"]
+        S2["入树裁决"]
+        S3["生成正式需求节点或拒绝回执"]
+        S4["满足回写 / 父链重判"]
+    end
+
+    subgraph Demand["需求类 / 统一需求树"]
+        D1["需求类::执行更新指令"]
+        D2[(统一需求树)]
+        D3[(拒绝回执账本)]
+    end
+
+    subgraph Task["任务管理线程"]
+        T1["创建 / 复用任务"]
+        T2["筹办：路径、方法、条件"]
+        T3["执行当前方法"]
+        T4["接收入树成功或拒绝回执"]
+    end
+
+    subgraph Peripheral["外设线程 / 观察中间层"]
+        P1[/观察材料 / 外设内部材料/]
+        P2[(外设材料仓库 / 观察结果包)]
+    end
+
+    subgraph Dev["开发诊断闭环"]
+        V1[(结构_开发诊断项)]
+        V2["隔离来源路径"]
+        V3["代码修正 + 编译 + 回归"]
+    end
+
+    P1 --&gt; S1
+    S1 --&gt; S2
+    S2 --&gt; D1
+    D1 --&gt; D2
+    S2 --&gt; D3
+    D2 --&gt; T1
+    T1 --&gt; T2
+    T2 --&gt; S1
+    S3 --&gt; T4
+    T4 --&gt; T2
+    T3 --&gt; S4
+    S4 --&gt; D2
+
+    D3 -- "外设材料闭环" --&gt; P2
+    D3 -- "开发诊断闭环" --&gt; V1
+    V1 --&gt; V2
+    V2 --&gt; T4
+    V2 --&gt; V3
+        </pre>
+      </div>
+    </section>
+
+    <section class="notes">
+      <strong>关键边界</strong>
+      <ul>
+        <li>需求前材料、派生需求消息、拒绝回执都不是正式需求节点。</li>
+        <li>正式需求只能经自我线程裁决并通过 <code>需求类::执行更新指令</code> 入统一需求树。</li>
+        <li>拒绝入树不是终态；每类拒绝原因必须有处理方案。</li>
+        <li>代码缺陷型拒绝不是需求缺口，固定进入开发诊断闭环。</li>
+        <li>开发诊断项建立不等于代码缺陷关闭；关闭必须依赖代码修正、编译和回归测试。</li>
+        <li>来源任务必须接收入树成功或拒绝回执，并停止同一路径重复派生。</li>
+        <li>子需求完成不等于父需求满足；任务完成不等于可以价值结算。</li>
+      </ul>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
