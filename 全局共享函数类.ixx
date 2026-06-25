@@ -115,6 +115,34 @@ export inline I64 区间跨度容差I64(
         (std::max<I64>)(第一跨度, 第二跨度) / 2);
 }
 
+// 功能：按基准计数计算容差，最小容差为 5，保持原调用点整数语义。
+export inline I64 计数容差I64(I64 基准) noexcept
+{
+    const auto 正基准 = 基准 >= 0 ? 基准 : -基准;
+    return (std::max<I64>)(5, 正基准 / 20);
+}
+
+// 功能：计算正向宽高面积，宽高非正时返回 0，保持原调用点乘法语义。
+export inline std::uint64_t 正面积U64(I64 宽度, I64 高度) noexcept
+{
+    if (宽度 <= 0 || 高度 <= 0) {
+        return 0;
+    }
+    return static_cast<std::uint64_t>(宽度) * static_cast<std::uint64_t>(高度);
+}
+
+// 功能：按是否启用滞回扩展 I64 容差，启用时增加基础值的一半。
+export inline I64 滞回容差I64(I64 基础, bool 启用滞回) noexcept
+{
+    return 启用滞回 ? 基础 + 基础 / 2 : 基础;
+}
+
+// 功能：按旧值二份、新值一份计算 I64 平滑值，未初始化时直接返回新值。
+export inline I64 二比一平滑I64(I64 旧值, I64 新值, bool 已初始化) noexcept
+{
+    return 已初始化 ? (旧值 * 2 + 新值) / 3 : 新值;
+}
+
 // 功能：计算两个 I64 边界的中点，避免直接相加导致溢出。
 export inline I64 区间中点(I64 下界, I64 上界) noexcept
 {
