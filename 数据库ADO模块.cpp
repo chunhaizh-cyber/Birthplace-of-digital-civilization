@@ -9,6 +9,7 @@ module;
 #include <cstdint>
 #include <cstddef>
 #include <iomanip>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -237,6 +238,261 @@ namespace {
         }
         输出 += "'";
         return 输出;
+    }
+
+    // 功能：把可空文本编码为 SQL Server 字面量。
+    std::string 私有_SQL可空字符串(const std::string_view 文本)
+    {
+        if (文本.empty()) {
+            return "NULL";
+        }
+        return 私有_SQL字符串(文本);
+    }
+
+    // 功能：把可空整数编码为 SQL Server 字面量。
+    std::string 私有_SQL可空整数(const std::optional<std::int64_t> 值)
+    {
+        if (!值.has_value()) {
+            return "NULL";
+        }
+        return std::to_string(*值);
+    }
+
+    // 功能：把可空布尔值编码为 SQL Server bit 字面量。
+    std::string 私有_SQL可空布尔(const std::optional<bool> 值)
+    {
+        if (!值.has_value()) {
+            return "NULL";
+        }
+        return *值 ? "1" : "0";
+    }
+
+    // 功能：读取 SQL 控制面板显示域的显示文本。
+    std::string_view 私有_SQL控制面板显示域文本(const 枚举_SQL控制面板显示域 显示域)
+    {
+        switch (显示域) {
+        case 枚举_SQL控制面板显示域::任务:
+            return "任务";
+        case 枚举_SQL控制面板显示域::需求:
+            return "需求";
+        case 枚举_SQL控制面板显示域::方法:
+            return "方法";
+        case 枚举_SQL控制面板显示域::世界:
+            return "世界";
+        case 枚举_SQL控制面板显示域::动态:
+            return "动态";
+        default:
+            return {};
+        }
+    }
+
+    // 功能：读取 SQL 控制面板显示域对应的运行态表名。
+    std::string_view 私有_SQL控制面板显示域表名(const 枚举_SQL控制面板显示域 显示域)
+    {
+        switch (显示域) {
+        case 枚举_SQL控制面板显示域::任务:
+            return "[鱼巢].[当前任务显示项]";
+        case 枚举_SQL控制面板显示域::需求:
+            return "[鱼巢].[当前需求显示项]";
+        case 枚举_SQL控制面板显示域::方法:
+            return "[鱼巢].[当前方法显示项]";
+        case 枚举_SQL控制面板显示域::世界:
+            return "[鱼巢].[当前世界显示项]";
+        case 枚举_SQL控制面板显示域::动态:
+            return "[鱼巢].[当前动态显示项]";
+        default:
+            return {};
+        }
+    }
+
+    // 功能：读取 SQL 控制面板显示域对应的主键列名。
+    std::string_view 私有_SQL控制面板显示域主键列(const 枚举_SQL控制面板显示域 显示域)
+    {
+        switch (显示域) {
+        case 枚举_SQL控制面板显示域::任务:
+            return "[任务主键]";
+        case 枚举_SQL控制面板显示域::需求:
+            return "[需求主键]";
+        case 枚举_SQL控制面板显示域::方法:
+            return "[方法主键]";
+        case 枚举_SQL控制面板显示域::世界:
+            return "[对象主键]";
+        case 枚举_SQL控制面板显示域::动态:
+            return "[动态主键]";
+        default:
+            return {};
+        }
+    }
+
+    // 功能：读取当前控制面板运行批次 ID。
+    bool 私有_读取SQL控制面板当前运行ID(std::string& 运行ID, std::string& 错误)
+    {
+        运行ID.clear();
+        错误.clear();
+
+        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "鱼巢投影库");
+        结构_ADO查询结果 查询结果{};
+        std::string ADO错误{};
+        if (!执行ADO查询(
+            投影库连接串,
+            "SELECT TOP (1) CONVERT(varchar(36), [运行ID]) FROM [鱼巢].[控制面板运行批次] ORDER BY [启动时间] DESC;",
+            查询结果,
+            ADO错误)) {
+            错误 = "读取控制面板运行ID失败 | " + ADO错误;
+            return false;
+        }
+        if (查询结果.行集.empty() || 查询结果.行集.front().empty() || 查询结果.行集.front().front().empty()) {
+            错误 = "读取控制面板运行ID失败 | 原因=运行批次为空";
+            return false;
+        }
+        运行ID = 查询结果.行集.front().front();
+        return true;
+    }
+
+    // 功能：生成控制面板事件流水追加 SQL 片段。
+    std::string 私有_SQL控制面板事件流水追加片段(
+        const std::string& 运行ID,
+        const 枚举_SQL控制面板显示域 显示域,
+        const std::string_view 操作,
+        const std::string_view 对象主键,
+        const std::string_view 显示摘要)
+    {
+        std::ostringstream SQL;
+        SQL
+            << "INSERT INTO [鱼巢].[控制面板事件流水] ([运行ID], [发生时间], [领域], [操作], [对象主键], [显示摘要])\n"
+            << "VALUES (CONVERT(uniqueidentifier, "
+            << 私有_SQL字符串(运行ID)
+            << "), SYSUTCDATETIME(), "
+            << 私有_SQL字符串(私有_SQL控制面板显示域文本(显示域))
+            << ", "
+            << 私有_SQL字符串(操作)
+            << ", "
+            << 私有_SQL可空字符串(对象主键)
+            << ", "
+            << 私有_SQL可空字符串(显示摘要)
+            << ");\n";
+        return SQL.str();
+    }
+
+    // 功能：生成任务显示项 upsert 脚本。
+    std::string 私有_SQL任务显示项Upsert脚本(const std::string& 运行ID, const 结构_SQL控制面板显示项& 显示项)
+    {
+        std::ostringstream SQL;
+        SQL
+            << "MERGE [鱼巢].[当前任务显示项] AS 目标\n"
+            << "USING (SELECT CONVERT(uniqueidentifier, " << 私有_SQL字符串(运行ID) << ") AS [运行ID], "
+            << 私有_SQL字符串(显示项.主键) << " AS [任务主键], "
+            << 私有_SQL可空字符串(显示项.父主键) << " AS [父任务主键], "
+            << 私有_SQL可空整数(显示项.状态值) << " AS [状态值], "
+            << 私有_SQL可空字符串(显示项.状态文本) << " AS [状态文本], "
+            << 私有_SQL可空字符串(显示项.显示摘要) << " AS [显示摘要]) AS 源\n"
+            << "ON 目标.[任务主键] = 源.[任务主键]\n"
+            << "WHEN MATCHED THEN UPDATE SET [运行ID]=源.[运行ID], [父任务主键]=源.[父任务主键], [状态值]=源.[状态值], [状态文本]=源.[状态文本], [更新时间]=SYSUTCDATETIME(), [显示摘要]=源.[显示摘要]\n"
+            << "WHEN NOT MATCHED THEN INSERT ([运行ID], [任务主键], [父任务主键], [状态值], [状态文本], [更新时间], [显示摘要]) VALUES (源.[运行ID], 源.[任务主键], 源.[父任务主键], 源.[状态值], 源.[状态文本], SYSUTCDATETIME(), 源.[显示摘要]);\n";
+        return SQL.str();
+    }
+
+    // 功能：生成需求显示项 upsert 脚本。
+    std::string 私有_SQL需求显示项Upsert脚本(const std::string& 运行ID, const 结构_SQL控制面板显示项& 显示项)
+    {
+        std::ostringstream SQL;
+        SQL
+            << "MERGE [鱼巢].[当前需求显示项] AS 目标\n"
+            << "USING (SELECT CONVERT(uniqueidentifier, " << 私有_SQL字符串(运行ID) << ") AS [运行ID], "
+            << 私有_SQL字符串(显示项.主键) << " AS [需求主键], "
+            << 私有_SQL可空字符串(显示项.父主键) << " AS [父需求主键], "
+            << 私有_SQL可空整数(显示项.满足关系掩码) << " AS [满足关系掩码], "
+            << 私有_SQL可空布尔(显示项.已满足) << " AS [已满足], "
+            << 私有_SQL可空字符串(显示项.显示摘要) << " AS [显示摘要]) AS 源\n"
+            << "ON 目标.[需求主键] = 源.[需求主键]\n"
+            << "WHEN MATCHED THEN UPDATE SET [运行ID]=源.[运行ID], [父需求主键]=源.[父需求主键], [满足关系掩码]=源.[满足关系掩码], [已满足]=源.[已满足], [更新时间]=SYSUTCDATETIME(), [显示摘要]=源.[显示摘要]\n"
+            << "WHEN NOT MATCHED THEN INSERT ([运行ID], [需求主键], [父需求主键], [满足关系掩码], [已满足], [更新时间], [显示摘要]) VALUES (源.[运行ID], 源.[需求主键], 源.[父需求主键], 源.[满足关系掩码], 源.[已满足], SYSUTCDATETIME(), 源.[显示摘要]);\n";
+        return SQL.str();
+    }
+
+    // 功能：生成方法显示项 upsert 脚本。
+    std::string 私有_SQL方法显示项Upsert脚本(const std::string& 运行ID, const 结构_SQL控制面板显示项& 显示项)
+    {
+        std::ostringstream SQL;
+        SQL
+            << "MERGE [鱼巢].[当前方法显示项] AS 目标\n"
+            << "USING (SELECT CONVERT(uniqueidentifier, " << 私有_SQL字符串(运行ID) << ") AS [运行ID], "
+            << 私有_SQL字符串(显示项.主键) << " AS [方法主键], "
+            << 私有_SQL可空字符串(显示项.父主键) << " AS [父方法主键], "
+            << 私有_SQL可空整数(显示项.状态值) << " AS [状态值], "
+            << 私有_SQL可空字符串(显示项.显示摘要) << " AS [显示摘要]) AS 源\n"
+            << "ON 目标.[方法主键] = 源.[方法主键]\n"
+            << "WHEN MATCHED THEN UPDATE SET [运行ID]=源.[运行ID], [父方法主键]=源.[父方法主键], [状态值]=源.[状态值], [更新时间]=SYSUTCDATETIME(), [显示摘要]=源.[显示摘要]\n"
+            << "WHEN NOT MATCHED THEN INSERT ([运行ID], [方法主键], [父方法主键], [状态值], [更新时间], [显示摘要]) VALUES (源.[运行ID], 源.[方法主键], 源.[父方法主键], 源.[状态值], SYSUTCDATETIME(), 源.[显示摘要]);\n";
+        return SQL.str();
+    }
+
+    // 功能：生成世界显示项 upsert 脚本。
+    std::string 私有_SQL世界显示项Upsert脚本(const std::string& 运行ID, const 结构_SQL控制面板显示项& 显示项)
+    {
+        std::ostringstream SQL;
+        SQL
+            << "MERGE [鱼巢].[当前世界显示项] AS 目标\n"
+            << "USING (SELECT CONVERT(uniqueidentifier, " << 私有_SQL字符串(运行ID) << ") AS [运行ID], "
+            << 私有_SQL字符串(显示项.主键) << " AS [对象主键], "
+            << 私有_SQL可空字符串(显示项.父主键) << " AS [父对象主键], "
+            << 私有_SQL可空字符串(显示项.类型文本) << " AS [对象类型], "
+            << 私有_SQL可空字符串(显示项.显示摘要) << " AS [显示摘要]) AS 源\n"
+            << "ON 目标.[对象主键] = 源.[对象主键]\n"
+            << "WHEN MATCHED THEN UPDATE SET [运行ID]=源.[运行ID], [父对象主键]=源.[父对象主键], [对象类型]=源.[对象类型], [更新时间]=SYSUTCDATETIME(), [显示摘要]=源.[显示摘要]\n"
+            << "WHEN NOT MATCHED THEN INSERT ([运行ID], [对象主键], [父对象主键], [对象类型], [更新时间], [显示摘要]) VALUES (源.[运行ID], 源.[对象主键], 源.[父对象主键], 源.[对象类型], SYSUTCDATETIME(), 源.[显示摘要]);\n";
+        return SQL.str();
+    }
+
+    // 功能：生成动态显示项 upsert 脚本。
+    std::string 私有_SQL动态显示项Upsert脚本(const std::string& 运行ID, const 结构_SQL控制面板显示项& 显示项)
+    {
+        std::ostringstream SQL;
+        SQL
+            << "MERGE [鱼巢].[当前动态显示项] AS 目标\n"
+            << "USING (SELECT CONVERT(uniqueidentifier, " << 私有_SQL字符串(运行ID) << ") AS [运行ID], "
+            << 私有_SQL字符串(显示项.主键) << " AS [动态主键], "
+            << 私有_SQL可空字符串(显示项.父主键) << " AS [来源主键], "
+            << 私有_SQL可空字符串(显示项.类型文本) << " AS [动态类型], "
+            << 私有_SQL可空字符串(显示项.显示摘要) << " AS [显示摘要]) AS 源\n"
+            << "ON 目标.[动态主键] = 源.[动态主键]\n"
+            << "WHEN MATCHED THEN UPDATE SET [运行ID]=源.[运行ID], [来源主键]=源.[来源主键], [动态类型]=源.[动态类型], [更新时间]=SYSUTCDATETIME(), [显示摘要]=源.[显示摘要]\n"
+            << "WHEN NOT MATCHED THEN INSERT ([运行ID], [动态主键], [来源主键], [动态类型], [更新时间], [显示摘要]) VALUES (源.[运行ID], 源.[动态主键], 源.[来源主键], 源.[动态类型], SYSUTCDATETIME(), 源.[显示摘要]);\n";
+        return SQL.str();
+    }
+
+    // 功能：按显示域生成显示项 upsert 脚本。
+    std::string 私有_SQL控制面板显示项Upsert脚本(const std::string& 运行ID, const 结构_SQL控制面板显示项& 显示项)
+    {
+        switch (显示项.显示域) {
+        case 枚举_SQL控制面板显示域::任务:
+            return 私有_SQL任务显示项Upsert脚本(运行ID, 显示项);
+        case 枚举_SQL控制面板显示域::需求:
+            return 私有_SQL需求显示项Upsert脚本(运行ID, 显示项);
+        case 枚举_SQL控制面板显示域::方法:
+            return 私有_SQL方法显示项Upsert脚本(运行ID, 显示项);
+        case 枚举_SQL控制面板显示域::世界:
+            return 私有_SQL世界显示项Upsert脚本(运行ID, 显示项);
+        case 枚举_SQL控制面板显示域::动态:
+            return 私有_SQL动态显示项Upsert脚本(运行ID, 显示项);
+        default:
+            return {};
+        }
+    }
+
+    // 功能：执行 SQL 控制面板运行态写命令。
+    bool 私有_执行SQL控制面板写命令(
+        const std::string& 阶段,
+        const std::string& SQL,
+        std::string& 错误)
+    {
+        const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "鱼巢投影库");
+        std::string ADO错误{};
+        if (!执行ADO命令(投影库连接串, SQL, ADO错误)) {
+            错误 = 阶段 + "失败 | " + ADO错误;
+            return false;
+        }
+        return true;
     }
 
     // 功能：生成控制面板运行态投影库建库脚本。
@@ -588,4 +844,154 @@ bool 初始化SQL控制面板运行态投影(
     }
     return true;
 #endif
+}
+
+// 功能：同步新增或更新一个控制面板运行态显示项。
+bool 同步写入SQL控制面板显示项(
+    const 结构_SQL控制面板显示项& 显示项,
+    std::string& 错误)
+{
+    错误.clear();
+    if (显示项.主键.empty()) {
+        错误 = "同步写入SQL控制面板显示项失败 | 原因=主键为空";
+        return false;
+    }
+    if (私有_SQL控制面板显示域表名(显示项.显示域).empty()) {
+        错误 = "同步写入SQL控制面板显示项失败 | 原因=显示域非法";
+        return false;
+    }
+
+    std::string 运行ID{};
+    if (!私有_读取SQL控制面板当前运行ID(运行ID, 错误)) {
+        return false;
+    }
+
+    std::ostringstream SQL;
+    SQL
+        << "SET XACT_ABORT ON;\n"
+        << "BEGIN TRANSACTION;\n"
+        << 私有_SQL控制面板显示项Upsert脚本(运行ID, 显示项)
+        << 私有_SQL控制面板事件流水追加片段(
+            运行ID,
+            显示项.显示域,
+            "新增或更新",
+            显示项.主键,
+            显示项.显示摘要)
+        << "COMMIT TRANSACTION;\n";
+    return 私有_执行SQL控制面板写命令("同步写入SQL控制面板显示项", SQL.str(), 错误);
+}
+
+// 功能：同步删除一个控制面板运行态显示项。
+bool 同步删除SQL控制面板显示项(
+    const 枚举_SQL控制面板显示域 显示域,
+    const std::string_view 主键,
+    const std::string_view 显示摘要,
+    std::string& 错误)
+{
+    错误.clear();
+    if (主键.empty()) {
+        错误 = "同步删除SQL控制面板显示项失败 | 原因=主键为空";
+        return false;
+    }
+    const auto 表名 = 私有_SQL控制面板显示域表名(显示域);
+    const auto 主键列 = 私有_SQL控制面板显示域主键列(显示域);
+    if (表名.empty() || 主键列.empty()) {
+        错误 = "同步删除SQL控制面板显示项失败 | 原因=显示域非法";
+        return false;
+    }
+
+    std::string 运行ID{};
+    if (!私有_读取SQL控制面板当前运行ID(运行ID, 错误)) {
+        return false;
+    }
+
+    std::ostringstream SQL;
+    SQL
+        << "SET XACT_ABORT ON;\n"
+        << "BEGIN TRANSACTION;\n"
+        << "DELETE FROM "
+        << 表名
+        << " WHERE "
+        << 主键列
+        << " = "
+        << 私有_SQL字符串(主键)
+        << ";\n"
+        << 私有_SQL控制面板事件流水追加片段(运行ID, 显示域, "删除", 主键, 显示摘要)
+        << "COMMIT TRANSACTION;\n";
+    return 私有_执行SQL控制面板写命令("同步删除SQL控制面板显示项", SQL.str(), 错误);
+}
+
+// 功能：追加一条控制面板运行态事件流水。
+bool 追加SQL控制面板事件流水(
+    const 枚举_SQL控制面板显示域 显示域,
+    const std::string_view 操作,
+    const std::string_view 对象主键,
+    const std::string_view 显示摘要,
+    std::string& 错误)
+{
+    错误.clear();
+    if (操作.empty()) {
+        错误 = "追加SQL控制面板事件流水失败 | 原因=操作为空";
+        return false;
+    }
+    if (私有_SQL控制面板显示域文本(显示域).empty()) {
+        错误 = "追加SQL控制面板事件流水失败 | 原因=显示域非法";
+        return false;
+    }
+
+    std::string 运行ID{};
+    if (!私有_读取SQL控制面板当前运行ID(运行ID, 错误)) {
+        return false;
+    }
+
+    std::ostringstream SQL;
+    SQL
+        << "SET XACT_ABORT ON;\n"
+        << "BEGIN TRANSACTION;\n"
+        << 私有_SQL控制面板事件流水追加片段(运行ID, 显示域, 操作, 对象主键, 显示摘要)
+        << "COMMIT TRANSACTION;\n";
+    return 私有_执行SQL控制面板写命令("追加SQL控制面板事件流水", SQL.str(), 错误);
+}
+
+// 功能：写入控制面板 SQL 同步状态。
+bool 写入SQL控制面板同步状态(
+    const std::string_view 同步域,
+    const std::string_view 最近阶段,
+    const bool 成功,
+    const std::string_view 最近错误,
+    std::string& 错误)
+{
+    错误.clear();
+    if (同步域.empty()) {
+        错误 = "写入SQL控制面板同步状态失败 | 原因=同步域为空";
+        return false;
+    }
+    if (最近阶段.empty()) {
+        错误 = "写入SQL控制面板同步状态失败 | 原因=最近阶段为空";
+        return false;
+    }
+
+    std::string 运行ID{};
+    if (!私有_读取SQL控制面板当前运行ID(运行ID, 错误)) {
+        return false;
+    }
+
+    std::ostringstream SQL;
+    SQL
+        << "MERGE [鱼巢].[SQL投影同步状态] AS 目标\n"
+        << "USING (SELECT CONVERT(uniqueidentifier, "
+        << 私有_SQL字符串(运行ID)
+        << ") AS [运行ID], "
+        << 私有_SQL字符串(同步域)
+        << " AS [同步域], "
+        << 私有_SQL字符串(最近阶段)
+        << " AS [最近阶段], "
+        << (成功 ? "N'完成'" : "N'失败'")
+        << " AS [最近状态], "
+        << 私有_SQL可空字符串(最近错误)
+        << " AS [最近错误]) AS 源\n"
+        << "ON 目标.[同步域] = 源.[同步域]\n"
+        << "WHEN MATCHED THEN UPDATE SET [运行ID]=源.[运行ID], [最近阶段]=源.[最近阶段], [最近状态]=源.[最近状态], [更新时间]=SYSUTCDATETIME(), [最近错误]=源.[最近错误]\n"
+        << "WHEN NOT MATCHED THEN INSERT ([运行ID], [同步域], [最近阶段], [最近状态], [更新时间], [最近错误]) VALUES (源.[运行ID], 源.[同步域], 源.[最近阶段], 源.[最近状态], SYSUTCDATETIME(), 源.[最近错误]);\n";
+    return 私有_执行SQL控制面板写命令("写入SQL控制面板同步状态", SQL.str(), 错误);
 }
