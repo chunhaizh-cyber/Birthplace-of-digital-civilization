@@ -3,6 +3,7 @@ module;
 #include "基础数据类型.h"
 
 #include <bit>
+#include <chrono>
 #include <cmath>
 #include <ostream>
 #include <string>
@@ -159,6 +160,21 @@ export inline bool 可空U64键可对齐(std::uint64_t 左, std::uint64_t 右) n
 export inline 时间戳 有效或当前时间戳_微秒(时间戳 值) noexcept
 {
     return 值 != 0 ? 值 : 结构体_时间戳::当前_微秒();
+}
+
+// 功能：返回 steady_clock 当前时间点，用于内部阶段耗时测量。
+export inline std::chrono::steady_clock::time_point 稳定时钟时间点() noexcept
+{
+    return std::chrono::steady_clock::now();
+}
+
+// 功能：计算两个 steady_clock 时间点之间的微秒耗时。
+export inline std::uint64_t 稳定时钟耗时微秒(
+    std::chrono::steady_clock::time_point 起点,
+    std::chrono::steady_clock::time_point 终点) noexcept
+{
+    return static_cast<std::uint64_t>(
+        std::chrono::duration_cast<std::chrono::microseconds>(终点 - 起点).count());
 }
 
 // 功能：计算左右扩展数量合并后的安全域大小，溢出时返回 U64 最大值。
