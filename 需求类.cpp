@@ -15,6 +15,7 @@
 
 import 数据库ADO模块;
 import 自我类.特征定义;
+import 全局共享函数类;
 
 namespace {
     template<class T节点>
@@ -85,11 +86,6 @@ namespace {
         }
         输出.push_back('\'');
         return 输出;
-    }
-
-    std::string 私有_SQL布尔(const bool 值)
-    {
-        return 值 ? "1" : "0";
     }
 
     template<class T节点>
@@ -571,8 +567,8 @@ IF OBJECT_ID(N'[鱼巢].[当前需求面板节点]', N'V') IS NULL
                 << 行.统计创建时间 << ", "
                 << 行.统计最后观测时间 << ", "
                 << 行.统计命中次数 << ", "
-                << 私有_SQL布尔(行.已截止) << ", "
-                << 私有_SQL布尔(行.阻塞父任务执行) << ", "
+                << 布尔文本_一或零(行.已截止) << ", "
+                << 布尔文本_一或零(行.阻塞父任务执行) << ", "
                 << 私有_SQL字符串(行.需求主体主键) << ", "
                 << 私有_SQL字符串(行.需求场景主键) << ", "
                 << 私有_SQL字符串(行.被需求存在主键) << ", "
@@ -667,11 +663,6 @@ IF OBJECT_ID(N'[鱼巢].[当前需求面板节点]', N'V') IS NULL
         return 值 > 0 ? std::to_string(值) : std::string{};
     }
 
-    std::string 私有_需求SQL字段布尔(const bool 值)
-    {
-        return 值 ? "1" : "0";
-    }
-
     std::vector<std::vector<std::string>> 私有_需求SQL快照预期字段(
         const std::string& 来源原因,
         const std::string& 根主键,
@@ -723,8 +714,8 @@ IF OBJECT_ID(N'[鱼巢].[当前需求面板节点]', N'V') IS NULL
                 私有_需求SQL字段整数(行.统计创建时间),
                 私有_需求SQL字段整数(行.统计最后观测时间),
                 私有_需求SQL字段整数(行.统计命中次数),
-                私有_需求SQL字段布尔(行.已截止),
-                私有_需求SQL字段布尔(行.阻塞父任务执行),
+                std::string(布尔文本_一或零(行.已截止)),
+                std::string(布尔文本_一或零(行.阻塞父任务执行)),
                 行.需求主体主键,
                 行.需求场景主键,
                 行.被需求存在主键,
