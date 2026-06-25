@@ -115,6 +115,12 @@ export inline std::uint64_t 折叠字符串主键(std::string_view 主键) noexc
     return 值;
 }
 
+// 功能：判断两个可空 U64 键是否可对齐；任一方为 0 时视为未限定。
+export inline bool 可空U64键可对齐(std::uint64_t 左, std::uint64_t 右) noexcept
+{
+    return 左 == 0 || 右 == 0 || 左 == 右;
+}
+
 // 功能：计算左右扩展数量合并后的安全域大小，溢出时返回 U64 最大值。
 export inline std::uint64_t 安全域大小(std::uint64_t 左侧数量, std::uint64_t 右侧数量) noexcept
 {
