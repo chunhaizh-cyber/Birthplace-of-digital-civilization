@@ -1,5 +1,10 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 修改本文件前先阅读本模块；外设材料只能作为观察事实来源，不得直接伪装成自我方法动作动态。
+// 2. 日志文本只用于诊断输出，不得承载机器判断、状态推进或项目结构身份。
+// 3. 本模块只供人读，不参与机器判断；业务状态仍必须由项目通用结构承载。
+
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -9045,12 +9050,6 @@ namespace {
 
         const 语素入口节点类* 失败原因 = nullptr;
     };
-
-    // 功能：按函数名执行对应处理。
-    inline std::string 指针日志文本(const void* 指针) noexcept
-    {
-        return std::to_string(reinterpret_cast<std::uintptr_t>(指针));
-    }
 
     // 功能：把处理结果写入指定对象、场景或日志。
     inline void 写入本能方法自身环境失败(

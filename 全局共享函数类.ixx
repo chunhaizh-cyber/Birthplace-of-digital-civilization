@@ -497,3 +497,9 @@ export inline std::string SQL字段可空整数文本(bool 有值, int 值)
 {
     return 有值 ? std::to_string(值) : std::string{};
 }
+
+// 功能：把指针地址格式化为日志文本。
+export inline std::string 指针日志文本(const void* 指针) noexcept
+{
+    return std::to_string(reinterpret_cast<std::uintptr_t>(指针));
+}

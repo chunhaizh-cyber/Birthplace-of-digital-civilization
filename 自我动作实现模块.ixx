@@ -1,5 +1,10 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 修改本文件前先阅读本模块；动作动态必须绑定明确方法，线程不是动作来源。
+// 2. 日志文本只用于诊断输出，不得承载机器判断、状态推进或项目结构身份。
+// 3. 本模块只供人读，不参与机器判断；业务状态仍必须由项目通用结构承载。
+
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -4158,12 +4163,6 @@ namespace {
 
         const 语素入口节点类* 失败原因 = nullptr;
     };
-
-    // 功能：按函数名执行对应处理。
-    inline std::string 指针日志文本(const void* 指针) noexcept
-    {
-        return std::to_string(reinterpret_cast<std::uintptr_t>(指针));
-    }
 
     // 功能：提交事实、动态、任务状态或运行回执。
     inline bool 任务状态提交诊断日志启用() noexcept
