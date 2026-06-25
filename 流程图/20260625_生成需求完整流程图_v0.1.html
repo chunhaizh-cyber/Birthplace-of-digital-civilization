@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>生成需求完整流程图</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    .canvas { min-width: 2100px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 2060px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    .notes ul { margin: 8px 0 0; padding-left: 20px; }
+    .notes li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>生成需求完整流程图</h1>
+    <p class="hint">候选信息、缺口报告和派生需求消息都不是正式需求；正式需求必须由自我线程裁决，并通过统一需求树更新指令入树。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    Start["开始：自我内部循环进入需求治理"] --&gt; SourceGate["收集本轮需求来源"]
+
+    subgraph S1["一、需求来源层：只产生候选、报告或消息"]
+        RootState["根特征状态读取&lt;br/&gt;安全值、服务值、抽象根特征定义"] --&gt; RootGap{"根特征有缺口？"}
+        RootGap -- "有缺口" --&gt; RootNeed["刷新安全根/服务根活动权重&lt;br/&gt;生成根闭环信息位和必要条件子需求"]
+        RootGap -- "无缺口" --&gt; RootIdle["根需求保持低压或待机"]
+
+        SelfCheck["自检 / 主动报送"] --&gt; SelfCandidate["差距候选 / 需求候选 / 自检报告"]
+        BodyFeedback["身体反馈 / 观察反馈"] --&gt; FeedbackCandidate["关注特征实时值&lt;br/&gt;由自我线程计算差距"]
+        TaskPrep["任务筹办不能一步就绪"] --&gt; CausalView["读取来源需求目标&lt;br/&gt;生成临时因果视图"]
+        CausalView --&gt; Drafts["促成 / 避免 / 条件补齐 / 方法就绪 / 证据补齐 / 副作用约束 / 学习缺口草案"]
+        TaskExec["任务执行后未满足来源需求&lt;br/&gt;或输出显式派生需求特征"] --&gt; ExecGap["执行缺失派生需求消息草案"]
+        ChildDone["子需求满足 / 任务完成回执"] --&gt; ParentRecheck["回查父需求目标&lt;br/&gt;必要时唤醒父任务重筹办"]
+    end
+
+    SourceGate --&gt; RootState
+    SourceGate --&gt; SelfCheck
+    SourceGate --&gt; BodyFeedback
+    SourceGate --&gt; TaskPrep
+    SourceGate --&gt; TaskExec
+    SourceGate --&gt; ChildDone
+
+    subgraph S2["二、候选归一层：确认目标和承接父需求"]
+        SelfCandidate --&gt; SelfRoute["自我线程翻译来源为获取途径&lt;br/&gt;按缺口类型裁决父域"]
+        FeedbackCandidate --&gt; SelfRoute
+        SelfRoute --&gt; CodeDefect{"代码缺陷型自检报告？"}
+        CodeDefect -- "是" --&gt; ReportOnly["记录报告 / 弹错 / 待处理&lt;br/&gt;不进入普通需求树"]
+        CodeDefect -- "否" --&gt; AtomicCheck["检查原子目标完整性&lt;br/&gt;目标宿主、目标特征、当前状态、目标状态、满足关系"]
+        AtomicCheck -- "不完整" --&gt; SelfReject["自检入树逻辑错误&lt;br/&gt;拒绝入树"]
+        AtomicCheck -- "完整" --&gt; SelfDemandPath["构造新增原子需求指令"]
+
+        Drafts --&gt; PrepMsg["任务筹办构造结构_任务管理派生需求消息"]
+        ExecGap --&gt; ExecMsg["任务执行桥构造结构_任务管理派生需求消息"]
+        PrepMsg --&gt; MsgNormalize["任务管理工作线程规范化消息&lt;br/&gt;补主键槽、同步语义槽、生成幂等键"]
+        ExecMsg --&gt; MsgNormalize
+        MsgNormalize --&gt; MsgComplete{"字段完整且不是内部材料字段？"}
+        MsgComplete -- "否" --&gt; MsgReject["记录构造逻辑错误或执行桥逻辑错误&lt;br/&gt;不上报派生需求消息"]
+        MsgComplete -- "是" --&gt; MsgDedup["按稳定键同批 / 响应内 / 最近缓存去重"]
+        MsgDedup --&gt; UpMsg["上报任务管理派生需求消息&lt;br/&gt;任务管理侧直接写需求树=0"]
+    end
+
+    subgraph S3["三、自我线程入树裁决层：正式需求唯一写入边界"]
+        SelfDemandPath --&gt; UpdateEntry["需求类::执行更新指令"]
+        UpMsg --&gt; ReceiveMsg["自我线程收到派生需求消息&lt;br/&gt;私有_收到派生需求消息时完善需求树"]
+        ReceiveMsg --&gt; EnsureDemand["私有_确保派生需求节点"]
+        EnsureDemand --&gt; Gate{"入树闸门通过？"}
+        Gate -- "缺父需求 / 父为结构根 / 来源不可解析 / 状态或特征缺失 / 目标主体不可判定" --&gt; RejectDemand["弹错或记录逻辑错误&lt;br/&gt;提交已拒绝回执"]
+        Gate -- "外设内部材料字段 / 缺失参数诊断 / 父子目标自复制" --&gt; SkipDemand["拒绝普通需求化&lt;br/&gt;不兜底生成模糊需求"]
+        Gate -- "通过" --&gt; SameTarget{"同父已有目标重叠子需求？"}
+        SameTarget -- "有" --&gt; MergeDemand["复用或合并既有子需求&lt;br/&gt;补齐目标关系"]
+        SameTarget -- "无" --&gt; NewDemand["构造新增原子需求指令"]
+        MergeDemand --&gt; UpdateEntry
+        NewDemand --&gt; UpdateEntry
+        UpdateEntry --&gt; TreeWrite{"更新指令结果"}
+        TreeWrite -- "新增 / 更新 / 合并成功" --&gt; DemandNode["正式需求节点进入统一需求树"]
+        TreeWrite -- "服务拒绝" --&gt; UpdateReject["拒绝入树并记录原因"]
+        DemandNode --&gt; Refresh["刷新子需求权重&lt;br/&gt;刷新结构角色和调度摘要"]
+        Refresh --&gt; Receipt["向任务管理提交派生需求入树回执"]
+    end
+
+    subgraph S4["四、任务化与继续生长层"]
+        Refresh --&gt; DemandList["从需求树构建服务优先 / 安全优先需求列表"]
+        DemandList --&gt; MainDemand["选择当前主需求候选"]
+        MainDemand --&gt; Taskable{"普通可任务化叶子需求？"}
+        Taskable -- "否：逻辑组或仍有未满足子需求" --&gt; WaitChildren["等待子需求、逻辑组织聚合或父任务重筹办"]
+        Taskable -- "是" --&gt; TaskIntent["提交活动需求任务化意图"]
+        TaskIntent --&gt; TaskCreate["任务管理界面线程创建或复用任务头 / 任务虚拟存在"]
+        TaskCreate --&gt; TaskPlan["任务管理工作线程筹办"]
+        TaskPlan --&gt; MethodCandidates["按目标填充候选方法集&lt;br/&gt;再确定当前方法"]
+        MethodCandidates --&gt; Ready{"方法、条件、参数、入口就绪？"}
+        Ready -- "否" --&gt; TaskPrep
+        Ready -- "是" --&gt; Execute["执行当前方法"]
+        Execute --&gt; ResultScene["输出结果场景 / 运行存在 / 动作动态"]
+        ResultScene --&gt; Satisfied{"来源需求目标实际达成？"}
+        Satisfied -- "否" --&gt; TaskExec
+        Satisfied -- "是" --&gt; Settle["自我线程回写需求满足&lt;br/&gt;子需求截止、权重归零、价值反馈链按证据结算"]
+        Settle --&gt; ParentRecheck
+        ParentRecheck --&gt; ParentDone{"父需求目标达成？"}
+        ParentDone -- "否" --&gt; TaskPrep
+        ParentDone -- "是" --&gt; NextRound["父需求满足 / 下一轮根状态和主需求重判"]
+        NextRound --&gt; SourceGate
+    end
+
+    subgraph S5["硬边界"]
+        B1["任务管理线程不直接写需求树"]
+        B2["自检、身体反馈、外设报告不是正式需求入树者"]
+        B3["线程不是动作来源；动作动态必须绑定明确方法"]
+        B4["任务筹办 / 任务执行不是本能方法，不注册为动作来源"]
+        B5["I64_MAX 不得进入真实服务结算"]
+        B6["派生需求消息不等于正式需求已入树"]
+    end
+
+    B1 -. "约束" .-&gt; UpMsg
+    B2 -. "约束" .-&gt; SelfRoute
+    B3 -. "约束" .-&gt; ResultScene
+    B4 -. "约束" .-&gt; TaskPlan
+    B5 -. "约束" .-&gt; Settle
+    B6 -. "约束" .-&gt; ReceiveMsg
+      </pre>
+    </section>
+    <section class="notes">
+      <strong>关键边界</strong>
+      <ul>
+        <li>正式需求树只通过统一更新指令生长；任务筹办、任务执行、外设线程、自检线程都不能直接写正式需求节点。</li>
+        <li>生成需求前必须明确父需求、目标宿主、目标特征类型、当前状态、目标状态和满足关系；缺失时拒绝入树并记录逻辑错误。</li>
+        <li>派生需求消息经字段完整性、幂等去重、同父目标重叠和父子目标自复制保护后，才可能变成正式需求。</li>
+        <li>子需求完成不等于父需求满足，必须回查父需求目标特征；未达成则重筹办或继续生成更细需求。</li>
+      </ul>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
