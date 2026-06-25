@@ -553,6 +553,12 @@ export constexpr const char* 布尔文本_一或零(bool 值) noexcept
     return 值 ? "1" : "0";
 }
 
+// 功能：解析数字协议布尔文本；仅文本 `1` 返回 true，其它输入返回 false。
+export constexpr bool 解析一或零布尔文本(std::string_view 文本) noexcept
+{
+    return 文本 == "1";
+}
+
 // 功能：将布尔值格式化为英文调试文本。
 export inline std::string 布尔文本_true或false(bool 值)
 {
