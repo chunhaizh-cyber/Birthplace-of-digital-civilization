@@ -1,5 +1,10 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 本接口只暴露 SQL Server ADO 访问和控制面板显示镜像初始化能力。
+// 2. SQL 写入只作为控制面板显示镜像，不得作为业务权威源或恢复源。
+// 3. 写命令必须受 预处理开关变量.h 中 SQL 控制面板同步写入开关控制。
+
 #include <string>
 #include <string_view>
 #include <vector>
@@ -43,3 +48,9 @@ export bool 执行ADO命令(
     const std::string& SQL,
     std::string& 错误,
     int 命令超时秒 = 30);
+
+// 功能：初始化控制面板运行态 SQL 显示镜像，清空本次运行态表并写入运行批次。
+export bool 初始化SQL控制面板运行态投影(
+    std::string_view 来源标记,
+    std::string& 运行ID,
+    std::string& 错误);

@@ -221,6 +221,147 @@ namespace {
         }
         return 文本.substr(0, 上限) + "...";
     }
+
+    // 功能：把文本编码为 SQL Server Unicode 字符串字面量。
+    std::string 私有_SQL字符串(const std::string_view 文本)
+    {
+        std::string 输出 = "N'";
+        输出.reserve(文本.size() + 3);
+        for (const char 字符 : 文本) {
+            if (字符 == '\'') {
+                输出 += "''";
+            }
+            else {
+                输出.push_back(字符);
+            }
+        }
+        输出 += "'";
+        return 输出;
+    }
+
+    // 功能：生成控制面板运行态投影库建库脚本。
+    std::string 私有_SQL控制面板运行态建库脚本()
+    {
+        return "IF DB_ID(N'鱼巢投影库') IS NULL CREATE DATABASE [鱼巢投影库];\n";
+    }
+
+    // 功能：生成控制面板运行态显示镜像的最小表结构脚本。
+    std::string 私有_SQL控制面板运行态建表脚本()
+    {
+        std::ostringstream SQL;
+        SQL
+            << "IF SCHEMA_ID(N'鱼巢') IS NULL EXEC(N'CREATE SCHEMA [鱼巢]');\n"
+            << "IF OBJECT_ID(N'[鱼巢].[控制面板运行批次]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[控制面板运行批次] (\n"
+            << "    [运行ID] uniqueidentifier NOT NULL PRIMARY KEY,\n"
+            << "    [启动时间] datetime2(3) NOT NULL,\n"
+            << "    [来源标记] nvarchar(256) NOT NULL,\n"
+            << "    [进程ID] int NOT NULL,\n"
+            << "    [同步开关] bit NOT NULL,\n"
+            << "    [状态] nvarchar(64) NOT NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'[鱼巢].[控制面板事件流水]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[控制面板事件流水] (\n"
+            << "    [事件ID] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            << "    [运行ID] uniqueidentifier NOT NULL,\n"
+            << "    [发生时间] datetime2(3) NOT NULL,\n"
+            << "    [领域] nvarchar(64) NOT NULL,\n"
+            << "    [操作] nvarchar(64) NOT NULL,\n"
+            << "    [对象主键] nvarchar(256) NULL,\n"
+            << "    [显示摘要] nvarchar(1024) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前任务显示项]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[当前任务显示项] (\n"
+            << "    [运行ID] uniqueidentifier NOT NULL,\n"
+            << "    [任务主键] nvarchar(256) NOT NULL PRIMARY KEY,\n"
+            << "    [父任务主键] nvarchar(256) NULL,\n"
+            << "    [状态值] bigint NULL,\n"
+            << "    [状态文本] nvarchar(128) NULL,\n"
+            << "    [更新时间] datetime2(3) NOT NULL,\n"
+            << "    [显示摘要] nvarchar(1024) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前需求显示项]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[当前需求显示项] (\n"
+            << "    [运行ID] uniqueidentifier NOT NULL,\n"
+            << "    [需求主键] nvarchar(256) NOT NULL PRIMARY KEY,\n"
+            << "    [父需求主键] nvarchar(256) NULL,\n"
+            << "    [满足关系掩码] bigint NULL,\n"
+            << "    [已满足] bit NULL,\n"
+            << "    [更新时间] datetime2(3) NOT NULL,\n"
+            << "    [显示摘要] nvarchar(1024) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前方法显示项]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[当前方法显示项] (\n"
+            << "    [运行ID] uniqueidentifier NOT NULL,\n"
+            << "    [方法主键] nvarchar(256) NOT NULL PRIMARY KEY,\n"
+            << "    [父方法主键] nvarchar(256) NULL,\n"
+            << "    [状态值] bigint NULL,\n"
+            << "    [更新时间] datetime2(3) NOT NULL,\n"
+            << "    [显示摘要] nvarchar(1024) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前世界显示项]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[当前世界显示项] (\n"
+            << "    [运行ID] uniqueidentifier NOT NULL,\n"
+            << "    [对象主键] nvarchar(256) NOT NULL PRIMARY KEY,\n"
+            << "    [父对象主键] nvarchar(256) NULL,\n"
+            << "    [对象类型] nvarchar(128) NULL,\n"
+            << "    [更新时间] datetime2(3) NOT NULL,\n"
+            << "    [显示摘要] nvarchar(1024) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前动态显示项]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[当前动态显示项] (\n"
+            << "    [运行ID] uniqueidentifier NOT NULL,\n"
+            << "    [动态主键] nvarchar(256) NOT NULL PRIMARY KEY,\n"
+            << "    [来源主键] nvarchar(256) NULL,\n"
+            << "    [动态类型] nvarchar(128) NULL,\n"
+            << "    [更新时间] datetime2(3) NOT NULL,\n"
+            << "    [显示摘要] nvarchar(1024) NULL\n"
+            << ");\n"
+            << "IF OBJECT_ID(N'[鱼巢].[SQL投影同步状态]', N'U') IS NULL\n"
+            << "CREATE TABLE [鱼巢].[SQL投影同步状态] (\n"
+            << "    [运行ID] uniqueidentifier NOT NULL,\n"
+            << "    [同步域] nvarchar(128) NOT NULL PRIMARY KEY,\n"
+            << "    [最近阶段] nvarchar(128) NOT NULL,\n"
+            << "    [最近状态] nvarchar(64) NOT NULL,\n"
+            << "    [更新时间] datetime2(3) NOT NULL,\n"
+            << "    [最近错误] nvarchar(1024) NULL\n"
+            << ");\n";
+        return SQL.str();
+    }
+
+    // 功能：生成控制面板运行态启动清库和运行批次写入脚本。
+    std::string 私有_SQL控制面板运行态启动清库脚本(
+        const std::string& 运行ID,
+        const std::string_view 来源标记)
+    {
+        std::ostringstream SQL;
+        SQL
+            << "SET XACT_ABORT ON;\n"
+            << "BEGIN TRANSACTION;\n"
+            << "DELETE FROM [鱼巢].[SQL投影同步状态];\n"
+            << "DELETE FROM [鱼巢].[当前动态显示项];\n"
+            << "DELETE FROM [鱼巢].[当前世界显示项];\n"
+            << "DELETE FROM [鱼巢].[当前方法显示项];\n"
+            << "DELETE FROM [鱼巢].[当前需求显示项];\n"
+            << "DELETE FROM [鱼巢].[当前任务显示项];\n"
+            << "DELETE FROM [鱼巢].[控制面板事件流水];\n"
+            << "DELETE FROM [鱼巢].[控制面板运行批次];\n"
+            << "DECLARE @运行ID uniqueidentifier = CONVERT(uniqueidentifier, "
+            << 私有_SQL字符串(运行ID)
+            << ");\n"
+            << "INSERT INTO [鱼巢].[控制面板运行批次] ([运行ID], [启动时间], [来源标记], [进程ID], [同步开关], [状态])\n"
+            << "VALUES (@运行ID, SYSUTCDATETIME(), "
+            << 私有_SQL字符串(来源标记)
+            << ", "
+            << GetCurrentProcessId()
+            << ", 1, N'运行中');\n"
+            << "INSERT INTO [鱼巢].[SQL投影同步状态] ([运行ID], [同步域], [最近阶段], [最近状态], [更新时间], [最近错误])\n"
+            << "VALUES (@运行ID, N'运行态初始化', N'启动清库', N'完成', SYSUTCDATETIME(), NULL);\n"
+            << "INSERT INTO [鱼巢].[控制面板事件流水] ([运行ID], [发生时间], [领域], [操作], [对象主键], [显示摘要])\n"
+            << "VALUES (@运行ID, SYSUTCDATETIME(), N'SQL控制面板', N'启动清库', CONVERT(nvarchar(36), @运行ID), N'控制面板运行态显示镜像已清空并写入运行批次');\n"
+            << "COMMIT TRANSACTION;\n";
+        return SQL.str();
+    }
 }
 
 // 功能：生成 SQL Server Windows 身份认证 ADO 连接串。
@@ -399,5 +540,52 @@ bool 执行ADO命令(
         私有_关闭ADO连接(连接);
         return false;
     }
+#endif
+}
+
+// 功能：初始化控制面板运行态 SQL 显示镜像，清空本次运行态表并写入运行批次。
+bool 初始化SQL控制面板运行态投影(
+    const std::string_view 来源标记,
+    std::string& 运行ID,
+    std::string& 错误)
+{
+    运行ID.clear();
+    错误.clear();
+
+#if !鱼巢_开关_启用SQL控制面板同步写入
+    (void)来源标记;
+    错误 = "SQL控制面板同步写入已被预处理开关关闭";
+    return false;
+#else
+    const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");
+    const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "鱼巢投影库");
+
+    结构_ADO查询结果 查询结果{};
+    std::string ADO错误{};
+    if (!执行ADO查询(主库连接串, "SELECT CONVERT(varchar(36), NEWID());", 查询结果, ADO错误)
+        || 查询结果.行集.empty()
+        || 查询结果.行集.front().empty()
+        || 查询结果.行集.front().front().empty()) {
+        错误 = ADO错误.empty() ? "生成运行ID失败" : ("生成运行ID失败 | " + ADO错误);
+        return false;
+    }
+    运行ID = 查询结果.行集.front().front();
+
+    if (!执行ADO命令(主库连接串, 私有_SQL控制面板运行态建库脚本(), ADO错误)) {
+        错误 = "控制面板运行态建库失败 | " + ADO错误;
+        return false;
+    }
+    if (!执行ADO命令(投影库连接串, 私有_SQL控制面板运行态建表脚本(), ADO错误)) {
+        错误 = "控制面板运行态建表失败 | " + ADO错误;
+        return false;
+    }
+    if (!执行ADO命令(
+        投影库连接串,
+        私有_SQL控制面板运行态启动清库脚本(运行ID, 来源标记),
+        ADO错误)) {
+        错误 = "控制面板运行态启动清库失败 | " + ADO错误;
+        return false;
+    }
+    return true;
 #endif
 }
