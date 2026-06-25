@@ -121,6 +121,12 @@ export inline bool 可空U64键可对齐(std::uint64_t 左, std::uint64_t 右) n
     return 左 == 0 || 右 == 0 || 左 == 右;
 }
 
+// 功能：返回有效微秒时间戳；传入 0 时取当前 steady_clock 微秒时间。
+export inline 时间戳 有效或当前时间戳_微秒(时间戳 值) noexcept
+{
+    return 值 != 0 ? 值 : 结构体_时间戳::当前_微秒();
+}
+
 // 功能：计算左右扩展数量合并后的安全域大小，溢出时返回 U64 最大值。
 export inline std::uint64_t 安全域大小(std::uint64_t 左侧数量, std::uint64_t 右侧数量) noexcept
 {
