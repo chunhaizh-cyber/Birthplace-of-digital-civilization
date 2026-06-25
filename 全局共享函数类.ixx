@@ -4,6 +4,7 @@ module;
 
 #include <bit>
 #include <cmath>
+#include <string>
 
 export module 全局共享函数类;
 
@@ -92,6 +93,14 @@ export inline std::uint64_t 有效候选预算(I64 最大候选数量) noexcept
     constexpr std::uint64_t 上限 = 4096;
     const auto 值 = static_cast<std::uint64_t>(最大候选数量);
     return 值 > 上限 ? 上限 : 值;
+}
+
+// 功能：当错误输出指针有效时写入可读错误文本；空文本指针写为空串。
+export inline void 写入可选错误文本(std::string* 错误, const char* 文本) noexcept
+{
+    if (错误) {
+        *错误 = 文本 ? 文本 : "";
+    }
 }
 
 // 功能：计算左右扩展数量合并后的安全域大小，溢出时返回 U64 最大值。
