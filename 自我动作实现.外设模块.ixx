@@ -5712,9 +5712,6 @@ namespace {
     // 功能：按函数名执行对应处理。
     inline constexpr I64 方法状态_有条件结果() noexcept { return static_cast<I64>(枚举_方法状态::可用); }
 
-    // 功能：执行对应模块、线程或方法的运行逻辑。
-    inline constexpr I64 方法状态_待运行账() noexcept { return 方法状态_有条件结果(); }
-
     // 功能：按函数名执行对应处理。
     inline constexpr I64 方法状态_可用() noexcept { return static_cast<I64>(枚举_方法状态::可用); }
 
