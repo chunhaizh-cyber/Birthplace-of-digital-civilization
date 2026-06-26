@@ -225,6 +225,16 @@ export inline std::string 索引项字段键(std::size_t 索引, std::string_vie
     return 输出;
 }
 
+// 功能：按索引项字段名写入一行转义文本键值字段。
+export inline void 写入索引项转义键值字段行(
+    std::ostream& 输出,
+    std::size_t 索引,
+    std::string_view 键,
+    std::string_view 值)
+{
+    写入转义键值字段行(输出, 索引项字段键(索引, 键), 值);
+}
+
 // 功能：把稳定主键文本折叠为 U64；仅用于主键/标识压缩，不用于自由文本业务判断。
 export inline std::uint64_t 折叠字符串主键(std::string_view 主键) noexcept
 {
