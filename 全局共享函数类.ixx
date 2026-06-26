@@ -321,6 +321,20 @@ export inline I64 合并基础匹配与VecI64轮廓评分(I64 基础评分, I64 
     return std::clamp<I64>(基础评分 * 70 / 100 + 轮廓评分 * 30 / 100, 0, 10000);
 }
 
+// 功能：按中心、平均和最大 L1 误差计算 Q10000 轮廓匹配评分。
+export inline I64 计算轮廓匹配评分Q10000(
+    I64 中心L1误差,
+    I64 点链平均L1误差,
+    I64 点链最大L1误差) noexcept
+{
+    const I64 总误差 = 饱和增加(
+        饱和增加(中心L1误差, 点链平均L1误差),
+        点链最大L1误差);
+    if (总误差 <= 0) return 10000;
+    if (总误差 >= 10000) return 0;
+    return 10000 - 总误差;
+}
+
 // 功能：计算闭合 ROI 的像素面积，范围反向时返回 0。
 export inline I64 ROI面积(I64 最小X, I64 最大X, I64 最小Y, I64 最大Y) noexcept
 {
