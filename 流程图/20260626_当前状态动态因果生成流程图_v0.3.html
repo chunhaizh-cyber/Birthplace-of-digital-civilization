@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>当前状态、动态、因果生成流程图</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    .canvas { min-width: 1900px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 1860px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    .notes code { background: #f6f8fa; padding: 1px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>当前状态、动态、因果生成流程图</h1>
+    <p class="hint">v0.3 表达双账消费路径：状态迁移账用于确认变化，动作致变账用于选择方法；两套账通过同源变化证据组互证，结算只算一次。本图不作为阶段完成验收。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    Start["同一次特征值变化"] --&gt; G["同源变化证据组 G&lt;br/&gt;结构化证据组 / 动态组 / 可解析引用集合"]
+
+    G --&gt; S1["D_state 状态迁移动态&lt;br/&gt;证明：某特征 A -&gt; B"]
+    S1 --&gt; S2["C_state 状态变化因果&lt;br/&gt;证明变化模式存在"]
+
+    G --&gt; A0{"是否有明确动作来源"}
+    A0 --&gt;|无| A1["只保留状态迁移账&lt;br/&gt;未知来源 / 外部事件 / 观察线索"]
+    A0 --&gt;|有| A2["D_action 动作致变动态&lt;br/&gt;引用 D_state + G"]
+    A2 --&gt; A3["C_action 动作致变因果&lt;br/&gt;证明某动作能造成 A -&gt; B"]
+
+    subgraph Q["任务筹办消费"]
+        Q0["目标：X.特征 = 目标值"] --&gt; Q1["查询目标状态动作致变因果"]
+        Q1 --&gt;|命中 C_action| Q2["命中可执行方法&lt;br/&gt;进入候选方法 / 当前方法"]
+        Q1 --&gt;|未命中| Q3["查询目标状态变化线索"]
+        Q3 --&gt;|命中 C_state| Q4["知道能变但不知道怎么让它变&lt;br/&gt;生成学习 / 练习需求"]
+        Q3 --&gt;|未命中| Q5["生成观察 / 尝试 / 因果补完需求"]
+    end
+
+    subgraph L["学习与练习消费"]
+        S2 --&gt; L1["只有状态迁移账&lt;br/&gt;有变化线索，无可映射方法"]
+        L1 --&gt; L2["生成学习 / 练习需求&lt;br/&gt;寻找可尝试动作"]
+        A3 --&gt; L3{"动作因果是否缺条件"}
+        L3 --&gt;|缺条件| L4["补条件结果对&lt;br/&gt;记录成功 / 失败样本"]
+        L3 --&gt;|条件稳定| L5["提高候选方法评分"]
+    end
+
+    subgraph V["执行验证与失败处理"]
+        V1["动作尝试 / 方法执行"] --&gt; V2["验证动作结果是否出现目标状态迁移"]
+        V2 --&gt;|出现 D_state 且同源绑定| V3["追加正向证据样本&lt;br/&gt;增强 C_action 稳定度"]
+        V2 --&gt;|未出现目标迁移| V4["生成动作尝试动态 / 失败动态 / 缺证据回执"]
+        V4 --&gt; V5["降低动作致变因果稳定度&lt;br/&gt;派生参数 / 条件 / 练习补齐需求"]
+        V5 --&gt; V6["禁止生成正向动作致变因果"]
+    end
+
+    subgraph Scan["扫描链消费"]
+        SC0["自我_扫描当前场景"] --&gt; SC1{"是否首次扫描"}
+        SC1 --&gt;|首次| SC2["状态账：当前状态基准建立&lt;br/&gt;未建立 -&gt; 已建立"]
+        SC2 --&gt; SC3["动作账：扫描造成基准建立&lt;br/&gt;不得写成外部对象变化"]
+        SC1 --&gt;|后续| SC4["状态账：外部对象特征旧值 -&gt; 新值"]
+        SC4 --&gt; SC5["动作账：扫描造成变化事实取得 / 提交&lt;br/&gt;未提交 -&gt; 已提交"]
+    end
+
+    subgraph Settle["结算消费"]
+        ST0["结算候选"] --&gt; ST1{"是否有结果状态迁移"}
+        ST1 --&gt;|无| ST2["不能结算&lt;br/&gt;缺结果证据"]
+        ST1 --&gt;|有| ST3{"是否有自我动作归因"}
+        ST3 --&gt;|无| ST4["只能作结果线索&lt;br/&gt;不能结算安全 / 服务值"]
+        ST3 --&gt;|有| ST5["按同源变化证据组 G 结算一次"]
+        ST5 --&gt; ST6["禁止状态账和动作账重复入账"]
+    end
+
+    S2 --&gt; Q3
+    A3 --&gt; Q1
+    A3 --&gt; V2
+    G --&gt; ST0
+    S2 -.变化模式稳定.-&gt; A3
+    A3 -.动作能力稳定.-&gt; S2
+
+    subgraph R["硬边界"]
+        R1["状态迁移账用于确认变化"]
+        R2["动作致变账用于选择方法"]
+        R3["状态变化因果不能直接当方法候选"]
+        R4["外部变化不能伪装成自我动作致变"]
+        R5["同源变化证据组只允许结算一次"]
+        R6["动作失败不生成正向动作致变因果"]
+    end
+
+    R1 -.约束.-&gt; S1
+    R2 -.约束.-&gt; A2
+    R3 -.约束.-&gt; Q4
+    R4 -.约束.-&gt; SC4
+    R5 -.约束.-&gt; ST5
+    R6 -.约束.-&gt; V6
+      </pre>
+    </section>
+    <section class="notes">
+      <p>状态账回答“发生了什么变化”；动作账回答“谁能造成这个变化”。任务筹办优先消费动作致变因果，状态变化因果只进入学习、练习、观察、尝试或证据补齐路径。</p>
+      <p>扫描动作不应被写成造成外部对象变化。首次扫描建立内部基准，后续扫描取得或提交变化事实。</p>
+      <p>结算必须同时具备结果状态迁移和自我动作归因；同源变化证据组只允许结算一次。动作失败不生成正向动作致变因果。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
