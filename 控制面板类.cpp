@@ -8189,6 +8189,41 @@ function showNodeDetail(title,subtitle,rows,extraHtml=''){
   if(!nodeDetail)return;
   nodeDetail.innerHTML=`<div class="detail-head"><strong>${escapeHtml(fieldText(title))}</strong><span>${escapeHtml(fieldText(subtitle))}</span></div><div class="detail-block"><h3>节点信息</h3>${renderDetailRows(rows)}</div>${extraHtml}`;
 }
+function sectionTitle(target){
+  const section=document.getElementById(target||'');
+  return section?.dataset.sectionTitle||section?.querySelector('h2')?.textContent||target||'当前页面';
+}
+function activeSectionId(){
+  return buttons.find(item=>item.classList.contains('active'))?.dataset.target||'';
+}
+function isSectionActive(target){
+  return activeSectionId()===(target||'');
+}
+function clearSelectionForSection(target){
+  if(target==='causalInfo'){
+    selectedCausalInfoKey='';
+    selectedCausalInfoNode=null;
+    updateCausalSelection();
+    return;
+  }
+  if(target==='worldTree'){
+    selectedWorldTreeNode=null;
+    updateWorldSelection();
+    return;
+  }
+  if(genericTreeRootsBySection.has(target)){
+    selectedGenericNode=null;
+    updateGenericSelection();
+  }
+}
+function showSectionState(target,status,detail){
+  const title=sectionTitle(target);
+  showNodeDetail(title,status||'SQL 投影视图',[
+    ['页面',title],
+    ['状态',detail||status||'等待刷新'],
+    ['数据源','ADO / SQL Server']
+  ]);
+}
 function renderOneLayerChildren(ownerKey){
   const relations=worldRelationsByOwner.get(ownerKey)||[];
   if(!relations.length)return '';
@@ -8584,7 +8619,15 @@ function renderSQLTableSection(data){
   }
   rebuildTableTreeSection(section);
   applyFilter();
-  selectDefaultForSection(data.page);
+  if(isSectionActive(data.page)){
+    if(rows.length){
+      selectDefaultForSection(data.page);
+    }else{
+      clearSelectionForSection(data.page);
+      showSectionState(data.page,'数据加载中','当前 SQL 区段暂无行，继续等待投影写入。');
+      安排SQL区段重试(data.page);
+    }
+  }
 }
 function renderSQLCausalInfoSection(data){
   const rows=sqlRowsToTreeRows(data.rows);
@@ -8594,7 +8637,15 @@ function renderSQLCausalInfoSection(data){
   if(note)note.textContent=`SQL 世界树根链因果根节点：${rows.length}；组成关系：${relations.length}`;
   buildCausalInfoTree();
   applyFilter();
-  selectDefaultForSection('causalInfo');
+  if(isSectionActive('causalInfo')){
+    if(rows.length)selectDefaultForSection('causalInfo');
+    else{
+      selectedCausalInfoKey='';
+      selectedCausalInfoNode=null;
+      showSectionState('causalInfo','数据加载中','当前 SQL 因果信息暂无节点，继续等待投影写入。');
+      安排SQL区段重试('causalInfo');
+    }
+  }
 }
 function renderSQLCausalChainSection(data){
   const relations=sqlRowsToRelations(data.relations);
@@ -8622,7 +8673,14 @@ function renderSQLWorldTreeSection(data){
   }
   buildWorldTree();
   applyFilter();
-  selectDefaultForSection('worldTree');
+  if(isSectionActive('worldTree')){
+    if(rows.length)selectDefaultForSection('worldTree');
+    else{
+      selectedWorldTreeNode=null;
+      showSectionState('worldTree','数据加载中','当前 SQL 世界树暂无节点，继续等待投影写入。');
+      安排SQL区段重试('worldTree');
+    }
+  }
 }
 function applySQLGenericSubtree(data){
   const sectionId=data.section||data.page||'';
@@ -8736,13 +8794,20 @@ function 应用SQL区段刷新(data){
     安排SQL区段重试(data.page||当前SQL区段());
     return;
   }
-  clearTimeout(sqlRefreshRetryTimer);
+  const activeResponse=isSectionActive(data.page||'');
+  const rowsArray=Array.isArray(data.rows)?data.rows:[];
+  const emptyActiveResult=activeResponse
+    && ['sql-table','sql-causal-info','sql-world-tree'].includes(data.kind)
+    && rowsArray.length===0;
+  if(activeResponse)clearTimeout(sqlRefreshRetryTimer);
   if(data.kind==='sql-table')renderSQLTableSection(data);
   else if(data.kind==='sql-causal-info')renderSQLCausalInfoSection(data);
   else if(data.kind==='sql-causal-chain')renderSQLCausalChainSection(data);
   else if(data.kind==='sql-world-tree')renderSQLWorldTreeSection(data);
   else return;
-  if(panelStatus)panelStatus.textContent=`已刷新当前页面：${data.page||''}`;
+  if(panelStatus)panelStatus.textContent=emptyActiveResult
+    ? `数据加载中：${sectionTitle(data.page||'当前页面')} 暂无 SQL 行，继续重试。`
+    : `已刷新当前页面：${data.page||''}`;
 }
 )HTML";
         输出 << R"HTML(
@@ -8954,17 +9019,30 @@ function selectDefaultForSection(target){
   if(target==='causalInfo'){
     const node=firstSelectableNode(causalInfoRoots);
     if(node)selectCausalInfoNode(node);
+    else{
+      selectedCausalInfoKey='';
+      selectedCausalInfoNode=null;
+      showSectionState(target,'数据加载中','当前 SQL 因果信息暂无节点。');
+    }
     return;
   }
   if(target==='worldTree'){
     const node=firstSelectableNode(worldTreeRoots);
     if(node)selectWorldTreeNode(node);
+    else{
+      selectedWorldTreeNode=null;
+      showSectionState(target,'数据加载中','当前 SQL 世界树暂无节点。');
+    }
     return;
   }
   const genericRoots=genericTreeRootsBySection.get(target);
   if(genericRoots){
     const node=firstSelectableNode(genericRoots);
     if(node)selectGenericNode(node);
+    else{
+      selectedGenericNode=null;
+      showSectionState(target,'数据加载中','当前 SQL 区段暂无节点。');
+    }
     return;
   }
   if(target==='causalChain'){
@@ -8983,6 +9061,7 @@ function activateMenuButton(button,refreshCurrent=false){
   sections.forEach(section=>section.classList.toggle('active',section.id===button.dataset.target));
   try{localStorage.setItem('fishnest.panel.activeTarget',button.dataset.target||'');}catch(_){}
   applyFilter();
+  showSectionState(button.dataset.target,'数据加载中','正在读取当前 SQL 区段。');
   selectDefaultForSection(button.dataset.target);
   if(refreshCurrent)请求刷新当前SQL区段(button.dataset.target);
 }
