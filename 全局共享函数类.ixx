@@ -52,6 +52,12 @@ export inline I64 饱和绝对值I64(I64 值) noexcept
     return 值 < 0 ? -值 : 值;
 }
 
+// 功能：返回两个 I64 值的饱和绝对差，差值溢出时返回 I64 最大值。
+export inline I64 饱和绝对差I64(I64 左值, I64 右值) noexcept
+{
+    return 饱和绝对值I64(饱和减少(左值, 右值));
+}
+
 // 功能：返回两个 I64 值的非饱和绝对差，保持原调用点既有算术语义。
 export inline I64 绝对差I64(I64 左值, I64 右值) noexcept
 {

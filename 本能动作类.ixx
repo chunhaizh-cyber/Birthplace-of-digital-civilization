@@ -1,5 +1,10 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 本模块只保留本能动作与场景模式匹配相关的领域编排。
+// 2. 纯 I64 数值工具优先复用 全局共享函数类，不在本模块重复定义。
+// 3. 本模块不得用文本或日志承载任务、需求、方法或场景事实裁决。
+
 #include <algorithm>
 #include <cstdint>
 #include <functional>
@@ -13,6 +18,8 @@ module;
 #include "世界树类.h"
 
 export module 本能动作模块;
+
+import 全局共享函数类;
 
 namespace 本能动作模块_detail {
 
@@ -84,22 +91,6 @@ namespace 本能动作模块_detail {
             && !枚举子节点_只读(模式节点).empty();
     }
 
-    // 功能：按函数名执行对应处理。
-    inline I64 饱和绝对差(I64 左, I64 右) noexcept
-    {
-        constexpr I64 最大值 = (std::numeric_limits<I64>::max)();
-        if (左 >= 右) {
-            if (右 < 0 && 左 > 最大值 + 右) {
-                return 最大值;
-            }
-            return 左 - 右;
-        }
-
-        if (左 < 0 && 右 > 最大值 + 左) {
-            return 最大值;
-        }
-        return 右 - 左;
-    }
 }
 
 export {
@@ -223,7 +214,7 @@ private:
 
         if (const auto* 左值 = std::get_if<I64>(&输入值)) {
             if (const auto* 右值 = std::get_if<I64>(&模式值)) {
-                return 本能动作模块_detail::饱和绝对差(*左值, *右值);
+                return 饱和绝对差I64(*左值, *右值);
             }
         }
 
@@ -319,7 +310,7 @@ private:
         输出分数 += 候选.front().first;
 
         if (候选.size() >= 2) {
-            const I64 分差 = 本能动作模块_detail::饱和绝对差(候选[0].first, 候选[1].first);
+            const I64 分差 = 饱和绝对差I64(候选[0].first, 候选[1].first);
             if (分差 <= 参数.歧义分差阈值) {
                 输出有歧义 = true;
                 输入输出.有歧义 = true;
