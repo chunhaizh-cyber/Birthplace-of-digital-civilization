@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>当前状态、动态、因果生成流程图</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    .canvas { min-width: 1900px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 1860px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    .notes code { background: #f6f8fa; padding: 1px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>当前状态、动态、因果生成流程图</h1>
+    <p class="hint">按当前代码路径绘制：状态写入自动刷新动态、动态默认后处理生成二次特征并回写因果、局部显式补因果调用，以及任务筹办对因果信息的查询消费。图中包含当前注意点，不作为阶段完成验收。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    Start["输入入口"] --&gt; StateIn{"入口类型"}
+
+    subgraph S["状态生成动态链"]
+        StateIn --&gt;|状态事实写入| S1["世界树::创建状态&lt;br/&gt;状态类::创建状态"]
+        S1 --&gt; S2["状态有效检查&lt;br/&gt;主体 / 特征 / 值必须有效"]
+        S2 --&gt; S3["添加状态节点&lt;br/&gt;场景追加状态索引"]
+        S3 --&gt; S4["世界树.状态记录后刷新动态"]
+        S4 --&gt; S5["动态类::查找相邻前状态&lt;br/&gt;同场景 / 同主体 / 同特征 / 时间有序"]
+        S5 --&gt;|未找到前状态| S6["无自动状态动态"]
+        S5 --&gt;|找到前状态| S7["创建叶子动态&lt;br/&gt;初始状态 -&gt; 结果状态"]
+    end
+
+    subgraph A["治理 / 方法动作动态链"]
+        StateIn --&gt;|本能或治理函数执行| A1["调用方写运行事实&lt;br/&gt;输入场景 / 输出场景 / 运行存在"]
+        A1 --&gt; A2{"是否调用&lt;br/&gt;世界树::创建方法动作动态"}
+        A2 --&gt;|是| A3["动态类::创建方法动作动态&lt;br/&gt;来源方法必须有可执行动作入口"]
+        A3 --&gt; A4["写入来源动作 / 动作名&lt;br/&gt;输入场景 / 输出场景 / 成功标记 / 错误码"]
+        A4 --&gt; A5{"是否传入&lt;br/&gt;初始状态与结果状态"}
+        A5 --&gt;|有端点| D1["进入统一动态创建"]
+        A5 --&gt;|缺端点| G1["当前注意点&lt;br/&gt;动作动态存在但二次特征无法标准化为状态迁移"]
+        A2 --&gt;|否，治理镜像| A6["自我治理变化&lt;br/&gt;先创建旧/新状态并调用 创建动态"]
+        A6 --&gt; A7["创建动态时先触发默认后处理"]
+        A7 --&gt; A8["后处理之后才补来源动作名 / 被动动作动态类型"]
+        A8 --&gt; G2["当前注意点&lt;br/&gt;自动因果生成可能已按无动作状态变化处理"]
+    end
+
+    S7 --&gt; D1
+    A4 --&gt; D1
+    A6 --&gt; D1
+
+    subgraph D["统一动态创建与后处理"]
+        D1["动态类::创建动态"] --&gt; D2{"动态含状态端点?"}
+        D2 --&gt;|有| D3["允许生成状态动态&lt;br/&gt;同场景 / 同主体 / 同特征 / 非同值 / 去重"]
+        D2 --&gt;|无| D4["跳过状态动态合法检查&lt;br/&gt;仅保留动作或事件动态字段"]
+        D3 --&gt;|不合法或同值| D5["拒绝或复用已有动态"]
+        D3 --&gt;|合法| D6["自动补齐动态主体 / 特征&lt;br/&gt;补齐名称与类型"]
+        D4 --&gt; D6
+        D6 --&gt; D7{"推导动态类型"}
+        D7 --&gt;|来源动作指针| D8["主动动作动态"]
+        D7 --&gt;|来源动作名或无端点动作事实| D9["被动动作动态"]
+        D7 --&gt;|只有前后状态| D10["无动作状态变化动态"]
+        D8 --&gt; D11["添加动态节点&lt;br/&gt;场景追加动态索引"]
+        D9 --&gt; D11
+        D10 --&gt; D11
+        D11 --&gt; D12["默认后处理选项=true&lt;br/&gt;获取动态二次特征"]
+        D12 --&gt; D13["生成相邻动态协同二次特征"]
+        D13 --&gt; D14["尝试连续同向聚合动态"]
+        D14 --&gt; D15["尝试同类事件段聚合动态"]
+        D15 --&gt; D16["SQL控制面板同步&lt;br/&gt;仅显示镜像"]
+    end
+
+    subgraph B["动态二次特征到因果"]
+        D12 --&gt; B1["二次特征生成模块::获取动态二次特征"]
+        B1 --&gt; B2["标准化动态单元列表&lt;br/&gt;要求动态可解析初始状态与结果状态"]
+        B2 --&gt;|标准单元为空| B3["停止&lt;br/&gt;不生成动态比较 / 不回写因果"]
+        B2 --&gt;|标准单元可用| B4["生成动态比较二次特征&lt;br/&gt;变化量 / 方向 / 时长 / 来源状态"]
+        B4 --&gt; B5["收集条件候选&lt;br/&gt;查找匹配因果模板"]
+        B5 --&gt;|命中或需回写| B6["世界树::生成因果信息&lt;br/&gt;设为主结果"]
+        B5 --&gt;|未命中| B7["只保留二次特征与动态证据"]
+        D15 -.-&gt; B8["聚合动态递归创建&lt;br/&gt;关闭二次特征与协同后处理以防递归扩张"]
+    end
+
+    subgraph C["因果类生成 / 命中"]
+        B6 --&gt; C1["因果类::生成因果信息"]
+        C1 --&gt; C2["读取动态因果生成输入&lt;br/&gt;初始状态 / 结果状态 / 来源动作 / 动作名 / 动态类型 / 层级"]
+        C2 --&gt; C3["查找动态果状态迁移模板&lt;br/&gt;来自二次特征状态迁移"]
+        C3 --&gt;|无果状态迁移模板| C4["停止&lt;br/&gt;不创建因果模板"]
+        C3 --&gt;|有果状态迁移模板| C5["查找或创建状态变化关系&lt;br/&gt;追加证据动态样本"]
+        C5 --&gt; C6{"动态类型是否为&lt;br/&gt;无动作状态变化动态"}
+        C6 --&gt;|是| C7["返回状态变化关系&lt;br/&gt;状态变化线索"]
+        C6 --&gt;|否| C8["查找或创建动作致变关系&lt;br/&gt;写因方法模板 / 动作语义键 / 动作名称"]
+        C8 --&gt; C9["追加证据动态样本&lt;br/&gt;融合主果状态迁移区间"]
+        C9 --&gt; C10["返回动作致变关系优先&lt;br/&gt;否则返回状态变化关系"]
+    end
+
+    subgraph X["显式补因果调用"]
+        X1["扫描动作动态 / 自我状态记录 / 叶子任务价值结算等"] --&gt; X2["创建状态端点与方法动作动态"]
+        X2 --&gt; X3["调用 世界树::生成因果信息"]
+        X3 --&gt; C1
+    end
+
+    subgraph Q["筹办查询与需求分解消费"]
+        C10 --&gt; Q1["世界树根链上的状态转换因果信息"]
+        C7 --&gt; Q1
+        Q1 --&gt; Q2["任务筹办读取来源需求目标&lt;br/&gt;需求类::获取需求方向"]
+        Q2 --&gt; Q3["执行因果路径查询壳&lt;br/&gt;查询主果方向命中因果"]
+        Q3 --&gt; Q4["生成临时因果视图&lt;br/&gt;促成 / 避免 / 条件补齐 / 方法就绪 / 证据补齐 / 副作用 / 学习缺口"]
+        Q4 --&gt; Q5["构造派生需求消息草案"]
+        Q5 --&gt; Q6["进入筹办结果待上报&lt;br/&gt;任务筹办不直接写需求树"]
+        Q6 --&gt; Q7["自我线程提交入口裁决&lt;br/&gt;去重 / 合并 / 入树或拒绝回执"]
+    end
+
+    subgraph R["硬边界"]
+        R1["线程不是动作来源"]
+        R2["任务筹办 / 任务执行不是本能方法&lt;br/&gt;不进入候选集"]
+        R3["外部变化不能伪装成自我方法动作动态&lt;br/&gt;只能是观察 / 外部事件 / 环境 / 未知来源动态"]
+        R4["只有 状态变化 无动作&lt;br/&gt;只能是状态变化线索，不是完整因果模板"]
+        R5["输出结果场景只承载世界事实&lt;br/&gt;不承载任务状态回执"]
+    end
+
+    R1 -.约束.-&gt; A3
+    R2 -.约束.-&gt; Q3
+    R3 -.约束.-&gt; D7
+    R4 -.约束.-&gt; C7
+    R5 -.约束.-&gt; A4
+      </pre>
+    </section>
+    <section class="notes">
+      <p>关键边界：状态写入后的动态依赖相邻前状态；动态二次特征依赖初始状态与结果状态；因果类先建状态变化关系，只有动态类型不是 <code>无动作状态变化动态</code> 才建动作致变关系。</p>
+      <p>当前注意点：任务执行桥的通用方法调用动作动态未传实际状态端点；自我治理动态在自动后处理之后才补动作名和被动类型。本图不宣称扫描需求自然生长闭合、内部循环完成、自我苏醒完成或初步成熟完成。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
