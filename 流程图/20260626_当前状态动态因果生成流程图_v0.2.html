@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>当前状态、动态、因果生成流程图</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    .canvas { min-width: 1900px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 1860px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    .notes code { background: #f6f8fa; padding: 1px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>当前状态、动态、因果生成流程图</h1>
+    <p class="hint">v0.2 按“一变两账”修订：状态迁移动态证明变了，动作致变动态证明动作造成变化；两套账通过同源变化证据组互证，结算只算一次。本图不作为阶段完成验收。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    Start["输入入口"] --&gt; E0{"入口类型"}
+
+    subgraph S["状态迁移底账"]
+        E0 --&gt;|状态事实写入| S1["状态类::创建状态&lt;br/&gt;主体 / 特征 / 值有效"]
+        S1 --&gt; S2["世界树.状态记录后刷新动态"]
+        S2 --&gt; S3["查找相邻前状态&lt;br/&gt;同场景 / 同主体 / 同特征 / 时间有序"]
+        S3 --&gt;|未找到前状态| S4["只保留当前状态&lt;br/&gt;不生成状态迁移动态"]
+        S3 --&gt;|找到前状态| S5["创建或复用 D_state&lt;br/&gt;状态迁移动态 A -&gt; B"]
+        S5 --&gt; S6["生成动态二次特征&lt;br/&gt;变化量 / 方向 / 时长 / 来源状态"]
+        S6 --&gt; S7{"果状态迁移模板&lt;br/&gt;是否存在"}
+        S7 --&gt;|存在| S8["生成或命中 C_state&lt;br/&gt;状态变化因果 / 状态变化线索"]
+        S7 --&gt;|缺失| S9["结构化缺口&lt;br/&gt;或创建候选状态迁移模板"]
+    end
+
+    subgraph A["动作致变能力账"]
+        E0 --&gt;|本能 / 治理 / 任务动作执行| A1["执行动作&lt;br/&gt;读取输入场景 / 写运行存在 / 写结果状态"]
+        A1 --&gt; A2["构造动作致变动态创建包&lt;br/&gt;来源方法 / 动作语义键 / 动态类型 / 输入输出场景 / 证据材料"]
+        A2 --&gt; A3{"是否有状态端点&lt;br/&gt;或同源 D_state"}
+        A3 --&gt;|否| A4["动作事件动态或结构化缺口&lt;br/&gt;不进入动作致变因果链"]
+        A3 --&gt;|是| A5["创建 D_action&lt;br/&gt;动作致变动态"]
+        A5 --&gt; A6["D_action 绑定 D_state&lt;br/&gt;同源变化证据组 G"]
+        A6 --&gt; A7["生成或命中 C_action&lt;br/&gt;动作致变因果"]
+        A7 --&gt; A8["C_action 引用 C_state&lt;br/&gt;证明动作能力"]
+    end
+
+    subgraph L["后补动作来源"]
+        L1["已有 D_state / C_state&lt;br/&gt;先按状态变化处理"] --&gt; L2["后续补齐来源动作 / 方法"]
+        L2 --&gt; L3["不得改写 D_state"]
+        L3 --&gt; L4["补建 D_action&lt;br/&gt;引用 D_state 和证据组 G"]
+        L4 --&gt; A7
+    end
+
+    S5 --&gt; G1["同源变化证据组 G&lt;br/&gt;同一次变化的结构化证据组"]
+    A6 --&gt; G1
+    S8 --&gt; G1
+    A8 --&gt; G1
+
+    subgraph C["因果类型与用途"]
+        S8 --&gt; C1["状态变化因果&lt;br/&gt;证明变化模式"]
+        A8 --&gt; C2["动作致变因果&lt;br/&gt;证明动作能力"]
+        C1 --&gt; C3["学习 / 练习 / 证据补齐 / 观察补齐线索"]
+        C2 --&gt; C4["任务筹办可直接消费&lt;br/&gt;映射候选方法"]
+        C1 -.互证提高评分.-&gt; C2
+    end
+
+    subgraph Q["任务筹办消费"]
+        C4 --&gt; Q1["优先使用动作致变因果&lt;br/&gt;可映射可执行方法"]
+        C3 --&gt; Q2["只有状态变化因果&lt;br/&gt;说明知道能变但不知道怎么让它变"]
+        Q2 --&gt; Q3["生成学习需求 / 练习需求&lt;br/&gt;或证据补齐 / 观察补齐需求"]
+        Q1 --&gt; Q4["构造候选方法 / 当前方法&lt;br/&gt;进入任务筹办后续流程"]
+    end
+
+    subgraph Z["结算边界"]
+        G1 --&gt; Z1["双账互证"]
+        Z1 --&gt; Z2["单组结算&lt;br/&gt;安全 / 服务 / 任务完成 / 需求满足只按 G 算一次"]
+    end
+
+    subgraph R["硬边界"]
+        R1["线程不是动作来源"]
+        R2["任务筹办 / 任务执行不是本能方法&lt;br/&gt;不进入候选集"]
+        R3["外部变化不能伪装成自我方法动作动态&lt;br/&gt;只能是观察 / 外部事件 / 环境 / 未知来源动态"]
+        R4["后处理后补动作来源&lt;br/&gt;不得篡改状态迁移账，只能补建动作致变账"]
+        R5["输出结果场景只承载世界事实&lt;br/&gt;不承载任务状态回执"]
+        R6["状态变化因果不能直接当作方法候选&lt;br/&gt;动作致变因果才可直接筹办消费"]
+    end
+
+    R1 -.约束.-&gt; A2
+    R2 -.约束.-&gt; Q4
+    R3 -.约束.-&gt; A5
+    R4 -.约束.-&gt; L3
+    R5 -.约束.-&gt; A1
+    R6 -.约束.-&gt; Q2
+      </pre>
+    </section>
+    <section class="notes">
+      <p>关键边界：状态迁移动态是事实底账，动作致变动态是能力账；状态变化因果证明变化模式，动作致变因果证明动作能力。</p>
+      <p>后补动作来源时，不修改既有 <code>D_state</code>，只补建 <code>D_action</code> 并绑定同源变化证据组。双账互证，但安全 / 服务 / 任务完成 / 需求满足只按证据组结算一次。</p>
+      <p>当前代码仍有动作动态入口缺状态端点、动作信息后补的问题；本图不宣称扫描需求自然生长闭合、练习链完全闭合、自我苏醒完成或初步成熟完成。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
