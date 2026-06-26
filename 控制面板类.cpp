@@ -7066,7 +7066,7 @@ SELECT
     COALESCE([目标状态主键], N'') AS [目标状态主键],
     COALESCE([结果状态主键], N'') AS [结果状态主键]
 FROM [鱼巢].[当前任务树节点]
-WHERE COALESCE([父节点主键], N'') = N''
+WHERE [深度] = 1
 ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::任务树
@@ -7085,7 +7085,7 @@ SELECT
     COALESCE([主结果特征主键], N'') AS [主结果特征主键],
     CONVERT(nvarchar(20), COALESCE([结果项数量], 0)) AS [结果项数量]
 FROM [鱼巢].[当前方法树节点]
-WHERE COALESCE([父节点主键], N'') = N''
+WHERE [深度] = 1
 ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::方法树
@@ -8118,6 +8118,7 @@ let menuNumberTimer=0;
 let sqlSubtreeRequestSeq=0;
 let sqlRefreshRetryTimer=0;
 const sqlSubtreeRequests=new Map();
+const sqlSectionFingerprints=new Map();
 const causalInfoByKey=new Map(causalInfoRows.map(row=>[row.key,row]));
 const causalRelationsByOwner=new Map();
 causalInfoRelations.forEach(rel=>{
@@ -8198,6 +8199,22 @@ function activeSectionId(){
 }
 function isSectionActive(target){
   return activeSectionId()===(target||'');
+}
+function stableDataFingerprint(value){
+  try{return JSON.stringify(value??null);}
+  catch(_){return String(value??'');}
+}
+function isUnchangedSection(page,fingerprint){
+  const key=String(page||'');
+  const unchanged=sqlSectionFingerprints.has(key)&&sqlSectionFingerprints.get(key)===fingerprint;
+  if(!unchanged)sqlSectionFingerprints.set(key,fingerprint);
+  return unchanged;
+}
+function isUnchangedSubtree(row,fingerprint){
+  if(!row)return false;
+  const unchanged=!!row.__sqlSubtreeLoaded&&row.__sqlSubtreeFingerprint===fingerprint;
+  if(!unchanged)row.__sqlSubtreeFingerprint=fingerprint;
+  return unchanged;
 }
 function clearSelectionForSection(target){
   if(target==='causalInfo'){
@@ -8358,6 +8375,7 @@ function renderTreeNode(row, labelFn){
   wrapper.dataset.search=row.searchText||'';
   row.el=wrapper;
   if(hasChildren&&(row.open||Number(row.depth||0)<2))wrapper.open=true;
+  if(hasChildren)wrapper.addEventListener('toggle',()=>{row.open=wrapper.open;});
   const lineTag=hasChildren?'summary':'div';
   const line=document.createElement(lineTag);
   line.className='tree-line';
@@ -8419,12 +8437,13 @@ function renderGenericTreePanel(section){
   updateGenericSelection();
 }
 function requestSQLGenericSubtree(row){
-  if(!row||!row.lazySubtree||row.__sqlSubtreeLoaded||row.__sqlSubtreeLoading)return;
+  if(!row||!row.lazySubtree||row.__sqlSubtreeLoading)return;
   if(!(window.chrome&&window.chrome.webview)){
     if(panelStatus)panelStatus.textContent='静态 HTML 预览未连接子链加载接口。';
     return;
   }
   row.__sqlSubtreeLoading=true;
+  row.open=true;
   const requestId=++sqlSubtreeRequestSeq;
   sqlSubtreeRequests.set(requestId,{kind:'generic',sectionId:row.sectionId,nodeKey:row.key});
   if(panelStatus)panelStatus.textContent=`正在加载子节点：${row.key}`;
@@ -8607,6 +8626,10 @@ function renderSQLTableSection(data){
   if(!table)return;
   const headers=Array.isArray(data.headers)?data.headers:[];
   const rows=Array.isArray(data.rows)?data.rows:[];
+  if(isUnchangedSection(data.page,stableDataFingerprint([headers,rows]))){
+    if(isSectionActive(data.page)&&!rows.length)安排SQL区段重试(data.page);
+    return false;
+  }
   const headRow=table.tHead?.rows?.[0];
   if(headRow)headRow.innerHTML=headers.map(header=>`<th>${escapeHtml(header)}</th>`).join('');
   const body=table.tBodies?.[0]||table.createTBody();
@@ -8628,10 +8651,15 @@ function renderSQLTableSection(data){
       安排SQL区段重试(data.page);
     }
   }
+  return true;
 }
 function renderSQLCausalInfoSection(data){
   const rows=sqlRowsToTreeRows(data.rows);
   const relations=sqlRowsToRelations(data.relations);
+  if(isUnchangedSection('causalInfo',stableDataFingerprint([data.rows||[],data.relations||[]]))){
+    if(isSectionActive('causalInfo')&&!rows.length)安排SQL区段重试('causalInfo');
+    return false;
+  }
   resetCausalInfoIndexes(rows,relations);
   const note=document.querySelector('#causalInfo .tree-toolbar .note');
   if(note)note.textContent=`SQL 世界树根链因果根节点：${rows.length}；组成关系：${relations.length}`;
@@ -8646,16 +8674,23 @@ function renderSQLCausalInfoSection(data){
       安排SQL区段重试('causalInfo');
     }
   }
+  return true;
 }
 function renderSQLCausalChainSection(data){
   const relations=sqlRowsToRelations(data.relations);
+  if(isUnchangedSection('causalChain',stableDataFingerprint(data.relations||[])))return false;
   resetCausalRelationIndexes(relations);
   chainRows.innerHTML='';
   chainResult.textContent=`已刷新因果链关系 ${causalRelationEdges.length} 条。`;
+  return true;
 }
 function renderSQLWorldTreeSection(data){
   const rows=sqlRowsToTreeRows(data.rows);
   const relations=sqlRowsToRelations(data.relations);
+  if(isUnchangedSection('worldTree',stableDataFingerprint([data.rows||[],data.relations||[]]))){
+    if(isSectionActive('worldTree')&&!rows.length)安排SQL区段重试('worldTree');
+    return false;
+  }
   resetWorldTreeIndexes(rows,relations);
   const section=document.getElementById('worldTree');
   const table=section?.querySelector('table[data-filterable]');
@@ -8681,6 +8716,7 @@ function renderSQLWorldTreeSection(data){
       安排SQL区段重试('worldTree');
     }
   }
+  return true;
 }
 function applySQLGenericSubtree(data){
   const sectionId=data.section||data.page||'';
@@ -8695,6 +8731,11 @@ function applySQLGenericSubtree(data){
   }
   const headers=node.headers||[];
   const title=section.dataset.sectionTitle||section.querySelector('h2')?.textContent||sectionId;
+  const fingerprint=stableDataFingerprint(data.rows||[]);
+  if(isUnchangedSubtree(node,fingerprint)){
+    if(panelStatus)panelStatus.textContent=`子节点无变化：${nodeKey}`;
+    return;
+  }
   const childRows=(Array.isArray(data.rows)?data.rows:[]).map((row,index)=>
     createGenericRowNode(sectionId,title,headers,row,index,true));
   node.children=buildGenericHierarchy(childRows);
@@ -8721,6 +8762,11 @@ function applySQLWorldSubtree(data){
     if(panelStatus)panelStatus.textContent=data.error?`子节点加载失败：${data.error}`:'子节点加载失败。';
     return;
   }
+  const fingerprint=stableDataFingerprint([data.rows||[],data.relations||[]]);
+  if(parent&&isUnchangedSubtree(parent,fingerprint)){
+    if(panelStatus)panelStatus.textContent=`世界树子节点无变化：${nodeKey}`;
+    return;
+  }
   const rows=sqlRowsToTreeRows(data.rows);
   const known=new Set(worldTreeRows.map(row=>row.key));
   rows.forEach(row=>{
@@ -8729,7 +8775,10 @@ function applySQLWorldSubtree(data){
       worldTreeRows.push(row);
     }
   });
-  if(parent)parent.__sqlSubtreeLoaded=true;
+  if(parent){
+    parent.__sqlSubtreeLoaded=true;
+    parent.open=true;
+  }
   mergeWorldRelations(sqlRowsToRelations(data.relations));
   resetWorldTreeIndexes([...worldTreeRows],[...worldTreeRelations]);
   buildWorldTree();
@@ -8742,6 +8791,11 @@ function applySQLCausalInfoSubtree(data){
   if(parent)parent.__sqlSubtreeLoading=false;
   if(!data.ok){
     if(panelStatus)panelStatus.textContent=data.error?`子节点加载失败：${data.error}`:'子节点加载失败。';
+    return;
+  }
+  const fingerprint=stableDataFingerprint([data.rows||[],data.relations||[]]);
+  if(parent&&isUnchangedSubtree(parent,fingerprint)){
+    if(panelStatus)panelStatus.textContent=`因果信息子节点无变化：${nodeKey}`;
     return;
   }
   const rows=sqlRowsToTreeRows(data.rows);
@@ -8800,14 +8854,15 @@ function 应用SQL区段刷新(data){
     && ['sql-table','sql-causal-info','sql-world-tree'].includes(data.kind)
     && rowsArray.length===0;
   if(activeResponse)clearTimeout(sqlRefreshRetryTimer);
-  if(data.kind==='sql-table')renderSQLTableSection(data);
-  else if(data.kind==='sql-causal-info')renderSQLCausalInfoSection(data);
-  else if(data.kind==='sql-causal-chain')renderSQLCausalChainSection(data);
-  else if(data.kind==='sql-world-tree')renderSQLWorldTreeSection(data);
+  let changed=false;
+  if(data.kind==='sql-table')changed=renderSQLTableSection(data);
+  else if(data.kind==='sql-causal-info')changed=renderSQLCausalInfoSection(data);
+  else if(data.kind==='sql-causal-chain')changed=renderSQLCausalChainSection(data);
+  else if(data.kind==='sql-world-tree')changed=renderSQLWorldTreeSection(data);
   else return;
   if(panelStatus)panelStatus.textContent=emptyActiveResult
     ? `数据加载中：${sectionTitle(data.page||'当前页面')} 暂无 SQL 行，继续重试。`
-    : `已刷新当前页面：${data.page||''}`;
+    : (changed ? `已刷新当前页面：${data.page||''}` : `当前页面无变化：${data.page||''}`);
 }
 )HTML";
         输出 << R"HTML(
@@ -8833,7 +8888,7 @@ function causalInfoLabel(row){
   return treeLabel(row);
 }
 function requestSQLCausalInfoSubtree(row){
-  if(!row||row.__sqlSubtreeLoaded||row.__sqlSubtreeLoading)return;
+  if(!row||row.__sqlSubtreeLoading)return;
   if(!(window.chrome&&window.chrome.webview)){
     if(panelStatus)panelStatus.textContent='静态 HTML 预览未连接子链加载接口。';
     return;
@@ -8862,12 +8917,13 @@ function updateWorldSelection(){
   });
 }
 function requestSQLWorldSubtree(row){
-  if(!row||row.__sqlSubtreeLoaded||row.__sqlSubtreeLoading)return;
+  if(!row||row.__sqlSubtreeLoading)return;
   if(!(window.chrome&&window.chrome.webview)){
     if(panelStatus)panelStatus.textContent='静态 HTML 预览未连接子链加载接口。';
     return;
   }
   row.__sqlSubtreeLoading=true;
+  row.open=true;
   const requestId=++sqlSubtreeRequestSeq;
   sqlSubtreeRequests.set(requestId,{kind:'world',sectionId:'worldTree',nodeKey:row.key});
   if(panelStatus)panelStatus.textContent=`正在加载世界树子节点：${row.key}`;

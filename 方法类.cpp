@@ -1362,14 +1362,18 @@ namespace {
             << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前方法主信息] AS\n"
             << "SELECT m.*\n"
             << "FROM [鱼巢].[方法主信息] m\n"
-            << "WHERE m.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[方法树快照] ORDER BY [捕获时间] DESC);');\n"
+            << "INNER JOIN [鱼巢].[方法树节点] n\n"
+            << "    ON n.[快照标识] = m.[快照标识]\n"
+            << "    AND n.[行号] = m.[节点行号]\n"
+            << "WHERE m.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[方法树快照] ORDER BY [捕获时间] DESC)\n"
+            << "    AND n.[深度] > 0;');\n"
             << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前方法树节点] AS\n"
             << "SELECT\n"
             << "    n.[记录标识],\n"
             << "    n.[快照标识],\n"
             << "    n.[行号],\n"
-            << "    n.[节点主键],\n"
-            << "    n.[父节点主键],\n"
+            << "    n.[节点主键] COLLATE Latin1_General_BIN2 AS [节点主键],\n"
+            << "    n.[父节点主键] COLLATE Latin1_General_BIN2 AS [父节点主键],\n"
             << "    n.[深度],\n"
             << "    n.[同层序号],\n"
             << "    n.[直接子数量],\n"
@@ -1394,7 +1398,8 @@ namespace {
             << "LEFT JOIN [鱼巢].[方法主信息] m\n"
             << "    ON m.[快照标识] = n.[快照标识]\n"
             << "    AND m.[节点行号] = n.[行号]\n"
-            << "WHERE n.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[方法树快照] ORDER BY [捕获时间] DESC);');\n";
+            << "WHERE n.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[方法树快照] ORDER BY [捕获时间] DESC)\n"
+            << "    AND n.[深度] > 0;');\n";
         return SQL.str();
     }
 
