@@ -1,5 +1,10 @@
 #include "任务类.h"
 
+// 文件头部规则注释模块：
+// 1. 任务树正式变化只能经任务类和任务管理提交入口完成；SQL 只投影显示结果。
+// 2. SQL 控制面板运行态写入失败不得回滚任务树内存结构提交。
+// 3. 任务状态、来源需求、虚拟存在和任务树关系仍以任务主信息和任务树为权威源。
+
 #include <algorithm>
 #include <mutex>
 #include <sstream>
@@ -991,11 +996,6 @@ namespace {
         std::ostringstream SQL;
         SQL << "SET NOCOUNT ON;\n"
             << "IF SCHEMA_ID(N'鱼巢') IS NULL EXEC(N'CREATE SCHEMA [鱼巢]');\n"
-            << "IF OBJECT_ID(N'[鱼巢].[当前任务树节点]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前任务树节点];\n"
-            << "IF OBJECT_ID(N'[鱼巢].[当前任务主信息]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前任务主信息];\n"
-            << "IF OBJECT_ID(N'[鱼巢].[任务主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[任务主信息];\n"
-            << "IF OBJECT_ID(N'[鱼巢].[任务树节点]', N'U') IS NOT NULL DROP TABLE [鱼巢].[任务树节点];\n"
-            << "IF OBJECT_ID(N'[鱼巢].[任务树快照]', N'U') IS NOT NULL DROP TABLE [鱼巢].[任务树快照];\n"
             << "IF OBJECT_ID(N'[鱼巢].[任务树快照]', N'U') IS NULL\n"
             << "CREATE TABLE [鱼巢].[任务树快照] (\n"
             << "    [快照标识] uniqueidentifier NOT NULL PRIMARY KEY,\n"
@@ -1172,6 +1172,16 @@ namespace {
             << "    WHERE info.[快照标识] = @快照标识 AND node.[行号] IS NULL\n"
             << ")\n"
             << "    THROW 51011, N'task_main_info [节点行号] invalid', 1;\n";
+        SQL << "IF (\n"
+            << "    SELECT COUNT(*)\n"
+            << "    FROM [鱼巢].[任务树节点]\n"
+            << "    WHERE [快照标识] = @快照标识\n"
+            << ") <> (\n"
+            << "    SELECT COUNT(*)\n"
+            << "    FROM [鱼巢].[任务主信息]\n"
+            << "    WHERE [快照标识] = @快照标识\n"
+            << ")\n"
+            << "    THROW 51012, N'task_tree_node and task_main_info count mismatch', 1;\n";
         SQL << "COMMIT TRANSACTION;\n";
         return SQL.str();
     }
