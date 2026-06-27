@@ -1,5 +1,10 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 本模块只负责 WebView2 窗口、导航和显示层消息桥接，不承载业务权威事实。
+// 2. 诊断文本和路径文本只用于日志 / 显示，不得反向作为机器业务判断来源。
+// 3. 通用格式化工具优先复用 全局共享函数类，不在本文件保留重复包装。
+
 #include <atomic>
 #include <algorithm>
 #include <cstdint>
@@ -131,15 +136,6 @@ namespace {
         return 输出.str();
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    std::string 私有_路径UTF8(const std::filesystem::path& 路径)
-    {
-        const auto 文本 = 路径.u8string();
-        return std::string(
-            reinterpret_cast<const char*>(文本.data()),
-            文本.size());
-    }
-
     void 私有_记录WebView2诊断(
         const std::string& 阶段,
         int 诊断码,
@@ -249,7 +245,7 @@ namespace {
                     31,
                     S_OK,
                     GetLastError(),
-                    "路径=" + 私有_路径UTF8(上下文.当前HTML临时路径)
+                    "路径=" + 路径UTF8文本(上下文.当前HTML临时路径)
                         + " | HTML字节=" + std::to_string(HTML.size()));
                 return false;
             }
@@ -262,7 +258,7 @@ namespace {
                     32,
                     导航结果,
                     GetLastError(),
-                    "路径=" + 私有_路径UTF8(上下文.当前HTML临时路径)
+                    "路径=" + 路径UTF8文本(上下文.当前HTML临时路径)
                         + " | HTML字节=" + std::to_string(HTML.size()));
                 return false;
             }
@@ -572,7 +568,7 @@ namespace {
                 8,
                 S_OK,
                 GetLastError(),
-                "路径=" + 私有_路径UTF8(路径));
+                "路径=" + 路径UTF8文本(路径));
             FreeLibrary(模块);
         }
 
@@ -581,7 +577,7 @@ namespace {
             8,
             S_OK,
             最近加载错误,
-            最近加载路径.empty() ? std::string{} : ("最近路径=" + 私有_路径UTF8(最近加载路径)));
+            最近加载路径.empty() ? std::string{} : ("最近路径=" + 路径UTF8文本(最近加载路径)));
         return nullptr;
     }
 
@@ -1601,7 +1597,7 @@ namespace {
                 13,
                 结果,
                 ERROR_SUCCESS,
-                "用户数据目录=" + 私有_路径UTF8(用户数据目录));
+                "用户数据目录=" + 路径UTF8文本(用户数据目录));
             return false;
         }
 

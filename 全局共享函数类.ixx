@@ -6,6 +6,7 @@ module;
 #include <chrono>
 #include <cmath>
 #include <cstddef>
+#include <filesystem>
 #include <ostream>
 #include <string>
 #include <string_view>
@@ -241,6 +242,15 @@ export inline void 追加JSON字符串(std::ostream& 输出, std::string_view �
         }
     }
     输出 << '"';
+}
+
+// 功能：把 filesystem 路径的 UTF-8 视图转换为普通字符串文本。
+export inline std::string 路径UTF8文本(const std::filesystem::path& 路径)
+{
+    const auto 文本 = 路径.u8string();
+    return std::string(
+        reinterpret_cast<const char*>(文本.data()),
+        文本.size());
 }
 
 // 功能：生成按索引分组的文本键值字段名，格式为 `项.<索引>.<键>`。

@@ -56,15 +56,6 @@ namespace {
     constexpr std::size_t 最大诊断区域数量 = 160;
 
     // 功能：按函数名执行对应处理。
-    std::string 路径UTF8(const std::filesystem::path& 路径)
-    {
-        const auto 文本 = 路径.u8string();
-        return std::string(
-            reinterpret_cast<const char*>(文本.data()),
-            文本.size());
-    }
-
-    // 功能：按函数名执行对应处理。
     std::filesystem::path 模块目录() noexcept
     {
         wchar_t 缓冲区[MAX_PATH]{};
@@ -88,11 +79,11 @@ namespace {
             const auto LZ4DLL = (根目录 / L"lz4.dll").lexically_normal();
 
             if (!std::filesystem::exists(主DLL)) {
-                错误消息 = "RealSense 运行时缺失: " + 路径UTF8(主DLL);
+                错误消息 = "RealSense 运行时缺失: " + 路径UTF8文本(主DLL);
                 return false;
             }
             if (!std::filesystem::exists(LZ4DLL)) {
-                错误消息 = "RealSense 依赖缺失: " + 路径UTF8(LZ4DLL);
+                错误消息 = "RealSense 依赖缺失: " + 路径UTF8文本(LZ4DLL);
                 return false;
             }
 
@@ -104,7 +95,7 @@ namespace {
                 错误消息 = "RealSense 运行时加载失败 | Win32="
                     + std::to_string(GetLastError())
                     + " | 路径="
-                    + 路径UTF8(主DLL);
+                    + 路径UTF8文本(主DLL);
                 return false;
             }
             return true;
