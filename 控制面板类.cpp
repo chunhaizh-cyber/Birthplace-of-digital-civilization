@@ -12801,6 +12801,9 @@ std::string 私有_生成控制面板HTML(
               <button id="self-scene-open-window" class="scene-btn" type="button">打开独立窗口</button>
             </div>
           </section>
+)HTML";
+    if (自我场景窗口模式) {
+        输出 << R"HTML(
           <section class="panel scene-control">
             <div>
               <div class="panel-topline">OpenGL</div>
@@ -13031,6 +13034,9 @@ std::string 私有_生成控制面板HTML(
               </aside>
             </div>
           </div>
+)HTML";
+    }
+    输出 << R"HTML(
         </section>
 
         <section class="page" data-page="camera-view" data-title="相机画面" data-subtitle="启动独立相机播放窗口；控制面板不承载视频播放。">
