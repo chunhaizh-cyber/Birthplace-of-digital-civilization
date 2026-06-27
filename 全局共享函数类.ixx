@@ -222,6 +222,25 @@ export inline void 写入转义键值字段行(std::ostream& 输出, std::string
     输出 << 键 << '=' << 转义键值字段值(值) << '\n';
 }
 
+// 功能：追加 `名称=数量` 文本计数项，自动按已写状态追加分隔符。
+export inline void 追加文本计数项(std::ostream& 输出, bool& 已写, std::string_view 名称, std::size_t 数量)
+{
+    if (已写) {
+        输出 << " | ";
+    }
+    输出 << 名称 << "=" << 数量;
+    已写 = true;
+}
+
+// 功能：数量非零时追加 `名称=数量` 文本计数项，自动按已写状态追加分隔符。
+export inline void 追加非零文本计数项(std::ostream& 输出, bool& 已写, std::string_view 名称, std::size_t 数量)
+{
+    if (数量 == 0) {
+        return;
+    }
+    追加文本计数项(输出, 已写, 名称, 数量);
+}
+
 // 功能：按 JSON 字符串规则追加带引号的转义文本。
 export inline void 追加JSON字符串(std::ostream& 输出, std::string_view 文本)
 {
