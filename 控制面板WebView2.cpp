@@ -2104,6 +2104,12 @@ bool 启动控制面板相机播放窗口() noexcept
     return 私有_打开相机播放窗口(nullptr);
 }
 
+// 功能：启动控制面板自我场景独立窗口。
+bool 启动控制面板WebView2自我场景窗口() noexcept
+{
+    return 私有_打开自我场景窗口(nullptr);
+}
+
 // 功能：请求控制面板相关窗口关闭并等待窗口线程收束。
 void 请求关闭控制面板WebView2窗口() noexcept
 {

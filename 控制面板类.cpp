@@ -15320,6 +15320,12 @@ bool 启动控制面板相机窗口() noexcept
     return 启动控制面板相机播放窗口();
 }
 
+// 功能：启动控制面板自我场景独立窗口。
+bool 启动控制面板自我场景窗口() noexcept
+{
+    return 启动控制面板WebView2自我场景窗口();
+}
+
 // 功能：请求控制面板相关窗口关闭并等待窗口线程收束。
 void 请求关闭控制面板窗口() noexcept
 {
@@ -15377,6 +15383,11 @@ std::filesystem::path 默认控制面板HTML路径()
         }
         else if (参数 == "--panel-camera" || 参数 == "--camera-window" || 参数 == "--d455-window") {
             输出 = 枚举_控制面板命令::打开相机窗口;
+        }
+        else if (参数 == "--panel-self-scene"
+            || 参数 == "--self-scene-window"
+            || 参数 == "--scene-window") {
+            输出 = 枚举_控制面板命令::打开自我场景窗口;
         }
     }
     return 输出;
