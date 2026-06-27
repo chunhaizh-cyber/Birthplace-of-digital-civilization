@@ -1,3 +1,8 @@
+// 文件头部规则注释模块：
+// 1. 本文件负责基础信息节点的人类可读命名，不承载机器裁决状态。
+// 2. 纯格式化工具优先复用 全局共享函数类；语言类领域命名规则保留在本文件。
+// 3. 文本输出只用于显示和诊断，不作为任务、需求、方法或世界事实判断依据。
+
 #include "语言类.h"
 
 #include <string>
@@ -7,6 +12,7 @@
 #include "语素类.h"
 
 import 二次特征应用模块;
+import 全局共享函数类;
 
 namespace {
 
@@ -32,22 +38,13 @@ namespace {
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    std::string 私有_指针句柄文本(std::uintptr_t 指针值)
-    {
-        if (指针值 == 0) {
-            return "空指针";
-        }
-        return "指针#" + std::to_string(指针值);
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     std::string 私有_特征值文本(const 特征值& 值)
     {
         if (std::holds_alternative<I64>(值)) {
             return std::to_string(std::get<I64>(值));
         }
         if (std::holds_alternative<指针句柄>(值)) {
-            return 私有_指针句柄文本(std::get<指针句柄>(值).指针);
+            return 指针句柄显示文本(std::get<指针句柄>(值).指针);
         }
         if (std::holds_alternative<VecU句柄>(值)) {
             return "VecU#" + std::to_string(std::get<VecU句柄>(值).主信息指针);

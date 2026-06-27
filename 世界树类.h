@@ -439,6 +439,8 @@ public:
     bool 追加来源低层动态(动态节点类* 节点, 动态节点类* 来源低层动态);
     动态节点主信息类* 取动态主信息(动态节点类* 节点) const noexcept;
     const 动态节点主信息类* 取动态主信息(const 动态节点类* 节点) const noexcept;
+    bool 读取动态双状态时间段(const 动态节点类* 动态, 时间戳& 起, 时间戳& 止) const noexcept;
+    bool 动态双状态同源可复算(const 动态节点类* 状态迁移动态, const 动态节点类* 动作致变动态) const noexcept;
     bool 读取动态聚合信息(
         const 动态节点类* 动态,
         std::uint32_t& 动态层级,

@@ -28,6 +28,7 @@ module;
 
 module 控制面板WebView2;
 
+import 全局共享函数类;
 import 控制面板类;
 import 日志模块;
 import 任务模块.管理界面线程;
@@ -621,36 +622,6 @@ namespace {
         return 输出;
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    void 私有_追加JSON字符串(std::ostringstream& 输出, std::string_view 文本)
-    {
-        输出 << '"';
-        for (const char 字符 : 文本) {
-            switch (字符) {
-            case '\\': 输出 << "\\\\"; break;
-            case '"': 输出 << "\\\""; break;
-            case '\n': 输出 << "\\n"; break;
-            case '\r': 输出 << "\\r"; break;
-            case '\t': 输出 << "\\t"; break;
-            default:
-                if (static_cast<unsigned char>(字符) < 0x20) {
-                    输出 << "\\u"
-                        << std::hex
-                        << std::setw(4)
-                        << std::setfill('0')
-                        << static_cast<int>(static_cast<unsigned char>(字符))
-                        << std::dec
-                        << std::setfill(' ');
-                }
-                else {
-                    输出 << 字符;
-                }
-                break;
-            }
-        }
-        输出 << '"';
-    }
-
     // 功能：计算权重、状态、差值或派生结果。
     void 私有_计算相机显示尺寸(int 源宽, int 源高, int& 宽, int& 高) noexcept
     {
@@ -838,16 +809,16 @@ namespace {
         输出 << "\"segmentPixels\":" << 帧.分割像素数 << ",";
         输出 << "\"contourPixels\":" << 帧.轮廓线像素数 << ",";
         输出 << "\"message\":";
-        私有_追加JSON字符串(输出, 帧.消息);
+        追加JSON字符串(输出, 帧.消息);
         输出 << ",";
         输出 << "\"error\":";
-        私有_追加JSON字符串(输出, 帧.成功 || 帧.已停止 || 帧.等待中 ? std::string_view{} : std::string_view(帧.消息));
+        追加JSON字符串(输出, 帧.成功 || 帧.已停止 || 帧.等待中 ? std::string_view{} : std::string_view(帧.消息));
         输出 << ",";
         输出 << "\"colorRGB\":";
-        私有_追加JSON字符串(输出, 帧.彩色RGB_Base64);
+        追加JSON字符串(输出, 帧.彩色RGB_Base64);
         输出 << ",";
         输出 << "\"segmentationRGB\":";
-        私有_追加JSON字符串(输出, 帧.分割RGB_Base64);
+        追加JSON字符串(输出, 帧.分割RGB_Base64);
         输出 << "}";
         return 输出.str();
     }
@@ -878,7 +849,7 @@ namespace {
 
         std::ostringstream JSON;
         JSON << "{\"ok\":" << (成功 ? "true" : "false") << ",\"message\":";
-        私有_追加JSON字符串(JSON, 消息);
+        追加JSON字符串(JSON, 消息);
         JSON << "}";
         const auto 宽JSON = 私有_UTF8转宽字串(JSON.str());
         if (宽JSON.empty()) {
@@ -899,7 +870,7 @@ namespace {
 
         std::ostringstream JSON;
         JSON << "{\"ok\":" << (成功 ? "true" : "false") << ",\"message\":";
-        私有_追加JSON字符串(JSON, 消息);
+        追加JSON字符串(JSON, 消息);
         JSON << "}";
         const auto 宽JSON = 私有_UTF8转宽字串(JSON.str());
         if (宽JSON.empty()) {

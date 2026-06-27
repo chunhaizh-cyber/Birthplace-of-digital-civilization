@@ -9189,44 +9189,18 @@ window.__panelApplyDetail=function(){};
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    void 私有_追加JSON字符串(std::ostringstream& 输出, std::string_view 文本)
-    {
-        输出 << '"';
-        for (const char 字符 : 文本) {
-            switch (字符) {
-            case '\\': 输出 << "\\\\"; break;
-            case '"': 输出 << "\\\""; break;
-            case '\n': 输出 << "\\n"; break;
-            case '\r': 输出 << "\\r"; break;
-            case '\t': 输出 << "\\t"; break;
-            default:
-                if (static_cast<unsigned char>(字符) < 0x20) {
-                    输出 << "\\u" << std::hex << std::setw(4) << std::setfill('0')
-                        << static_cast<int>(static_cast<unsigned char>(字符))
-                        << std::dec << std::setfill(' ');
-                }
-                else {
-                    输出 << 字符;
-                }
-                break;
-            }
-        }
-        输出 << '"';
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加树节点JSON(std::ostringstream& 输出, const 结构_控制面板树节点& 节点)
     {
         输出 << "{";
         输出 << "\"ptr\":" << 节点.节点指针 << ",";
         输出 << "\"arg\":" << 节点.附加参数 << ",";
         输出 << "\"text\":";
-        私有_追加JSON字符串(输出, 节点.文本);
+        追加JSON字符串(输出, 节点.文本);
         输出 << ",";
         输出 << "\"open\":" << (节点.默认展开 ? "true" : "false") << ",";
         输出 << "\"lazy\":" << (节点.可延迟展开 ? "true" : "false") << ",";
         输出 << "\"expandType\":";
-        私有_追加JSON字符串(输出, 节点.展开类型);
+        追加JSON字符串(输出, 节点.展开类型);
         输出 << ",";
         if (!节点.详情.empty()) {
             输出 << "\"__detailLoaded\":true,";
@@ -9266,14 +9240,14 @@ window.__panelApplyDetail=function(){};
         std::ostringstream 输出;
         输出 << "{\"ok\":" << (根节点 && 错误.empty() ? "true" : "false");
         输出 << ",\"page\":";
-        私有_追加JSON字符串(输出, 页面);
+        追加JSON字符串(输出, 页面);
         if (根节点) {
             输出 << ",\"root\":";
             私有_追加树节点JSON(输出, *根节点);
         }
         if (!错误.empty()) {
             输出 << ",\"error\":";
-            私有_追加JSON字符串(输出, 错误);
+            追加JSON字符串(输出, 错误);
         }
         输出 << "}";
         return 输出.str();
@@ -9328,9 +9302,9 @@ window.__panelApplyDetail=function(){};
             输出 << "{";
             输出 << "\"ptr\":" << 项.节点指针;
             输出 << ",\"title\":";
-            私有_追加JSON字符串(输出, 项.标题);
+            追加JSON字符串(输出, 项.标题);
             输出 << ",\"type\":";
-            私有_追加JSON字符串(输出, 项.类型);
+            追加JSON字符串(输出, 项.类型);
             输出 << ",\"sourceScope\":" << 项.来源范围;
             输出 << ",\"sourceCandidate\":" << 项.来源空间候选编号;
             输出 << ",\"reportId\":" << 项.外设观察报告ID;
@@ -9402,12 +9376,12 @@ window.__panelApplyDetail=function(){};
         输出 << "\"scenePtr\":" << 快照.自我所在场景指针 << ",";
         输出 << "\"hostPtr\":" << 快照.自我场景复现宿主指针 << ",";
         输出 << "\"sceneTitle\":";
-        私有_追加JSON字符串(输出, 快照.自我所在场景标题);
+        追加JSON字符串(输出, 快照.自我所在场景标题);
         输出 << ",\"hostTitle\":";
-        私有_追加JSON字符串(输出, 快照.自我场景复现宿主标题);
+        追加JSON字符串(输出, 快照.自我场景复现宿主标题);
         输出 << ",\"safetyHostPtr\":" << 快照.自我场景安全评估宿主指针;
         输出 << ",\"safetyHostTitle\":";
-        私有_追加JSON字符串(输出, 快照.自我场景安全评估宿主标题);
+        追加JSON字符串(输出, 快照.自我场景安全评估宿主标题);
         输出 << ",\"sceneDirectChildren\":" << 快照.自我场景直接子节点数量;
         输出 << ",\"sceneSubtreeNodes\":" << 快照.自我场景子树节点数量;
         输出 << ",\"sceneDirectExistences\":" << 快照.自我场景直接存在数量;
@@ -9423,13 +9397,13 @@ window.__panelApplyDetail=function(){};
         输出 << ",\"sceneSubtreeScanLimitHit\":" << 快照.自我场景子树扫描达到上限;
         输出 << ",\"hostSubtreeScanLimitHit\":" << 快照.自我场景复现宿主子树扫描达到上限;
         输出 << ",\"sceneDirectSummary\":";
-        私有_追加JSON字符串(输出, 快照.自我场景直接子层摘要);
+        追加JSON字符串(输出, 快照.自我场景直接子层摘要);
         输出 << ",\"sceneSubtreeSummary\":";
-        私有_追加JSON字符串(输出, 快照.自我场景子树类型摘要);
+        追加JSON字符串(输出, 快照.自我场景子树类型摘要);
         输出 << ",\"sceneExistenceSamples\":";
-        私有_追加JSON字符串(输出, 快照.自我场景存在样例摘要);
+        追加JSON字符串(输出, 快照.自我场景存在样例摘要);
         输出 << ",\"hostExistenceSamples\":";
-        私有_追加JSON字符串(输出, 快照.自我场景复现宿主存在样例摘要);
+        追加JSON字符串(输出, 快照.自我场景复现宿主存在样例摘要);
         输出 << ",\"width\":" << 快照.自我场景相机帧宽度;
         输出 << ",\"height\":" << 快照.自我场景相机帧高度;
         输出 << ",\"depthFrame\":" << 快照.自我场景深度帧号;

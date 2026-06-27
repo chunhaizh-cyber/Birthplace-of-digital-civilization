@@ -218,6 +218,31 @@ export inline void 写入转义键值字段行(std::ostream& 输出, std::string
     输出 << 键 << '=' << 转义键值字段值(值) << '\n';
 }
 
+// 功能：按 JSON 字符串规则追加带引号的转义文本。
+export inline void 追加JSON字符串(std::ostream& 输出, std::string_view 文本)
+{
+    constexpr char 十六进制[] = "0123456789abcdef";
+    输出 << '"';
+    for (const unsigned char 字符 : 文本) {
+        switch (字符) {
+        case '\\': 输出 << "\\\\"; break;
+        case '"': 输出 << "\\\""; break;
+        case '\n': 输出 << "\\n"; break;
+        case '\r': 输出 << "\\r"; break;
+        case '\t': 输出 << "\\t"; break;
+        default:
+            if (字符 < 0x20) {
+                输出 << "\\u00" << 十六进制[(字符 >> 4) & 0x0F] << 十六进制[字符 & 0x0F];
+            }
+            else {
+                输出 << static_cast<char>(字符);
+            }
+            break;
+        }
+    }
+    输出 << '"';
+}
+
 // 功能：生成按索引分组的文本键值字段名，格式为 `项.<索引>.<键>`。
 export inline std::string 索引项字段键(std::size_t 索引, std::string_view 键)
 {
@@ -719,4 +744,13 @@ export inline std::string SQL字段可空整数文本(bool 有值, int 值)
 export inline std::string 指针日志文本(const void* 指针) noexcept
 {
     return std::to_string(reinterpret_cast<std::uintptr_t>(指针));
+}
+
+// 功能：把指针句柄格式化为人类可读显示文本，空句柄显示为空指针。
+export inline std::string 指针句柄显示文本(std::uintptr_t 指针值)
+{
+    if (指针值 == 0) {
+        return "空指针";
+    }
+    return "指针#" + std::to_string(指针值);
 }
