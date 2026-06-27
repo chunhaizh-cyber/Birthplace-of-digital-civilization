@@ -2,6 +2,7 @@ module;
 
 #include "基础数据类型.h"
 
+#include <algorithm>
 #include <bit>
 #include <chrono>
 #include <cmath>
@@ -13,6 +14,8 @@ module;
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 export module 全局共享函数类;
 
@@ -239,6 +242,64 @@ export inline void 追加非零文本计数项(std::ostream& 输出, bool& 已�
         return;
     }
     追加文本计数项(输出, 已写, 名称, 数量);
+}
+
+// 功能：累计文本键出现次数，空键统一折叠为 `空`。
+export inline void 累计文本计数(
+    std::vector<std::pair<std::string, std::size_t>>& 统计,
+    std::string 键)
+{
+    if (键.empty()) {
+        键 = "空";
+    }
+
+    for (auto& [已有键, 数量] : 统计) {
+        if (已有键 == 键) {
+            ++数量;
+            return;
+        }
+    }
+    统计.emplace_back(std::move(键), 1);
+}
+
+// 功能：把文本计数统计排序并格式化为 `键数量/其余数量` 摘要。
+export inline std::string 文本计数摘要(
+    std::vector<std::pair<std::string, std::size_t>> 统计,
+    const std::size_t 展示上限)
+{
+    if (统计.empty()) {
+        return {};
+    }
+
+    std::sort(
+        统计.begin(),
+        统计.end(),
+        [](const auto& 左, const auto& 右) {
+            if (左.second != 右.second) {
+                return 左.second > 右.second;
+            }
+            return 左.first < 右.first;
+        });
+
+    std::ostringstream 输出;
+    std::size_t 已写入 = 0;
+    std::size_t 其余数量 = 0;
+    for (const auto& [键, 数量] : 统计) {
+        if (已写入 < 展示上限) {
+            if (已写入 > 0) {
+                输出 << "/";
+            }
+            输出 << 键 << 数量;
+            ++已写入;
+        }
+        else {
+            其余数量 += 数量;
+        }
+    }
+    if (其余数量 > 0) {
+        输出 << "/其余" << 其余数量;
+    }
+    return 输出.str();
 }
 
 // 功能：按 JSON 字符串规则追加带引号的转义文本。

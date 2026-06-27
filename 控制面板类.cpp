@@ -2818,63 +2818,6 @@ namespace {
         return 输出;
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    void 私有_累计文本计数(
-        std::vector<std::pair<std::string, std::size_t>>& 统计,
-        std::string 键)
-    {
-        if (键.empty()) {
-            键 = "空";
-        }
-
-        for (auto& [已有键, 数量] : 统计) {
-            if (已有键 == 键) {
-                ++数量;
-                return;
-            }
-        }
-        统计.emplace_back(std::move(键), 1);
-    }
-
-    std::string 私有_文本计数摘要(
-        std::vector<std::pair<std::string, std::size_t>> 统计,
-        const std::size_t 展示上限 = 4)
-    {
-        if (统计.empty()) {
-            return {};
-        }
-
-        std::sort(
-            统计.begin(),
-            统计.end(),
-            [](const auto& 左, const auto& 右) {
-                if (左.second != 右.second) {
-                    return 左.second > 右.second;
-                }
-                return 左.first < 右.first;
-            });
-
-        std::ostringstream 输出;
-        std::size_t 已写入 = 0;
-        std::size_t 其余数量 = 0;
-        for (const auto& [键, 数量] : 统计) {
-            if (已写入 < 展示上限) {
-                if (已写入 > 0) {
-                    输出 << "/";
-                }
-                输出 << 键 << 数量;
-                ++已写入;
-            }
-            else {
-                其余数量 += 数量;
-            }
-        }
-        if (其余数量 > 0) {
-            输出 << "/其余" << 其余数量;
-        }
-        return 输出.str();
-    }
-
     // 功能：创建并返回或登记对应对象。
     结构_控制面板树节点 私有_创建结构省略节点(
         const std::string& 展开类型,
@@ -2945,9 +2888,9 @@ namespace {
     {
         std::vector<std::pair<std::string, std::size_t>> 统计{};
         私有_遍历全部子节点(节点, [&](const 基础信息节点类* 子节点) {
-            私有_累计文本计数(统计, 私有_基础信息类别文本(子节点 ? 子节点->主信息 : nullptr));
+            累计文本计数(统计, 私有_基础信息类别文本(子节点 ? 子节点->主信息 : nullptr));
         });
-        return 私有_文本计数摘要(std::move(统计));
+        return 文本计数摘要(std::move(统计), 4);
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -2959,9 +2902,9 @@ namespace {
             if (标签.empty()) {
                 标签 = "空目标特征";
             }
-            私有_累计文本计数(统计, std::move(标签));
+            累计文本计数(统计, std::move(标签));
         });
-        return 私有_文本计数摘要(std::move(统计));
+        return 文本计数摘要(std::move(统计), 4);
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -2969,9 +2912,9 @@ namespace {
     {
         std::vector<std::pair<std::string, std::size_t>> 统计{};
         私有_遍历全部子节点(节点, [&](const 任务节点* 子节点) {
-            私有_累计文本计数(统计, 私有_任务节点种类文本(任务类::读取任务节点种类(子节点)));
+            累计文本计数(统计, 私有_任务节点种类文本(任务类::读取任务节点种类(子节点)));
         });
-        return 私有_文本计数摘要(std::move(统计));
+        return 文本计数摘要(std::move(统计), 4);
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -2979,9 +2922,9 @@ namespace {
     {
         std::vector<std::pair<std::string, std::size_t>> 统计{};
         私有_遍历全部子节点(节点, [&](const 方法节点* 子节点) {
-            私有_累计文本计数(统计, 私有_方法节点种类文本(方法类::方法节点种类(子节点)));
+            累计文本计数(统计, 私有_方法节点种类文本(方法类::方法节点种类(子节点)));
         });
-        return 私有_文本计数摘要(std::move(统计));
+        return 文本计数摘要(std::move(统计), 4);
     }
 
     // 功能：服务所在模块的内部辅助流程。
