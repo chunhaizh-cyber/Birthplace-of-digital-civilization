@@ -11985,6 +11985,7 @@ std::string 私有_生成控制面板HTML(
     .scene-legend .x i{background:#f87171}
     .scene-legend .y i{background:#34d399}
     .scene-legend .z i{background:#60a5fa}
+    .scene-legend .existence i{background:#14b8a6}
     .scene-legend .box i{background:#f59e0b}
     .scene-legend .depth-hole i{background:#ef4444}
     .scene-legend .filled-depth i{background:#facc15}
@@ -12109,6 +12110,42 @@ std::string 私有_生成控制面板HTML(
     .scene-layer-row.filled-depth .scene-layer-meter span{background:#facc15}
     .scene-layer-row.unexplained .scene-layer-meter span{background:#a78bfa}
     .scene-layer-row.contour-risk .scene-layer-meter span{background:#fb7185}
+    .scene-existence-list{
+      margin-top:12px;
+      display:grid;
+      gap:10px;
+      max-height:320px;
+      overflow:auto;
+    }
+    .scene-existence-item{
+      min-width:0;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid rgba(15,23,42,.08);
+      background:var(--surface-2);
+    }
+    .scene-existence-title{
+      font-size:13px;
+      font-weight:800;
+      line-height:1.55;
+      word-break:break-word;
+    }
+    .scene-existence-meta{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.6;
+      word-break:break-word;
+    }
+    .scene-existence-empty{
+      padding:12px 14px;
+      border-radius:8px;
+      border:1px dashed rgba(15,23,42,.14);
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+      background:rgba(15,23,42,.03);
+    }
 )HTML";
     输出 << R"HTML(
     .workspace{
@@ -12789,6 +12826,7 @@ std::string 私有_生成控制面板HTML(
                 <span class="x"><i></i>X</span>
                 <span class="y"><i></i>Y</span>
                 <span class="z"><i></i>Z</span>
+                <span class="existence"><i></i>存在点</span>
                 <span class="box"><i></i>AABB</span>
                 <span class="depth-hole"><i></i>深度空洞</span>
                 <span class="filled-depth"><i></i>补全深度</span>
@@ -12798,9 +12836,32 @@ std::string 私有_生成控制面板HTML(
             </section>
             <div class="scene-side">
               <aside class="panel">
-                <div class="panel-topline">场景快照</div>
-                <h3>空间解释</h3>
-                <div class="scene-stat-grid" aria-label="自我所在场景复现状态">
+                <div class="panel-topline">自我认知世界</div>
+                <h3>自我所在场景存在</h3>
+                <div class="scene-stat-grid" aria-label="自我所在场景存在显示状态">
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">场景指针</div>
+                    <div id="scene-root-pointer-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">场景存在</div>
+                    <div id="scene-known-existence-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">可绘制存在</div>
+                    <div id="scene-rendered-existence-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">存在范围</div>
+                    <div id="scene-existence-range-stat" class="scene-stat-value">--</div>
+                  </div>
+                </div>
+                <div id="scene-existence-list" class="scene-existence-list" aria-label="自我所在场景存在列表"></div>
+              </aside>
+              <aside class="panel">
+                <div class="panel-topline">调试快照</div>
+                <h3>观察与候选</h3>
+                <div class="scene-stat-grid" aria-label="自我所在场景调试快照状态">
                   <div class="scene-stat">
                     <div class="scene-stat-label">帧尺寸</div>
                     <div id="scene-frame-size-stat" class="scene-stat-value">--</div>
@@ -12816,10 +12877,6 @@ std::string 私有_生成控制面板HTML(
                   <div class="scene-stat">
                     <div class="scene-stat-label">空间候选</div>
                     <div id="scene-candidate-stat" class="scene-stat-value">--</div>
-                  </div>
-                  <div class="scene-stat">
-                    <div class="scene-stat-label">场景存在</div>
-                    <div id="scene-known-existence-stat" class="scene-stat-value">--</div>
                   </div>
                   <div class="scene-stat">
                     <div class="scene-stat-label">未知区域占比</div>
@@ -12882,8 +12939,8 @@ std::string 私有_生成控制面板HTML(
                 </div>
               </aside>
               <aside class="panel">
-                <div class="panel-topline">区域图层</div>
-                <h3>诊断区域</h3>
+                <div class="panel-topline">调试图层</div>
+                <h3>观察诊断区域</h3>
                 <div class="scene-layer-controls" aria-label="诊断区域图层开关">
                   <label class="scene-layer-toggle"><input id="scene-layer-depth-hole" type="checkbox" checked>深度空洞</label>
                   <label class="scene-layer-toggle"><input id="scene-layer-filled-depth" type="checkbox" checked>补全深度</label>
@@ -14276,9 +14333,83 @@ std::string 私有_生成控制面板HTML(
       if (status) {
         status.textContent = data.ok
           ? (summary.regionTotal > 0
-              ? `区域矩形已落账 ${summary.regionTotal}/${data.diagnosticRegionCount || summary.regionTotal}；掩码状态 ${data.diagnosticRegionMaskState || 0}。`
-              : '当前为自我所在场景快照的摘要覆盖层；逐区域几何/掩码尚未落账。')
-          : '当前没有可复现快照，区域图层只保留占位状态。';
+              ? `调试矩形 ${summary.regionTotal}/${data.diagnosticRegionCount || summary.regionTotal}；掩码状态 ${data.diagnosticRegionMaskState || 0}。`
+              : '调试覆盖层仅显示观察质量摘要；逐区域几何/掩码尚未落账。')
+          : '调试覆盖层没有可复现快照，只保留占位状态。';
+      }
+    }
+
+    function 读取自我场景存在统计(data) {
+      const items = 读取自我场景真实存在列表(data);
+      let withCenter = 0;
+      let withRange = 0;
+      let fromScene = 0;
+      let fromHost = 0;
+      items.forEach((item) => {
+        if (Number(item?.sourceScope || 0) === 1) fromScene += 1;
+        if (Number(item?.sourceScope || 0) === 2) fromHost += 1;
+        if (自我场景存在可取中心(item)) withCenter += 1;
+        if (自我场景存在可取范围(item)) withRange += 1;
+      });
+      return {
+        total: items.length,
+        withCenter,
+        withRange,
+        fromScene,
+        fromHost
+      };
+    }
+
+    function 自我场景存在来源文本(scope) {
+      switch (Number(scope || 0)) {
+        case 1: return '自我所在场景';
+        case 2: return '复现宿主';
+        default: return '未知来源';
+      }
+    }
+
+    function 渲染自我场景存在列表() {
+      const host = document.getElementById('scene-existence-list');
+      if (!host) return;
+      host.textContent = '';
+      const data = 自我场景复现数据 || {};
+      const items = 读取自我场景真实存在列表(data);
+      if (items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'scene-existence-empty';
+        empty.textContent = data.scenePtr
+          ? '自我所在场景当前没有可显示存在。'
+          : '自我所在场景指针为空。';
+        host.appendChild(empty);
+        return;
+      }
+      items.slice(0, 24).forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'scene-existence-item';
+
+        const title = document.createElement('div');
+        title.className = 'scene-existence-title';
+        title.textContent = `${index + 1}. ${item?.title || '未命名存在'} / ${item?.type || '存在'}`;
+        card.appendChild(title);
+
+        const meta = document.createElement('div');
+        meta.className = 'scene-existence-meta';
+        const parts = [
+          自我场景存在来源文本(item?.sourceScope),
+          自我场景存在可取中心(item) ? `中心 ${格式化场景三元组(item.center)}` : '中心待落账',
+          自我场景存在可取范围(item) ? `AABB ${格式化场景三元组(item.min)} -> ${格式化场景三元组(item.max)}` : 'AABB待落账',
+          `几何 ${Number(item?.geometryState || 0)}`,
+          `确认 ${Number(item?.confirmState || 0)}`
+        ];
+        meta.textContent = parts.join(' / ');
+        card.appendChild(meta);
+        host.appendChild(card);
+      });
+      if (items.length > 24) {
+        const more = document.createElement('div');
+        more.className = 'scene-existence-empty';
+        more.textContent = `还有 ${items.length - 24} 个存在未在列表中展开。`;
+        host.appendChild(more);
       }
     }
 
@@ -14288,10 +14419,14 @@ std::string 私有_生成控制面板HTML(
       const data = 自我场景复现数据 || {};
       const candidate = data.candidate || {};
       const summary = 读取自我场景图层摘要(data);
+      const existenceStats = 读取自我场景存在统计(data);
       const knownExistenceCount = 读取自我场景存在总量(data);
       const verifiedExistenceCount = Number(data.verifiedCount || 0);
       const sceneLimitText = data.sceneSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
       const hostLimitText = data.hostSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
+      设置自我场景文本('scene-root-pointer-stat', `${data.sceneTitle || '空'} / ${data.scenePtr || 0}`);
+      设置自我场景文本('scene-rendered-existence-stat', `${existenceStats.withCenter}/${existenceStats.total} 个 / AABB ${existenceStats.withRange} / 颜色 ${data.realColorStateExistenceCount || 0} / 彩图 ${data.realTextureExistenceCount || 0}`);
+      设置自我场景文本('scene-existence-range-stat', `自我场景 ${existenceStats.fromScene} / 宿主 ${existenceStats.fromHost} / 子树 ${data.sceneSubtreeExistences || 0}`);
       设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
@@ -14324,6 +14459,7 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-safety-value-stat', `评估安全值 ${data.sceneAssessmentSafetyValue || 0} / 安全度 ${data.sceneSafetyDegree || 0} / 判定 ${data.sceneSafetyJudgementState || 0}`);
       设置自我场景文本('scene-risk-safety-projection-stat', `场景影响 ${data.riskSafetySceneImpactCandidate || 0} / 可结算 ${data.riskSafetySceneImpactSettleableState || 0} / 入账 ${data.riskSafetySceneImpactBookedState || 0} / 原因 ${data.riskSafetySceneImpactUnsettleableReason || 0} / 层候选 ${data.riskSafetyLayerCandidate || 0} / 投影 ${data.riskSafetyLayerProjectionCandidate || 0} / 缺失因素 ${data.riskSafetyLayerMissingFactorCount || 0}`);
       设置自我场景文本('scene-safety-gap-stat', `安全评估证据不足原因 ${data.safetyEvidenceInsufficientReason || 0}`);
+      渲染自我场景存在列表();
       更新自我场景图层摘要();
     }
 
@@ -14471,13 +14607,15 @@ std::string 私有_生成控制面板HTML(
       const min = [Infinity, Infinity, Infinity];
       const max = [-Infinity, -Infinity, -Infinity];
       自我场景纳入范围(min, max, [0, 0, 0]);
+      const existenceItems = 读取自我场景真实存在列表(data);
+      const hasExistenceGeometry = existenceItems.some((item) => 自我场景存在可取中心(item) || 自我场景存在可取范围(item));
       const candidate = data?.candidate || {};
-      if (candidate.valid) {
+      if (!hasExistenceGeometry && candidate.valid) {
         自我场景纳入范围(min, max, 自我场景数组3(candidate.center));
         自我场景纳入范围(min, max, 自我场景数组3(candidate.min));
         自我场景纳入范围(min, max, 自我场景数组3(candidate.max));
       }
-      读取自我场景真实存在列表(data).forEach((item) => {
+      existenceItems.forEach((item) => {
         if (自我场景存在可取中心(item)) {
           自我场景纳入范围(min, max, 自我场景数组3(item.center));
         }
@@ -14606,7 +14744,7 @@ std::string 私有_生成控制面板HTML(
       });
 
       const candidate = data?.candidate || {};
-      if (candidate.valid) {
+      if (existenceView.rendered === 0 && candidate.valid) {
         const mn = candidate.min || [0, 0, 0];
         const mx = candidate.max || [0, 0, 0];
         const boxColor = data?.verifiedFlag ? [0.06, 0.84, 0.56] : [0.96, 0.58, 0.12];
@@ -14839,14 +14977,15 @@ std::string 私有_生成控制面板HTML(
           rotating: true,
           frame: 0
         };
+        const hasScenePointer = !!(自我场景复现数据 && 自我场景复现数据.scenePtr);
         const existenceStatus = geometry.existenceTotalCount > 0
-          ? `已绘制 ${geometry.existenceNodeCount}/${geometry.existenceTotalCount} 个存在特征复现项。`
-          : '';
+          ? `已从自我所在场景指针绘制 ${geometry.existenceNodeCount}/${geometry.existenceTotalCount} 个存在。`
+          : (hasScenePointer ? '自我所在场景存在列表为空。' : '自我所在场景指针为空。');
         设置自我场景状态(
-          (自我场景复现数据 && 自我场景复现数据.ok)
-            ? `已用自我所在场景快照完成 OpenGL 复现。${existenceStatus}`
-            : `自我所在场景暂无可复现快照，已显示坐标基准。${existenceStatus}`,
-          (自我场景复现数据 && 自我场景复现数据.ok) ? 'ok' : '');
+          geometry.existenceTotalCount > 0
+            ? existenceStatus
+            : `${existenceStatus} 已保留坐标基准；观察候选和诊断图层只作调试参考。`,
+          geometry.existenceTotalCount > 0 ? 'ok' : '');
       } catch (error) {
         设置自我场景状态(`OpenGL(WebGL) 渲染准备失败：${error.message || error}`, 'error');
         自我场景GL状态 = null;
