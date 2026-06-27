@@ -10,6 +10,7 @@
 #include <chrono>
 #include <functional>
 #include <initializer_list>
+#include <limits>
 #include <mutex>
 #include <sstream>
 #include <string>
@@ -417,6 +418,10 @@ namespace {
     struct 私有_动态双状态材料 {
         std::string 主体键{};
         std::string 特征键{};
+        基础信息节点类* 主体 = nullptr;
+        特征节点类* 特征 = nullptr;
+        特征值 初始值{};
+        特征值 结果值{};
         时间戳 起 = 0;
         时间戳 止 = 0;
     };
@@ -425,6 +430,90 @@ namespace {
         动态节点类* 动态 = nullptr;
         私有_动态双状态材料 材料{};
     };
+
+    // 功能：按指针或主键只读解析基础信息引用，不创建或修改节点。
+    基础信息节点类* 私有_解析基础信息引用(
+        基础信息类* 基础信息,
+        const 可解析引用<基础信息节点类>& 引用) noexcept
+    {
+        if (!基础信息) {
+            return nullptr;
+        }
+        if (引用.指针
+            && (引用.主键.empty() || 引用.指针->获取主键() == 引用.主键)) {
+            return 引用.指针;
+        }
+        return !引用.主键.empty() ? 基础信息->查找主键(引用.主键) : nullptr;
+    }
+
+    // 功能：计算 I64 的无符号幅值。
+    std::uint64_t 私有_I64幅值(I64 值) noexcept
+    {
+        if (值 >= 0) {
+            return static_cast<std::uint64_t>(值);
+        }
+        return static_cast<std::uint64_t>(-(值 + 1)) + 1ull;
+    }
+
+    // 功能：计算两个 I64 的无符号绝对差。
+    std::uint64_t 私有_I64绝对差(I64 左, I64 右) noexcept
+    {
+        if ((左 < 0) == (右 < 0)) {
+            return 左 >= 右
+                ? static_cast<std::uint64_t>(左 - 右)
+                : static_cast<std::uint64_t>(右 - 左);
+        }
+
+        const auto 左幅值 = 私有_I64幅值(左);
+        const auto 右幅值 = 私有_I64幅值(右);
+        const auto 最大值 = std::numeric_limits<std::uint64_t>::max();
+        return 最大值 - 左幅值 < 右幅值 ? 最大值 : 左幅值 + 右幅值;
+    }
+
+    // 功能：只读解析 VecU 特征值句柄，不创建或修改节点。
+    const VecIU64* 私有_取VecU只读指针(VecU句柄 句柄) noexcept
+    {
+        if (!句柄.有效()) {
+            return nullptr;
+        }
+        const auto* 主信息 = reinterpret_cast<const 特征值主信息类*>(句柄.主信息指针);
+        return 主信息 ? &主信息->值 : nullptr;
+    }
+
+    // 功能：计算两个位置值端点的最大分量变化量。
+    bool 私有_读取特征值最大变化量(
+        const 特征值& 初始值,
+        const 特征值& 结果值,
+        std::uint64_t& 最大变化量) noexcept
+    {
+        最大变化量 = 0;
+        if (const auto* 初始标量 = std::get_if<I64>(&初始值)) {
+            const auto* 结果标量 = std::get_if<I64>(&结果值);
+            if (!结果标量) return false;
+            最大变化量 = 私有_I64绝对差(*初始标量, *结果标量);
+            return true;
+        }
+
+        if (const auto* 初始句柄 = std::get_if<VecU句柄>(&初始值)) {
+            const auto* 结果句柄 = std::get_if<VecU句柄>(&结果值);
+            const auto* 初始向量 = 结果句柄 ? 私有_取VecU只读指针(*初始句柄) : nullptr;
+            const auto* 结果向量 = 结果句柄 ? 私有_取VecU只读指针(*结果句柄) : nullptr;
+            if (!初始向量 || !结果向量) return false;
+
+            const auto 数量 = std::max(初始向量->size(), 结果向量->size());
+            for (std::size_t i = 0; i < 数量; ++i) {
+                const auto 初始分量 = i < 初始向量->size() ? (*初始向量)[i] : 0ull;
+                const auto 结果分量 = i < 结果向量->size() ? (*结果向量)[i] : 0ull;
+                const auto 分量变化 = 初始分量 >= 结果分量
+                    ? 初始分量 - 结果分量
+                    : 结果分量 - 初始分量;
+                最大变化量 = std::max(最大变化量, 分量变化);
+            }
+            return true;
+        }
+
+        return false;
+    }
 
     // 功能：读取一个动态的双状态同源判定材料，不创建或修改节点。
     bool 私有_读取动态双状态材料(
@@ -437,8 +526,10 @@ namespace {
             return false;
         }
 
-        const auto* 初始状态主信息 = 基础信息->取主信息<状态节点主信息类>(主信息->初始状态.指针);
-        const auto* 结果状态主信息 = 基础信息->取主信息<状态节点主信息类>(主信息->结果状态.指针);
+        const auto* 初始状态 = 私有_解析状态引用(基础信息, 主信息->初始状态);
+        const auto* 结果状态 = 私有_解析状态引用(基础信息, 主信息->结果状态);
+        const auto* 初始状态主信息 = 基础信息->取主信息<状态节点主信息类>(初始状态);
+        const auto* 结果状态主信息 = 基础信息->取主信息<状态节点主信息类>(结果状态);
         if (!初始状态主信息 || !结果状态主信息) {
             return false;
         }
@@ -456,6 +547,12 @@ namespace {
             return false;
         }
 
+        auto* 主体 = 私有_解析基础信息引用(基础信息, 初始状态主信息->状态主体);
+        auto* 特征 = 私有_解析特征引用(基础信息, 初始状态主信息->状态特征);
+        if (!主体 || !特征) {
+            return false;
+        }
+
         auto 起 = 私有_取状态时间(*初始状态主信息);
         auto 止 = 私有_取状态时间(*结果状态主信息);
         if (起 == 0 || 止 == 0) {
@@ -467,6 +564,10 @@ namespace {
 
         输出.主体键 = 初始主体;
         输出.特征键 = 初始特征;
+        输出.主体 = 主体;
+        输出.特征 = 特征;
+        输出.初始值 = 初始状态主信息->状态值;
+        输出.结果值 = 结果状态主信息->状态值;
         输出.起 = 起;
         输出.止 = 止;
         return true;
@@ -1496,6 +1597,80 @@ std::vector<std::vector<动态节点类*>> 动态类::读取位置变化主体�
         out.back().push_back(候选.动态);
         当前止 = std::max(当前止, 材料.止);
     }
+    return out;
+}
+
+// 功能：从位置变化片段组提取运行期运动基元候选，不创建稳定规则或方法候选。
+std::vector<结构_位置运动基元候选> 动态类::读取位置变化运动基元候选(
+    const 场景节点类* 场景,
+    时间戳 最大时间缺口,
+    I64 停止最大变化量,
+    时间戳 停止最小持续时间) const
+{
+    std::vector<结构_位置运动基元候选> out{};
+
+    for (const auto& 片段 : 读取位置变化主体动态片段组(场景, 最大时间缺口)) {
+        std::vector<私有_动态片段组候选> 有效材料{};
+        std::vector<动态节点类*> 冲突动态{};
+        for (auto* 动态 : 片段) {
+            const auto* 主信息 = 取动态主信息(动态);
+            私有_动态双状态材料 材料{};
+            if (!私有_读取动态双状态材料(基础信息_, 主信息, 材料)) {
+                if (动态) {
+                    冲突动态.push_back(动态);
+                }
+                continue;
+            }
+            有效材料.push_back(私有_动态片段组候选{ 动态, 材料 });
+        }
+
+        if (有效材料.empty()) {
+            continue;
+        }
+
+        结构_位置运动基元候选 候选{};
+        候选.基元类型 = 枚举_位置运动基元类型::移动;
+        候选.主体 = 有效材料.front().材料.主体;
+        候选.参数特征 = 有效材料.front().材料.特征;
+        候选.起 = 有效材料.front().材料.起;
+        候选.止 = 有效材料.front().材料.止;
+        候选.冲突证据集合 = std::move(冲突动态);
+
+        bool 可数值判定停止 = 停止最大变化量 >= 0;
+        for (const auto& 项 : 有效材料) {
+            const auto& 材料 = 项.材料;
+            候选.证据动态集合.push_back(项.动态);
+            候选.起 = std::min(候选.起, 材料.起);
+            候选.止 = std::max(候选.止, 材料.止);
+
+            if (材料.主体 != 候选.主体 || 材料.特征 != 候选.参数特征) {
+                if (项.动态) {
+                    候选.冲突证据集合.push_back(项.动态);
+                }
+                可数值判定停止 = false;
+                continue;
+            }
+
+            std::uint64_t 当前变化量 = 0;
+            if (!私有_读取特征值最大变化量(材料.初始值, 材料.结果值, 当前变化量)) {
+                可数值判定停止 = false;
+                continue;
+            }
+            候选.最大端点变化量 = std::max(候选.最大端点变化量, 当前变化量);
+        }
+
+        const bool 满足保持时长 =
+            停止最小持续时间 == 0
+            || (候选.止 >= 候选.起 && 候选.止 - 候选.起 >= 停止最小持续时间);
+        if (可数值判定停止
+            && 满足保持时长
+            && 候选.最大端点变化量 <= static_cast<std::uint64_t>(停止最大变化量)) {
+            候选.基元类型 = 枚举_位置运动基元类型::停止;
+        }
+
+        out.push_back(std::move(候选));
+    }
+
     return out;
 }
 
