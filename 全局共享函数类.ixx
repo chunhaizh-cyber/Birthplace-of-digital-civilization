@@ -322,6 +322,29 @@ export inline std::string 文本列表摘要(const std::vector<std::string>& 列
     return 输出.str();
 }
 
+// 功能：按 `名称=值 | 数据类型=类型` 格式生成展示字段文本，空值显示为空。
+export inline std::string 等号字段显示文本(
+    std::string_view 名称,
+    std::string_view 类型,
+    std::string_view 值)
+{
+    const std::string_view 显示值 = 值.empty() ? std::string_view{ "空" } : 值;
+    std::string 输出;
+    输出.reserve(名称.size() + 显示值.size() + 类型.size() + 16);
+    输出.append(名称);
+    输出.push_back('=');
+    输出.append(显示值);
+    输出.append(" | 数据类型=");
+    输出.append(类型);
+    return 输出;
+}
+
+// 功能：按默认文本类型生成 `名称=值 | 数据类型=文本` 展示字段文本。
+export inline std::string 等号字段显示文本(std::string_view 名称, std::string_view 值)
+{
+    return 等号字段显示文本(名称, "文本", 值);
+}
+
 // 功能：按 JSON 字符串规则追加带引号的转义文本。
 export inline void 追加JSON字符串(std::ostream& 输出, std::string_view 文本)
 {

@@ -2448,23 +2448,6 @@ namespace {
         return 名称 + " | 类型=" + std::string(类型) + " | 值=" + (值.empty() ? "空" : 值);
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    std::string 私有_等号字段显示文本(
-        const std::string& 名称,
-        std::string_view 类型,
-        const std::string& 值)
-    {
-        return 名称 + "=" + (值.empty() ? "空" : 值) + " | 数据类型=" + std::string(类型);
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
-    std::string 私有_等号字段显示文本(
-        const std::string& 名称,
-        const std::string& 值)
-    {
-        return 私有_等号字段显示文本(名称, "文本", 值);
-    }
-
     结构_控制面板树节点 私有_新节点(
         std::string 文本,
         const std::uintptr_t 节点指针 = 0,
@@ -2632,7 +2615,7 @@ namespace {
         const std::string& 名称,
         const std::string& 值)
     {
-        父节点.子项.push_back(私有_新节点(私有_等号字段显示文本(名称, "文本", 值)));
+        父节点.子项.push_back(私有_新节点(等号字段显示文本(名称, "文本", 值)));
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -2650,7 +2633,7 @@ namespace {
         const std::string& 名称,
         const bool 值)
     {
-        父节点.子项.push_back(私有_新节点(私有_等号字段显示文本(名称, "bool", 布尔文本_是或否(值))));
+        父节点.子项.push_back(私有_新节点(等号字段显示文本(名称, "bool", 布尔文本_是或否(值))));
     }
 
     template<class T>
@@ -2663,7 +2646,7 @@ namespace {
         constexpr auto 类型 = std::is_integral_v<T>
             ? (std::is_signed_v<T> ? std::string_view{"i64"} : std::string_view{"u64"})
             : std::string_view{"数值"};
-        父节点.子项.push_back(私有_新节点(私有_等号字段显示文本(名称, 类型, std::to_string(值))));
+        父节点.子项.push_back(私有_新节点(等号字段显示文本(名称, 类型, std::to_string(值))));
     }
 
     template<class T节点>
@@ -2677,7 +2660,7 @@ namespace {
         const auto 展开类型 = std::string(私有_引用展开类型<T节点>());
         auto* 可展开指针 = 私有_解析当前树节点_可写(指针, 主键);
         auto 字段节点 = 私有_新节点(
-            私有_等号字段显示文本(名称, 私有_引用字段类型文本<T节点>(), 私有_引用文本(指针, 主键)),
+            等号字段显示文本(名称, 私有_引用字段类型文本<T节点>(), 私有_引用文本(指针, 主键)),
             私有_地址(可展开指针),
             false,
             false,
@@ -4556,7 +4539,7 @@ namespace {
         私有_追加等号引用字段(字段节点, "对应任务", 节点->主信息.对应任务, 路径);
 
         auto 任务列表节点 = 私有_新节点(
-            私有_等号字段显示文本(
+            等号字段显示文本(
                 "任务列表",
                 "数量 " + std::to_string(节点->主信息.任务列表.size())));
         const auto 任务列表上限 = (std::min)(上下文.树广度上限, 节点->主信息.任务列表.size());
