@@ -247,6 +247,12 @@ export inline void 追加JSON字符串(std::ostream& 输出, std::string_view �
     输出 << '"';
 }
 
+// 功能：按 JSON 数组三元组格式追加三个 I64 值，格式为 `[x,y,z]`。
+export inline void 追加JSON_I64数组3(std::ostream& 输出, I64 x, I64 y, I64 z)
+{
+    输出 << "[" << x << "," << y << "," << z << "]";
+}
+
 // 功能：把 filesystem 路径的 UTF-8 视图转换为普通字符串文本。
 export inline std::string 路径UTF8文本(const std::filesystem::path& 路径)
 {

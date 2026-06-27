@@ -9254,12 +9254,6 @@ window.__panelApplyDetail=function(){};
     }
 
     // 功能：服务所在模块的内部辅助流程。
-    void 私有_追加JSON_I64数组3(std::ostringstream& 输出, I64 x, I64 y, I64 z)
-    {
-        输出 << "[" << x << "," << y << "," << z << "]";
-    }
-
-    // 功能：服务所在模块的内部辅助流程。
     void 私有_追加自我场景诊断区域数组JSON(
         std::ostringstream& 输出,
         const std::vector<结构_控制面板诊断区域>& 区域列表)
@@ -9312,13 +9306,13 @@ window.__panelApplyDetail=function(){};
             输出 << ",\"geometryState\":" << 项.几何状态;
             输出 << ",\"renderable\":" << (可绘制 ? "true" : "false");
             输出 << ",\"center\":";
-            私有_追加JSON_I64数组3(输出, 项.中心X, 项.中心Y, 项.中心Z);
+            追加JSON_I64数组3(输出, 项.中心X, 项.中心Y, 项.中心Z);
             输出 << ",\"min\":";
-            私有_追加JSON_I64数组3(输出, 项.AABB最小X, 项.AABB最小Y, 项.AABB最小Z);
+            追加JSON_I64数组3(输出, 项.AABB最小X, 项.AABB最小Y, 项.AABB最小Z);
             输出 << ",\"max\":";
-            私有_追加JSON_I64数组3(输出, 项.AABB最大X, 项.AABB最大Y, 项.AABB最大Z);
+            追加JSON_I64数组3(输出, 项.AABB最大X, 项.AABB最大Y, 项.AABB最大Z);
             输出 << ",\"size\":";
-            私有_追加JSON_I64数组3(输出, 项.尺寸X, 项.尺寸Y, 项.尺寸Z);
+            追加JSON_I64数组3(输出, 项.尺寸X, 项.尺寸Y, 项.尺寸Z);
             输出 << ",\"projection\":["
                 << 项.投影最小X << ","
                 << 项.投影最小Y << ","
@@ -9496,7 +9490,7 @@ window.__panelApplyDetail=function(){};
         输出 << ",\"hypothesisVerifyState\":" << 快照.自我场景存在假设验证状态;
         输出 << ",\"hypothesisDistance\":" << 快照.自我场景假设距离;
         输出 << ",\"hypothesisSize\":";
-        私有_追加JSON_I64数组3(
+        追加JSON_I64数组3(
             输出,
             快照.自我场景假设尺寸X,
             快照.自我场景假设尺寸Y,
@@ -9553,19 +9547,19 @@ window.__panelApplyDetail=function(){};
         输出 << "\"id\":" << 绘制候选编号 << ",";
         输出 << "\"pixels\":" << 绘制候选像素数量 << ",";
         输出 << "\"center\":";
-        私有_追加JSON_I64数组3(
+        追加JSON_I64数组3(
             输出,
             快照.自我场景中心空间坐标X,
             快照.自我场景中心空间坐标Y,
             快照.自我场景中心空间坐标Z);
         输出 << ",\"min\":";
-        私有_追加JSON_I64数组3(
+        追加JSON_I64数组3(
             输出,
             快照.自我场景范围坐标AABB最小X,
             快照.自我场景范围坐标AABB最小Y,
             快照.自我场景范围坐标AABB最小Z);
         输出 << ",\"max\":";
-        私有_追加JSON_I64数组3(
+        追加JSON_I64数组3(
             输出,
             快照.自我场景范围坐标AABB最大X,
             快照.自我场景范围坐标AABB最大Y,
