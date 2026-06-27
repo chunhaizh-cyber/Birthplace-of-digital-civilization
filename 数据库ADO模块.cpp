@@ -28,6 +28,8 @@ module;
 
 module 数据库ADO模块;
 
+import 全局共享函数类;
+
 namespace {
 
     // 功能：把 UTF-8 文本转换为 Windows 宽字串。
@@ -97,25 +99,12 @@ namespace {
         return 私有_宽字串转UTF8(std::wstring_view(文本, SysStringLen(文本)));
     }
 
-    // 功能：把 HRESULT 转换为固定宽度十六进制文本。
-    std::string 私有_HRESULT文本(const HRESULT 值)
-    {
-        std::ostringstream 输出;
-        输出 << "0x"
-            << std::uppercase
-            << std::hex
-            << std::setw(8)
-            << std::setfill('0')
-            << static_cast<std::uint32_t>(值);
-        return 输出.str();
-    }
-
     // 功能：把 COM 异常转换为项目错误文本。
     std::string 私有_COM错误文本(const std::string_view 阶段, const _com_error& 错误)
     {
         std::string 文本(阶段);
         文本 += "失败 | HRESULT=";
-        文本 += 私有_HRESULT文本(错误.Error());
+        文本 += U32十六进制8位文本(static_cast<std::uint32_t>(错误.Error()));
         const auto 描述 = 错误.Description();
         if (描述.length() > 0) {
             文本 += " | 描述=";
@@ -163,7 +152,7 @@ namespace {
         try {
             const HRESULT 创建结果 = 连接.CreateInstance(__uuidof(ADODB::Connection));
             if (FAILED(创建结果)) {
-                错误 = "ADO连接对象创建失败 | HRESULT=" + 私有_HRESULT文本(创建结果);
+                错误 = "ADO连接对象创建失败 | HRESULT=" + U32十六进制8位文本(static_cast<std::uint32_t>(创建结果));
                 return false;
             }
             连接->ConnectionTimeout = 5;
@@ -645,7 +634,7 @@ bool 执行ADO查询(
 
     const 结构_COM初始化 COM初始化{};
     if (!COM初始化.可继续) {
-        错误 = "ADO查询COM初始化失败 | HRESULT=" + 私有_HRESULT文本(COM初始化.结果);
+        错误 = "ADO查询COM初始化失败 | HRESULT=" + U32十六进制8位文本(static_cast<std::uint32_t>(COM初始化.结果));
         return false;
     }
 
@@ -769,7 +758,7 @@ bool 执行ADO命令(
 #else
     const 结构_COM初始化 COM初始化{};
     if (!COM初始化.可继续) {
-        错误 = "ADO命令COM初始化失败 | HRESULT=" + 私有_HRESULT文本(COM初始化.结果);
+        错误 = "ADO命令COM初始化失败 | HRESULT=" + U32十六进制8位文本(static_cast<std::uint32_t>(COM初始化.结果));
         return false;
     }
 

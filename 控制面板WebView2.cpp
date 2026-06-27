@@ -123,19 +123,6 @@ namespace {
         bool 等待中 = false;
     };
 
-    // 功能：服务所在模块的内部辅助流程。
-    std::string 私有_HRESULT文本(HRESULT 值)
-    {
-        std::ostringstream 输出;
-        输出 << "0x"
-            << std::uppercase
-            << std::hex
-            << std::setw(8)
-            << std::setfill('0')
-            << static_cast<std::uint32_t>(值);
-        return 输出.str();
-    }
-
     void 私有_记录WebView2诊断(
         const std::string& 阶段,
         int 诊断码,
@@ -148,7 +135,7 @@ namespace {
             输出 << "控制面板WebView2/" << 阶段
                 << " | 诊断码=" << 诊断码;
             if (COM结果 != S_OK) {
-                输出 << " | HRESULT=" << 私有_HRESULT文本(COM结果);
+                输出 << " | HRESULT=" << U32十六进制8位文本(static_cast<std::uint32_t>(COM结果));
             }
             if (Win32错误 != ERROR_SUCCESS) {
                 输出 << " | Win32=" << Win32错误;

@@ -6,8 +6,11 @@ module;
 #include <chrono>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
+#include <iomanip>
 #include <ostream>
+#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -251,6 +254,19 @@ export inline std::string 路径UTF8文本(const std::filesystem::path& 路径)
     return std::string(
         reinterpret_cast<const char*>(文本.data()),
         文本.size());
+}
+
+// 功能：把 U32 输出为固定宽度大写十六进制文本，格式为 `0xXXXXXXXX`。
+export inline std::string U32十六进制8位文本(std::uint32_t 值)
+{
+    std::ostringstream 输出;
+    输出 << "0x"
+        << std::uppercase
+        << std::hex
+        << std::setw(8)
+        << std::setfill('0')
+        << 值;
+    return 输出.str();
 }
 
 // 功能：生成按索引分组的文本键值字段名，格式为 `项.<索引>.<键>`。
