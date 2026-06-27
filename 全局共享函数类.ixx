@@ -302,6 +302,26 @@ export inline std::string 文本计数摘要(
     return 输出.str();
 }
 
+// 功能：把字符串列表按中文顿号连接为展示摘要，超出上限时追加总项数。
+export inline std::string 文本列表摘要(const std::vector<std::string>& 列表, const std::size_t 上限)
+{
+    if (列表.empty()) {
+        return {};
+    }
+    std::ostringstream 输出;
+    const std::size_t 数量 = (std::min)(列表.size(), 上限);
+    for (std::size_t i = 0; i < 数量; ++i) {
+        if (i > 0) {
+            输出 << "、";
+        }
+        输出 << 列表[i];
+    }
+    if (列表.size() > 数量) {
+        输出 << " 等" << 列表.size() << "项";
+    }
+    return 输出.str();
+}
+
 // 功能：按 JSON 字符串规则追加带引号的转义文本。
 export inline void 追加JSON字符串(std::ostream& 输出, std::string_view 文本)
 {
