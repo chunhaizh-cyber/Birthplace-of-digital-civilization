@@ -444,6 +444,37 @@ export inline 时间戳 有效或当前时间戳_微秒(时间戳 值) noexcept
     return 值 != 0 ? 值 : 结构体_时间戳::当前_微秒();
 }
 
+// 功能：把微秒时间戳格式化为显示文本，0 保持显示为 0。
+export inline std::string 时间戳文本(时间戳 时间)
+{
+    return 时间 == 0 ? "0" : std::to_string(时间);
+}
+
+// 功能：把微秒时长格式化为 us 文本，较大时长追加 ms 或 s 辅助显示。
+export inline std::string 微秒时长文本(时间戳 时长)
+{
+    std::ostringstream 输出;
+    输出 << 时长 << "us";
+    if (时长 >= 1000000) {
+        输出 << " (" << std::fixed << std::setprecision(3)
+            << static_cast<double>(时长) / 1000000.0 << "s)";
+    }
+    else if (时长 >= 1000) {
+        输出 << " (" << std::fixed << std::setprecision(3)
+            << static_cast<double>(时长) / 1000.0 << "ms)";
+    }
+    return 输出.str();
+}
+
+// 功能：按起止微秒时间戳格式化时长；缺失或倒序时显示未记录。
+export inline std::string 起止微秒时长文本(时间戳 起点, 时间戳 终点)
+{
+    if (起点 == 0 || 终点 == 0 || 终点 < 起点) {
+        return "未记录";
+    }
+    return 微秒时长文本(终点 - 起点);
+}
+
 // 功能：返回 steady_clock 当前时间点，用于内部阶段耗时测量。
 export inline std::chrono::steady_clock::time_point 稳定时钟时间点() noexcept
 {
