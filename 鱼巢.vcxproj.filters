@@ -69,6 +69,9 @@
     <ClCompile Include="外设观察报告队列.ixx">
       <Filter>源文件\基础模块</Filter>
     </ClCompile>
+    <ClCompile Include="场景体素模块.ixx">
+      <Filter>源文件\基础模块</Filter>
+    </ClCompile>
     <ClCompile Include="外设线程_D455深度相机.ixx">
       <Filter>源文件\基础模块</Filter>
     </ClCompile>

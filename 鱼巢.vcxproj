@@ -158,6 +158,7 @@
     <ClCompile Include="数据库ADO模块.ixx" />
     <ClCompile Include="数据库ADO模块.cpp" />
     <ClCompile Include="外设观察报告队列.ixx" />
+    <ClCompile Include="场景体素模块.ixx" />
     <ClCompile Include="外设线程_D455深度相机.ixx" />
     <ClCompile Include="基础信息类.cpp" />
     <ClCompile Include="鱼巢.cpp" />
