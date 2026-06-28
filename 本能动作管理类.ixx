@@ -265,7 +265,15 @@ inline const char* 本能动作运行结果语义_按码(std::int64_t 运行码)
             return reinterpret_cast<基础信息节点类*>(方法虚拟存在);
         }
     }
-    return reinterpret_cast<基础信息节点类*>(输出结果场景);
+    if (auto* 自我存在 = 世界树.取或创建自我存在()) {
+        if (auto* 自我内部世界 = 世界树.取或创建存在内部世界(自我存在)) {
+            return reinterpret_cast<基础信息节点类*>(自我内部世界);
+        }
+    }
+    if (!世界树.虚拟世界) {
+        世界树.初始化默认世界();
+    }
+    return reinterpret_cast<基础信息节点类*>(世界树.虚拟世界);
 }
 
 void 写入本能动作运行场景事实(
