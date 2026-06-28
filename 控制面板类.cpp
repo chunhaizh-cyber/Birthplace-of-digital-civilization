@@ -9456,6 +9456,71 @@ window.__panelApplyDetail=function(){};
         return 私有_树节点列表JSON({ 私有_新节点(文本) });
     }
 
+    // 功能：按世界树节点主键读取 SQL 详情视图，并转成右侧详情树 JSON。
+    std::string 私有_读取世界树节点详情视图JSON(const 基础信息节点类* 节点)
+    {
+        if (!节点) {
+            return 私有_失效节点JSON();
+        }
+
+        const auto 节点主键 = 节点->获取主键();
+        if (节点主键.empty()) {
+            return 私有_失效节点JSON("世界树节点主键为空，无法读取 SQL 详情视图");
+        }
+
+        std::string SQL = R"SQL(
+SELECT
+    COALESCE([字段名], N'') AS [字段名],
+    COALESCE([字段类型], N'') AS [字段类型],
+    COALESCE([字段值], N'') AS [字段值],
+    COALESCE([指针主键], N'') AS [指针主键],
+    COALESCE([指针类型], N'') AS [指针类型],
+    COALESCE([指针名称], N'') AS [指针名称]
+FROM [鱼巢].[当前世界树节点详情]
+WHERE [节点主键] = )SQL";
+        SQL += 私有_SQL字符串字面量(节点主键);
+        SQL += " ORDER BY [排序], [字段名];";
+
+        std::vector<std::vector<std::string>> 行集{};
+        std::string 错误{};
+        if (!私有_读取SQL控制面板子链行集("世界树节点详情", SQL, 行集, 错误)) {
+            auto 字段节点 = 私有_新节点("世界树SQL节点详情读取失败");
+            字段节点.是字段分组 = true;
+            私有_追加叶字段(字段节点, "节点主键", 节点主键);
+            私有_追加叶字段(字段节点, "读取来源", "[鱼巢].[当前世界树节点详情]");
+            私有_追加叶字段(字段节点, "错误", 错误);
+            return 私有_树节点列表JSON({ std::move(字段节点) });
+        }
+
+        auto 字段节点 = 私有_新节点("世界树SQL节点详情");
+        字段节点.是字段分组 = true;
+        if (行集.empty()) {
+            私有_追加叶字段(字段节点, "节点主键", 节点主键);
+            私有_追加叶字段(字段节点, "读取来源", "[鱼巢].[当前世界树节点详情]");
+            私有_追加叶字段(字段节点, "视图状态", "未返回字段行");
+            return 私有_树节点列表JSON({ std::move(字段节点) });
+        }
+
+        for (const auto& 行 : 行集) {
+            const auto 字段名 = 私有_SQL字段(行, 0).empty() ? std::string("未命名字段") : 私有_SQL字段(行, 0);
+            const auto 字段类型 = 私有_SQL字段(行, 1).empty() ? std::string("文本") : 私有_SQL字段(行, 1);
+            const auto& 字段值 = 私有_SQL字段(行, 2);
+            const auto& 指针主键 = 私有_SQL字段(行, 3);
+            const auto& 指针类型 = 私有_SQL字段(行, 4);
+            const auto& 指针名称 = 私有_SQL字段(行, 5);
+
+            std::string 显示值 = 字段值;
+            if (!指针主键.empty() || !指针类型.empty() || !指针名称.empty()) {
+                显示值 = "主键=" + (指针主键.empty() ? std::string("空") : 指针主键)
+                    + " | 类型=" + (指针类型.empty() ? std::string("空") : 指针类型)
+                    + " | 名称=" + (指针名称.empty() ? std::string("空") : 指针名称);
+            }
+            字段节点.子项.push_back(私有_新节点(私有_字段显示文本(字段名, 字段类型, 显示值)));
+        }
+
+        return 私有_树节点列表JSON({ std::move(字段节点) });
+    }
+
     // 功能：服务所在模块的内部辅助流程。
     void 私有_移除节点字段子项(结构_控制面板树节点& 节点)
     {
@@ -10774,12 +10839,8 @@ std::string 读取控制面板节点详情JSON(
         if (!已解析节点) {
             return 私有_失效节点JSON();
         }
-        const auto 节点 = 私有_构建基础信息树节点(
-            已解析节点,
-            上下文,
-            1,
-            {});
-        return 私有_树节点列表JSON(私有_提取节点字段详情(节点));
+        (void)上下文;
+        return 私有_读取世界树节点详情视图JSON(已解析节点);
     }
     if (展开类型 == "need-node") {
         auto* 已解析节点 = 私有_解析当前树节点_可写(
