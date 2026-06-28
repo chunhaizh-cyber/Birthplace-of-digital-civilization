@@ -271,18 +271,10 @@ namespace {
         int 同层序号 = 0;
         int 直接子数量 = 0;
         std::string 路径{};
-        std::string 节点类别{};
-        std::string 显示文本{};
         bool 有主信息类型 = false;
         int 主信息类型值 = 0;
-        std::string 主信息类型文本{};
         std::string 名称主键{};
-        std::string 名称文本{};
         std::string 类型主键{};
-        std::string 类型文本{};
-        std::string 值类别{};
-        std::string 值文本{};
-        std::string 辅助文本{};
     };
 
     struct 结构_世界树SQL关系行 {
@@ -294,8 +286,21 @@ namespace {
         std::string 关系名{};
         std::string 目标类别{};
         std::string 目标主键{};
-        std::string 目标文本{};
         int 序号 = 0;
+    };
+
+    enum class 枚举_世界树SQL主信息表 {
+        指代,
+        抽象特征,
+        特征,
+        存在,
+        场景,
+        状态,
+        动态,
+        二次特征,
+        因果,
+        语言记录,
+        其他,
     };
 
     std::mutex& 私有_世界树SQL投影互斥() noexcept
@@ -366,6 +371,322 @@ namespace {
         case 枚举_世界类型::内部世界: return "内部世界";
         case 枚举_世界类型::虚拟世界: return "虚拟世界";
         default: return "其它";
+        }
+    }
+
+    // 功能：按主信息运行类型选择 SQL 投影分表。
+    枚举_世界树SQL主信息表 私有_世界树SQL主信息分表(const 基础信息基类* 主信息) noexcept
+    {
+        if (dynamic_cast<const 指代节点主信息类*>(主信息)) return 枚举_世界树SQL主信息表::指代;
+        if (dynamic_cast<const 抽象特征主信息类*>(主信息)) return 枚举_世界树SQL主信息表::抽象特征;
+        if (dynamic_cast<const 特征节点主信息类*>(主信息)) return 枚举_世界树SQL主信息表::特征;
+        if (dynamic_cast<const 存在节点主信息类*>(主信息)) return 枚举_世界树SQL主信息表::存在;
+        if (dynamic_cast<const 场景节点主信息类*>(主信息)) return 枚举_世界树SQL主信息表::场景;
+        if (dynamic_cast<const 状态节点主信息类*>(主信息)) return 枚举_世界树SQL主信息表::状态;
+        if (dynamic_cast<const 动态节点主信息类*>(主信息)) return 枚举_世界树SQL主信息表::动态;
+        if (dynamic_cast<const 二次特征主信息类*>(主信息)) return 枚举_世界树SQL主信息表::二次特征;
+        if (dynamic_cast<const 因果主信息类*>(主信息)) return 枚举_世界树SQL主信息表::因果;
+        if (dynamic_cast<const 语言记录主信息类*>(主信息)) return 枚举_世界树SQL主信息表::语言记录;
+        return 枚举_世界树SQL主信息表::其他;
+    }
+
+    // 功能：返回世界树 SQL 投影主信息分表名。
+    const char* 私有_世界树SQL主信息表名(const 枚举_世界树SQL主信息表 表) noexcept
+    {
+        switch (表) {
+        case 枚举_世界树SQL主信息表::指代: return "[鱼巢].[世界树指代主信息]";
+        case 枚举_世界树SQL主信息表::抽象特征: return "[鱼巢].[世界树抽象特征主信息]";
+        case 枚举_世界树SQL主信息表::特征: return "[鱼巢].[世界树特征主信息]";
+        case 枚举_世界树SQL主信息表::存在: return "[鱼巢].[世界树存在主信息]";
+        case 枚举_世界树SQL主信息表::场景: return "[鱼巢].[世界树场景主信息]";
+        case 枚举_世界树SQL主信息表::状态: return "[鱼巢].[世界树状态主信息]";
+        case 枚举_世界树SQL主信息表::动态: return "[鱼巢].[世界树动态主信息]";
+        case 枚举_世界树SQL主信息表::二次特征: return "[鱼巢].[世界树二次特征主信息]";
+        case 枚举_世界树SQL主信息表::因果: return "[鱼巢].[世界树因果主信息]";
+        case 枚举_世界树SQL主信息表::语言记录: return "[鱼巢].[世界树语言记录主信息]";
+        default: return "[鱼巢].[世界树其他主信息]";
+        }
+    }
+
+    // 功能：返回主信息分表统一列名；这里只存身份和底层类型，不存显示摘要。
+    const char* 私有_世界树SQL主信息通用列名() noexcept
+    {
+        return "[快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键]";
+    }
+
+    // 功能：返回主信息分表统一建表列定义；显示文本由视图临时派生，不入表。
+    const char* 私有_世界树SQL主信息通用列定义() noexcept
+    {
+        return "    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
+            "    [快照标识] uniqueidentifier NOT NULL,\n"
+            "    [节点行号] int NOT NULL,\n"
+            "    [节点主键] nvarchar(80) NOT NULL,\n"
+            "    [主信息类型值] int NULL,\n"
+            "    [名称主键] nvarchar(80) NULL,\n"
+            "    [类型主键] nvarchar(80) NULL";
+    }
+
+    // 功能：输出主信息分表统一字段值。
+    void 私有_世界树SQL写主信息通用值(std::ostringstream& SQL, const 结构_世界树SQL节点行& 行)
+    {
+        SQL << "@快照标识, "
+            << 行.行号 << ", "
+            << 私有_世界树SQL字符串(行.节点主键, false) << ", "
+            << SQL可空整数文本(行.有主信息类型, 行.主信息类型值) << ", "
+            << 私有_世界树SQL字符串(行.名称主键) << ", "
+            << 私有_世界树SQL字符串(行.类型主键);
+    }
+
+    // 功能：返回主信息分表的大类附加列定义。
+    const char* 私有_世界树SQL主信息附加列定义(const 枚举_世界树SQL主信息表 表) noexcept
+    {
+        switch (表) {
+        case 枚举_世界树SQL主信息表::指代:
+            return ",\n    [代词主键] nvarchar(80) NULL,\n"
+                "    [有指代对象] int NOT NULL";
+        case 枚举_世界树SQL主信息表::抽象特征:
+            return ",\n    [形态值] int NOT NULL,\n"
+                "    [有值域] int NOT NULL,\n"
+                "    [有区间] int NOT NULL,\n"
+                "    [来源实例特征数量] int NOT NULL";
+        case 枚举_世界树SQL主信息表::特征:
+            return ",\n    [当前值类型值] int NOT NULL,\n"
+                "    [当前值I64] bigint NULL,\n"
+                "    [当前值VecU指针] decimal(20,0) NULL,\n"
+                "    [当前值指针] decimal(20,0) NULL,\n"
+                "    [当前稳态索引] int NOT NULL,\n"
+                "    [稳态数量] int NOT NULL";
+        case 枚举_世界树SQL主信息表::存在:
+            return ",\n    [概念数量] int NOT NULL,\n"
+                "    [有概念模板] int NOT NULL,\n"
+                "    [有内部世界] int NOT NULL,\n"
+                "    [有需求根] int NOT NULL,\n"
+                "    [有任务根] int NOT NULL,\n"
+                "    [有方法根] int NOT NULL,\n"
+                "    [有位置历史] int NOT NULL,\n"
+                "    [最近位移mm] bigint NOT NULL,\n"
+                "    [连续静止帧] bigint NOT NULL,\n"
+                "    [连续未命中帧] bigint NOT NULL";
+        case 枚举_世界树SQL主信息表::场景:
+            return ",\n    [世界类型值] int NOT NULL,\n"
+                "    [状态索引数量] int NOT NULL,\n"
+                "    [动态索引数量] int NOT NULL,\n"
+                "    [二次特征索引数量] int NOT NULL";
+        case 枚举_世界树SQL主信息表::状态:
+            return ",\n    [状态值类型值] int NOT NULL,\n"
+                "    [状态值I64] bigint NULL,\n"
+                "    [状态值VecU指针] decimal(20,0) NULL,\n"
+                "    [状态值指针] decimal(20,0) NULL,\n"
+                "    [收到时间] bigint NOT NULL,\n"
+                "    [发生时间] bigint NOT NULL,\n"
+                "    [是否变化] int NOT NULL";
+        case 枚举_世界树SQL主信息表::动态:
+            return ",\n    [时间起] bigint NOT NULL,\n"
+                "    [时间止] bigint NOT NULL,\n"
+                "    [来源执行成功] int NOT NULL,\n"
+                "    [来源错误码] bigint NOT NULL,\n"
+                "    [动态路径签名] decimal(20,0) NOT NULL,\n"
+                "    [动态层级] int NOT NULL,\n"
+                "    [聚合方式值] int NOT NULL";
+        case 枚举_世界树SQL主信息表::二次特征:
+            return ",\n    [形态值] int NOT NULL,\n"
+                "    [种类值] int NOT NULL,\n"
+                "    [域值] int NOT NULL,\n"
+                "    [粒度值] int NOT NULL,\n"
+                "    [标量值] bigint NOT NULL,\n"
+                "    [离散编码] int NOT NULL";
+        case 枚举_世界树SQL主信息表::因果:
+            return ",\n    [适用锚点类型值] int NOT NULL,\n"
+                "    [适用层级] int NOT NULL,\n"
+                "    [观察次数] decimal(20,0) NOT NULL,\n"
+                "    [条件命中次数] decimal(20,0) NOT NULL,\n"
+                "    [因出现次数] decimal(20,0) NOT NULL,\n"
+                "    [果出现次数] decimal(20,0) NOT NULL,\n"
+                "    [成立次数] decimal(20,0) NOT NULL,\n"
+                "    [失败次数] decimal(20,0) NOT NULL,\n"
+                "    [最近命中时间] bigint NOT NULL,\n"
+                "    [最近失败时间] bigint NOT NULL,\n"
+                "    [已验证] int NOT NULL";
+        case 枚举_世界树SQL主信息表::语言记录:
+            return ",\n    [语言词性主键] nvarchar(80) NULL";
+        default:
+            return "";
+        }
+    }
+
+    // 功能：返回主信息分表的大类附加列名。
+    const char* 私有_世界树SQL主信息附加列名(const 枚举_世界树SQL主信息表 表) noexcept
+    {
+        switch (表) {
+        case 枚举_世界树SQL主信息表::指代:
+            return ", [代词主键], [有指代对象]";
+        case 枚举_世界树SQL主信息表::抽象特征:
+            return ", [形态值], [有值域], [有区间], [来源实例特征数量]";
+        case 枚举_世界树SQL主信息表::特征:
+            return ", [当前值类型值], [当前值I64], [当前值VecU指针], [当前值指针], [当前稳态索引], [稳态数量]";
+        case 枚举_世界树SQL主信息表::存在:
+            return ", [概念数量], [有概念模板], [有内部世界], [有需求根], [有任务根], [有方法根], [有位置历史], [最近位移mm], [连续静止帧], [连续未命中帧]";
+        case 枚举_世界树SQL主信息表::场景:
+            return ", [世界类型值], [状态索引数量], [动态索引数量], [二次特征索引数量]";
+        case 枚举_世界树SQL主信息表::状态:
+            return ", [状态值类型值], [状态值I64], [状态值VecU指针], [状态值指针], [收到时间], [发生时间], [是否变化]";
+        case 枚举_世界树SQL主信息表::动态:
+            return ", [时间起], [时间止], [来源执行成功], [来源错误码], [动态路径签名], [动态层级], [聚合方式值]";
+        case 枚举_世界树SQL主信息表::二次特征:
+            return ", [形态值], [种类值], [域值], [粒度值], [标量值], [离散编码]";
+        case 枚举_世界树SQL主信息表::因果:
+            return ", [适用锚点类型值], [适用层级], [观察次数], [条件命中次数], [因出现次数], [果出现次数], [成立次数], [失败次数], [最近命中时间], [最近失败时间], [已验证]";
+        case 枚举_世界树SQL主信息表::语言记录:
+            return ", [语言词性主键]";
+        default:
+            return "";
+        }
+    }
+
+    // 功能：把特征值类型映射为 SQL 投影底层类型值。
+    int 私有_世界树SQL特征值类型值(const 特征值& 值) noexcept
+    {
+        if (std::holds_alternative<I64>(值)) return 1;
+        if (std::holds_alternative<VecU句柄>(值)) return 2;
+        if (std::holds_alternative<指针句柄>(值)) return 3;
+        return 0;
+    }
+
+    // 功能：输出特征值 I64 底层列。
+    std::string 私有_世界树SQL特征值I64文本(const 特征值* 值)
+    {
+        return 值 && std::holds_alternative<I64>(*值)
+            ? std::to_string(std::get<I64>(*值))
+            : "NULL";
+    }
+
+    // 功能：输出特征值 VecU 句柄底层列。
+    std::string 私有_世界树SQL特征值VecU文本(const 特征值* 值)
+    {
+        return 值 && std::holds_alternative<VecU句柄>(*值)
+            ? std::to_string(static_cast<unsigned long long>(std::get<VecU句柄>(*值).主信息指针))
+            : "NULL";
+    }
+
+    // 功能：输出特征值指针句柄底层列。
+    std::string 私有_世界树SQL特征值指针文本(const 特征值* 值)
+    {
+        return 值 && std::holds_alternative<指针句柄>(*值)
+            ? std::to_string(static_cast<unsigned long long>(std::get<指针句柄>(*值).指针))
+            : "NULL";
+    }
+
+    // 功能：输出主信息分表的大类附加字段值。
+    void 私有_世界树SQL写主信息附加值(
+        std::ostringstream& SQL,
+        const 结构_世界树SQL节点行& 行,
+        const 枚举_世界树SQL主信息表 表)
+    {
+        const auto* 主信息 = 行.节点指针 ? 行.节点指针->主信息 : nullptr;
+        switch (表) {
+        case 枚举_世界树SQL主信息表::指代: {
+            const auto* 指代 = dynamic_cast<const 指代节点主信息类*>(主信息);
+            const bool 有对象 = 指代 && (指代->指代对象.指针 || !指代->指代对象.主键.empty());
+            SQL << ", " << 私有_世界树SQL字符串(指代 ? 私有_世界树SQL入口主键(指代->代词) : "")
+                << ", " << (有对象 ? 1 : 0);
+            break;
+        }
+        case 枚举_世界树SQL主信息表::抽象特征: {
+            const auto* 抽象 = dynamic_cast<const 抽象特征主信息类*>(主信息);
+            SQL << ", " << (抽象 ? static_cast<int>(抽象->形态) : 0)
+                << ", " << (抽象 && 抽象->值域.has_value() ? 1 : 0)
+                << ", " << (抽象 && 抽象->区间.has_value() ? 1 : 0)
+                << ", " << (抽象 ? 抽象->来源实例特征.size() : 0);
+            break;
+        }
+        case 枚举_世界树SQL主信息表::特征: {
+            const auto* 特征 = dynamic_cast<const 特征节点主信息类*>(主信息);
+            const auto* 值 = 特征 ? &特征->当前值 : nullptr;
+            SQL << ", " << (值 ? 私有_世界树SQL特征值类型值(*值) : 0)
+                << ", " << 私有_世界树SQL特征值I64文本(值)
+                << ", " << 私有_世界树SQL特征值VecU文本(值)
+                << ", " << 私有_世界树SQL特征值指针文本(值)
+                << ", " << (特征 ? 特征->当前稳态索引 : -1)
+                << ", " << (特征 ? 特征->稳态列表.size() : 0);
+            break;
+        }
+        case 枚举_世界树SQL主信息表::存在: {
+            const auto* 存在 = dynamic_cast<const 存在节点主信息类*>(主信息);
+            SQL << ", " << (存在 ? 存在->概念集.size() : 0)
+                << ", " << (存在 && (存在->概念模板.指针 || !存在->概念模板.主键.empty()) ? 1 : 0)
+                << ", " << (存在 && (存在->内部世界.指针 || !存在->内部世界.主键.empty()) ? 1 : 0)
+                << ", " << (存在 && 存在->需求根节点 ? 1 : 0)
+                << ", " << (存在 && 存在->任务根节点 ? 1 : 0)
+                << ", " << (存在 && 存在->方法根节点 ? 1 : 0)
+                << ", " << (存在 && 存在->有位置历史 ? 1 : 0)
+                << ", " << (存在 ? 存在->最近位移_mm : 0)
+                << ", " << (存在 ? 存在->连续静止帧 : 0)
+                << ", " << (存在 ? 存在->连续未命中帧 : 0);
+            break;
+        }
+        case 枚举_世界树SQL主信息表::场景: {
+            const auto* 场景 = dynamic_cast<const 场景节点主信息类*>(主信息);
+            SQL << ", " << (场景 ? static_cast<int>(场景->世界类型) : 0)
+                << ", " << (场景 ? 场景->状态索引.size() : 0)
+                << ", " << (场景 ? 场景->动态索引.size() : 0)
+                << ", " << (场景 ? 场景->二次特征索引.size() : 0);
+            break;
+        }
+        case 枚举_世界树SQL主信息表::状态: {
+            const auto* 状态 = dynamic_cast<const 状态节点主信息类*>(主信息);
+            const auto* 值 = 状态 ? &状态->状态值 : nullptr;
+            SQL << ", " << (值 ? 私有_世界树SQL特征值类型值(*值) : 0)
+                << ", " << 私有_世界树SQL特征值I64文本(值)
+                << ", " << 私有_世界树SQL特征值VecU文本(值)
+                << ", " << 私有_世界树SQL特征值指针文本(值)
+                << ", " << (状态 ? 状态->收到时间 : 0)
+                << ", " << (状态 ? 状态->发生时间 : 0)
+                << ", " << (状态 && 状态->是否变化 ? 1 : 0);
+            break;
+        }
+        case 枚举_世界树SQL主信息表::动态: {
+            const auto* 动态 = dynamic_cast<const 动态节点主信息类*>(主信息);
+            SQL << ", " << (动态 ? 动态->时间.起 : 0)
+                << ", " << (动态 ? 动态->时间.止 : 0)
+                << ", " << (动态 && 动态->来源执行成功 ? 1 : 0)
+                << ", " << (动态 ? 动态->来源错误码 : 0)
+                << ", " << (动态 ? 动态->动态路径签名 : 0)
+                << ", " << (动态 ? 动态->动态层级 : 0)
+                << ", " << (动态 ? static_cast<int>(动态->聚合方式) : 0);
+            break;
+        }
+        case 枚举_世界树SQL主信息表::二次特征: {
+            const auto* 二次 = dynamic_cast<const 二次特征主信息类*>(主信息);
+            SQL << ", " << (二次 ? static_cast<int>(二次->形态) : 0)
+                << ", " << (二次 ? static_cast<int>(二次->种类) : 0)
+                << ", " << (二次 ? static_cast<int>(二次->域) : 0)
+                << ", " << (二次 ? static_cast<int>(二次->粒度) : 0)
+                << ", " << (二次 ? 二次->标量值 : 0)
+                << ", " << (二次 ? 二次->离散编码 : 0);
+            break;
+        }
+        case 枚举_世界树SQL主信息表::因果: {
+            const auto* 因果 = dynamic_cast<const 因果主信息类*>(主信息);
+            SQL << ", " << (因果 ? static_cast<int>(因果->适用锚点类型) : 0)
+                << ", " << (因果 ? 因果->适用层级 : 0)
+                << ", " << (因果 ? 因果->观察次数 : 0)
+                << ", " << (因果 ? 因果->条件命中次数 : 0)
+                << ", " << (因果 ? 因果->因出现次数 : 0)
+                << ", " << (因果 ? 因果->果出现次数 : 0)
+                << ", " << (因果 ? 因果->成立次数 : 0)
+                << ", " << (因果 ? 因果->失败次数 : 0)
+                << ", " << (因果 ? 因果->最近命中时间 : 0)
+                << ", " << (因果 ? 因果->最近失败时间 : 0)
+                << ", " << (因果 && 因果->已验证 ? 1 : 0);
+            break;
+        }
+        case 枚举_世界树SQL主信息表::语言记录: {
+            const auto* 语言 = dynamic_cast<const 语言记录主信息类*>(主信息);
+            SQL << ", " << 私有_世界树SQL字符串(语言 ? 私有_世界树SQL入口主键(语言->语言词性) : "");
+            break;
+        }
+        default:
+            break;
         }
     }
 
@@ -458,10 +779,6 @@ namespace {
         行.目标主键 = 目标主键;
         if constexpr (std::is_same_v<std::remove_cv_t<T节点>, 基础信息节点类>) {
             行.基础目标指针 = 引用.指针;
-            行.目标文本 = 私有_世界树SQL节点短标题(引用.指针);
-        }
-        else {
-            行.目标文本 = 目标主键;
         }
         行.序号 = 序号;
         关系集.push_back(std::move(行));
@@ -507,13 +824,13 @@ namespace {
             私有_世界树SQL添加引用集(关系集, 宿主主键, 宿主行号, "概念集", "基础信息", 存在->概念集);
             私有_世界树SQL添加引用(关系集, 宿主主键, 宿主行号, "内部世界", "基础信息", 存在->内部世界, 0);
             if (存在->需求根节点) {
-                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主行号, 1, nullptr, 宿主主键, "需求根节点", "需求", {}, "需求树根", 0 });
+                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主行号, 1, nullptr, 宿主主键, "需求根节点", "需求", {}, 0 });
             }
             if (存在->任务根节点) {
-                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主行号, 1, nullptr, 宿主主键, "任务根节点", "任务", {}, "任务树根", 0 });
+                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主行号, 1, nullptr, 宿主主键, "任务根节点", "任务", {}, 0 });
             }
             if (存在->方法根节点) {
-                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主行号, 1, nullptr, 宿主主键, "方法根节点", "方法", {}, "方法树根", 0 });
+                关系集.push_back({ static_cast<int>(关系集.size() + 1), 宿主行号, 1, nullptr, 宿主主键, "方法根节点", "方法", {}, 0 });
             }
         }
         if (const auto* 场景 = dynamic_cast<const 场景节点主信息类*>(主信息)) {
@@ -560,54 +877,13 @@ namespace {
     void 私有_世界树SQL填充节点主信息(const 基础信息节点类* 节点, 结构_世界树SQL节点行& 行)
     {
         if (!节点 || !节点->主信息) {
-            行.节点类别 = "查询根";
-            行.显示文本 = "世界树查询根";
             return;
         }
         const auto* 主信息 = 节点->主信息;
         行.有主信息类型 = true;
         行.主信息类型值 = static_cast<int>(主信息->主信息类型);
-        行.主信息类型文本 = 私有_世界树SQL主信息类型文本(主信息->主信息类型);
-        行.节点类别 = 行.主信息类型文本;
         行.名称主键 = 私有_世界树SQL入口主键(主信息->名称);
-        行.名称文本 = 私有_世界树SQL入口文本(主信息->名称);
         行.类型主键 = 私有_世界树SQL入口主键(主信息->类型);
-        行.类型文本 = 私有_世界树SQL入口文本(主信息->类型);
-        行.显示文本 = 私有_世界树SQL节点短标题(节点);
-
-        if (const auto* 特征 = dynamic_cast<const 特征节点主信息类*>(主信息)) {
-            行.值类别 = 私有_世界树SQL特征值类别(特征->当前值);
-            行.值文本 = 私有_世界树SQL特征值文本(特征->当前值);
-            行.辅助文本 = "当前稳态索引=" + std::to_string(特征->当前稳态索引);
-        }
-        else if (const auto* 状态 = dynamic_cast<const 状态节点主信息类*>(主信息)) {
-            行.值类别 = 私有_世界树SQL特征值类别(状态->状态值);
-            行.值文本 = 私有_世界树SQL特征值文本(状态->状态值);
-            行.辅助文本 = "发生时间=" + std::to_string(状态->发生时间)
-                + " | 是否变化=" + (状态->是否变化 ? "1" : "0");
-        }
-        else if (const auto* 场景 = dynamic_cast<const 场景节点主信息类*>(主信息)) {
-            行.辅助文本 = "世界类型=" + std::string(私有_世界树SQL世界类型文本(场景->世界类型))
-                + " | 状态索引=" + std::to_string(场景->状态索引.size())
-                + " | 动态索引=" + std::to_string(场景->动态索引.size())
-                + " | 二次特征索引=" + std::to_string(场景->二次特征索引.size());
-        }
-        else if (const auto* 动态 = dynamic_cast<const 动态节点主信息类*>(主信息)) {
-            行.辅助文本 = "路径签名=" + std::to_string(动态->动态路径签名)
-                + " | 动态层级=" + std::to_string(动态->动态层级);
-        }
-        else if (const auto* 二次 = dynamic_cast<const 二次特征主信息类*>(主信息)) {
-            行.值类别 = "二次特征";
-            行.值文本 = std::to_string(二次->标量值);
-            行.辅助文本 = "种类=" + std::to_string(static_cast<int>(二次->种类))
-                + " | 域=" + std::to_string(static_cast<int>(二次->域))
-                + " | 语义键=" + 二次->离散语义键;
-        }
-        else if (const auto* 因果 = dynamic_cast<const 因果主信息类*>(主信息)) {
-            行.辅助文本 = "因动作名称=" + 因果->因动作名称
-                + " | 成立=" + std::to_string(因果->成立次数)
-                + " | 失败=" + std::to_string(因果->失败次数);
-        }
     }
 
     void 私有_收集世界树SQL节点(
@@ -717,6 +993,19 @@ namespace {
         }
     }
 
+    // 功能：追加世界树主信息大类分表建表脚本。
+    void 私有_世界树SQL追加主信息建表脚本(
+        std::ostringstream& SQL,
+        const 枚举_世界树SQL主信息表 表)
+    {
+        const auto* 表名 = 私有_世界树SQL主信息表名(表);
+        SQL << "IF OBJECT_ID(N'" << 表名 << "', N'U') IS NULL\n"
+            << "CREATE TABLE " << 表名 << " (\n"
+            << 私有_世界树SQL主信息通用列定义()
+            << 私有_世界树SQL主信息附加列定义(表)
+            << "\n);\n";
+    }
+
     std::string 私有_世界树SQL建库脚本()
     {
         std::ostringstream SQL;
@@ -734,12 +1023,24 @@ namespace {
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树根树节点]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树根树节点];\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树根树节点主信息]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树根树节点主信息];\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树根树]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树根树];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前世界树主信息]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树主信息];\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树关系]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树关系];\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树节点]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树节点];\n"
             << "IF OBJECT_ID(N'[鱼巢].[世界树根树关系]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树根树关系];\n"
             << "IF OBJECT_ID(N'[鱼巢].[世界树根树节点主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树根树节点主信息];\n"
             << "IF OBJECT_ID(N'[鱼巢].[世界树根树节点]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树根树节点];\n"
             << "IF OBJECT_ID(N'[鱼巢].[世界树根树]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树根树];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树其他主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树其他主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树语言记录主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树语言记录主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树因果主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树因果主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树二次特征主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树二次特征主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树动态主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树动态主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树状态主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树状态主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树场景主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树场景主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树存在主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树存在主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树特征主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树特征主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树抽象特征主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树抽象特征主信息];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[世界树指代主信息]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树指代主信息];\n"
             << "IF OBJECT_ID(N'[鱼巢].[世界树节点关系]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树节点关系];\n"
             << "IF OBJECT_ID(N'[鱼巢].[世界树节点]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树节点];\n"
             << "IF OBJECT_ID(N'[鱼巢].[世界树快照]', N'U') IS NOT NULL DROP TABLE [鱼巢].[世界树快照];\n"
@@ -762,18 +1063,7 @@ namespace {
             << "    [深度] int NOT NULL,\n"
             << "    [同层序号] int NOT NULL,\n"
             << "    [直接子数量] int NOT NULL,\n"
-            << "    [路径文本] nvarchar(1000) NULL,\n"
-            << "    [节点类型] nvarchar(80) NULL,\n"
-            << "    [显示文本] nvarchar(500) NULL,\n"
-            << "    [主信息类型值] int NULL,\n"
-            << "    [主信息类型文本] nvarchar(80) NULL,\n"
-            << "    [名称主键] nvarchar(80) NULL,\n"
-            << "    [名称文本] nvarchar(300) NULL,\n"
-            << "    [类型主键] nvarchar(80) NULL,\n"
-            << "    [类型文本] nvarchar(300) NULL,\n"
-            << "    [值类别] nvarchar(80) NULL,\n"
-            << "    [值文本] nvarchar(500) NULL,\n"
-            << "    [辅助文本] nvarchar(1000) NULL\n"
+            << "    [路径文本] nvarchar(1000) NULL\n"
             << ");\n"
             << "IF OBJECT_ID(N'[鱼巢].[世界树节点关系]', N'U') IS NULL\n"
             << "CREATE TABLE [鱼巢].[世界树节点关系] (\n"
@@ -786,78 +1076,12 @@ namespace {
             << "    [关系名] nvarchar(120) NOT NULL,\n"
             << "    [目标类别] nvarchar(80) NULL,\n"
             << "    [目标主键] nvarchar(80) NULL,\n"
-            << "    [目标文本] nvarchar(500) NULL,\n"
-            << "    [序号] int NOT NULL\n"
-            << ");\n"
-            << "IF OBJECT_ID(N'[鱼巢].[世界树根树]', N'U') IS NULL\n"
-            << "CREATE TABLE [鱼巢].[世界树根树] (\n"
-            << "    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
-            << "    [快照标识] uniqueidentifier NOT NULL,\n"
-            << "    [根主键] nvarchar(80) NOT NULL,\n"
-            << "    [根行号] int NOT NULL,\n"
-            << "    [根深度] int NOT NULL,\n"
-            << "    [根同层序号] int NOT NULL,\n"
-            << "    [根直接子数量] int NOT NULL,\n"
-            << "    [根路径文本] nvarchar(1000) NULL,\n"
-            << "    [子树节点数量] int NOT NULL,\n"
-            << "    [子树关系数量] int NOT NULL\n"
-            << ");\n"
-            << "IF OBJECT_ID(N'[鱼巢].[世界树根树节点]', N'U') IS NULL\n"
-            << "CREATE TABLE [鱼巢].[世界树根树节点] (\n"
-            << "    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
-            << "    [快照标识] uniqueidentifier NOT NULL,\n"
-            << "    [根主键] nvarchar(80) NOT NULL,\n"
-            << "    [根相对深度] int NOT NULL,\n"
-            << "    [行号] int NOT NULL,\n"
-            << "    [节点主键] nvarchar(80) NOT NULL,\n"
-            << "    [父节点主键] nvarchar(80) NULL,\n"
-            << "    [深度] int NOT NULL,\n"
-            << "    [同层序号] int NOT NULL,\n"
-            << "    [直接子数量] int NOT NULL,\n"
-            << "    [路径文本] nvarchar(1000) NULL\n"
-            << ");\n"
-            << "IF OBJECT_ID(N'[鱼巢].[世界树根树节点主信息]', N'U') IS NULL\n"
-            << "CREATE TABLE [鱼巢].[世界树根树节点主信息] (\n"
-            << "    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
-            << "    [快照标识] uniqueidentifier NOT NULL,\n"
-            << "    [根主键] nvarchar(80) NOT NULL,\n"
-            << "    [节点行号] int NOT NULL,\n"
-            << "    [节点主键] nvarchar(80) NOT NULL,\n"
-            << "    [节点类型] nvarchar(80) NULL,\n"
-            << "    [显示文本] nvarchar(500) NULL,\n"
-            << "    [主信息类型值] int NULL,\n"
-            << "    [主信息类型文本] nvarchar(80) NULL,\n"
-            << "    [名称主键] nvarchar(80) NULL,\n"
-            << "    [名称文本] nvarchar(300) NULL,\n"
-            << "    [类型主键] nvarchar(80) NULL,\n"
-            << "    [类型文本] nvarchar(300) NULL,\n"
-            << "    [值类别] nvarchar(80) NULL,\n"
-            << "    [值文本] nvarchar(500) NULL,\n"
-            << "    [辅助文本] nvarchar(1000) NULL\n"
-            << ");\n"
-            << "IF OBJECT_ID(N'[鱼巢].[世界树根树关系]', N'U') IS NULL\n"
-            << "CREATE TABLE [鱼巢].[世界树根树关系] (\n"
-            << "    [记录标识] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,\n"
-            << "    [快照标识] uniqueidentifier NOT NULL,\n"
-            << "    [根主键] nvarchar(80) NOT NULL,\n"
-            << "    [行号] int NOT NULL,\n"
-            << "    [宿主行号] int NOT NULL,\n"
-            << "    [目标行号] int NULL,\n"
-            << "    [宿主主键] nvarchar(80) NOT NULL,\n"
-            << "    [关系名] nvarchar(120) NOT NULL,\n"
-            << "    [目标类别] nvarchar(80) NULL,\n"
-            << "    [目标主键] nvarchar(80) NULL,\n"
-            << "    [目标文本] nvarchar(500) NULL,\n"
             << "    [序号] int NOT NULL\n"
             << ");\n"
             << "IF COL_LENGTH(N'[鱼巢].[世界树节点关系]', N'宿主行号') IS NULL\n"
             << "    ALTER TABLE [鱼巢].[世界树节点关系] ADD [宿主行号] int NOT NULL CONSTRAINT DF_world_tree_node_relation_owner_row_index DEFAULT(0);\n"
             << "IF COL_LENGTH(N'[鱼巢].[世界树节点关系]', N'目标行号') IS NULL\n"
             << "    ALTER TABLE [鱼巢].[世界树节点关系] ADD [目标行号] int NULL;\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树关系]', N'宿主行号') IS NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树关系] ADD [宿主行号] int NOT NULL CONSTRAINT DF_world_tree_root_tree_relation_owner_row_index DEFAULT(0);\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树关系]', N'目标行号') IS NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树关系] ADD [目标行号] int NULL;\n"
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_node_key' AND object_id = OBJECT_ID(N'[鱼巢].[世界树节点]'))\n"
             << "    CREATE INDEX IX_world_tree_node_key ON [鱼巢].[世界树节点]([快照标识], [节点主键], [父节点主键]);\n"
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_node_parent' AND object_id = OBJECT_ID(N'[鱼巢].[世界树节点]'))\n"
@@ -867,65 +1091,43 @@ namespace {
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_relation_owner' AND object_id = OBJECT_ID(N'[鱼巢].[世界树节点关系]'))\n"
             << "    CREATE INDEX IX_world_tree_relation_owner ON [鱼巢].[世界树节点关系]([快照标识], [宿主主键], [目标主键]);\n"
             << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_relation_owner_row' AND object_id = OBJECT_ID(N'[鱼巢].[世界树节点关系]'))\n"
-            << "    CREATE INDEX IX_world_tree_relation_owner_row ON [鱼巢].[世界树节点关系]([快照标识], [宿主行号], [目标行号]);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_key' AND object_id = OBJECT_ID(N'[鱼巢].[世界树根树]'))\n"
-            << "    CREATE INDEX IX_world_tree_root_tree_key ON [鱼巢].[世界树根树]([快照标识], [根主键]);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_node_key' AND object_id = OBJECT_ID(N'[鱼巢].[世界树根树节点]'))\n"
-            << "    CREATE INDEX IX_world_tree_root_tree_node_key ON [鱼巢].[世界树根树节点]([快照标识], [根主键], [节点主键], [父节点主键]);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_node_row' AND object_id = OBJECT_ID(N'[鱼巢].[世界树根树节点]'))\n"
-            << "    CREATE INDEX IX_world_tree_root_tree_node_row ON [鱼巢].[世界树根树节点]([快照标识], [根主键], [行号]);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_node_main_info_key' AND object_id = OBJECT_ID(N'[鱼巢].[世界树根树节点主信息]'))\n"
-            << "    CREATE INDEX IX_world_tree_root_tree_node_main_info_key ON [鱼巢].[世界树根树节点主信息]([快照标识], [根主键], [节点主键]);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_node_main_info_row' AND object_id = OBJECT_ID(N'[鱼巢].[世界树根树节点主信息]'))\n"
-            << "    CREATE INDEX IX_world_tree_root_tree_node_main_info_row ON [鱼巢].[世界树根树节点主信息]([快照标识], [根主键], [节点行号]);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_relation_owner' AND object_id = OBJECT_ID(N'[鱼巢].[世界树根树关系]'))\n"
-            << "    CREATE INDEX IX_world_tree_root_tree_relation_owner ON [鱼巢].[世界树根树关系]([快照标识], [根主键], [宿主主键], [目标主键]);\n"
-            << "IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_world_tree_root_tree_relation_owner_row' AND object_id = OBJECT_ID(N'[鱼巢].[世界树根树关系]'))\n"
-            << "    CREATE INDEX IX_world_tree_root_tree_relation_owner_row ON [鱼巢].[世界树根树关系]([快照标识], [根主键], [宿主行号], [目标行号]);\n";
+            << "    CREATE INDEX IX_world_tree_relation_owner_row ON [鱼巢].[世界树节点关系]([快照标识], [宿主行号], [目标行号]);\n";
+        for (const auto 表 : {
+            枚举_世界树SQL主信息表::指代,
+            枚举_世界树SQL主信息表::抽象特征,
+            枚举_世界树SQL主信息表::特征,
+            枚举_世界树SQL主信息表::存在,
+            枚举_世界树SQL主信息表::场景,
+            枚举_世界树SQL主信息表::状态,
+            枚举_世界树SQL主信息表::动态,
+            枚举_世界树SQL主信息表::二次特征,
+            枚举_世界树SQL主信息表::因果,
+            枚举_世界树SQL主信息表::语言记录,
+            枚举_世界树SQL主信息表::其他 }) {
+            私有_世界树SQL追加主信息建表脚本(SQL, 表);
+        }
         return SQL.str();
     }
 
     std::string 私有_世界树SQL视图脚本()
     {
         std::ostringstream SQL;
-        SQL << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树节点] AS\n"
-            << "SELECT n.*\n"
-            << "FROM [鱼巢].[世界树节点] n\n"
-            << "WHERE n.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC);');\n"
-            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树关系] AS\n"
-            << "SELECT r.*\n"
-            << "FROM [鱼巢].[世界树节点关系] r\n"
-            << "WHERE r.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC);');\n"
-            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树根树] AS\n"
-            << "SELECT\n"
-            << "    t.[记录标识],\n"
-            << "    t.[快照标识],\n"
-            << "    t.[根主键],\n"
-            << "    t.[根行号],\n"
-            << "    m.[节点类型] AS [根类型],\n"
-            << "    m.[显示文本] AS [根显示文本],\n"
-            << "    t.[根深度],\n"
-            << "    t.[根同层序号],\n"
-            << "    t.[根直接子数量],\n"
-            << "    t.[根路径文本],\n"
-            << "    t.[子树节点数量],\n"
-            << "    t.[子树关系数量]\n"
-            << "FROM [鱼巢].[世界树根树] t\n"
-            << "LEFT JOIN [鱼巢].[世界树根树节点主信息] m\n"
-            << "    ON m.[快照标识] = t.[快照标识]\n"
-            << "    AND m.[根主键] = t.[根主键]\n"
-            << "    AND m.[节点行号] = t.[根行号]\n"
-            << "WHERE t.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC);');\n"
-            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树根树节点主信息] AS\n"
-            << "SELECT m.*\n"
-            << "FROM [鱼巢].[世界树根树节点主信息] m\n"
-            << "WHERE m.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC);');\n"
-            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树根树节点] AS\n"
+        SQL << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树主信息] AS\n"
+            << "SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树指代主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树抽象特征主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树特征主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树存在主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树场景主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树状态主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树动态主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树二次特征主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树因果主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树语言记录主信息]\n"
+            << "UNION ALL SELECT [快照标识], [节点行号], [节点主键], [主信息类型值], [名称主键], [类型主键] FROM [鱼巢].[世界树其他主信息];');\n"
+            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树节点] AS\n"
             << "SELECT\n"
             << "    n.[记录标识],\n"
             << "    n.[快照标识],\n"
-            << "    n.[根主键],\n"
-            << "    n.[根相对深度],\n"
             << "    n.[行号],\n"
             << "    n.[节点主键],\n"
             << "    n.[父节点主键],\n"
@@ -933,28 +1135,44 @@ namespace {
             << "    n.[同层序号],\n"
             << "    n.[直接子数量],\n"
             << "    n.[路径文本],\n"
-            << "    m.[记录标识] AS [主信息记录标识],\n"
-            << "    m.[节点行号],\n"
-            << "    m.[节点类型],\n"
-            << "    m.[显示文本],\n"
+            << "    CASE m.[主信息类型值]\n"
+            << "        WHEN 0 THEN N''指代'' WHEN 10 THEN N''特征'' WHEN 11 THEN N''抽象特征''\n"
+            << "        WHEN 14 THEN N''存在'' WHEN 15 THEN N''状态'' WHEN 16 THEN N''场景''\n"
+            << "        WHEN 22 THEN N''动态'' WHEN 23 THEN N''因果'' WHEN 30 THEN N''二次特征''\n"
+            << "        WHEN 35 THEN N''语言信息_仅记录'' WHEN 4 THEN N''基础信息基类'' ELSE N'''' END AS [节点类型],\n"
+            << "    COALESCE(NULLIF(m.[名称主键], N''''), NULLIF(m.[类型主键], N''''), n.[节点主键]) AS [显示文本],\n"
             << "    m.[主信息类型值],\n"
-            << "    m.[主信息类型文本],\n"
+            << "    CASE m.[主信息类型值]\n"
+            << "        WHEN 0 THEN N''指代'' WHEN 10 THEN N''特征'' WHEN 11 THEN N''抽象特征''\n"
+            << "        WHEN 14 THEN N''存在'' WHEN 15 THEN N''状态'' WHEN 16 THEN N''场景''\n"
+            << "        WHEN 22 THEN N''动态'' WHEN 23 THEN N''因果'' WHEN 30 THEN N''二次特征''\n"
+            << "        WHEN 35 THEN N''语言信息_仅记录'' WHEN 4 THEN N''基础信息基类'' ELSE N'''' END AS [主信息类型文本],\n"
             << "    m.[名称主键],\n"
-            << "    m.[名称文本],\n"
+            << "    m.[名称主键] AS [名称文本],\n"
             << "    m.[类型主键],\n"
-            << "    m.[类型文本],\n"
-            << "    m.[值类别],\n"
-            << "    m.[值文本],\n"
-            << "    m.[辅助文本]\n"
-            << "FROM [鱼巢].[世界树根树节点] n\n"
-            << "LEFT JOIN [鱼巢].[世界树根树节点主信息] m\n"
-            << "    ON m.[快照标识] = n.[快照标识]\n"
-            << "    AND m.[根主键] = n.[根主键]\n"
-            << "    AND m.[节点行号] = n.[行号]\n"
+            << "    m.[类型主键] AS [类型文本],\n"
+            << "    CASE COALESCE(f.[当前值类型值], s.[状态值类型值], 0)\n"
+            << "        WHEN 1 THEN N''I64'' WHEN 2 THEN N''VecU句柄'' WHEN 3 THEN N''指针句柄'' ELSE N'''' END AS [值类别],\n"
+            << "    COALESCE(CONVERT(nvarchar(80), f.[当前值I64]), CONVERT(nvarchar(80), f.[当前值VecU指针]), CONVERT(nvarchar(80), f.[当前值指针]),\n"
+            << "        CONVERT(nvarchar(80), s.[状态值I64]), CONVERT(nvarchar(80), s.[状态值VecU指针]), CONVERT(nvarchar(80), s.[状态值指针]), N'''') AS [值文本],\n"
+            << "    CAST(NULL AS nvarchar(1000)) AS [辅助文本]\n"
+            << "FROM [鱼巢].[世界树节点] n\n"
+            << "LEFT JOIN [鱼巢].[当前世界树主信息] m\n"
+            << "    ON m.[快照标识] = n.[快照标识] AND m.[节点行号] = n.[行号]\n"
+            << "LEFT JOIN [鱼巢].[世界树特征主信息] f\n"
+            << "    ON f.[快照标识] = n.[快照标识] AND f.[节点行号] = n.[行号]\n"
+            << "LEFT JOIN [鱼巢].[世界树状态主信息] s\n"
+            << "    ON s.[快照标识] = n.[快照标识] AND s.[节点行号] = n.[行号]\n"
             << "WHERE n.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC);');\n"
-            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树根树关系] AS\n"
-            << "SELECT r.*\n"
-            << "FROM [鱼巢].[世界树根树关系] r\n"
+            << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树关系] AS\n"
+            << "SELECT\n"
+            << "    r.[记录标识], r.[快照标识], r.[行号], r.[宿主行号], r.[目标行号],\n"
+            << "    r.[宿主主键], r.[关系名], r.[目标类别], r.[目标主键],\n"
+            << "    COALESCE(NULLIF(t.[显示文本], N''''), NULLIF(r.[目标主键], N''''), r.[目标类别]) AS [目标文本],\n"
+            << "    r.[序号]\n"
+            << "FROM [鱼巢].[世界树节点关系] r\n"
+            << "LEFT JOIN [鱼巢].[当前世界树节点] t\n"
+            << "    ON t.[快照标识] = r.[快照标识] AND t.[节点主键] = r.[目标主键]\n"
             << "WHERE r.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC);');\n";
         return SQL.str();
     }
@@ -968,36 +1186,17 @@ namespace {
         SQL << "SET NOCOUNT ON;\n"
             << "SET XACT_ABORT ON;\n"
             << "BEGIN TRANSACTION;\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树]', N'根类型') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树] DROP COLUMN [根类型];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树]', N'根显示文本') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树] DROP COLUMN [根显示文本];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'节点类型') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [节点类型];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'显示文本') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [显示文本];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'主信息类型值') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [主信息类型值];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'主信息类型文本') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [主信息类型文本];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'名称主键') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [名称主键];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'名称文本') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [名称文本];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'类型主键') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [类型主键];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'类型文本') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [类型文本];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'值类别') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [值类别];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'值文本') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [值文本];\n"
-            << "IF COL_LENGTH(N'[鱼巢].[世界树根树节点]', N'辅助文本') IS NOT NULL\n"
-            << "    ALTER TABLE [鱼巢].[世界树根树节点] DROP COLUMN [辅助文本];\n"
-            << "DELETE FROM [鱼巢].[世界树根树关系];\n"
-            << "DELETE FROM [鱼巢].[世界树根树节点主信息];\n"
-            << "DELETE FROM [鱼巢].[世界树根树节点];\n"
-            << "DELETE FROM [鱼巢].[世界树根树];\n"
+            << "DELETE FROM [鱼巢].[世界树其他主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树语言记录主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树因果主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树二次特征主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树动态主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树状态主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树场景主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树存在主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树特征主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树抽象特征主信息];\n"
+            << "DELETE FROM [鱼巢].[世界树指代主信息];\n"
             << "DELETE FROM [鱼巢].[世界树节点关系];\n"
             << "DELETE FROM [鱼巢].[世界树节点];\n"
             << "DELETE FROM [鱼巢].[世界树快照];\n"
@@ -1011,7 +1210,7 @@ namespace {
         constexpr std::size_t 插入批量大小 = 500;
         for (std::size_t 起始 = 0; 起始 < 节点集.size(); 起始 += 插入批量大小) {
             const auto 结束 = std::min(起始 + 插入批量大小, 节点集.size());
-            SQL << "INSERT INTO [鱼巢].[世界树节点] ([快照标识], [行号], [节点主键], [父节点主键], [深度], [同层序号], [直接子数量], [路径文本], [节点类型], [显示文本], [主信息类型值], [主信息类型文本], [名称主键], [名称文本], [类型主键], [类型文本], [值类别], [值文本], [辅助文本]) VALUES\n";
+            SQL << "INSERT INTO [鱼巢].[世界树节点] ([快照标识], [行号], [节点主键], [父节点主键], [深度], [同层序号], [直接子数量], [路径文本]) VALUES\n";
             for (std::size_t 索引 = 起始; 索引 < 结束; ++索引) {
                 const auto& 行 = 节点集[索引];
                 SQL << "(@快照标识, "
@@ -1021,24 +1220,49 @@ namespace {
                     << 行.深度 << ", "
                     << 行.同层序号 << ", "
                     << 行.直接子数量 << ", "
-                    << 私有_世界树SQL字符串(行.路径) << ", "
-                    << 私有_世界树SQL字符串(行.节点类别) << ", "
-                    << 私有_世界树SQL字符串(行.显示文本) << ", "
-                    << SQL可空整数文本(行.有主信息类型, 行.主信息类型值) << ", "
-                    << 私有_世界树SQL字符串(行.主信息类型文本) << ", "
-                    << 私有_世界树SQL字符串(行.名称主键) << ", "
-                    << 私有_世界树SQL字符串(行.名称文本) << ", "
-                    << 私有_世界树SQL字符串(行.类型主键) << ", "
-                    << 私有_世界树SQL字符串(行.类型文本) << ", "
-                    << 私有_世界树SQL字符串(行.值类别) << ", "
-                    << 私有_世界树SQL字符串(行.值文本) << ", "
-                    << 私有_世界树SQL字符串(行.辅助文本) << ")"
+                    << 私有_世界树SQL字符串(行.路径) << ")"
                     << (索引 + 1 == 结束 ? ";\n" : ",\n");
+            }
+        }
+        for (const auto 表 : {
+            枚举_世界树SQL主信息表::指代,
+            枚举_世界树SQL主信息表::抽象特征,
+            枚举_世界树SQL主信息表::特征,
+            枚举_世界树SQL主信息表::存在,
+            枚举_世界树SQL主信息表::场景,
+            枚举_世界树SQL主信息表::状态,
+            枚举_世界树SQL主信息表::动态,
+            枚举_世界树SQL主信息表::二次特征,
+            枚举_世界树SQL主信息表::因果,
+            枚举_世界树SQL主信息表::语言记录,
+            枚举_世界树SQL主信息表::其他 }) {
+            std::vector<const 结构_世界树SQL节点行*> 分表行集{};
+            for (const auto& 行 : 节点集) {
+                const auto* 主信息 = 行.节点指针 ? 行.节点指针->主信息 : nullptr;
+                if (!主信息) {
+                    continue;
+                }
+                if (私有_世界树SQL主信息分表(主信息) == 表) {
+                    分表行集.push_back(&行);
+                }
+            }
+            for (std::size_t 起始 = 0; 起始 < 分表行集.size(); 起始 += 插入批量大小) {
+                const auto 结束 = std::min(起始 + 插入批量大小, 分表行集.size());
+                SQL << "INSERT INTO " << 私有_世界树SQL主信息表名(表)
+                    << " (" << 私有_世界树SQL主信息通用列名()
+                    << 私有_世界树SQL主信息附加列名(表) << ") VALUES\n";
+                for (std::size_t 索引 = 起始; 索引 < 结束; ++索引) {
+                    SQL << "(";
+                    私有_世界树SQL写主信息通用值(SQL, *分表行集[索引]);
+                    私有_世界树SQL写主信息附加值(SQL, *分表行集[索引], 表);
+                    SQL << ")"
+                        << (索引 + 1 == 结束 ? ";\n" : ",\n");
+                }
             }
         }
         for (std::size_t 起始 = 0; 起始 < 关系集.size(); 起始 += 插入批量大小) {
             const auto 结束 = std::min(起始 + 插入批量大小, 关系集.size());
-            SQL << "INSERT INTO [鱼巢].[世界树节点关系] ([快照标识], [行号], [宿主行号], [目标行号], [宿主主键], [关系名], [目标类别], [目标主键], [目标文本], [序号]) VALUES\n";
+            SQL << "INSERT INTO [鱼巢].[世界树节点关系] ([快照标识], [行号], [宿主行号], [目标行号], [宿主主键], [关系名], [目标类别], [目标主键], [序号]) VALUES\n";
             for (std::size_t 索引 = 起始; 索引 < 结束; ++索引) {
                 const auto& 行 = 关系集[索引];
                 SQL << "(@快照标识, "
@@ -1049,64 +1273,10 @@ namespace {
                     << 私有_世界树SQL字符串(行.关系名, false) << ", "
                     << 私有_世界树SQL字符串(行.目标类别) << ", "
                     << 私有_世界树SQL字符串(行.目标主键) << ", "
-                    << 私有_世界树SQL字符串(行.目标文本) << ", "
                     << 行.序号 << ")"
                     << (索引 + 1 == 结束 ? ";\n" : ",\n");
             }
         }
-        SQL << "WITH root_nodes AS (\n"
-            << "    SELECT n.[快照标识], n.[节点主键] AS [根主键], n.[深度] AS [根深度], n.[路径文本] AS [根路径文本]\n"
-            << "    FROM [鱼巢].[世界树节点] n\n"
-            << "    WHERE n.[快照标识] = @快照标识 AND n.[父节点主键] = N'WORLD_ROOT'\n"
-            << ")\n"
-            << "INSERT INTO [鱼巢].[世界树根树节点] ([快照标识], [根主键], [根相对深度], [行号], [节点主键], [父节点主键], [深度], [同层序号], [直接子数量], [路径文本])\n"
-            << "SELECT n.[快照标识], r.[根主键], n.[深度] - r.[根深度], n.[行号], n.[节点主键], n.[父节点主键], n.[深度], n.[同层序号], n.[直接子数量], n.[路径文本]\n"
-            << "FROM root_nodes r\n"
-            << "JOIN [鱼巢].[世界树节点] n ON n.[快照标识] = r.[快照标识]\n"
-            << "    AND (n.[路径文本] = r.[根路径文本] OR n.[路径文本] LIKE r.[根路径文本] + N'/%');\n"
-            << "WITH root_nodes AS (\n"
-            << "    SELECT n.[快照标识], n.[节点主键] AS [根主键], n.[深度] AS [根深度], n.[路径文本] AS [根路径文本]\n"
-            << "    FROM [鱼巢].[世界树节点] n\n"
-            << "    WHERE n.[快照标识] = @快照标识 AND n.[父节点主键] = N'WORLD_ROOT'\n"
-            << ")\n"
-            << "INSERT INTO [鱼巢].[世界树根树节点主信息] ([快照标识], [根主键], [节点行号], [节点主键], [节点类型], [显示文本], [主信息类型值], [主信息类型文本], [名称主键], [名称文本], [类型主键], [类型文本], [值类别], [值文本], [辅助文本])\n"
-            << "SELECT n.[快照标识], r.[根主键], n.[行号], n.[节点主键], n.[节点类型], n.[显示文本], n.[主信息类型值], n.[主信息类型文本], n.[名称主键], n.[名称文本], n.[类型主键], n.[类型文本], n.[值类别], n.[值文本], n.[辅助文本]\n"
-            << "FROM root_nodes r\n"
-            << "JOIN [鱼巢].[世界树节点] n ON n.[快照标识] = r.[快照标识]\n"
-            << "    AND (n.[路径文本] = r.[根路径文本] OR n.[路径文本] LIKE r.[根路径文本] + N'/%');\n"
-            << "INSERT INTO [鱼巢].[世界树根树关系] ([快照标识], [根主键], [行号], [宿主行号], [目标行号], [宿主主键], [关系名], [目标类别], [目标主键], [目标文本], [序号])\n"
-            << "SELECT r.[快照标识], n.[根主键], r.[行号], r.[宿主行号], r.[目标行号], r.[宿主主键], r.[关系名], r.[目标类别], r.[目标主键], r.[目标文本], r.[序号]\n"
-            << "FROM [鱼巢].[世界树节点关系] r\n"
-            << "JOIN [鱼巢].[世界树根树节点] n ON n.[快照标识] = r.[快照标识] AND n.[行号] = r.[宿主行号]\n"
-            << "WHERE r.[快照标识] = @快照标识;\n"
-            << "WITH node_counts AS (\n"
-            << "    SELECT [快照标识], [根主键], COUNT_BIG(*) AS [子树节点数量]\n"
-            << "    FROM [鱼巢].[世界树根树节点]\n"
-            << "    WHERE [快照标识] = @快照标识\n"
-            << "    GROUP BY [快照标识], [根主键]\n"
-            << "), relation_counts AS (\n"
-            << "    SELECT [快照标识], [根主键], COUNT_BIG(*) AS [子树关系数量]\n"
-            << "    FROM [鱼巢].[世界树根树关系]\n"
-            << "    WHERE [快照标识] = @快照标识\n"
-            << "    GROUP BY [快照标识], [根主键]\n"
-            << ")\n"
-            << "INSERT INTO [鱼巢].[世界树根树] ([快照标识], [根主键], [根行号], [根深度], [根同层序号], [根直接子数量], [根路径文本], [子树节点数量], [子树关系数量])\n"
-            << "SELECT root.[快照标识], root.[节点主键], root.[行号], root.[深度], root.[同层序号], root.[直接子数量], root.[路径文本],\n"
-            << "    CONVERT(int, ISNULL(nc.[子树节点数量], 0)), CONVERT(int, ISNULL(rc.[子树关系数量], 0))\n"
-            << "FROM [鱼巢].[世界树节点] root\n"
-            << "LEFT JOIN node_counts nc ON nc.[快照标识] = root.[快照标识] AND nc.[根主键] = root.[节点主键]\n"
-            << "LEFT JOIN relation_counts rc ON rc.[快照标识] = root.[快照标识] AND rc.[根主键] = root.[节点主键]\n"
-            << "WHERE root.[快照标识] = @快照标识 AND root.[父节点主键] = N'WORLD_ROOT';\n"
-            << "IF EXISTS (\n"
-            << "    SELECT 1\n"
-            << "    FROM [鱼巢].[世界树根树节点主信息] info\n"
-            << "    LEFT JOIN [鱼巢].[世界树根树节点] node\n"
-            << "        ON node.[快照标识] = info.[快照标识]\n"
-            << "        AND node.[根主键] = info.[根主键]\n"
-            << "        AND node.[行号] = info.[节点行号]\n"
-            << "    WHERE info.[快照标识] = @快照标识 AND node.[行号] IS NULL\n"
-            << ")\n"
-            << "    THROW 51031, N'world_tree_root_tree_node_main_info [节点行号] invalid', 1;\n";
         SQL << "COMMIT TRANSACTION;\n";
         return SQL.str();
     }
@@ -1173,17 +1343,6 @@ namespace {
             SQL整数文本(行.同层序号),
             SQL整数文本(行.直接子数量),
             行.路径,
-            行.节点类别,
-            行.显示文本,
-            SQL字段可空整数文本(行.有主信息类型, 行.主信息类型值),
-            行.主信息类型文本,
-            行.名称主键,
-            行.名称文本,
-            行.类型主键,
-            行.类型文本,
-            行.值类别,
-            行.值文本,
-            行.辅助文本,
         };
     }
 
@@ -1209,7 +1368,6 @@ namespace {
             行.关系名,
             行.目标类别,
             行.目标主键,
-            行.目标文本,
             SQL整数文本(行.序号),
         };
     }
@@ -1225,149 +1383,20 @@ namespace {
         return 输出;
     }
 
-    std::vector<std::vector<std::string>> 私有_世界树SQL根树节点预期字段(
+    std::vector<std::vector<std::string>> 私有_世界树SQL主信息预期字段(
         const std::vector<结构_世界树SQL节点行>& 节点集)
     {
-        const auto 根集 = 私有_世界树SQL根节点集(节点集);
         std::vector<std::vector<std::string>> 输出;
-        for (const auto* 根 : 根集) {
-            if (!根) {
+        for (const auto& 行 : 节点集) {
+            if (!行.有主信息类型) {
                 continue;
             }
-            for (const auto& 节点 : 节点集) {
-                if (!私有_世界树SQL路径属于根(节点.路径, 根->路径)) {
-                    continue;
-                }
-                输出.push_back({
-                    根->节点主键,
-                    SQL整数文本(节点.深度 - 根->深度),
-                    SQL整数文本(节点.行号),
-                    节点.节点主键,
-                    节点.父节点主键,
-                    SQL整数文本(节点.深度),
-                    SQL整数文本(节点.同层序号),
-                    SQL整数文本(节点.直接子数量),
-                    节点.路径,
-                });
-            }
-        }
-        return 输出;
-    }
-
-    std::vector<std::vector<std::string>> 私有_世界树SQL根树主信息预期字段(
-        const std::vector<结构_世界树SQL节点行>& 节点集)
-    {
-        const auto 根集 = 私有_世界树SQL根节点集(节点集);
-        std::vector<std::vector<std::string>> 输出;
-        for (const auto* 根 : 根集) {
-            if (!根) {
-                continue;
-            }
-            for (const auto& 节点 : 节点集) {
-                if (!私有_世界树SQL路径属于根(节点.路径, 根->路径)) {
-                    continue;
-                }
-                输出.push_back({
-                    根->节点主键,
-                    SQL整数文本(节点.行号),
-                    节点.节点主键,
-                    节点.节点类别,
-                    节点.显示文本,
-                    SQL字段可空整数文本(节点.有主信息类型, 节点.主信息类型值),
-                    节点.主信息类型文本,
-                    节点.名称主键,
-                    节点.名称文本,
-                    节点.类型主键,
-                    节点.类型文本,
-                    节点.值类别,
-                    节点.值文本,
-                    节点.辅助文本,
-                });
-            }
-        }
-        return 输出;
-    }
-
-    std::vector<std::vector<std::string>> 私有_世界树SQL根树关系预期字段(
-        const std::vector<结构_世界树SQL节点行>& 节点集,
-        const std::vector<结构_世界树SQL关系行>& 关系集)
-    {
-        const auto 根集 = 私有_世界树SQL根节点集(节点集);
-        std::unordered_map<int, const 结构_世界树SQL节点行*> 行号到节点;
-        for (const auto& 节点 : 节点集) {
-            行号到节点.emplace(节点.行号, &节点);
-        }
-
-        std::vector<std::vector<std::string>> 输出;
-        for (const auto* 根 : 根集) {
-            if (!根) {
-                continue;
-            }
-            for (const auto& 关系 : 关系集) {
-                const auto 节点迭代 = 行号到节点.find(关系.宿主行号);
-                if (节点迭代 == 行号到节点.end()
-                    || !节点迭代->second
-                    || !私有_世界树SQL路径属于根(节点迭代->second->路径, 根->路径)) {
-                    continue;
-                }
-                输出.push_back({
-                    根->节点主键,
-                    SQL整数文本(关系.行号),
-                    SQL整数文本(关系.宿主行号),
-                    SQL字段可空整数文本(关系.目标行号 > 0, 关系.目标行号),
-                    关系.宿主主键,
-                    关系.关系名,
-                    关系.目标类别,
-                    关系.目标主键,
-                    关系.目标文本,
-                    SQL整数文本(关系.序号),
-                });
-            }
-        }
-        return 输出;
-    }
-
-    std::vector<std::vector<std::string>> 私有_世界树SQL根树预期字段(
-        const std::vector<结构_世界树SQL节点行>& 节点集,
-        const std::vector<结构_世界树SQL关系行>& 关系集)
-    {
-        const auto 根集 = 私有_世界树SQL根节点集(节点集);
-        std::unordered_map<int, const 结构_世界树SQL节点行*> 行号到节点;
-        for (const auto& 节点 : 节点集) {
-            行号到节点.emplace(节点.行号, &节点);
-        }
-
-        std::vector<std::vector<std::string>> 输出;
-        for (const auto* 根 : 根集) {
-            if (!根) {
-                continue;
-            }
-            int 子树节点数量 = 0;
-            for (const auto& 节点 : 节点集) {
-                if (私有_世界树SQL路径属于根(节点.路径, 根->路径)) {
-                    ++子树节点数量;
-                }
-            }
-
-            int 子树关系数量 = 0;
-            for (const auto& 关系 : 关系集) {
-                const auto 节点迭代 = 行号到节点.find(关系.宿主行号);
-                if (节点迭代 != 行号到节点.end()
-                    && 节点迭代->second
-                    && 私有_世界树SQL路径属于根(节点迭代->second->路径, 根->路径)) {
-                    ++子树关系数量;
-                }
-            }
-
             输出.push_back({
-                根->节点主键,
-                SQL整数文本(根->行号),
-                SQL整数文本(根->深度),
-                SQL整数文本(根->同层序号),
-                SQL整数文本(根->直接子数量),
-                根->路径,
-                SQL整数文本(子树节点数量),
-                SQL整数文本(子树关系数量),
+                SQL整数文本(行.行号),
+                行.节点主键,
+                SQL字段可空整数文本(行.有主信息类型, 行.主信息类型值),
+                行.名称主键,
+                行.类型主键,
             });
         }
         return 输出;
@@ -1417,21 +1446,20 @@ SELECT
     COALESCE(CONVERT(nvarchar(30), [深度]), N''),
     COALESCE(CONVERT(nvarchar(30), [同层序号]), N''),
     COALESCE(CONVERT(nvarchar(30), [直接子数量]), N''),
-    COALESCE([路径文本], N''),
-    COALESCE([节点类型], N''),
-    COALESCE([显示文本], N''),
-    COALESCE(CONVERT(nvarchar(30), [主信息类型值]), N''),
-    COALESCE([主信息类型文本], N''),
-    COALESCE([名称主键], N''),
-    COALESCE([名称文本], N''),
-    COALESCE([类型主键], N''),
-    COALESCE([类型文本], N''),
-    COALESCE([值类别], N''),
-    COALESCE([值文本], N''),
-    COALESCE([辅助文本], N'')
+    COALESCE([路径文本], N'')
 FROM [鱼巢].[世界树节点]
 WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
 ORDER BY [行号];
+)SQL";
+        constexpr const char* 主信息SQL = R"SQL(
+SELECT
+    COALESCE(CONVERT(nvarchar(30), [节点行号]), N''),
+    COALESCE([节点主键], N''),
+    COALESCE(CONVERT(nvarchar(30), [主信息类型值]), N''),
+    COALESCE([名称主键], N''),
+    COALESCE([类型主键], N'')
+FROM [鱼巢].[当前世界树主信息]
+ORDER BY [节点行号];
 )SQL";
         constexpr const char* 关系SQL = R"SQL(
 SELECT
@@ -1442,82 +1470,10 @@ SELECT
     COALESCE([关系名], N''),
     COALESCE([目标类别], N''),
     COALESCE([目标主键], N''),
-    COALESCE([目标文本], N''),
     COALESCE(CONVERT(nvarchar(30), [序号]), N'')
 FROM [鱼巢].[世界树节点关系]
 WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
 ORDER BY [行号];
-)SQL";
-        constexpr const char* 根树SQL = R"SQL(
-SELECT
-    COALESCE([根主键], N''),
-    COALESCE(CONVERT(nvarchar(30), [根行号]), N''),
-    COALESCE(CONVERT(nvarchar(30), [根深度]), N''),
-    COALESCE(CONVERT(nvarchar(30), [根同层序号]), N''),
-    COALESCE(CONVERT(nvarchar(30), [根直接子数量]), N''),
-    COALESCE([根路径文本], N''),
-    COALESCE(CONVERT(nvarchar(30), [子树节点数量]), N''),
-    COALESCE(CONVERT(nvarchar(30), [子树关系数量]), N'')
-FROM [鱼巢].[世界树根树]
-WHERE [快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
-ORDER BY [根行号];
-)SQL";
-        constexpr const char* 根树节点SQL = R"SQL(
-SELECT
-    COALESCE(n.[根主键], N''),
-    COALESCE(CONVERT(nvarchar(30), n.[根相对深度]), N''),
-    COALESCE(CONVERT(nvarchar(30), n.[行号]), N''),
-    COALESCE(n.[节点主键], N''),
-    COALESCE(n.[父节点主键], N''),
-    COALESCE(CONVERT(nvarchar(30), n.[深度]), N''),
-    COALESCE(CONVERT(nvarchar(30), n.[同层序号]), N''),
-    COALESCE(CONVERT(nvarchar(30), n.[直接子数量]), N''),
-    COALESCE(n.[路径文本], N'')
-FROM [鱼巢].[世界树根树节点] n
-JOIN [鱼巢].[世界树根树] t
-    ON t.[快照标识] = n.[快照标识] AND t.[根主键] = n.[根主键]
-WHERE n.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
-ORDER BY t.[根行号], n.[行号];
-)SQL";
-        constexpr const char* 根树主信息SQL = R"SQL(
-SELECT
-    COALESCE(m.[根主键], N''),
-    COALESCE(CONVERT(nvarchar(30), m.[节点行号]), N''),
-    COALESCE(m.[节点主键], N''),
-    COALESCE(m.[节点类型], N''),
-    COALESCE(m.[显示文本], N''),
-    COALESCE(CONVERT(nvarchar(30), m.[主信息类型值]), N''),
-    COALESCE(m.[主信息类型文本], N''),
-    COALESCE(m.[名称主键], N''),
-    COALESCE(m.[名称文本], N''),
-    COALESCE(m.[类型主键], N''),
-    COALESCE(m.[类型文本], N''),
-    COALESCE(m.[值类别], N''),
-    COALESCE(m.[值文本], N''),
-    COALESCE(m.[辅助文本], N'')
-FROM [鱼巢].[世界树根树节点主信息] m
-JOIN [鱼巢].[世界树根树] t
-    ON t.[快照标识] = m.[快照标识] AND t.[根主键] = m.[根主键]
-WHERE m.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
-ORDER BY t.[根行号], m.[节点行号];
-)SQL";
-        constexpr const char* 根树关系SQL = R"SQL(
-SELECT
-    COALESCE(r.[根主键], N''),
-    COALESCE(CONVERT(nvarchar(30), r.[行号]), N''),
-    COALESCE(CONVERT(nvarchar(30), r.[宿主行号]), N''),
-    COALESCE(CONVERT(nvarchar(30), r.[目标行号]), N''),
-    COALESCE(r.[宿主主键], N''),
-    COALESCE(r.[关系名], N''),
-    COALESCE(r.[目标类别], N''),
-    COALESCE(r.[目标主键], N''),
-    COALESCE(r.[目标文本], N''),
-    COALESCE(CONVERT(nvarchar(30), r.[序号]), N'')
-FROM [鱼巢].[世界树根树关系] r
-JOIN [鱼巢].[世界树根树] t
-    ON t.[快照标识] = r.[快照标识] AND t.[根主键] = r.[根主键]
-WHERE r.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC)
-ORDER BY t.[根行号], r.[行号];
 )SQL";
 
         return 私有_执行世界树SQL字段恢复比对(
@@ -1534,33 +1490,15 @@ ORDER BY t.[根行号], r.[行号];
                 错误)
             && 私有_执行世界树SQL字段恢复比对(
                 连接串,
+                "世界树SQL字段恢复比对/主信息",
+                主信息SQL,
+                私有_世界树SQL主信息预期字段(节点集),
+                错误)
+            && 私有_执行世界树SQL字段恢复比对(
+                连接串,
                 "世界树SQL字段恢复比对/关系",
                 关系SQL,
                 私有_世界树SQL关系预期字段(关系集),
-                错误)
-            && 私有_执行世界树SQL字段恢复比对(
-                连接串,
-                "世界树SQL字段恢复比对/根树",
-                根树SQL,
-                私有_世界树SQL根树预期字段(节点集, 关系集),
-                错误)
-            && 私有_执行世界树SQL字段恢复比对(
-                连接串,
-                "世界树SQL字段恢复比对/根树节点",
-                根树节点SQL,
-                私有_世界树SQL根树节点预期字段(节点集),
-                错误)
-            && 私有_执行世界树SQL字段恢复比对(
-                连接串,
-                "世界树SQL字段恢复比对/根树主信息",
-                根树主信息SQL,
-                私有_世界树SQL根树主信息预期字段(节点集),
-                错误)
-            && 私有_执行世界树SQL字段恢复比对(
-                连接串,
-                "世界树SQL字段恢复比对/根树关系",
-                根树关系SQL,
-                私有_世界树SQL根树关系预期字段(节点集, 关系集),
                 错误);
     }
 }
@@ -1778,8 +1716,6 @@ bool 世界树类::重写世界树SQL投影(const char* 来源原因, const bool
                 ? static_cast<int>(基础信息链_.世界根()->子节点数量)
                 : 0;
             根行.路径 = "WORLD_ROOT";
-            根行.节点类别 = "查询根";
-            根行.显示文本 = "世界树查询根";
             节点集.push_back(std::move(根行));
 
             auto* 根 = 基础信息链_.世界根();
