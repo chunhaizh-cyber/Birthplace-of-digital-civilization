@@ -13250,7 +13250,7 @@ std::string 私有_生成控制面板HTML(
         << 参数设定JSON
         << R"HTML(
     };
-    const 自我场景复现数据 = )HTML"
+    let 自我场景复现数据 = )HTML"
         << 自我场景复现JSON
         << R"HTML(;
     const 自我场景窗口模式 = )HTML"
@@ -14469,6 +14469,56 @@ std::string 私有_生成控制面板HTML(
       更新自我场景图层摘要();
     }
 
+    function 更新自我场景几何缓冲(data) {
+      const state = 自我场景GL状态;
+      if (!state || !state.gl) return null;
+      const gl = state.gl;
+      const geometry = 构建自我场景几何(data || {});
+      gl.bindBuffer(gl.ARRAY_BUFFER, state.lineBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, geometry.lineData, gl.DYNAMIC_DRAW);
+      gl.bindBuffer(gl.ARRAY_BUFFER, state.pointBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, geometry.pointData, gl.DYNAMIC_DRAW);
+      state.lineCount = geometry.lineCount;
+      state.pointCount = geometry.pointCount;
+      return geometry;
+    }
+
+    function 设置自我场景绘制状态(geometry) {
+      const data = 自我场景复现数据 || {};
+      const hasScenePointer = !!data.scenePtr;
+      const total = geometry ? Number(geometry.existenceTotalCount || 0) : 读取自我场景存在总量(data);
+      const rendered = geometry ? Number(geometry.existenceNodeCount || 0) : 读取自我场景存在统计(data).withCenter;
+      const text = total > 0
+        ? `已从自我所在场景指针绘制 ${rendered}/${total} 个存在。`
+        : (hasScenePointer ? '自我所在场景存在列表为空。' : '自我所在场景指针为空。');
+      设置自我场景状态(
+        total > 0
+          ? text
+          : `${text} 已保留坐标基准；观察候选和诊断图层只作调试参考。`,
+        total > 0 ? 'ok' : '');
+    }
+
+    function 应用自我场景复现帧(data) {
+      if (!data || typeof data !== 'object') {
+        设置自我场景状态('自我场景刷新帧无效。', 'error');
+        return;
+      }
+      自我场景复现数据 = data;
+      更新自我场景统计();
+      const geometry = 更新自我场景几何缓冲(data);
+      设置自我场景绘制状态(geometry);
+      绘制自我场景诊断覆盖层();
+      请求绘制自我场景();
+    }
+
+    window.__panelApplySelfSceneFrame = 应用自我场景复现帧;
+
+    function 请求自我场景复现帧() {
+      if (!(window.chrome && window.chrome.webview)) return false;
+      window.chrome.webview.postMessage('scene:refresh');
+      return true;
+    }
+
 )HTML";
     输出 << R"HTML(
     function 场景向量减(a, b) {
@@ -14983,15 +15033,7 @@ std::string 私有_生成控制面板HTML(
           rotating: true,
           frame: 0
         };
-        const hasScenePointer = !!(自我场景复现数据 && 自我场景复现数据.scenePtr);
-        const existenceStatus = geometry.existenceTotalCount > 0
-          ? `已从自我所在场景指针绘制 ${geometry.existenceNodeCount}/${geometry.existenceTotalCount} 个存在。`
-          : (hasScenePointer ? '自我所在场景存在列表为空。' : '自我所在场景指针为空。');
-        设置自我场景状态(
-          geometry.existenceTotalCount > 0
-            ? existenceStatus
-            : `${existenceStatus} 已保留坐标基准；观察候选和诊断图层只作调试参考。`,
-          geometry.existenceTotalCount > 0 ? 'ok' : '');
+        设置自我场景绘制状态(geometry);
       } catch (error) {
         设置自我场景状态(`OpenGL(WebGL) 渲染准备失败：${error.message || error}`, 'error');
         自我场景GL状态 = null;
@@ -15180,7 +15222,9 @@ std::string 私有_生成控制面板HTML(
     }
     if (自我场景刷新按钮) {
       自我场景刷新按钮.addEventListener('click', () => {
-        if (window.chrome && window.chrome.webview) {
+        if (自我场景窗口模式 && 请求自我场景复现帧()) {
+          设置自我场景状态('已请求刷新自我场景帧。');
+        } else if (window.chrome && window.chrome.webview) {
           window.chrome.webview.postMessage('refresh');
         } else {
           location.reload();
@@ -15189,6 +15233,10 @@ std::string 私有_生成控制面板HTML(
     }
     if (自我场景旋转按钮) {
       自我场景旋转按钮.addEventListener('click', 切换自我场景旋转);
+    }
+    if (自我场景窗口模式 && window.chrome && window.chrome.webview) {
+      window.setInterval(请求自我场景复现帧, 1000);
+      window.setTimeout(请求自我场景复现帧, 250);
     }
     ['depth-hole', 'filled-depth', 'unexplained', 'contour-risk'].forEach((layerId) => {
       const checkbox = document.getElementById(`scene-layer-${layerId}`);
@@ -15260,6 +15308,13 @@ std::string 生成自我场景独立窗口HTML(
         快照,
         24,
         枚举_控制面板HTML用途::自我场景窗口);
+}
+
+// 功能：根据只读控制面板快照生成自我场景复现帧 JSON。
+std::string 生成自我场景复现JSON(
+    const 结构_控制面板快照& 快照)
+{
+    return 私有_自我场景复现JSON(快照);
 }
 
 // 功能：从 SQL Server 读模型读取数据并生成控制面板 HTML。

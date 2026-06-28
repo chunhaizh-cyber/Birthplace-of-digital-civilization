@@ -535,6 +535,10 @@ std::string 渲染需求树生长摘要(
 std::string 生成自我场景独立窗口HTML(
     const 结构_控制面板快照& 快照);
 
+// 功能：根据只读控制面板快照生成自我场景复现帧 JSON。
+std::string 生成自我场景复现JSON(
+    const 结构_控制面板快照& 快照);
+
 std::string 生成SQL控制面板HTML();
 
 std::string 生成SQL控制面板启动HTML();

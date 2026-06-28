@@ -864,6 +864,28 @@ namespace {
         (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
     }
 
+    // 功能：向自我场景独立窗口推送只读场景复现帧。
+    void 私有_发送自我场景帧到页面(HWND 窗口) noexcept
+    {
+        auto* 上下文 = 私有_取窗口上下文(窗口);
+        if (!上下文 || !上下文->WebView) {
+            return;
+        }
+        if (!自我.已初始化()) {
+            (void)初始化自我环境();
+        }
+
+        const auto 快照 = 读取控制面板快照(10, 24);
+        const auto JSON = 生成自我场景复现JSON(快照);
+        const auto 宽JSON = 私有_UTF8转宽字串(JSON);
+        if (宽JSON.empty()) {
+            return;
+        }
+
+        const std::wstring 脚本 = L"window.__panelApplySelfSceneFrame(" + 宽JSON + L");";
+        (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
+    }
+
     // 功能：服务所在模块的内部辅助流程。
     void 私有_发送页面刷新到页面(HWND 窗口, std::string_view 页面) noexcept
     {
@@ -1476,6 +1498,10 @@ namespace {
                                                     窗口,
                                                     成功,
                                                     成功 ? "独立场景窗口启动请求已发送。" : "独立场景窗口启动请求失败。");
+                                                return S_OK;
+                                            }
+                                            if (消息 == L"scene:refresh") {
+                                                私有_发送自我场景帧到页面(窗口);
                                                 return S_OK;
                                             }
                                             if (消息 == L"camera:start" || 消息 == L"camera:capture") {
