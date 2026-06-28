@@ -1198,6 +1198,7 @@ namespace {
                 私有_刷新任务树SQL投影("程序退出/守卫", false);
                 私有_刷新方法树SQL投影("程序退出/守卫", false);
                 私有_刷新语素SQL投影("程序退出/守卫", false);
+                私有_刷新启动需求树SQL投影("程序退出/守卫", false);
             }
             else {
                 项目运行日志(
@@ -2377,7 +2378,13 @@ int main(int argc, char** argv)
         for (int i = 1; i < argc; ++i) {
             if (std::string_view(argv[i]) == "--self-check-log") {
                 鱼巢_启动说明("自我实现检查日志命令");
-                if (!私有_确保自我线程已启动("鱼巢::main/命令行/自我实现检查")) {
+                const bool 自检同步SQL投影 =
+                    私有_命令行包含参数(argc, argv, "--self-check-log-refresh-sql")
+                    || 私有_命令行包含参数(argc, argv, "--self-check-log-sql-projection");
+                if (!私有_确保自我线程已启动(
+                    "鱼巢::main/命令行/自我实现检查",
+                    自检同步SQL投影,
+                    自检同步SQL投影)) {
                     项目运行错误日志("自我线程启动失败");
                     鱼巢_控制台输出(std::cerr << "自我线程启动失败。\n");
                     return 4;
@@ -2393,6 +2400,11 @@ int main(int argc, char** argv)
                     项目运行日志("命令行/自检日志等待开始 | 等待毫秒=" + std::to_string(等待毫秒));
                     std::this_thread::sleep_for(std::chrono::milliseconds(等待毫秒));
                     项目运行日志("命令行/自检日志等待完成 | 等待毫秒=" + std::to_string(等待毫秒));
+                }
+                if (自检同步SQL投影) {
+                    项目运行日志("命令行/自检日志结束前SQL投影刷新 | 开关=开启");
+                    私有_刷新治理SQL投影集("鱼巢::main/命令行/自我实现检查/结束前", false, true);
+                    私有_刷新启动需求树SQL投影("鱼巢::main/命令行/自我实现检查/结束前", false, true);
                 }
                 私有_记录自我实现检查日志();
                 鱼巢_控制台输出(std::cout << 私有_渲染自检线程摘要());
