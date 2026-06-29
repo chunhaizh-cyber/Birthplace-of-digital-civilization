@@ -71,6 +71,31 @@ struct 结构_关系运动基元候选 {
     std::vector<二次特征节点类*> 冲突证据集合{};
 };
 
+enum class 枚举_动态特征影响状态 : std::uint8_t {
+    未定义 = 0,
+    有效 = 1,
+    待验证 = 2,
+    无效候选 = 3,
+};
+
+struct 结构_动态特征影响样本 {
+    const 语素入口节点类* 特征类型 = nullptr;
+    std::uint64_t 入口变化签名 = 0;
+    std::uint64_t 出口结果签名 = 0;
+    动态节点类* 来源动态 = nullptr;
+};
+
+struct 结构_动态特征影响统计 {
+    const 语素入口节点类* 特征类型 = nullptr;
+    std::uint64_t 样本数量 = 0;
+    std::uint64_t 支持样本数量 = 0;
+    std::uint64_t 反例样本数量 = 0;
+    std::uint64_t 出口差异数量 = 0;
+    std::uint64_t 入口变化签名数量 = 0;
+    枚举_动态特征影响状态 影响状态 = 枚举_动态特征影响状态::未定义;
+    std::vector<动态节点类*> 来源动态样本集合{};
+};
+
 class 动态类 {
 public:
     explicit 动态类(基础信息类* 基础信息 = nullptr) noexcept;
@@ -126,6 +151,11 @@ public:
     bool 动态聚合来源链相同(
         const 动态节点类* 聚合动态,
         const std::vector<动态节点类*>& 来源动态列表) const noexcept;
+    // 功能：按结构化入口变化签名和出口结果签名评估特征影响，不创建或修改节点。
+    std::vector<结构_动态特征影响统计> 评估动态特征影响(
+        const std::vector<结构_动态特征影响样本>& 样本集合,
+        std::uint64_t 最小样本数 = 3,
+        std::uint64_t 最大反例数 = 0) const;
 
     动态节点类* 创建动态(
         场景节点类* 场景,

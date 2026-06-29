@@ -15,6 +15,8 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "场景类.h"
 #include "方法类.h"
@@ -63,6 +65,20 @@ namespace {
         const auto 左主键 = 私有_引用主键(左);
         const auto 右主键 = 私有_引用主键(右);
         return !左主键.empty() && 左主键 == 右主键;
+    }
+
+    // 功能：向只读样本集合追加来源动态，限制容量避免分析视图无界膨胀。
+    void 私有_追加影响来源动态样本(std::vector<动态节点类*>& 样本集合, 动态节点类* 来源动态)
+    {
+        if (!来源动态 || 样本集合.size() >= 64) {
+            return;
+        }
+        for (auto* 已有 : 样本集合) {
+            if (已有 == 来源动态) {
+                return;
+            }
+        }
+        样本集合.push_back(来源动态);
     }
 
     // 功能：只读查找特征模板入口，不隐式创建语素或业务节点。
@@ -1025,6 +1041,97 @@ bool 动态类::动态聚合来源链相同(
         }
     }
     return true;
+}
+
+// 功能：按结构化入口变化签名和出口结果签名评估特征影响，不创建或修改节点。
+std::vector<结构_动态特征影响统计> 动态类::评估动态特征影响(
+    const std::vector<结构_动态特征影响样本>& 样本集合,
+    std::uint64_t 最小样本数,
+    std::uint64_t 最大反例数) const
+{
+    struct 私有_特征影响分组 {
+        结构_动态特征影响统计 统计{};
+        std::vector<const 结构_动态特征影响样本*> 样本{};
+        std::unordered_set<std::uint64_t> 入口变化签名集合{};
+        std::unordered_set<std::uint64_t> 出口结果签名集合{};
+    };
+
+    std::unordered_map<const 语素入口节点类*, 私有_特征影响分组> 分组表{};
+    for (const auto& 样本 : 样本集合) {
+        if (!样本.特征类型 || 样本.入口变化签名 == 0 || 样本.出口结果签名 == 0) {
+            continue;
+        }
+
+        auto& 分组 = 分组表[样本.特征类型];
+        分组.统计.特征类型 = 样本.特征类型;
+        分组.样本.push_back(&样本);
+        分组.入口变化签名集合.insert(样本.入口变化签名);
+        分组.出口结果签名集合.insert(样本.出口结果签名);
+        私有_追加影响来源动态样本(分组.统计.来源动态样本集合, 样本.来源动态);
+    }
+
+    std::vector<结构_动态特征影响统计> 结果{};
+    结果.reserve(分组表.size());
+    for (auto& [特征类型, 分组] : 分组表) {
+        (void)特征类型;
+        auto& 统计 = 分组.统计;
+        统计.样本数量 = static_cast<std::uint64_t>(分组.样本.size());
+        统计.入口变化签名数量 = static_cast<std::uint64_t>(分组.入口变化签名集合.size());
+        统计.出口差异数量 = static_cast<std::uint64_t>(分组.出口结果签名集合.size());
+
+        for (std::size_t i = 0; i < 分组.样本.size(); ++i) {
+            for (std::size_t j = i + 1; j < 分组.样本.size(); ++j) {
+                const auto* 左 = 分组.样本[i];
+                const auto* 右 = 分组.样本[j];
+                if (!左 || !右) {
+                    continue;
+                }
+
+                const bool 入口不同 = 左->入口变化签名 != 右->入口变化签名;
+                const bool 出口不同 = 左->出口结果签名 != 右->出口结果签名;
+                if (入口不同 && 出口不同) {
+                    ++统计.支持样本数量;
+                }
+                else if (入口不同 || 出口不同) {
+                    ++统计.反例样本数量;
+                }
+            }
+        }
+
+        if (统计.样本数量 < 最小样本数 || 分组.样本.size() < 2) {
+            统计.影响状态 = 枚举_动态特征影响状态::待验证;
+        }
+        else if (统计.支持样本数量 > 0 && 统计.反例样本数量 <= 最大反例数) {
+            统计.影响状态 = 枚举_动态特征影响状态::有效;
+        }
+        else if (统计.支持样本数量 == 0 && 统计.出口差异数量 <= 1) {
+            统计.影响状态 = 枚举_动态特征影响状态::无效候选;
+        }
+        else {
+            统计.影响状态 = 枚举_动态特征影响状态::待验证;
+        }
+
+        结果.push_back(std::move(统计));
+    }
+
+    std::sort(
+        结果.begin(),
+        结果.end(),
+        [](const 结构_动态特征影响统计& 左, const 结构_动态特征影响统计& 右) {
+            if (左.影响状态 != 右.影响状态) {
+                return static_cast<std::uint8_t>(左.影响状态)
+                    < static_cast<std::uint8_t>(右.影响状态);
+            }
+            if (左.支持样本数量 != 右.支持样本数量) {
+                return 左.支持样本数量 > 右.支持样本数量;
+            }
+            if (左.反例样本数量 != 右.反例样本数量) {
+                return 左.反例样本数量 < 右.反例样本数量;
+            }
+            return reinterpret_cast<std::uintptr_t>(左.特征类型)
+                < reinterpret_cast<std::uintptr_t>(右.特征类型);
+        });
+    return 结果;
 }
 
 // 功能：把动态节点当前态同步到 SQL 控制面板运行态显示镜像。
