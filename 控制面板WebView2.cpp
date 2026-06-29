@@ -47,6 +47,7 @@ using Microsoft::WRL::ComPtr;
 
 namespace {
     constexpr UINT 私有_WM_刷新控制面板窗口 = WM_APP + 220;
+    constexpr UINT 私有_WM_页面刷新JSON = WM_APP + 221;
     constexpr wchar_t 私有_控制面板窗口类名[] = L"鱼巢控制面板WebView2重构窗口";
 
     enum class 枚举_WebView2窗口用途 : std::uintptr_t {
@@ -67,6 +68,12 @@ namespace {
         ComPtr<ICoreWebView2Controller> 控制器{};
         ComPtr<ICoreWebView2> WebView{};
         std::filesystem::path 当前HTML临时路径{};
+    };
+
+    struct 结构_页面刷新投递 {
+        std::string 页面{};
+        std::string JSON{};
+        std::int64_t 生成耗时毫秒 = 0;
     };
 
     std::mutex 私有_窗口互斥{};
@@ -959,29 +966,26 @@ namespace {
         私有_执行自我场景帧脚本(*上下文, JSON);
     }
 
-    // 功能：服务所在模块的内部辅助流程。
-    void 私有_发送页面刷新到页面(HWND 窗口, std::string_view 页面) noexcept
+    // 功能：把页面刷新 JSON 投递回 WebView2 UI 线程执行。
+    void 私有_执行页面刷新JSON到页面(
+        HWND 窗口,
+        const 结构_页面刷新投递& 投递) noexcept
     {
         auto* 上下文 = 私有_取窗口上下文(窗口);
         if (!上下文 || !上下文->WebView) {
             return;
         }
 
-        const std::string 页面文本(页面);
-        const auto 开始时间 = std::chrono::steady_clock::now();
-        const auto JSON = 读取控制面板页面刷新JSON(页面);
-        const auto 生成耗时毫秒 = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - 开始时间).count();
-        const auto 宽JSON = 私有_UTF8转宽字串(JSON);
+        const auto 宽JSON = 私有_UTF8转宽字串(投递.JSON);
         if (宽JSON.empty()) {
             私有_记录WebView2诊断(
                 "页面刷新JSON转宽字串失败",
                 48,
                 S_OK,
                 GetLastError(),
-                "页面=" + 页面文本
-                + " | JSON字节=" + std::to_string(JSON.size())
-                + " | 生成耗时ms=" + std::to_string(生成耗时毫秒));
+                "页面=" + 投递.页面
+                + " | JSON字节=" + std::to_string(投递.JSON.size())
+                + " | 生成耗时ms=" + std::to_string(投递.生成耗时毫秒));
             return;
         }
 
@@ -993,18 +997,76 @@ namespace {
                 49,
                 脚本结果,
                 GetLastError(),
-                "页面=" + 页面文本
-                + " | JSON字节=" + std::to_string(JSON.size())
-                + " | 生成耗时ms=" + std::to_string(生成耗时毫秒));
+                "页面=" + 投递.页面
+                + " | JSON字节=" + std::to_string(投递.JSON.size())
+                + " | 生成耗时ms=" + std::to_string(投递.生成耗时毫秒));
             return;
         }
-        if (生成耗时毫秒 > 500) {
+        if (投递.生成耗时毫秒 > 500) {
             项目运行日志(
                 "控制面板WebView2/页面刷新较慢 | 页面="
-                + 页面文本
-                + " | JSON字节=" + std::to_string(JSON.size())
-                + " | 生成耗时ms=" + std::to_string(生成耗时毫秒));
+                + 投递.页面
+                + " | JSON字节=" + std::to_string(投递.JSON.size())
+                + " | 生成耗时ms=" + std::to_string(投递.生成耗时毫秒));
         }
+    }
+
+    // 功能：异步读取页面刷新 JSON，避免 WebView2 UI 线程被 SQL 查询阻塞。
+    void 私有_发送页面刷新到页面(HWND 窗口, std::string_view 页面) noexcept
+    {
+        const std::string 页面文本(页面);
+        std::thread([窗口, 页面文本]() noexcept {
+            std::unique_ptr<结构_页面刷新投递> 投递{ new(std::nothrow) 结构_页面刷新投递{} };
+            if (!投递) {
+                私有_记录WebView2诊断(
+                    "页面刷新JSON投递分配失败",
+                    50,
+                    S_OK,
+                    ERROR_OUTOFMEMORY,
+                    "页面=" + 页面文本);
+                return;
+            }
+            投递->页面 = 页面文本;
+            const auto 开始时间 = std::chrono::steady_clock::now();
+            try {
+                投递->JSON = 读取控制面板页面刷新JSON(页面文本);
+            }
+            catch (const std::exception& 异常) {
+                std::ostringstream JSON;
+                JSON << "{\"ok\":false,\"kind\":\"sql-section\",\"page\":";
+                追加JSON字符串(JSON, 页面文本);
+                JSON << ",\"error\":";
+                追加JSON字符串(JSON, std::string("页面刷新异常 | 原因=") + 异常.what());
+                JSON << "}";
+                投递->JSON = JSON.str();
+            }
+            catch (...) {
+                std::ostringstream JSON;
+                JSON << "{\"ok\":false,\"kind\":\"sql-section\",\"page\":";
+                追加JSON字符串(JSON, 页面文本);
+                JSON << ",\"error\":\"页面刷新异常 | 原因=未知异常\"}";
+                投递->JSON = JSON.str();
+            }
+            投递->生成耗时毫秒 = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - 开始时间).count();
+            if (!IsWindow(窗口)
+                || !PostMessageW(
+                    窗口,
+                    私有_WM_页面刷新JSON,
+                    0,
+                    reinterpret_cast<LPARAM>(投递.get()))) {
+                私有_记录WebView2诊断(
+                    "页面刷新JSON投递失败",
+                    50,
+                    S_OK,
+                    GetLastError(),
+                    "页面=" + 页面文本
+                    + " | JSON字节=" + std::to_string(投递->JSON.size())
+                    + " | 生成耗时ms=" + std::to_string(投递->生成耗时毫秒));
+                return;
+            }
+            (void)投递.release();
+        }).detach();
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -1775,6 +1837,15 @@ namespace {
         case 私有_WM_刷新控制面板窗口:
             私有_刷新页面(窗口);
             return 0;
+        case 私有_WM_页面刷新JSON: {
+            std::unique_ptr<结构_页面刷新投递> 投递{
+                reinterpret_cast<结构_页面刷新投递*>(lParam)
+            };
+            if (投递) {
+                私有_执行页面刷新JSON到页面(窗口, *投递);
+            }
+            return 0;
+        }
         case WM_CLOSE:
             DestroyWindow(窗口);
             return 0;

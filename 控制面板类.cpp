@@ -7028,34 +7028,34 @@ ORDER BY [数据分组], [指标键];
                 "需求树",
                 R"SQL(
 SELECT TOP (400)
-    COALESCE([显示节点标识], N'') AS [显示节点标识],
-    COALESCE([显示父节点标识], N'') AS [显示父节点标识],
-    CONVERT(nvarchar(20), COALESCE([显示深度], 0)) AS [深度],
+    COALESCE(CONVERT(nvarchar(20), [行号]), N'') AS [显示节点标识],
+    CASE WHEN COALESCE([深度], 0) = 1 THEN N'' ELSE COALESCE(CONVERT(nvarchar(20), [父节点行号]), N'') END AS [显示父节点标识],
+    CONVERT(nvarchar(20), CASE WHEN COALESCE([深度], 0) > 0 THEN [深度] - 1 ELSE 0 END) AS [深度],
     COALESCE([节点名称], N'') AS [节点名称],
-    COALESCE([树形摘要], N'') AS [树形摘要],
+    CASE WHEN COALESCE([直接子数量], 0) > 0 THEN CONCAT(N'有子=', CONVERT(nvarchar(20), [直接子数量])) ELSE N'叶子' END AS [树形摘要],
     COALESCE([目标语义], N'') AS [目标语义],
-    COALESCE([目标特征显示], N'') AS [目标特征显示],
-    COALESCE([任务显示], N'') AS [任务显示],
+    COALESCE([目标特征主键], N'') AS [目标特征显示],
+    COALESCE([任务主键], N'') AS [任务显示],
     COALESCE([节点主键], N'') AS [节点主键],
     COALESCE([逻辑组织类型], N'') AS [逻辑组织类型],
-    COALESCE([目标特征类型], N'') AS [目标特征类型],
+    N'' AS [目标特征类型],
     COALESCE([目标特征主键], N'') AS [目标特征主键],
-    COALESCE([任务类型], N'') AS [任务类型],
+    N'' AS [任务类型],
     COALESCE([任务主键], N'') AS [任务主键],
-    COALESCE([主体显示名], N'') AS [主体显示名],
-    COALESCE([主体类型名], N'') AS [主体类型名],
+    COALESCE([主体主键], N'') AS [主体显示名],
+    N'' AS [主体类型名],
     COALESCE([主体主键], N'') AS [主体主键],
-    COALESCE([场景显示名], N'') AS [场景显示名],
-    COALESCE([场景类型名], N'') AS [场景类型名],
+    COALESCE([场景主键], N'') AS [场景显示名],
+    N'' AS [场景类型名],
     COALESCE([场景主键], N'') AS [场景主键],
-    COALESCE([目标宿主显示名], N'') AS [目标宿主显示名],
-    COALESCE([目标宿主类型名], N'') AS [目标宿主类型名],
+    COALESCE([目标宿主主键], N'') AS [目标宿主显示名],
+    N'' AS [目标宿主类型名],
     COALESCE([目标宿主主键], N'') AS [目标宿主主键],
-    COALESCE([当前状态显示名], N'') AS [当前状态显示名],
-    COALESCE([当前状态类型名], N'') AS [当前状态类型名],
+    COALESCE([当前状态主键], N'') AS [当前状态显示名],
+    N'' AS [当前状态类型名],
     COALESCE([当前状态主键], N'') AS [当前状态主键],
-    COALESCE([目标状态显示名], N'') AS [目标状态显示名],
-    COALESCE([目标状态类型名], N'') AS [目标状态类型名],
+    COALESCE([目标状态主键], N'') AS [目标状态显示名],
+    N'' AS [目标状态类型名],
     COALESCE([目标状态主键], N'') AS [目标状态主键],
     CONVERT(nvarchar(20), COALESCE([满足关系掩码], 0)) AS [满足关系掩码],
     CONVERT(nvarchar(20), COALESCE([安全权重], 0)) AS [安全权重],
@@ -7063,8 +7063,8 @@ SELECT TOP (400)
     CONVERT(nvarchar(20), COALESCE([累计安全结算], 0)) AS [累计安全结算],
     CONVERT(nvarchar(20), COALESCE([累计服务结算], 0)) AS [累计服务结算],
     CONVERT(nvarchar(20), COALESCE([有效截止微秒], 0)) AS [有效截止微秒],
-    COALESCE([最近结算任务显示名], N'') AS [最近结算任务显示名],
-    COALESCE([最近结算任务类型名], N'') AS [最近结算任务类型名],
+    COALESCE([最近结算任务主键], N'') AS [最近结算任务显示名],
+    N'' AS [最近结算任务类型名],
     COALESCE([最近结算任务主键], N'') AS [最近结算任务主键],
     CONVERT(nvarchar(20), COALESCE([最近结算时间微秒], 0)) AS [最近结算时间微秒],
     COALESCE([描述主键], N'') AS [描述主键],
@@ -7073,8 +7073,8 @@ SELECT TOP (400)
     CONVERT(nvarchar(20), COALESCE([统计命中次数], 0)) AS [统计命中次数],
     CONVERT(nvarchar(1), COALESCE([已截止], 0)) AS [已截止],
     CONVERT(nvarchar(1), COALESCE([阻塞父任务], 0)) AS [阻塞父任务]
-FROM [鱼巢].[当前需求面板节点]
-WHERE COALESCE([显示父节点标识], N'') = N''
+FROM [鱼巢].[当前需求树节点]
+WHERE COALESCE([深度], 0) = 1
 ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::需求树
@@ -7644,7 +7644,59 @@ CONVERT(nvarchar(20), COALESCE([统计最后观测时间微秒], 0)) AS [统计�
 CONVERT(nvarchar(20), COALESCE([统计命中次数], 0)) AS [统计命中次数],
 CONVERT(nvarchar(1), COALESCE([已截止], 0)) AS [已截止],
 CONVERT(nvarchar(1), COALESCE([阻塞父任务], 0)) AS [阻塞父任务])SQL";
-            if (!私有_读取SQL树直接子层("需求树子层", "[鱼巢].[当前需求面板节点]", "[显示父节点标识]", 字段, 节点键, 行集, 错误)) {
+            (void)字段;
+            std::string SQL = R"SQL(
+SELECT
+    COALESCE(CONVERT(nvarchar(20), [行号]), N'') AS [显示节点标识],
+    CASE WHEN COALESCE([深度], 0) = 1 THEN N'' ELSE COALESCE(CONVERT(nvarchar(20), [父节点行号]), N'') END AS [显示父节点标识],
+    CONVERT(nvarchar(20), CASE WHEN COALESCE([深度], 0) > 0 THEN [深度] - 1 ELSE 0 END) AS [深度],
+    COALESCE([节点名称], N'') AS [节点名称],
+    CASE WHEN COALESCE([直接子数量], 0) > 0 THEN CONCAT(N'有子=', CONVERT(nvarchar(20), [直接子数量])) ELSE N'叶子' END AS [树形摘要],
+    COALESCE([目标语义], N'') AS [目标语义],
+    COALESCE([目标特征主键], N'') AS [目标特征显示],
+    COALESCE([任务主键], N'') AS [任务显示],
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([逻辑组织类型], N'') AS [逻辑组织类型],
+    N'' AS [目标特征类型],
+    COALESCE([目标特征主键], N'') AS [目标特征主键],
+    N'' AS [任务类型],
+    COALESCE([任务主键], N'') AS [任务主键],
+    COALESCE([主体主键], N'') AS [主体显示名],
+    N'' AS [主体类型名],
+    COALESCE([主体主键], N'') AS [主体主键],
+    COALESCE([场景主键], N'') AS [场景显示名],
+    N'' AS [场景类型名],
+    COALESCE([场景主键], N'') AS [场景主键],
+    COALESCE([目标宿主主键], N'') AS [目标宿主显示名],
+    N'' AS [目标宿主类型名],
+    COALESCE([目标宿主主键], N'') AS [目标宿主主键],
+    COALESCE([当前状态主键], N'') AS [当前状态显示名],
+    N'' AS [当前状态类型名],
+    COALESCE([当前状态主键], N'') AS [当前状态主键],
+    COALESCE([目标状态主键], N'') AS [目标状态显示名],
+    N'' AS [目标状态类型名],
+    COALESCE([目标状态主键], N'') AS [目标状态主键],
+    CONVERT(nvarchar(20), COALESCE([满足关系掩码], 0)) AS [满足关系掩码],
+    CONVERT(nvarchar(20), COALESCE([安全权重], 0)) AS [安全权重],
+    CONVERT(nvarchar(20), COALESCE([服务权重], 0)) AS [服务权重],
+    CONVERT(nvarchar(20), COALESCE([累计安全结算], 0)) AS [累计安全结算],
+    CONVERT(nvarchar(20), COALESCE([累计服务结算], 0)) AS [累计服务结算],
+    CONVERT(nvarchar(20), COALESCE([有效截止微秒], 0)) AS [有效截止微秒],
+    COALESCE([最近结算任务主键], N'') AS [最近结算任务显示名],
+    N'' AS [最近结算任务类型名],
+    COALESCE([最近结算任务主键], N'') AS [最近结算任务主键],
+    CONVERT(nvarchar(20), COALESCE([最近结算时间微秒], 0)) AS [最近结算时间微秒],
+    COALESCE([描述主键], N'') AS [描述主键],
+    CONVERT(nvarchar(20), COALESCE([统计创建时间微秒], 0)) AS [统计创建时间微秒],
+    CONVERT(nvarchar(20), COALESCE([统计最后观测时间微秒], 0)) AS [统计最后观测时间微秒],
+    CONVERT(nvarchar(20), COALESCE([统计命中次数], 0)) AS [统计命中次数],
+    CONVERT(nvarchar(1), COALESCE([已截止], 0)) AS [已截止],
+    CONVERT(nvarchar(1), COALESCE([阻塞父任务], 0)) AS [阻塞父任务]
+FROM [鱼巢].[当前需求树节点]
+WHERE COALESCE(CONVERT(nvarchar(20), [父节点行号]), N'') = )SQL";
+            SQL += 私有_SQL字符串字面量(节点键);
+            SQL += " ORDER BY [行号];";
+            if (!私有_读取SQL控制面板子链行集("需求树子层", SQL, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 46);
@@ -8168,6 +8220,8 @@ const panelStatus=document.getElementById('panelStatus');
 let causalInfoRoots=[];
 let worldTreeRoots=[];
 const genericTreeRootsBySection=new Map();
+let sqlRefreshInFlight=false;
+let sqlRefreshInFlightTarget='';
 let selectedCausalInfoKey='';
 let selectedCausalInfoNode=null;
 let selectedWorldTreeNode=null;
@@ -9022,7 +9076,13 @@ function 应用SQL子链刷新(requestId,data){
 }
 function 请求刷新当前SQL区段(target){
   if(!target)return false;
+  if(sqlRefreshInFlight){
+    if(panelStatus)panelStatus.textContent=`刷新未完成：${sqlRefreshInFlightTarget}；${target} 显示已有数据。`;
+    return false;
+  }
   if(window.chrome&&window.chrome.webview){
+    sqlRefreshInFlight=true;
+    sqlRefreshInFlightTarget=target;
     if(panelStatus)panelStatus.textContent=`正在刷新：${target}`;
     window.chrome.webview.postMessage(`refresh-page:${target}`);
     return true;
@@ -9040,12 +9100,26 @@ function 安排SQL区段重试(target){
 }
 function 应用SQL区段刷新(data){
   if(!data||typeof data!=='object')return;
+  const activeResponse=isSectionActive(data.page||'');
+  let completedPendingTarget='';
+  if(data.page&&data.page===sqlRefreshInFlightTarget){
+    completedPendingTarget=sqlRefreshInFlightTarget;
+    sqlRefreshInFlight=false;
+    sqlRefreshInFlightTarget='';
+  }else if(!data.page){
+    completedPendingTarget=sqlRefreshInFlightTarget;
+    sqlRefreshInFlight=false;
+    sqlRefreshInFlightTarget='';
+  }
   if(!data.ok){
-    if(panelStatus)panelStatus.textContent=data.error?`数据加载中：${data.error}`:'数据加载中，等待 SQL 投影写入。';
-    安排SQL区段重试(data.page||当前SQL区段());
+    if(activeResponse){
+      if(panelStatus)panelStatus.textContent=data.error?`数据加载中：${data.error}`:'数据加载中，等待 SQL 投影写入。';
+      安排SQL区段重试(data.page||当前SQL区段());
+    }else if(completedPendingTarget&&panelStatus){
+      panelStatus.textContent=`刷新完成：${completedPendingTarget}；当前页显示已有数据。`;
+    }
     return;
   }
-  const activeResponse=isSectionActive(data.page||'');
   const rowsArray=Array.isArray(data.rows)?data.rows:[];
   const emptyActiveResult=activeResponse
     && ['sql-table','sql-causal-info','sql-world-tree'].includes(data.kind)
@@ -9057,9 +9131,10 @@ function 应用SQL区段刷新(data){
   else if(data.kind==='sql-causal-chain')changed=renderSQLCausalChainSection(data);
   else if(data.kind==='sql-world-tree')changed=renderSQLWorldTreeSection(data);
   else return;
-  if(panelStatus)panelStatus.textContent=emptyActiveResult
+  if(activeResponse&&panelStatus)panelStatus.textContent=emptyActiveResult
     ? `数据加载中：${sectionTitle(data.page||'当前页面')} 暂无 SQL 行，继续重试。`
     : (changed ? `已刷新当前页面：${data.page||''}` : `当前页面无变化：${data.page||''}`);
+  else if(completedPendingTarget&&panelStatus)panelStatus.textContent=`刷新完成：${completedPendingTarget}；当前页显示已有数据。`;
 }
 )HTML";
         输出 << R"HTML(
@@ -9315,9 +9390,9 @@ function activateMenuButton(button,refreshCurrent=false){
   sections.forEach(section=>section.classList.toggle('active',section.id===button.dataset.target));
   try{localStorage.setItem('fishnest.panel.activeTarget',button.dataset.target||'');}catch(_){}
   applyFilter();
-  showSectionState(button.dataset.target,'数据加载中','正在读取当前 SQL 区段。');
   selectDefaultForSection(button.dataset.target);
-  if(refreshCurrent)请求刷新当前SQL区段(button.dataset.target);
+  const refreshStarted=refreshCurrent&&请求刷新当前SQL区段(button.dataset.target);
+  if(refreshStarted)showSectionState(button.dataset.target,'数据加载中','正在读取当前 SQL 区段。');
 }
 function selectMenuByNumber(text){
   const index=Number(text);
@@ -10826,7 +10901,7 @@ WHERE [节点主键] = )SQL";
     记录快照阶段("因果信息SQL视图占位构建完成");
 
     auto 需求树根 = 私有_新节点(
-        "需求树 | 来源=[鱼巢].[当前需求面板节点] | 初始页不强读SQL投影",
+        "需求树 | 来源=[鱼巢].[当前需求树节点] | 初始页不强读SQL投影",
         0,
         true);
     需求树根.子项.push_back(私有_新节点("请刷新需求树页读取数据库加工视图"));
@@ -10834,7 +10909,7 @@ WHERE [节点主键] = )SQL";
     记录快照阶段("需求树SQL视图占位构建完成");
 
     auto 需求列表树根 = 私有_新节点(
-        "需求列表 | 来源=[鱼巢].[当前需求面板节点] | 初始页不强读SQL投影",
+        "需求列表 | 来源=[鱼巢].[当前需求树节点] | 初始页不强读SQL投影",
         0,
         true);
     需求列表树根.子项.push_back(私有_新节点("请刷新需求列表页读取数据库加工视图"));
@@ -11047,20 +11122,20 @@ ORDER BY [行号];
         return 读取SQL投影树页(
             页面,
             页面 == "need-list" ? "需求列表" : "需求树",
-            "[鱼巢].[当前需求面板节点]",
+            "[鱼巢].[当前需求树节点]",
             R"SQL(
 SELECT TOP (300)
-    COALESCE([显示节点标识], N'') AS [节点主键],
-    COALESCE([显示父节点标识], N'') AS [父节点主键],
-    CONVERT(nvarchar(20), COALESCE([显示深度], 0)) AS [深度],
+    COALESCE(CONVERT(nvarchar(20), [行号]), N'') AS [节点主键],
+    CASE WHEN COALESCE([深度], 0) = 1 THEN N'' ELSE COALESCE(CONVERT(nvarchar(20), [父节点行号]), N'') END AS [父节点主键],
+    CONVERT(nvarchar(20), CASE WHEN COALESCE([深度], 0) > 0 THEN [深度] - 1 ELSE 0 END) AS [深度],
     N'需求' AS [节点类型],
-    COALESCE([树形摘要], N'') AS [显示文本],
-    COALESCE(NULLIF([节点名称], N''), NULLIF([目标特征显示], N''), [显示节点标识]) AS [名称文本],
-    COALESCE(NULLIF([逻辑组织类型], N''), NULLIF([目标特征类型], N''), N'需求') AS [类型文本],
+    CASE WHEN COALESCE([直接子数量], 0) > 0 THEN CONCAT(N'有子=', CONVERT(nvarchar(20), [直接子数量])) ELSE N'叶子' END AS [显示文本],
+    COALESCE(NULLIF([节点名称], N''), NULLIF([目标特征主键], N''), CONVERT(nvarchar(20), [行号])) AS [名称文本],
+    COALESCE(NULLIF([逻辑组织类型], N''), N'需求') AS [类型文本],
     N'目标语义' AS [值类别],
     COALESCE([目标语义], N'') AS [值文本],
-    CONCAT(N'目标特征=', COALESCE([目标特征显示], N''), N' | 目标特征类型=', COALESCE([目标特征类型], N''), N' | 任务=', COALESCE([任务显示], N''), N' | 任务类型=', COALESCE([任务类型], N'')) AS [辅助文本]
-FROM [鱼巢].[当前需求面板节点]
+    CONCAT(N'目标特征=', COALESCE([目标特征主键], N''), N' | 任务=', COALESCE([任务主键], N'')) AS [辅助文本]
+FROM [鱼巢].[当前需求树节点]
 ORDER BY [行号];
 )SQL",
             "当前 SQL 需求视图暂无节点");
@@ -13355,7 +13430,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="从 SQL 投影视图读取需求树结构；名称和类型由数据库视图加工。">
+        <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="从 SQL 轻量投影视图读取需求树结构。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -13372,7 +13447,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="need-list" data-title="需求列表" data-subtitle="从 SQL 投影视图读取需求列表；名称和类型由数据库视图加工。">
+        <section class="page" data-page="need-list" data-title="需求列表" data-subtitle="从 SQL 轻量投影视图读取需求列表。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -13863,12 +13938,12 @@ std::string 私有_生成控制面板HTML(
       'need-tree': {
         treeHost: 'tree-need-tree',
         detailHost: 'detail-need-tree',
-        detailHint: '需求树页读取 [鱼巢].[当前需求面板节点]；右侧显示 SQL 视图加工后的名称和类型。'
+        detailHint: '需求树页读取 [鱼巢].[当前需求树节点]；右侧显示轻量树节点和目标摘要。'
       },
       'need-list': {
         treeHost: 'tree-need-list',
         detailHost: 'detail-need-list',
-        detailHint: '需求列表读取 [鱼巢].[当前需求面板节点]；右侧显示 SQL 视图加工后的名称和类型。'
+        detailHint: '需求列表读取 [鱼巢].[当前需求树节点]；右侧显示轻量树节点和目标摘要。'
       },
       'task-tree': {
         treeHost: 'tree-task-tree',
@@ -13934,6 +14009,8 @@ std::string 私有_生成控制面板HTML(
     let 展开请求号 = 1;
     let 详情请求号 = 1;
     let 节点流水号 = 1;
+    let 页面刷新请求中 = false;
+    let 页面刷新请求页 = '';
     const 指针弹窗 = document.getElementById('pointer-detail-modal');
     const 指针弹窗标题 = document.getElementById('pointer-detail-title');
     const 指针弹窗正文 = document.getElementById('pointer-detail-body');
@@ -14394,6 +14471,13 @@ std::string 私有_生成控制面板HTML(
     window.__panelApplyPageRefresh = function(data) {
       if (!data || typeof data !== 'object') return;
       const page = data.page || '';
+      if (page && page === 页面刷新请求页) {
+        页面刷新请求中 = false;
+        页面刷新请求页 = '';
+      } else if (!page) {
+        页面刷新请求中 = false;
+        页面刷新请求页 = '';
+      }
       const config = 页面配置[page];
       if (!config) return;
       if (!data.ok || !data.root) {
@@ -16059,7 +16143,13 @@ std::string 私有_生成控制面板HTML(
 
     function 请求刷新控制面板页(page) {
       if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage(`refresh-page:${page || 'thread-status'}`);
+        const 目标页 = page || 'thread-status';
+        if (页面刷新请求中) {
+          return false;
+        }
+        页面刷新请求中 = true;
+        页面刷新请求页 = 目标页;
+        window.chrome.webview.postMessage(`refresh-page:${目标页}`);
         return true;
       }
       return false;
