@@ -7784,19 +7784,21 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
     *{box-sizing:border-box} html,body{height:100%} body{margin:0;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
     header{flex:0 0 auto;padding:10px 24px 12px;background:#18212f;color:#fff} h1{margin:0 0 4px;font-size:20px;letter-spacing:0} header p{margin:2px 0;color:#d7deea}
     .top-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.top-actions button{border:1px solid rgba(255,255,255,.35);background:#fff;color:#172026;border-radius:6px;padding:7px 11px;cursor:pointer}.top-actions button.secondary{background:#263244;color:#fff}.top-actions span{align-self:center;color:#d7deea;font-size:13px}
-    .panel-shell{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:220px minmax(360px,.9fr) minmax(380px,1.1fr);gap:0}
-    .menu-bar{background:#fff;border-right:1px solid var(--line);padding:14px 12px;min-height:0;overflow:auto}
+    .panel-shell{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:220px minmax(320px,var(--middle-pane-width,48vw)) 10px minmax(340px,1fr);grid-template-rows:minmax(0,1fr) 28px;gap:0}
+    .menu-bar{grid-column:1;grid-row:1/3;background:#fff;border-right:1px solid var(--line);padding:14px 12px;min-height:0;overflow:auto}
     .menu-group{display:grid;gap:6px}.menu-title{font-size:12px;color:var(--muted);margin:10px 8px 4px}.menu-bar button{width:100%;border:1px solid transparent;background:#fff;border-radius:6px;padding:9px 10px;text-align:left;color:var(--ink);cursor:pointer}.menu-bar button:hover{background:#eef6f5}.menu-bar button.active{background:#0f766e;border-color:#0f766e;color:#fff}
-    main.content{padding:18px 18px 36px;min-width:0;min-height:0;overflow:auto}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0 0 16px}
-    .node-detail-pane{background:#fff;border-left:1px solid var(--line);padding:18px 18px 36px;min-height:0;overflow:auto}
+    main.content{grid-column:2;grid-row:1;padding:18px 18px 36px;min-width:0;min-height:0;overflow:auto}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0 0 16px}
+    .column-resizer{grid-column:3;grid-row:1;position:relative;background:#eef2f7;border-left:1px solid var(--line);border-right:1px solid var(--line);cursor:col-resize;touch-action:none}.column-resizer::before{content:"";position:absolute;left:3px;top:calc(50% - 32px);width:2px;height:64px;border-left:2px solid #94a3b8;border-right:2px solid #94a3b8}.panel-shell.resizing,.panel-shell.resizing *{cursor:col-resize;user-select:none}
+    .node-detail-pane{grid-column:4;grid-row:1;background:#fff;border-left:1px solid var(--line);padding:18px 18px 36px;min-height:0;overflow:auto}
+    .middle-width-bar{grid-column:2/5;grid-row:2;display:flex;align-items:center;padding:6px 18px 8px;background:#fff;border-top:1px solid var(--line)}.middle-width-slider{width:100%;height:10px;margin:0;padding:0;border:0;border-radius:999px;accent-color:var(--accent);cursor:ew-resize}
     .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px}.card b{display:block;font-size:22px;margin-bottom:4px}
     input{width:min(720px,100%);padding:10px 12px;border:1px solid #cbd5e1;border-radius:6px;margin-bottom:12px}
     section{display:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}section.active{display:block}h2{font-size:18px;margin:0 0 12px}
     .table-wrap{overflow:auto;max-height:68vh;border:1px solid #e5e7eb}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-bottom:1px solid #e5e7eb;padding:8px 10px;text-align:left;vertical-align:top;white-space:nowrap}th{position:sticky;top:0;background:#f8fafc;z-index:1}
-    .table-wrap[hidden]{display:none}.world-tree-grid,.sql-section-tree{display:block}.tree-panel{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;overflow:hidden}.tree-toolbar{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #e5e7eb;background:#f8fafc}.tree-toolbar button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer}.tree-view{max-height:68vh;overflow:auto;padding:10px;font-size:13px}.tree-node{margin:2px 0}.tree-node summary{cursor:pointer;list-style:none}.tree-node summary::-webkit-details-marker{display:none}.tree-node summary::before{content:"▸";display:inline-block;width:16px;color:#64748b}.tree-node[open]>summary::before{content:"▾"}.tree-leaf{padding-left:16px}.tree-line{display:flex;gap:8px;align-items:center;min-height:26px;padding:3px 6px;border-radius:5px;white-space:nowrap;overflow:hidden}.tree-line:hover{background:#eef6f5}.tree-line.selected{background:#dff2ef;outline:1px solid #8fc9c1}.tree-line span{min-width:0;max-width:100%}.tree-key{flex:0 0 auto;font-family:Consolas,monospace;color:#1d4ed8}.tree-kind{flex:0 0 auto;color:#0f766e}.tree-title,.tree-muted{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tree-title{flex:1 1 20ch;color:var(--ink)}.tree-muted{flex:0 1 24ch;color:#64748b}.tree-children{margin-left:18px;border-left:1px solid #dbe4ee;padding-left:8px}
+    .table-wrap[hidden]{display:none}.world-tree-grid,.sql-section-tree{display:block}.tree-panel{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;overflow:hidden}.tree-toolbar{display:flex;gap:8px;align-items:center;padding:9px;border-bottom:1px solid #e5e7eb;background:#f8fafc}.tree-toolbar button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:7px 10px;cursor:pointer}.tree-view{max-height:68vh;overflow:auto;padding:10px;font-size:13px}.tree-node{margin:2px 0;min-width:max-content}.tree-node summary{cursor:pointer;list-style:none}.tree-node summary::-webkit-details-marker{display:none}.tree-node summary::before{content:"▸";display:inline-block;width:16px;color:#64748b}.tree-node[open]>summary::before{content:"▾"}.tree-leaf{padding-left:16px}.tree-line{display:flex;gap:8px;align-items:center;min-width:100%;width:max-content;min-height:26px;padding:3px 6px;border-radius:5px;white-space:nowrap;overflow:visible}.tree-line:hover{background:#eef6f5}.tree-line.selected{background:#dff2ef;outline:1px solid #8fc9c1}.tree-line span{min-width:0}.tree-key{flex:0 0 auto;font-family:Consolas,monospace;color:#1d4ed8}.tree-kind{flex:0 0 auto;color:#0f766e}.tree-title,.tree-muted{display:block;min-width:max-content;overflow:visible;text-overflow:clip;white-space:nowrap}.tree-title{flex:0 0 auto;color:var(--ink)}.tree-muted{flex:0 0 auto;color:#64748b}.tree-children{margin-left:18px;border-left:1px solid #dbe4ee;padding-left:8px;min-width:max-content}
     .causal-detail{border:1px solid #e5e7eb;border-radius:8px;background:#fbfdff;min-height:420px;max-height:68vh;overflow:auto;padding:12px}.causal-detail-empty{color:var(--muted);font-size:14px}.detail-head{display:grid;gap:4px;border-bottom:1px solid #e5e7eb;padding-bottom:10px;margin-bottom:10px}.detail-head strong{font-size:16px}.detail-block{border:1px solid #dbe4ee;border-radius:8px;background:#fff;margin:10px 0;padding:10px}.detail-block h3{margin:0 0 8px;font-size:15px}.detail-item{border-top:1px solid #edf2f7;padding:9px 0}.detail-item:first-of-type{border-top:0}.detail-item-title{font-weight:600;margin-bottom:6px}.detail-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;font-size:13px;line-height:1.5}.detail-row span{color:var(--muted)}.detail-row b{font-weight:400;word-break:break-all}.detail-sub{margin:8px 0 0 10px;border-left:2px solid #bfdcd8;padding-left:10px}.detail-sub-title{font-size:12px;color:var(--muted);margin-bottom:5px}.detail-sub-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px;font-size:12px;line-height:1.5;padding:3px 0}.detail-sub-row b{font-weight:500}.detail-sub-row span{word-break:break-all}
     .chain-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:start;margin-bottom:12px}.chain-grid label{display:grid;gap:5px;font-size:13px;color:var(--muted)}.chain-grid input{width:100%;margin:0}.chain-grid button{height:39px;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:0 14px;cursor:pointer}.chain-result{margin:8px 0 12px;color:var(--muted)}
-    @media(max-width:1100px){body{overflow:auto}.panel-shell{display:block;overflow:visible}.menu-bar,.node-detail-pane,main.content{overflow:visible}.menu-bar,.node-detail-pane{border-right:0;border-left:0;border-bottom:1px solid var(--line)}.menu-group{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.menu-title{grid-column:1/-1}}
+    @media(max-width:1100px){body{overflow:auto}.panel-shell{display:block;overflow:visible}.column-resizer,.middle-width-bar{display:none}.menu-bar,.node-detail-pane,main.content{overflow:visible}.menu-bar,.node-detail-pane{border-right:0;border-left:0;border-bottom:1px solid var(--line)}.menu-group{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.menu-title{grid-column:1/-1}}
     @media(max-width:760px){main.content{padding:14px}.chain-grid{grid-template-columns:1fr}.chain-grid button{width:100%}}
     .note{color:var(--muted);font-size:13px;line-height:1.6}code{background:#eef2f7;color:#172026;padding:1px 4px;border-radius:4px}
   </style>
@@ -7936,9 +7938,9 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
         私有_追加SQL控制面板表(输出, "特征类型", "features", { "特征", "来源", "符号", "文件", "行" }, 数据.特征);
         私有_追加SQL控制面板表(输出, "控制面板字段目录", "catalog", { "字段", "分组", "C++类型", "结构", "文件", "行" }, 数据.字段目录);
 
-        输出 << "</main><aside class=\"node-detail-pane\" aria-label=\"节点信息\">"
+        输出 << "</main><div id=\"middleColumnResize\" class=\"column-resizer\" role=\"separator\" aria-label=\"调整中间栏宽度\" aria-orientation=\"vertical\" tabindex=\"0\"></div><aside class=\"node-detail-pane\" aria-label=\"节点信息\">"
             << "<div id=\"sqlNodeDetail\" class=\"causal-detail\"><div class=\"causal-detail-empty\">请选择中间树节点查看信息</div></div>"
-            << "</aside></div>\n<script>\nconst causalInfoRows=[";
+            << "</aside><div class=\"middle-width-bar\"><input id=\"middleWidthSlider\" class=\"middle-width-slider\" type=\"range\" min=\"320\" max=\"1200\" value=\"640\" aria-label=\"中间栏宽度\" title=\"中间栏宽度\"></div></div>\n<script>\nconst causalInfoRows=[";
         for (std::size_t i = 0; i < 数据.因果信息.size(); ++i) {
             if (i > 0) {
                 输出 << ',';
@@ -8082,9 +8084,91 @@ worldTreeRelations.forEach(rel=>{
   if(!worldRelationsByOwner.has(rel.owner))worldRelationsByOwner.set(rel.owner,[]);
   worldRelationsByOwner.get(rel.owner).push(rel);
 });
+const panelShell=document.querySelector('.panel-shell');
+const middleResizeHandle=document.getElementById('middleColumnResize');
+const middleWidthSlider=document.getElementById('middleWidthSlider');
+const middleWidthStoreKey='fishnest.panel.middlePaneWidth';
+let middlePaneWidth=0;
 function escapeHtml(text){
   return String(text??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
+function clampNumber(value,min,max){
+  const number=Number(value);
+  if(!Number.isFinite(number))return min;
+  return Math.min(max,Math.max(min,number));
+}
+function middlePaneBounds(){
+  if(!panelShell)return {min:320,max:1200};
+  const shellWidth=panelShell.getBoundingClientRect().width||0;
+  const menuWidth=document.querySelector('.menu-bar')?.getBoundingClientRect().width||220;
+  const handleWidth=middleResizeHandle?.getBoundingClientRect().width||10;
+  const min=320;
+  const detailMin=340;
+  const max=Math.max(min,Math.floor(shellWidth-menuWidth-handleWidth-detailMin));
+  return {min,max};
+}
+function applyMiddlePaneWidth(value,persist=true){
+  if(!panelShell)return;
+  const bounds=middlePaneBounds();
+  middlePaneWidth=clampNumber(value,bounds.min,bounds.max);
+  panelShell.style.setProperty('--middle-pane-width',`${Math.round(middlePaneWidth)}px`);
+  if(middleWidthSlider){
+    middleWidthSlider.min=String(bounds.min);
+    middleWidthSlider.max=String(bounds.max);
+    middleWidthSlider.value=String(Math.round(middlePaneWidth));
+    middleWidthSlider.setAttribute('aria-valuenow',String(Math.round(middlePaneWidth)));
+  }
+  if(persist){
+    try{localStorage.setItem(middleWidthStoreKey,String(Math.round(middlePaneWidth)));}catch(_){}
+  }
+}
+function initMiddlePaneResize(){
+  if(!panelShell||!middleWidthSlider||!middleResizeHandle)return;
+  const bounds=middlePaneBounds();
+  let saved=0;
+  try{saved=Number(localStorage.getItem(middleWidthStoreKey)||0);}catch(_){}
+  applyMiddlePaneWidth(saved||Math.round((bounds.min+bounds.max)/2),false);
+  middleWidthSlider.addEventListener('input',()=>applyMiddlePaneWidth(middleWidthSlider.value));
+  let dragState=null;
+  middleResizeHandle.addEventListener('pointerdown',event=>{
+    if(event.button!=null&&event.button!==0)return;
+    event.preventDefault();
+    dragState={startX:event.clientX,startWidth:middlePaneWidth||Number(middleWidthSlider.value)||middlePaneBounds().min};
+    panelShell.classList.add('resizing');
+    try{middleResizeHandle.setPointerCapture(event.pointerId);}catch(_){}
+  });
+  window.addEventListener('pointermove',event=>{
+    if(!dragState)return;
+    applyMiddlePaneWidth(dragState.startWidth+event.clientX-dragState.startX);
+  });
+  const endDrag=event=>{
+    if(!dragState)return;
+    dragState=null;
+    panelShell.classList.remove('resizing');
+    try{middleResizeHandle.releasePointerCapture(event.pointerId);}catch(_){}
+  };
+  window.addEventListener('pointerup',endDrag);
+  window.addEventListener('pointercancel',endDrag);
+  middleResizeHandle.addEventListener('keydown',event=>{
+    const step=event.shiftKey?80:24;
+    if(event.key==='ArrowLeft'){
+      event.preventDefault();
+      applyMiddlePaneWidth(middlePaneWidth-step);
+    }else if(event.key==='ArrowRight'){
+      event.preventDefault();
+      applyMiddlePaneWidth(middlePaneWidth+step);
+    }else if(event.key==='Home'){
+      event.preventDefault();
+      applyMiddlePaneWidth(middlePaneBounds().min);
+    }else if(event.key==='End'){
+      event.preventDefault();
+      applyMiddlePaneWidth(middlePaneBounds().max);
+    }
+  });
+  window.addEventListener('resize',()=>applyMiddlePaneWidth(middlePaneWidth||middleWidthSlider.value,false));
+}
+)HTML";
+        输出 << R"HTML(
 function applyFilter(){
   const query=filter.value.trim().toLowerCase();
   const active=document.querySelector('section.active table[data-filterable]');
@@ -9136,6 +9220,7 @@ function openCameraWindow(){
     panelStatus.textContent='静态 HTML 预览不能打开相机窗口。';
   }
 }
+initMiddlePaneResize();
 buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button,true)));
 filter.addEventListener('input',applyFilter);
 if(openCameraButton)openCameraButton.addEventListener('click',openCameraWindow);
