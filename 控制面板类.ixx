@@ -564,6 +564,10 @@ std::string 生成自我场景独立窗口HTML(
 std::string 生成自我场景复现JSON(
     const 结构_控制面板快照& 快照);
 
+// 功能：根据只读控制面板快照生成自我场景复现稳定签名。
+std::uint64_t 生成自我场景复现签名(
+    const 结构_控制面板快照& 快照) noexcept;
+
 std::string 生成SQL控制面板HTML();
 
 std::string 生成SQL控制面板启动HTML();

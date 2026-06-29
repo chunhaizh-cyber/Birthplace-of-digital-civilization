@@ -7,6 +7,7 @@ module;
 
 #include <atomic>
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <exception>
 #include <fstream>
@@ -81,6 +82,12 @@ namespace {
     std::atomic_bool 私有_相机播放窗口线程运行中{ false };
     std::atomic_bool 私有_自我场景窗口线程运行中{ false };
     std::atomic_bool 私有_相机窗口启动过外设线程{ false };
+    std::mutex 私有_自我场景帧缓存互斥{};
+    std::string 私有_自我场景最近帧JSON{};
+    std::uint64_t 私有_自我场景最近帧签名 = 0;
+    std::chrono::steady_clock::time_point 私有_自我场景最近集中刷新时间{};
+    std::atomic<std::uint64_t> 私有_自我场景待刷新请求数{ 0 };
+    constexpr auto 私有_自我场景帧最小刷新间隔 = std::chrono::seconds(3);
     constexpr std::size_t 私有_NavigateToString安全字节数 = 1024u * 1024u;
 
     struct 结构_窗口线程运行守卫 {
@@ -872,6 +879,34 @@ namespace {
         (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
     }
 
+    // 功能：生成自我场景增量刷新轻量返回帧。
+    std::string 私有_生成自我场景无变化帧JSON(
+        const bool 已节流,
+        std::string_view 消息)
+    {
+        std::ostringstream JSON;
+        JSON << "{\"ok\":true,\"unchanged\":true";
+        JSON << ",\"throttled\":" << (已节流 ? "true" : "false");
+        JSON << ",\"message\":";
+        追加JSON字符串(JSON, 消息);
+        JSON << "}";
+        return JSON.str();
+    }
+
+    // 功能：把自我场景帧 JSON 推送到页面脚本。
+    void 私有_执行自我场景帧脚本(
+        结构_WebView2窗口上下文& 上下文,
+        const std::string& JSON) noexcept
+    {
+        const auto 宽JSON = 私有_UTF8转宽字串(JSON);
+        if (宽JSON.empty()) {
+            return;
+        }
+
+        const std::wstring 脚本 = L"window.__panelApplySelfSceneFrame(" + 宽JSON + L");";
+        (void)上下文.WebView->ExecuteScript(脚本.c_str(), nullptr);
+    }
+
     // 功能：向自我场景独立窗口推送只读场景复现帧。
     void 私有_发送自我场景帧到页面(HWND 窗口) noexcept
     {
@@ -879,19 +914,49 @@ namespace {
         if (!上下文 || !上下文->WebView) {
             return;
         }
+
+        私有_自我场景待刷新请求数.fetch_add(1, std::memory_order_relaxed);
+        std::string JSON{};
+        std::unique_lock<std::mutex> 帧锁(私有_自我场景帧缓存互斥, std::try_to_lock);
+        if (!帧锁.owns_lock()) {
+            JSON = 私有_生成自我场景无变化帧JSON(true, "已记录自我场景刷新请求，等待3秒集中刷新。");
+            私有_执行自我场景帧脚本(*上下文, JSON);
+            return;
+        }
+
+        const auto 当前时间 = std::chrono::steady_clock::now();
+        if (!私有_自我场景最近帧JSON.empty()
+            && 私有_自我场景最近集中刷新时间.time_since_epoch().count() > 0
+            && 当前时间 - 私有_自我场景最近集中刷新时间 < 私有_自我场景帧最小刷新间隔) {
+            JSON = 私有_生成自我场景无变化帧JSON(true, "已记录自我场景刷新请求，等待3秒集中刷新。");
+            帧锁.unlock();
+            私有_执行自我场景帧脚本(*上下文, JSON);
+            return;
+        }
+
         if (!自我.已初始化()) {
             (void)初始化自我环境();
         }
 
         const auto 快照 = 读取控制面板快照(10, 24);
-        const auto JSON = 生成自我场景复现JSON(快照);
-        const auto 宽JSON = 私有_UTF8转宽字串(JSON);
-        if (宽JSON.empty()) {
-            return;
+        const auto 当前签名 = 生成自我场景复现签名(快照);
+        const auto 本批请求数 = 私有_自我场景待刷新请求数.exchange(0, std::memory_order_relaxed);
+        私有_自我场景最近集中刷新时间 = 当前时间;
+        if (!私有_自我场景最近帧JSON.empty()
+            && 当前签名 == 私有_自我场景最近帧签名) {
+            JSON = 私有_生成自我场景无变化帧JSON(
+                false,
+                std::string("3秒集中刷新完成，本批记录")
+                + std::to_string(本批请求数)
+                + "次刷新请求，画面无变化。");
         }
-
-        const std::wstring 脚本 = L"window.__panelApplySelfSceneFrame(" + 宽JSON + L");";
-        (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
+        else {
+            JSON = 生成自我场景复现JSON(快照);
+            私有_自我场景最近帧签名 = 当前签名;
+            私有_自我场景最近帧JSON = JSON;
+        }
+        帧锁.unlock();
+        私有_执行自我场景帧脚本(*上下文, JSON);
     }
 
     // 功能：服务所在模块的内部辅助流程。
