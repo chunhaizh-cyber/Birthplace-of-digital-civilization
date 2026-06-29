@@ -49,6 +49,7 @@ module 控制面板类;
 
 import 全局共享函数类;
 import 控制面板WebView2;
+import 场景体素模块;
 import 自我类;
 import 自我类.特征定义;
 import 自我线程模块;
@@ -2089,6 +2090,93 @@ namespace {
             static_cast<std::int64_t>(快照.自我场景存在复现项列表.size());
     }
 
+    // 功能：只读查找三维体素模型特征入口；显示路径不得创建语素入口。
+    const 语素入口节点类* 私有_查找三维体素模型特征入口_控制面板() noexcept
+    {
+        return 语素集.查找信息入口节点(
+            "三维体素模型",
+            枚举_信息入口类型::特征模板入口);
+    }
+
+    // 功能：从自我所在场景只读生成控制面板体素显示快照。
+    void 私有_读取自我场景体素复现快照(
+        场景节点类* 自我所在场景,
+        结构_控制面板快照& 快照) noexcept
+    {
+        快照.自我场景体素复现项列表.clear();
+        快照.自我场景体素快照有效 = false;
+        快照.自我场景体素版本 = 0;
+        快照.自我场景体素坐标系版本 = 0;
+        快照.自我场景体素生成时间 = 0;
+        快照.自我场景体素枚举存在数量 = 0;
+        快照.自我场景体素有坐标存在数量 = 0;
+        快照.自我场景体素有体素存在数量 = 0;
+        快照.自我场景体素入选存在数量 = 0;
+        快照.自我场景体素缺口数量 = 0;
+        快照.自我场景体素缺体素特征类型数量 = 0;
+        快照.自我场景体素缺坐标存在数量 = 0;
+        快照.自我场景体素缺体素存在数量 = 0;
+        快照.自我场景体素缺坐标系版本数量 = 0;
+
+        if (!自我所在场景) {
+            return;
+        }
+
+        场景体素模块::结构_场景体素同步参数 参数{};
+        参数.三维体素特征类型 = 私有_查找三维体素模型特征入口_控制面板();
+        参数.场景体素坐标系版本 = 1;
+        参数.默认存在最小体素边长_mm = 1;
+        参数.快照时间 = 结构体_时间戳::当前_微秒();
+
+        static std::mutex s_体素缓存互斥;
+        static 场景体素模块::场景体素缓存类 s_体素缓存{};
+        static 基础信息类* s_已绑定基础信息 = nullptr;
+
+        场景体素模块::结构_场景体素只读快照 体素快照{};
+        {
+            std::lock_guard<std::mutex> 锁(s_体素缓存互斥);
+            auto* 当前基础信息 = &世界树.基础信息();
+            if (s_已绑定基础信息 != 当前基础信息) {
+                s_体素缓存.绑定基础信息(当前基础信息);
+                s_已绑定基础信息 = 当前基础信息;
+            }
+            体素快照 = s_体素缓存.同步当前场景快照(自我所在场景, 参数);
+        }
+
+        快照.自我场景体素快照有效 = 体素快照.版本 > 0;
+        快照.自我场景体素版本 = 体素快照.版本;
+        快照.自我场景体素坐标系版本 = 体素快照.坐标系版本;
+        快照.自我场景体素生成时间 = 体素快照.生成时间;
+        快照.自我场景体素枚举存在数量 = 体素快照.统计.枚举存在数量;
+        快照.自我场景体素有坐标存在数量 = 体素快照.统计.有坐标存在数量;
+        快照.自我场景体素有体素存在数量 = 体素快照.统计.有体素存在数量;
+        快照.自我场景体素入选存在数量 = 体素快照.统计.入选存在数量;
+        快照.自我场景体素缺口数量 = 体素快照.统计.缺口数量;
+        快照.自我场景体素缺体素特征类型数量 = 体素快照.统计.缺体素特征类型数量;
+        快照.自我场景体素缺坐标存在数量 = 体素快照.统计.缺坐标存在数量;
+        快照.自我场景体素缺体素存在数量 = 体素快照.统计.缺体素存在数量;
+        快照.自我场景体素缺坐标系版本数量 = 体素快照.统计.缺坐标系版本数量;
+
+        constexpr std::size_t 体素显示上限 = 512;
+        for (const auto& 体素项 : 体素快照.存在项集合) {
+            if (快照.自我场景体素复现项列表.size() >= 体素显示上限) {
+                break;
+            }
+            auto* 存在 = 体素项.存在.获取();
+            auto* 体素特征 = 体素项.三维体素特征.获取();
+            结构_控制面板自我场景体素复现项 项{};
+            项.存在指针 = 私有_地址(存在);
+            项.体素特征指针 = 私有_地址(体素特征);
+            项.体素根句柄 = 体素项.三维体素根句柄.主信息指针;
+            项.标题 = 存在 ? 私有_安全节点摘要(存在, "体素存在") : std::string("空");
+            项.原点X = 体素项.原点X_mm;
+            项.原点Y = 体素项.原点Y_mm;
+            项.原点Z = 体素项.原点Z_mm;
+            项.最小体素边长_mm = 体素项.最小体素边长_mm;
+            快照.自我场景体素复现项列表.push_back(std::move(项));
+        }
+    }
+
     // 功能：从指定来源读取数据或状态。
     void 私有_读取自我场景复现快照(结构_控制面板快照& 快照) noexcept
     {
@@ -2110,7 +2198,11 @@ namespace {
             : std::string("空");
         私有_读取自我场景内容统计(快照, 自我所在场景, 宿主);
         私有_读取自我场景存在复现项列表(自我所在场景, 宿主, 快照);
+        私有_读取自我场景体素复现快照(自我所在场景, 快照);
         if (!宿主) {
+            快照.自我场景复现有快照 = 快照.自我场景体素快照有效
+                || 快照.自我场景体素入选存在数量 > 0
+                || 快照.自我场景体素缺口数量 > 0;
             return;
         }
 
@@ -2269,7 +2361,9 @@ namespace {
                 || 快照.自我场景诊断区域数量 > 0
                 || 快照.自我场景观察存在假设 != 0
                 || 快照.自我场景已验证观察存在数量 > 0
-                || 快照.自我场景真实复现存在数量 > 0);
+                || 快照.自我场景真实复现存在数量 > 0
+                || 快照.自我场景体素版本 > 0
+                || 快照.自我场景体素入选存在数量 > 0);
     }
 
     template<>
@@ -9421,6 +9515,31 @@ window.__panelApplyDetail=function(){};
         输出 << "]";
     }
 
+    // 功能：把自我所在场景体素只读快照条目写入控制面板显示 JSON。
+    void 私有_追加自我场景体素复现项数组JSON(
+        std::ostringstream& 输出,
+        const std::vector<结构_控制面板自我场景体素复现项>& 项列表)
+    {
+        输出 << "[";
+        for (std::size_t 索引 = 0; 索引 < 项列表.size(); ++索引) {
+            if (索引 > 0) {
+                输出 << ",";
+            }
+            const auto& 项 = 项列表[索引];
+            输出 << "{";
+            输出 << "\"ptr\":" << 项.存在指针;
+            输出 << ",\"featurePtr\":" << 项.体素特征指针;
+            输出 << ",\"rootHandle\":" << 项.体素根句柄;
+            输出 << ",\"title\":";
+            追加JSON字符串(输出, 项.标题);
+            输出 << ",\"origin\":";
+            追加JSON_I64数组3(输出, 项.原点X, 项.原点Y, 项.原点Z);
+            输出 << ",\"minVoxelMm\":" << 项.最小体素边长_mm;
+            输出 << "}";
+        }
+        输出 << "]";
+    }
+
     // 功能：服务所在模块的内部辅助流程。
     std::string 私有_自我场景复现JSON(const 结构_控制面板快照& 快照)
     {
@@ -9568,6 +9687,21 @@ window.__panelApplyDetail=function(){};
         输出 << ",\"realTextureExistenceCount\":" << 快照.自我场景真实彩图材料可回查存在数量;
         输出 << ",\"existences\":";
         私有_追加自我场景存在复现项数组JSON(输出, 快照.自我场景存在复现项列表);
+        输出 << ",\"voxelSnapshotOk\":" << (快照.自我场景体素快照有效 ? "true" : "false");
+        输出 << ",\"voxelVersion\":" << 快照.自我场景体素版本;
+        输出 << ",\"voxelCoordinateVersion\":" << 快照.自我场景体素坐标系版本;
+        输出 << ",\"voxelGeneratedAt\":" << 快照.自我场景体素生成时间;
+        输出 << ",\"voxelEnumeratedExistences\":" << 快照.自我场景体素枚举存在数量;
+        输出 << ",\"voxelWithCoordinateExistences\":" << 快照.自我场景体素有坐标存在数量;
+        输出 << ",\"voxelWithModelExistences\":" << 快照.自我场景体素有体素存在数量;
+        输出 << ",\"voxelSelectedExistences\":" << 快照.自我场景体素入选存在数量;
+        输出 << ",\"voxelGapCount\":" << 快照.自我场景体素缺口数量;
+        输出 << ",\"voxelMissingFeatureTypeCount\":" << 快照.自我场景体素缺体素特征类型数量;
+        输出 << ",\"voxelMissingCoordinateCount\":" << 快照.自我场景体素缺坐标存在数量;
+        输出 << ",\"voxelMissingModelCount\":" << 快照.自我场景体素缺体素存在数量;
+        输出 << ",\"voxelMissingCoordinateVersionCount\":" << 快照.自我场景体素缺坐标系版本数量;
+        输出 << ",\"voxels\":";
+        私有_追加自我场景体素复现项数组JSON(输出, 快照.自我场景体素复现项列表);
         输出 << ",\"candidateCount\":" << 快照.自我场景空间候选数量;
         输出 << ",\"candidateValidPixels\":" << 快照.自我场景空间候选有效点数量;
         输出 << ",\"hypothesisState\":" << 快照.自我场景观察存在假设;
@@ -12333,6 +12467,7 @@ std::string 私有_生成控制面板HTML(
     .scene-legend .z i{background:#60a5fa}
     .scene-legend .existence i{background:#14b8a6}
     .scene-legend .box i{background:#f59e0b}
+    .scene-legend .voxel i{background:#f43f5e}
     .scene-legend .depth-hole i{background:#ef4444}
     .scene-legend .filled-depth i{background:#facc15}
     .scene-legend .unexplained i{background:#a78bfa}
@@ -13177,6 +13312,7 @@ std::string 私有_生成控制面板HTML(
                 <span class="z"><i></i>Z</span>
                 <span class="existence"><i></i>存在点</span>
                 <span class="box"><i></i>AABB</span>
+                <span class="voxel"><i></i>体素</span>
                 <span class="depth-hole"><i></i>深度空洞</span>
                 <span class="filled-depth"><i></i>补全深度</span>
                 <span class="unexplained"><i></i>未解释</span>
@@ -13206,6 +13342,29 @@ std::string 私有_生成控制面板HTML(
                   </div>
                 </div>
                 <div id="scene-existence-list" class="scene-existence-list" aria-label="自我所在场景存在列表"></div>
+              </aside>
+              <aside class="panel">
+                <div class="panel-topline">场景体素</div>
+                <h3>体素快照</h3>
+                <div class="scene-stat-grid" aria-label="自我所在场景体素显示状态">
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">快照版本</div>
+                    <div id="scene-voxel-version-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">体素存在</div>
+                    <div id="scene-voxel-summary-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">坐标 / 模型</div>
+                    <div id="scene-voxel-source-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">缺口</div>
+                    <div id="scene-voxel-gap-stat" class="scene-stat-value">--</div>
+                  </div>
+                </div>
+                <div id="scene-voxel-list" class="scene-existence-list" aria-label="自我所在场景体素列表"></div>
               </aside>
               <aside class="panel">
                 <div class="panel-topline">调试快照</div>
@@ -14765,6 +14924,84 @@ std::string 私有_生成控制面板HTML(
       }
     }
 
+    function 读取自我场景体素列表(data) {
+      return Array.isArray(data?.voxels) ? data.voxels : [];
+    }
+
+    function 自我场景体素原点(item) {
+      return 自我场景数组3(item?.origin);
+    }
+
+    function 读取自我场景体素统计(data) {
+      const items = 读取自我场景体素列表(data);
+      let withOrigin = 0;
+      let withHandle = 0;
+      let minEdge = 0;
+      let maxEdge = 0;
+      items.forEach((item) => {
+        const origin = item?.origin;
+        if (Array.isArray(origin) && origin.length >= 3) withOrigin += 1;
+        if (Number(item?.rootHandle || 0) !== 0) withHandle += 1;
+        const edge = Math.max(0, Number(item?.minVoxelMm || 0));
+        if (edge > 0) {
+          minEdge = minEdge > 0 ? Math.min(minEdge, edge) : edge;
+          maxEdge = Math.max(maxEdge, edge);
+        }
+      });
+      return {
+        total: items.length,
+        withOrigin,
+        withHandle,
+        minEdge,
+        maxEdge
+      };
+    }
+
+    function 渲染自我场景体素列表() {
+      const host = document.getElementById('scene-voxel-list');
+      if (!host) return;
+      host.textContent = '';
+      const data = 自我场景复现数据 || {};
+      const items = 读取自我场景体素列表(data);
+      if (items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'scene-existence-empty';
+        empty.textContent = data.scenePtr
+          ? '当前快照没有可显示体素条目。'
+          : '自我所在场景指针为空。';
+        host.appendChild(empty);
+        return;
+      }
+      items.slice(0, 24).forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'scene-existence-item';
+
+        const title = document.createElement('div');
+        title.className = 'scene-existence-title';
+        title.textContent = `${index + 1}. ${item?.title || '体素存在'}`;
+        card.appendChild(title);
+
+        const meta = document.createElement('div');
+        meta.className = 'scene-existence-meta';
+        const edge = Math.max(0, Number(item?.minVoxelMm || 0));
+        const parts = [
+          `原点 ${格式化场景三元组(自我场景体素原点(item))}`,
+          `边长 ${edge}`,
+          `根 ${Number(item?.rootHandle || 0)}`,
+          `特征 ${Number(item?.featurePtr || 0)}`
+        ];
+        meta.textContent = parts.join(' / ');
+        card.appendChild(meta);
+        host.appendChild(card);
+      });
+      if (items.length > 24) {
+        const more = document.createElement('div');
+        more.className = 'scene-existence-empty';
+        more.textContent = `还有 ${items.length - 24} 个体素条目未在列表中展开。`;
+        host.appendChild(more);
+      }
+    }
+
 )HTML";
     输出 << R"HTML(
     function 更新自我场景统计() {
@@ -14772,6 +15009,7 @@ std::string 私有_生成控制面板HTML(
       const candidate = data.candidate || {};
       const summary = 读取自我场景图层摘要(data);
       const existenceStats = 读取自我场景存在统计(data);
+      const voxelStats = 读取自我场景体素统计(data);
       const knownExistenceCount = 读取自我场景存在总量(data);
       const verifiedExistenceCount = Number(data.verifiedCount || 0);
       const sceneLimitText = data.sceneSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
@@ -14779,6 +15017,10 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-root-pointer-stat', `${data.sceneTitle || '空'} / ${data.scenePtr || 0}`);
       设置自我场景文本('scene-rendered-existence-stat', `${existenceStats.withCenter}/${existenceStats.total} 个 / AABB ${existenceStats.withRange} / 颜色 ${data.realColorStateExistenceCount || 0} / 彩图 ${data.realTextureExistenceCount || 0}`);
       设置自我场景文本('scene-existence-range-stat', `自我场景 ${existenceStats.fromScene} / 宿主 ${existenceStats.fromHost} / 子树 ${data.sceneSubtreeExistences || 0}`);
+      设置自我场景文本('scene-voxel-version-stat', `${data.voxelSnapshotOk ? '有效' : '无'} / V${data.voxelVersion || 0} / 坐标系 ${data.voxelCoordinateVersion || 0}`);
+      设置自我场景文本('scene-voxel-summary-stat', `${voxelStats.withOrigin}/${voxelStats.total} 个 / 入选 ${data.voxelSelectedExistences || 0} / 枚举 ${data.voxelEnumeratedExistences || 0}`);
+      设置自我场景文本('scene-voxel-source-stat', `坐标 ${data.voxelWithCoordinateExistences || 0} / 模型 ${data.voxelWithModelExistences || 0} / 根句柄 ${voxelStats.withHandle} / 边长 ${voxelStats.minEdge || 0}-${voxelStats.maxEdge || 0}`);
+      设置自我场景文本('scene-voxel-gap-stat', `总 ${data.voxelGapCount || 0} / 类型 ${data.voxelMissingFeatureTypeCount || 0} / 坐标 ${data.voxelMissingCoordinateCount || 0} / 模型 ${data.voxelMissingModelCount || 0} / 版本 ${data.voxelMissingCoordinateVersionCount || 0}`);
       设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
@@ -14812,6 +15054,7 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-risk-safety-projection-stat', `场景影响 ${data.riskSafetySceneImpactCandidate || 0} / 可结算 ${data.riskSafetySceneImpactSettleableState || 0} / 入账 ${data.riskSafetySceneImpactBookedState || 0} / 原因 ${data.riskSafetySceneImpactUnsettleableReason || 0} / 层候选 ${data.riskSafetyLayerCandidate || 0} / 投影 ${data.riskSafetyLayerProjectionCandidate || 0} / 缺失因素 ${data.riskSafetyLayerMissingFactorCount || 0}`);
       设置自我场景文本('scene-safety-gap-stat', `安全评估证据不足原因 ${data.safetyEvidenceInsufficientReason || 0}`);
       渲染自我场景存在列表();
+      渲染自我场景体素列表();
       更新自我场景图层摘要();
     }
 
@@ -14834,14 +15077,17 @@ std::string 私有_生成控制面板HTML(
       const hasScenePointer = !!data.scenePtr;
       const total = geometry ? Number(geometry.existenceTotalCount || 0) : 读取自我场景存在总量(data);
       const rendered = geometry ? Number(geometry.existenceNodeCount || 0) : 读取自我场景存在统计(data).withCenter;
-      const text = total > 0
-        ? `已从自我所在场景指针绘制 ${rendered}/${total} 个存在。`
+      const voxelTotal = geometry ? Number(geometry.voxelTotalCount || 0) : 读取自我场景体素统计(data).total;
+      const voxelRendered = geometry ? Number(geometry.voxelNodeCount || 0) : 读取自我场景体素统计(data).withOrigin;
+      const voxelText = voxelTotal > 0 ? ` 体素 ${voxelRendered}/${voxelTotal}。` : '';
+      const text = total > 0 || voxelTotal > 0
+        ? `已从自我所在场景指针绘制 ${rendered}/${total} 个存在。${voxelText}`
         : (hasScenePointer ? '自我所在场景存在列表为空。' : '自我所在场景指针为空。');
       设置自我场景状态(
-        total > 0
+        total > 0 || voxelTotal > 0
           ? text
           : `${text} 已保留坐标基准；观察候选和诊断图层只作调试参考。`,
-        total > 0 ? 'ok' : '');
+        total > 0 || voxelTotal > 0 ? 'ok' : '');
     }
 
     function 应用自我场景复现帧(data) {
@@ -15026,6 +15272,12 @@ std::string 私有_生成控制面板HTML(
           自我场景纳入范围(min, max, 自我场景数组3(item.max));
         }
       });
+      读取自我场景体素列表(data).forEach((item) => {
+        const origin = 自我场景体素原点(item);
+        const edge = Math.max(10, Number(item?.minVoxelMm || 0));
+        自我场景纳入范围(min, max, [origin[0] - edge, origin[1] - edge, origin[2] - edge]);
+        自我场景纳入范围(min, max, [origin[0] + edge, origin[1] + edge, origin[2] + edge]);
+      });
       for (let i = 0; i < 3; ++i) {
         if (!Number.isFinite(min[i]) || !Number.isFinite(max[i])) {
           min[i] = [-1000, -100, -1000][i];
@@ -15067,6 +15319,14 @@ std::string 私有_生成控制面板HTML(
       if (Number(item?.colorBuffer || 0) > 0 || Number(item?.pixelColorLayer || 0) > 0) return [0.18, 0.38, 0.70];
       if (Number(item?.confirmState || 0) > 0) return [0.08, 0.34, 0.32];
       return [0.30, 0.36, 0.42];
+    }
+
+    function 自我场景体素显示颜色(item) {
+      return Number(item?.rootHandle || 0) !== 0 ? [0.96, 0.24, 0.48] : [0.92, 0.50, 0.66];
+    }
+
+    function 自我场景体素盒颜色(item) {
+      return Number(item?.rootHandle || 0) !== 0 ? [0.58, 0.13, 0.30] : [0.50, 0.28, 0.36];
     }
 
     function 构建自我场景真实存在视图(data) {
@@ -15145,6 +15405,21 @@ std::string 私有_生成控制面板HTML(
         pushPoint(node.point, node.color);
       });
 
+      const voxelItems = 读取自我场景体素列表(data || {});
+      const voxelRenderLimit = 512;
+      let voxelRendered = 0;
+      voxelItems.slice(0, voxelRenderLimit).forEach((item) => {
+        const origin = 自我场景体素原点(item);
+        const edge = Math.max(10, Number(item?.minVoxelMm || 0));
+        const half = edge / 2;
+        pushBox(
+          [origin[0] - half, origin[1] - half, origin[2] - half],
+          [origin[0] + half, origin[1] + half, origin[2] + half],
+          自我场景体素盒颜色(item));
+        pushPoint(origin, 自我场景体素显示颜色(item));
+        voxelRendered += 1;
+      });
+
       const candidate = data?.candidate || {};
       if (existenceView.rendered === 0 && candidate.valid) {
         const mn = candidate.min || [0, 0, 0];
@@ -15161,7 +15436,9 @@ std::string 私有_生成控制面板HTML(
         lineCount: lines.length / 6,
         pointCount: points.length / 6,
         existenceNodeCount: existenceView.rendered,
-        existenceTotalCount: existenceView.total
+        existenceTotalCount: existenceView.total,
+        voxelNodeCount: voxelRendered,
+        voxelTotalCount: voxelItems.length
       };
     }
 
