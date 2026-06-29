@@ -130,6 +130,7 @@ namespace {
         DWORD Win32错误 = ERROR_SUCCESS,
         const std::string& 附加 = {}) noexcept
     {
+#if 鱼巢_开关_启用逻辑错误排查日志输出
         try {
             std::ostringstream 输出;
             输出 << "控制面板WebView2/" << 阶段
@@ -147,6 +148,13 @@ namespace {
         }
         catch (...) {
         }
+#else
+        (void)阶段;
+        (void)诊断码;
+        (void)COM结果;
+        (void)Win32错误;
+        (void)附加;
+#endif
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -1676,11 +1684,15 @@ namespace {
                     S_OK,
                     GetLastError(),
                     "HWND=" + std::to_string(reinterpret_cast<std::uintptr_t>(窗口)));
-                const std::wstring 正文 =
+                std::wstring 正文 =
                     L"WebView2 初始化失败。\n诊断码："
-                    + std::to_wstring(诊断码)
-                    + L"\n详细信息已写入 ./日志。";
-#if 鱼巢_开关_启用UI直接提示输出
+                    + std::to_wstring(诊断码);
+#if 鱼巢_开关_启用逻辑错误排查日志输出
+                正文 += L"\n详细信息已写入 ./日志。";
+#else
+                正文 += L"\n诊断日志输出已关闭。";
+#endif
+#if 鱼巢_开关_启用UI直接提示输出 && 鱼巢_开关_启用项目弹窗错误
                 MessageBoxW(窗口, 正文.c_str(), L"鱼巢控制面板", MB_OK | MB_ICONERROR);
 #endif
             }

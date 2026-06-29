@@ -1,5 +1,10 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 本模块只负责日志、弹窗、调试器等输出面，不承载项目业务事实或机器判断依据。
+// 2. 所有输出必须受 预处理开关变量.h 的总开关和分类开关控制。
+// 3. 关闭输出只关闭输出面；低级错误检测和终止语义不得被日志开关吞掉。
+
 #include <chrono>
 #include <atomic>
 #include <cstdio>
@@ -201,9 +206,13 @@ namespace 日志::detail {
             utf8.append(细节);
         }
 
-        const auto 标题 = utf8_to_wide_lossy("低级错误");
+#if 鱼巢_开关_启用调试器输出 || (鱼巢_开关_启用UI直接提示输出 && 鱼巢_开关_启用项目弹窗错误)
         const auto 正文 = utf8_to_wide_lossy(utf8);
+#endif
+#if 鱼巢_开关_启用调试器输出
         ::OutputDebugStringW(正文.c_str());
+#endif
+#if 鱼巢_开关_启用逻辑错误日志输出 && 鱼巢_开关_启用逻辑错误排查日志输出
         try {
             ::CreateDirectoryW(L".\\日志", nullptr);
             std::ofstream 紧急日志(".\\日志\\鱼巢_popup_fatal.log", std::ios::app);
@@ -213,9 +222,15 @@ namespace 日志::detail {
         }
         catch (...) {
         }
+#endif
+#if 鱼巢_开关_启用UI直接提示输出 && 鱼巢_开关_启用项目弹窗错误
         if (首次) {
+            const auto 标题 = utf8_to_wide_lossy("低级错误");
             ::MessageBoxW(nullptr, 正文.c_str(), 标题.c_str(), MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND);
         }
+#else
+        (void)首次;
+#endif
 
         std::terminate();
     }
@@ -452,7 +467,11 @@ namespace 日志::detail {
         if (逻辑错误输出) {
             return 鱼巢_开关_启用逻辑错误日志输出 != 0;
         }
-        return 鱼巢_开关_启用登记管理日志输出 != 0;
+        if (级别 == 枚举_日志级别::调试) {
+            return 鱼巢_开关_启用调试日志输出 != 0;
+        }
+        return 鱼巢_开关_启用运行日志输出 != 0
+            && 鱼巢_开关_启用登记管理日志输出 != 0;
     }
 
     // 功能：初始化相关对象、状态或运行上下文。
@@ -570,31 +589,43 @@ void 关闭项目日志() noexcept
 // 功能：执行对应模块、线程或方法的运行逻辑。
 void 项目运行日志(const std::string& 文本) noexcept
 {
+#if 鱼巢_开关_启用运行日志输出 && 鱼巢_开关_启用登记管理日志输出
     try {
         日志::运行(文本);
     }
     catch (...) {
     }
+#else
+    (void)文本;
+#endif
 }
 
 // 功能：执行对应模块、线程或方法的运行逻辑。
 void 项目运行警告日志(const std::string& 文本) noexcept
 {
+#if 鱼巢_开关_启用运行日志输出 && 鱼巢_开关_启用登记管理日志输出
     try {
         日志::运行_警告(文本);
     }
     catch (...) {
     }
+#else
+    (void)文本;
+#endif
 }
 
 // 功能：执行对应模块、线程或方法的运行逻辑。
 void 项目运行错误日志(const std::string& 文本) noexcept
 {
+#if 鱼巢_开关_启用逻辑错误日志输出
     try {
         日志::运行_错误(文本);
     }
     catch (...) {
     }
+#else
+    (void)文本;
+#endif
 }
 
 // 功能：按函数名执行对应处理。
@@ -631,7 +662,7 @@ void 项目提示不允许空指(
     const char* 函数) noexcept
 {
     try {
-#if 鱼巢_开关_启用逻辑错误日志输出
+#if 鱼巢_开关_启用逻辑错误排查日志输出
         std::ostringstream 输出;
         输出 << "不允许为空的指针为空"
             << " | 上下文=" << (上下文 ? 上下文 : "")
@@ -641,7 +672,7 @@ void 项目提示不允许空指(
             << " | 函数=" << (函数 ? 函数 : "");
         const auto 文本 = 输出.str();
         项目运行错误日志(文本);
-#if 鱼巢_开关_启用不允许空指弹窗 && 鱼巢_开关_启用UI直接提示输出 && 鱼巢_开关_启用项目弹窗错误
+#if 鱼巢_开关_启用逻辑错误日志输出 && 鱼巢_开关_启用不允许空指弹窗 && 鱼巢_开关_启用UI直接提示输出 && 鱼巢_开关_启用项目弹窗错误
         项目弹窗错误提示("鱼巢 - 空指逻辑错误", 文本);
 #endif
 #else
@@ -688,20 +719,29 @@ void 项目自检无上级需求日志(const std::string& 文本) noexcept
 // 功能：记录日志、动态、证据或运行痕迹。
 void 项目记录异常日志(const std::exception& 异常, const std::string& 上下文) noexcept
 {
+#if 鱼巢_开关_启用逻辑错误日志输出
     try {
         日志::记录异常(异常, 上下文);
     }
     catch (...) {
     }
+#else
+    (void)异常;
+    (void)上下文;
+#endif
 }
 
 // 功能：按函数名执行对应处理。
 void 项目致命日志(const std::string& 文本) noexcept
 {
+#if 鱼巢_开关_启用逻辑错误日志输出
     try {
         日志::异常_致命(文本);
     }
     catch (...) {
     }
+#else
+    (void)文本;
+#endif
 }
 
