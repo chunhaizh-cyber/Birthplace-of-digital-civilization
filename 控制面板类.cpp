@@ -6839,6 +6839,7 @@ SELECT
     CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
     COALESCE([节点类型], N'') AS [节点类型],
     COALESCE([显示文本], N'') AS [显示文本],
+    COALESCE([名称文本], N'') AS [名称文本],
     COALESCE([类型文本], N'') AS [类型文本],
     COALESCE([值类别], N'') AS [值类别],
     COALESCE([值文本], N'') AS [值文本],
@@ -7020,6 +7021,7 @@ SELECT
     CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
     COALESCE([节点类型], N'') AS [节点类型],
     COALESCE([显示文本], N'') AS [显示文本],
+    COALESCE([名称文本], N'') AS [名称文本],
     COALESCE([类型文本], N'') AS [类型文本],
     COALESCE([值类别], N'') AS [值类别],
     COALESCE([值文本], N'') AS [值文本],
@@ -7297,9 +7299,9 @@ ORDER BY [行号];
         输出 << "{\"ok\":true,\"kind\":\"sql-world-tree\",\"page\":";
         私有_追加SQL控制面板JSON字符串(输出, 区段ID);
         输出 << ",\"headers\":";
-        私有_追加SQL控制面板表头JSON(输出, { "节点", "父节点", "深度", "类别", "显示", "类型", "值类", "值", "辅助" });
+        私有_追加SQL控制面板表头JSON(输出, { "节点", "父节点", "深度", "类别", "显示", "名称", "类型", "值类", "值", "辅助" });
         输出 << ",\"rows\":";
-        私有_追加SQL控制面板行集JSON(输出, 数据.世界树, 9);
+        私有_追加SQL控制面板行集JSON(输出, 数据.世界树, 10);
         输出 << ",\"relations\":";
         私有_追加SQL控制面板行集JSON(输出, 数据.世界树关系, 6);
         输出 << "}";
@@ -7462,7 +7464,7 @@ WHERE [宿主主键] IN ()SQL";
         输出 << ",\"nodeKey\":";
         私有_追加SQL控制面板JSON字符串(输出, 节点键);
         输出 << ",\"rows\":";
-        私有_追加SQL控制面板行集JSON(输出, 节点行集, 9);
+        私有_追加SQL控制面板行集JSON(输出, 节点行集, 10);
         输出 << ",\"relations\":";
         私有_追加SQL控制面板行集JSON(输出, 关系行集, 6);
         输出 << "}";
@@ -7585,6 +7587,7 @@ COALESCE([父节点主键], N'') AS [父节点主键],
 CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
 COALESCE([节点类型], N'') AS [节点类型],
 COALESCE([显示文本], N'') AS [显示文本],
+COALESCE([名称文本], N'') AS [名称文本],
 COALESCE([类型文本], N'') AS [类型文本],
 COALESCE([值类别], N'') AS [值类别],
 COALESCE([值文本], N'') AS [值文本],
@@ -7605,6 +7608,7 @@ COALESCE([父节点主键], N'') AS [父节点主键],
 CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
 COALESCE([节点类型], N'') AS [节点类型],
 COALESCE([显示文本], N'') AS [显示文本],
+COALESCE([名称文本], N'') AS [名称文本],
 COALESCE([类型文本], N'') AS [类型文本],
 COALESCE([值类别], N'') AS [值类别],
 COALESCE([值文本], N'') AS [值文本],
@@ -7910,11 +7914,11 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
             << "；因果节点：" << 世界树因果节点数 << "</span></div>"
             << "<div id=\"worldTreeView\" class=\"tree-view\"></div></div>"
             << "<div class=\"table-wrap\" hidden><table data-filterable><thead><tr>"
-            << "<th>节点</th><th>父节点</th><th>深度</th><th>类别</th><th>显示</th><th>类型</th><th>值类</th><th>值</th><th>辅助</th>"
+            << "<th>节点</th><th>父节点</th><th>深度</th><th>类别</th><th>显示</th><th>名称</th><th>类型</th><th>值类</th><th>值</th><th>辅助</th>"
             << "</tr></thead><tbody>\n";
         for (const auto& 行 : 数据.世界树) {
             输出 << "<tr>";
-            for (std::size_t i = 0; i < 9; ++i) {
+            for (std::size_t i = 0; i < 10; ++i) {
                 输出 << "<td>" << 私有_转义HTML(私有_SQL字段(行, i)) << "</td>";
             }
             输出 << "</tr>\n";
@@ -7943,14 +7947,16 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 3));
             输出 << ",\"display\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 4));
-            输出 << ",\"type\":";
+            输出 << ",\"name\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 5));
-            输出 << ",\"valueKind\":";
+            输出 << ",\"type\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 6));
-            输出 << ",\"value\":";
+            输出 << ",\"valueKind\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 7));
-            输出 << ",\"aux\":";
+            输出 << ",\"value\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 8));
+            输出 << ",\"aux\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 9));
             输出 << '}';
         }
         输出 << "];\nconst causalInfoRelations=[";
@@ -7989,14 +7995,16 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 3));
             输出 << ",\"display\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 4));
-            输出 << ",\"type\":";
+            输出 << ",\"name\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 5));
-            输出 << ",\"valueKind\":";
+            输出 << ",\"type\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 6));
-            输出 << ",\"value\":";
+            输出 << ",\"valueKind\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 7));
-            输出 << ",\"aux\":";
+            输出 << ",\"value\":";
             私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 8));
+            输出 << ",\"aux\":";
+            私有_追加SQL控制面板JSON字符串(输出, 私有_SQL字段(行, 9));
             输出 << '}';
         }
         输出 << "];\nconst worldTreeRelations=[";
@@ -8236,7 +8244,15 @@ function selectCausalInfo(key,node=null){
   const conditionRelations=relations.filter(rel=>isConditionRelation(rel.relation));
   const resultRelations=relations.filter(rel=>isResultRelation(rel.relation));
   const actionRelations=relations.filter(rel=>isActionRelation(rel.relation)&&!isConditionRelation(rel.relation)&&!isResultRelation(rel.relation));
-  causalInfoDetail.innerHTML=`<div class="detail-head"><strong>${escapeHtml(row.display||row.type||row.key)}</strong><span><span class="tree-key">${escapeHtml(row.key)}</span> ${escapeHtml(row.kind||'因果')}</span><span class="tree-muted">${escapeHtml(row.aux||'')}</span></div>${renderReferenceBlock('条件',conditionRelations)}${renderActionBlock(row,actionRelations)}${renderReferenceBlock('结果',resultRelations)}`;
+  causalInfoDetail.innerHTML=`<div class="detail-head"><strong>${escapeHtml(row.name||row.display||row.type||row.key)}</strong><span><span class="tree-key">${escapeHtml(row.key)}</span> ${escapeHtml(row.kind||'因果')}</span><span class="tree-muted">${escapeHtml(row.aux||'')}</span></div><div class="detail-block"><h3>节点信息</h3>${renderDetailRows([
+    ['节点主键',row.key],
+    ['类别',row.kind],
+    ['显示',row.display],
+    ['名称',row.name],
+    ['类型',row.type],
+    ['值类',row.valueKind],
+    ['值',row.value]
+  ])}</div>${renderReferenceBlock('条件',conditionRelations)}${renderActionBlock(row,actionRelations)}${renderReferenceBlock('结果',resultRelations)}`;
   updateCausalSelection();
 }
 function selectCausalInfoNode(node,loadSubtree=false){
@@ -8265,12 +8281,13 @@ function selectCausalInfoNode(node,loadSubtree=false){
       ['显示',rel.targetText],
       ['序号',rel.ordinal]
     ])}</div>`).join('')}${relations.length>48?`<div class="detail-sub-row"><b>其余</b><span>${relations.length-48} 条</span></div>`:''}</div>`:'';
-    showNodeDetail(node.display||node.type||node.key,`${node.kind||'世界树节点'} | ${node.key}`,[
+    showNodeDetail(node.name||node.display||node.type||node.key,`${node.kind||'世界树节点'} | ${node.key}`,[
       ['节点主键',node.key],
       ['父节点',node.parent],
       ['深度',node.depth],
       ['类别',node.kind],
       ['显示',node.display],
+      ['名称',node.name],
       ['类型',node.type],
       ['值类',node.valueKind],
       ['值',node.value],
@@ -8286,12 +8303,15 @@ function selectCausalInfoNode(node,loadSubtree=false){
 function treeLabel(row){
   const parts=[`<span class="tree-key">${escapeHtml(row.key)}</span>`];
   const display=String(row.display||'').trim();
+  const name=String(row.name||'').trim();
   const type=String(row.type||'').trim();
   const value=String(row.value||'').trim();
   const valueKind=String(row.valueKind||'').trim();
   if(row.kind)parts.push(`<span class="tree-kind">${escapeHtml(row.kind)}</span>`);
-  if(display)parts.push(`<span>${escapeHtml(display)}</span>`);
-  if(type&&type!==display)parts.push(`<span class="tree-muted">类型=${escapeHtml(type)}</span>`);
+  if(name)parts.push(`<span>名称=${escapeHtml(name)}</span>`);
+  else if(display)parts.push(`<span>${escapeHtml(display)}</span>`);
+  if(type)parts.push(`<span class="tree-muted">类型=${escapeHtml(type)}</span>`);
+  if(display&&display!==name&&display!==type)parts.push(`<span class="tree-muted">显示=${escapeHtml(display)}</span>`);
   if(valueKind||value)parts.push(`<span class="tree-muted">${escapeHtml(valueKind)} ${escapeHtml(value)}</span>`);
   if(row.aux)parts.push(`<span class="tree-muted">${escapeHtml(row.aux)}</span>`);
   return parts.join('');
@@ -8488,10 +8508,11 @@ function sqlRowsToTreeRows(rows){
     depth:sqlCell(row,2),
     kind:sqlCell(row,3),
     display:sqlCell(row,4),
-    type:sqlCell(row,5),
-    valueKind:sqlCell(row,6),
-    value:sqlCell(row,7),
-    aux:sqlCell(row,8)
+    name:sqlCell(row,5),
+    type:sqlCell(row,6),
+    valueKind:sqlCell(row,7),
+    value:sqlCell(row,8),
+    aux:sqlCell(row,9)
   }));
 }
 function sqlRowsToRelations(rows){
@@ -8867,12 +8888,13 @@ function selectWorldTreeNode(row){
     ['显示',rel.targetText],
     ['序号',rel.ordinal]
   ])}</div>`).join('')}${relations.length>48?`<div class="detail-sub-row"><b>其余</b><span>${relations.length-48} 条</span></div>`:''}</div>`:'';
-  showNodeDetail(row.display||row.type||row.key,`${row.kind||'世界树节点'} | ${row.key}`,[
+  showNodeDetail(row.name||row.display||row.type||row.key,`${row.kind||'世界树节点'} | ${row.key}`,[
     ['节点主键',row.key],
     ['父节点',row.parent],
     ['深度',row.depth],
     ['类别',row.kind],
     ['显示',row.display],
+    ['名称',row.name],
     ['类型',row.type],
     ['值类',row.valueKind],
     ['值',row.value],
@@ -8888,7 +8910,7 @@ function buildCausalInfoTree(){
     row.children=[];
     row.selectKey=row.key;
     row.onSelect=()=>selectCausalInfoNode(row,true);
-    row.searchText=[row.key,row.parent,row.kind,row.display,row.type,row.valueKind,row.value,row.aux].join(' ').toLowerCase();
+    row.searchText=[row.key,row.parent,row.kind,row.display,row.name,row.type,row.valueKind,row.value,row.aux].join(' ').toLowerCase();
     if(row.key)map.set(row.key,row);
   });
   causalInfoRoots=[];
@@ -8917,7 +8939,7 @@ function filterCausalInfo(query){
 function buildWorldTree(){
   if(!worldTreeHost)return;
   const map=new Map();
-  worldTreeRows.forEach(row=>{row.children=[];row.searchText=[row.key,row.parent,row.kind,row.display,row.type,row.valueKind,row.value,row.aux].join(' ').toLowerCase();row.onSelect=()=>selectWorldTreeNode(row);map.set(row.key,row);});
+  worldTreeRows.forEach(row=>{row.children=[];row.searchText=[row.key,row.parent,row.kind,row.display,row.name,row.type,row.valueKind,row.value,row.aux].join(' ').toLowerCase();row.onSelect=()=>selectWorldTreeNode(row);map.set(row.key,row);});
   worldTreeRoots=[];
   worldTreeRows.forEach(row=>{
     const parent=map.get(row.parent);
@@ -10361,21 +10383,12 @@ WHERE [节点主键] = )SQL";
     记录快照阶段("线程状态树构建完成");
 
     auto 世界树根 = 私有_新节点(
-        std::string("世界树 | 节点仓库=基础信息类")
-            + " | 基础节点=" + std::to_string(快照.基础信息节点数)
-            + " | 场景=" + std::to_string(快照.场景数)
-            + " | 存在=" + std::to_string(快照.存在数),
+        "世界树 | 来源=[鱼巢].[当前世界树节点] | 初始页不强读SQL投影",
         0,
         true);
-    if (auto* 世界根节点 = 世界树.世界根()) {
-        世界树根.子项.push_back(
-            私有_构建基础信息根链骨架(世界根节点, 上下文));
-    }
-    else {
-        世界树根.子项.push_back(私有_新节点("基础信息仓库根为空"));
-    }
+    世界树根.子项.push_back(私有_新节点("请刷新世界树页读取数据库加工视图"));
     快照.世界树根 = std::move(世界树根);
-    记录快照阶段("世界树骨架构建完成");
+    记录快照阶段("世界树SQL视图占位构建完成");
 
     快照.因果信息根 = 私有_构建因果信息树(
         上下文,
@@ -10487,6 +10500,131 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
         return 私有_SQL控制面板区段刷新JSON(页面);
     }
 
+    const auto 读取SQL世界树页 = [&]() -> std::string {
+        std::string SQL = R"SQL(
+SELECT TOP (300)
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点类型], N'') AS [节点类型],
+    COALESCE([显示文本], N'') AS [显示文本],
+    COALESCE([名称文本], N'') AS [名称文本],
+    COALESCE([类型文本], N'') AS [类型文本],
+    COALESCE([值类别], N'') AS [值类别],
+    COALESCE([值文本], N'') AS [值文本],
+    COALESCE([辅助文本], N'') AS [辅助文本]
+FROM [鱼巢].[当前世界树节点]
+ORDER BY [行号];
+)SQL";
+        std::vector<std::vector<std::string>> 行集{};
+        std::string 错误{};
+        if (!私有_读取SQL控制面板子链行集("世界树页面SQL视图", SQL, 行集, 错误)) {
+            auto 根 = 私有_新节点(
+                "世界树 | 来源=[鱼巢].[当前世界树节点] | 读取失败",
+                0,
+                true);
+            私有_追加叶字段(根, "读取来源", "[鱼巢].[当前世界树节点]");
+            私有_追加叶字段(根, "错误", 错误);
+            return 私有_页面刷新JSON(页面, &根);
+        }
+
+        const auto SQL字段 = [](const std::vector<std::string>& 行, const std::size_t 索引) -> std::string {
+            return 索引 < 行.size() ? 行[索引] : std::string{};
+        };
+        auto 根 = 私有_新节点(
+            "世界树 | 来源=[鱼巢].[当前世界树节点] | SQL节点=" + std::to_string(行集.size()) + " | 窗口=300",
+            0,
+            true);
+        std::vector<结构_控制面板树节点> 节点集{};
+        std::vector<std::string> 父键集{};
+        std::unordered_map<std::string, std::size_t> 键到索引{};
+        节点集.reserve(行集.size());
+        父键集.reserve(行集.size());
+        for (const auto& 行 : 行集) {
+            const auto 键 = SQL字段(行, 0);
+            if (键.empty()) {
+                continue;
+            }
+            const auto 父键 = SQL字段(行, 1);
+            const auto 深度 = SQL字段(行, 2);
+            const auto 类别 = SQL字段(行, 3);
+            const auto 显示 = SQL字段(行, 4);
+            const auto 名称 = SQL字段(行, 5);
+            const auto 类型 = SQL字段(行, 6);
+            const auto 值类 = SQL字段(行, 7);
+            const auto 值 = SQL字段(行, 8);
+            const auto 辅助 = SQL字段(行, 9);
+            std::string 标题 = 键 + " | 类别=" + (类别.empty() ? "空" : 类别);
+            if (!名称.empty()) {
+                标题 += " | 名称=" + 名称;
+            }
+            if (!类型.empty()) {
+                标题 += " | 类型=" + 类型;
+            }
+            if (!显示.empty() && 显示 != 名称 && 显示 != 类型) {
+                标题 += " | 显示=" + 显示;
+            }
+            if (!值类.empty() || !值.empty()) {
+                标题 += " | 值=" + 值类 + (值类.empty() || 值.empty() ? "" : " ") + 值;
+            }
+            if (!辅助.empty()) {
+                标题 += " | 辅助=" + 辅助;
+            }
+
+            auto 节点 = 私有_新节点(标题, 0, false);
+            节点.详情.push_back(私有_新节点("节点信息 | 来源=[鱼巢].[当前世界树节点]", 0, true));
+            私有_追加叶字段(节点.详情.back(), "节点主键", 键);
+            私有_追加叶字段(节点.详情.back(), "父节点", 父键);
+            私有_追加叶字段(节点.详情.back(), "深度", 深度);
+            私有_追加叶字段(节点.详情.back(), "类别", 类别);
+            私有_追加叶字段(节点.详情.back(), "显示", 显示);
+            私有_追加叶字段(节点.详情.back(), "名称", 名称);
+            私有_追加叶字段(节点.详情.back(), "类型", 类型);
+            私有_追加叶字段(节点.详情.back(), "值类", 值类);
+            私有_追加叶字段(节点.详情.back(), "值", 值);
+            私有_追加叶字段(节点.详情.back(), "辅助", 辅助);
+            键到索引[键] = 节点集.size();
+            父键集.push_back(父键);
+            节点集.push_back(std::move(节点));
+        }
+
+        std::unordered_map<std::size_t, std::vector<std::size_t>> 子索引{};
+        std::vector<std::size_t> 根索引{};
+        for (std::size_t 索引 = 0; 索引 < 父键集.size(); ++索引) {
+            const auto& 父键 = 父键集[索引];
+            const auto 父迭代器 = 键到索引.find(父键);
+            if (!父键.empty() && 父迭代器 != 键到索引.end() && 父迭代器->second != 索引) {
+                子索引[父迭代器->second].push_back(索引);
+            }
+            else {
+                根索引.push_back(索引);
+            }
+        }
+
+        const auto 构建节点拷贝 = [&](auto&& self, const std::size_t 索引, const std::size_t 深度) -> 结构_控制面板树节点 {
+            auto 节点 = 节点集[索引];
+            节点.默认展开 = 深度 < 2;
+            const auto 子迭代器 = 子索引.find(索引);
+            if (子迭代器 != 子索引.end() && 深度 < 12) {
+                for (const auto 子 : 子迭代器->second) {
+                    节点.子项.push_back(self(self, 子, 深度 + 1));
+                }
+            }
+            return 节点;
+        };
+        for (const auto 索引 : 根索引) {
+            根.子项.push_back(构建节点拷贝(构建节点拷贝, 索引, 0));
+        }
+        if (根.子项.empty()) {
+            根.子项.push_back(私有_新节点("当前 SQL 世界树视图暂无节点"));
+        }
+        return 私有_页面刷新JSON(页面, &根);
+    };
+
+    if (页面 == "world-tree") {
+        return 读取SQL世界树页();
+    }
+
     const auto 快照 = 读取控制面板快照(0, 0);
     auto* 自我存在 = 自我.获取自我存在();
     auto* 需求根节点 = 自我存在 ? 世界树.获取需求根节点(自我存在) : nullptr;
@@ -10500,27 +10638,6 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
         任务管理线程协议::结构_任务界面线程快照 界面线程快照{};
         (void)任务管理界面线程::读取任务管理界面线程快照(&界面线程快照);
         auto 根 = 私有_构建线程状态树(快照, 界面线程快照, 工作线程快照);
-        return 私有_页面刷新JSON(页面, &根);
-    }
-
-    if (页面 == "world-tree") {
-        auto 局部快照 = 快照;
-        局部快照.基础信息节点数 = 世界树.统计全部节点();
-        局部快照.场景数 = 世界树.统计节点_按主信息类型<场景节点主信息类>();
-        局部快照.存在数 = 世界树.统计节点_按主信息类型<存在节点主信息类>();
-        auto 根 = 私有_新节点(
-            std::string("世界树 | 节点仓库=基础信息类")
-                + " | 基础节点=" + std::to_string(局部快照.基础信息节点数)
-                + " | 场景=" + std::to_string(局部快照.场景数)
-                + " | 存在=" + std::to_string(局部快照.存在数),
-            0,
-            true);
-        if (auto* 世界根节点 = 世界树.世界根()) {
-            根.子项.push_back(私有_构建基础信息根链骨架(世界根节点, 上下文));
-        }
-        else {
-            根.子项.push_back(私有_新节点("基础信息仓库根为空"));
-        }
         return 私有_页面刷新JSON(页面, &根);
     }
 
@@ -11579,12 +11696,7 @@ std::string 私有_生成控制面板HTML(
         + " | 工作线程=" + std::string(布尔文本_是或否(快照.任务管理工作线程已启动))
         + " | 来源=消息中间件/项目线程快照");
     const auto 世界页摘要 = 私有_转义HTML(
-        "节点仓库=基础信息类 | 基础节点=" + std::to_string(快照.基础信息节点数)
-        + " | 场景=" + std::to_string(快照.场景数)
-        + " | 存在=" + std::to_string(快照.存在数)
-        + " | 状态=" + std::to_string(快照.状态数)
-        + " | 动态=" + std::to_string(快照.动态数)
-        + " | 因果模板=" + std::to_string(快照.因果模板数));
+        "来源=[鱼巢].[当前世界树节点] | 初始页不强读SQL投影 | 刷新后读取数据库加工视图");
     const auto 因果信息摘要 = 私有_转义HTML(
         "因果模板=" + std::to_string(快照.因果模板数)
         + " | 证据动态样本=" + std::to_string(快照.因果证据动态样本数)
@@ -12820,10 +12932,10 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="world-tree" data-title="世界树" data-subtitle="基础信息类仓库中的世界结构；树节点统一是基础信息节点类，主信息承载派生类型。">
+        <section class="page" data-page="world-tree" data-title="世界树" data-subtitle="从 SQL 投影视图读取世界结构；控制面板不直接拼 live 原始树。">
           <div class="workspace">
             <section class="panel tree-panel">
-              <div class="panel-topline">原始树视图</div>
+              <div class="panel-topline">SQL 投影视图</div>
               <h3>世界树</h3>
               <div class="summary">)HTML"
         << 世界页摘要
@@ -13328,7 +13440,7 @@ std::string 私有_生成控制面板HTML(
       'world-tree': {
         treeHost: 'tree-world-tree',
         detailHost: 'detail-world-tree',
-        detailHint: '世界树页展示基础信息类仓库；右侧只展示当前节点主信息字段，父子上下结构以中间树为准。'
+        detailHint: '世界树页读取 [鱼巢].[当前世界树节点]；右侧显示 SQL 视图加工后的节点字段。'
       },
       'causal-info': {
         treeHost: 'tree-causal-info',

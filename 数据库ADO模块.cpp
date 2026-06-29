@@ -6,9 +6,11 @@ module;
 // 3. 查询和字段恢复比对只服务显示 / 诊断 / 存储验证，不得反向作为业务判断来源。
 
 #include <comdef.h>
+#include <atomic>
 #include <cstdint>
 #include <cstddef>
 #include <iomanip>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -20,6 +22,7 @@ module;
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include "日志接入.h"
 #include "预处理开关变量.h"
 
 #import "C:\\Program Files\\Common Files\\System\\ado\\msado15.dll" \
@@ -31,6 +34,10 @@ module 数据库ADO模块;
 import 全局共享函数类;
 
 namespace {
+    std::atomic_bool 私有_SQL控制面板运行态可用{ false };
+    std::atomic_bool 私有_SQL控制面板数据库未启动弹窗已提示{ false };
+    std::mutex 私有_SQL控制面板运行态状态互斥{};
+    std::string 私有_SQL控制面板运行态不可用原因{ "尚未初始化" };
 
     // 功能：把 UTF-8 文本转换为 Windows 宽字串。
     std::wstring 私有_UTF8转宽字串(const std::string_view 输入)
@@ -117,6 +124,81 @@ namespace {
         return 文本;
     }
 
+    // 功能：判断 ADO 错误是否指向 SQL Server 未启动或无法连接。
+    bool 私有_是SQLServer未启动或拒绝访问错误(const std::string_view 错误)
+    {
+        return 错误.find("SQL Server 不存在或拒绝访问") != std::string_view::npos
+            || 错误.find("ConnectionOpen") != std::string_view::npos
+            || 错误.find("SQL Server does not exist or access denied") != std::string_view::npos
+            || 错误.find("无法打开与 SQL Server 的连接") != std::string_view::npos
+            || 错误.find("Named Pipes Provider") != std::string_view::npos
+            || 错误.find("SQL Network Interfaces") != std::string_view::npos
+            || 错误.find("network-related or instance-specific") != std::string_view::npos
+            || 错误.find("Error Locating Server/Instance Specified") != std::string_view::npos;
+    }
+
+    // 功能：对 SQL Server 未启动或拒绝访问给出一次性弹窗提醒。
+    void 私有_弹窗提示SQLServer未启动一次(
+        const std::string_view 阶段,
+        const std::string_view 错误)
+    {
+        if (!私有_是SQLServer未启动或拒绝访问错误(错误)) {
+            return;
+        }
+
+        bool 未提示 = false;
+        if (!私有_SQL控制面板数据库未启动弹窗已提示.compare_exchange_strong(未提示, true)) {
+            return;
+        }
+
+        std::ostringstream 文本;
+        文本
+            << "检测到 SQL Server 数据库未启动或拒绝访问。\n\n"
+            << "实例: .\\SQLEXPRESS\n"
+            << "服务: SQL Server (SQLEXPRESS) / MSSQL$SQLEXPRESS\n"
+            << "阶段: " << 阶段 << "\n\n"
+            << "当前只影响控制面板 SQL 显示镜像，业务结构不会回滚。"
+            << "\n请启动数据库服务后重新启动鱼巢，或重新执行需要 SQL 投影的命令。\n\n"
+            << "原始错误: " << 错误;
+        项目弹窗错误提示("鱼巢 - 数据库未启动提醒", 文本.str());
+    }
+
+    // 功能：记录控制面板运行态 SQL 显示镜像不可用原因。
+    void 私有_标记SQL控制面板运行态不可用(const std::string_view 原因)
+    {
+        私有_SQL控制面板运行态可用.store(false);
+        {
+            std::lock_guard<std::mutex> 锁{ 私有_SQL控制面板运行态状态互斥 };
+            私有_SQL控制面板运行态不可用原因 = 原因.empty()
+                ? "未知原因"
+                : std::string(原因);
+        }
+        私有_弹窗提示SQLServer未启动一次("控制面板运行态SQL初始化", 原因);
+    }
+
+    // 功能：记录控制面板运行态 SQL 显示镜像已初始化可用。
+    void 私有_标记SQL控制面板运行态可用()
+    {
+        std::lock_guard<std::mutex> 锁{ 私有_SQL控制面板运行态状态互斥 };
+        私有_SQL控制面板运行态不可用原因.clear();
+        私有_SQL控制面板运行态可用.store(true);
+    }
+
+    // 功能：检查控制面板运行态 SQL 显示镜像是否已初始化可用。
+    bool 私有_确认SQL控制面板运行态可用(std::string& 错误)
+    {
+        if (私有_SQL控制面板运行态可用.load()) {
+            return true;
+        }
+
+        std::lock_guard<std::mutex> 锁{ 私有_SQL控制面板运行态状态互斥 };
+        错误 = "SQL控制面板运行态不可用 | 原因=";
+        错误 += 私有_SQL控制面板运行态不可用原因.empty()
+            ? "尚未初始化"
+            : 私有_SQL控制面板运行态不可用原因;
+        return false;
+    }
+
     struct 结构_COM初始化 {
         bool 需要反初始化 = false;
         bool 可继续 = false;
@@ -167,6 +249,7 @@ namespace {
         }
         catch (const _com_error& COM错误) {
             错误 = 私有_COM错误文本("ADO打开连接", COM错误);
+            私有_弹窗提示SQLServer未启动一次("ADO打开连接", 错误);
             return false;
         }
     }
@@ -318,6 +401,10 @@ namespace {
     {
         运行ID.clear();
         错误.clear();
+
+        if (!私有_确认SQL控制面板运行态可用(错误)) {
+            return false;
+        }
 
         const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "鱼巢投影库");
         结构_ADO查询结果 查询结果{};
@@ -475,6 +562,11 @@ namespace {
         const std::string& SQL,
         std::string& 错误)
     {
+        if (!私有_确认SQL控制面板运行态可用(错误)) {
+            错误 = 阶段 + "失败 | " + 错误;
+            return false;
+        }
+
         const auto 投影库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "鱼巢投影库");
         std::string ADO错误{};
         if (!执行ADO命令(投影库连接串, SQL, ADO错误)) {
@@ -800,6 +892,7 @@ bool 初始化SQL控制面板运行态投影(
 #if !鱼巢_开关_启用SQL控制面板同步写入
     (void)来源标记;
     错误 = "SQL控制面板同步写入已被预处理开关关闭";
+    私有_标记SQL控制面板运行态不可用(错误);
     return false;
 #else
     const auto 主库连接串 = 生成SQLServerWindows认证ADO连接串(R"(.\SQLEXPRESS)", "master");
@@ -812,16 +905,19 @@ bool 初始化SQL控制面板运行态投影(
         || 查询结果.行集.front().empty()
         || 查询结果.行集.front().front().empty()) {
         错误 = ADO错误.empty() ? "生成运行ID失败" : ("生成运行ID失败 | " + ADO错误);
+        私有_标记SQL控制面板运行态不可用(错误);
         return false;
     }
     运行ID = 查询结果.行集.front().front();
 
     if (!执行ADO命令(主库连接串, 私有_SQL控制面板运行态建库脚本(), ADO错误)) {
         错误 = "控制面板运行态建库失败 | " + ADO错误;
+        私有_标记SQL控制面板运行态不可用(错误);
         return false;
     }
     if (!执行ADO命令(投影库连接串, 私有_SQL控制面板运行态建表脚本(), ADO错误)) {
         错误 = "控制面板运行态建表失败 | " + ADO错误;
+        私有_标记SQL控制面板运行态不可用(错误);
         return false;
     }
     if (!执行ADO命令(
@@ -829,8 +925,10 @@ bool 初始化SQL控制面板运行态投影(
         私有_SQL控制面板运行态启动清库脚本(运行ID, 来源标记),
         ADO错误)) {
         错误 = "控制面板运行态启动清库失败 | " + ADO错误;
+        私有_标记SQL控制面板运行态不可用(错误);
         return false;
     }
+    私有_标记SQL控制面板运行态可用();
     return true;
 #endif
 }
