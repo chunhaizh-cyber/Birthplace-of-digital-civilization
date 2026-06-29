@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>任务执行治理函数内部流程图</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    .canvas { min-width: 2200px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 2160px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+    .notes code { background: #f6f8fa; padding: 1px 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>任务执行治理函数内部流程图</h1>
+    <p class="hint">描述 任务模块.执行::执行任务 与 任务执行桥类::执行方法_同步等待 的内部治理流程；外部调用函数以模块节点表示，不展开模块内部逻辑。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    classDef internal fill:#fff8e1,stroke:#d29922,color:#1f2328;
+    classDef decision fill:#fff,stroke:#8c959f,color:#1f2328;
+    classDef external fill:#eef6ff,stroke:#2f6feb,color:#1f2328;
+    classDef result fill:#e6ffed,stroke:#1a7f37,color:#1f2328;
+    classDef forbidden fill:#ffebe9,stroke:#cf222e,color:#1f2328,stroke-dasharray:5 4;
+
+    subgraph A["任务模块.执行::执行任务 内部"]
+        A0["入口<br/>执行任务(执行桥, 当前任务节点, now, timeoutUs)"]:::internal
+        A1["归一到任务头<br/>填充主任务/当前步骤节点"]:::internal
+        A2{"当前任务节点为空?"}:::decision
+        A3["生成运行结果实例<br/>记账结果=未定义"]:::internal
+        A4["读取当前时间<br/>读取任务场景与可执行输入参数场景"]:::internal
+        A5["定义完成当前轮闭包<br/>只写回执槽: 当前方法/建议状态/阶段/场景/运行结果"]:::internal
+        A6["读取任务执行方法"]:::internal
+        A7{"当前方法为空?"}:::decision
+        A8["生成任务缺条件运行结果<br/>建议状态=等待中"]:::internal
+        A9["仅设置建议执行中<br/>不直接写任务状态"]:::internal
+        A10{"存在可执行输入参数场景?"}:::decision
+        A11["使用可执行输入参数场景<br/>作为本轮输入/条件场景"]:::internal
+        A12["按方法能力选择条件场景<br/>允许引导则用当前场景<br/>否则读取方法真实条件场景"]:::internal
+        A13["结果场景=当前场景"]:::internal
+        A14["调用任务执行桥<br/>执行方法_同步等待"]:::internal
+        A15["读取本能方法运行闭环视图"]:::internal
+        A16{"方法执行成功<br/>且无执行缺口?"}:::decision
+        A17["记账结果=成功"]:::internal
+        A18["记账结果=未定义"]:::internal
+        A19["按运行视图推导建议任务状态<br/>等待中/无法执行/待重筹办"]:::internal
+        A20["完成当前轮<br/>写动作验证报告摘要<br/>同步语义槽<br/>返回结构_执行任务结果"]:::result
+    end
+
+    subgraph B["任务执行桥类::执行方法_同步等待 内部"]
+        B0["入口<br/>方法首节点/任务/当前场景/条件场景/结果场景/timeoutUs"]:::internal
+        B1{"任务绑定选中自我能力值?"}:::decision
+        B2["解析选中能力方法"]:::internal
+        B3{"方法首节点有效?"}:::decision
+        B4["返回运行结果: 方法无效"]:::internal
+        B5["准备默认结果场景<br/>方法虚拟存在<br/>默认输入场景"]:::internal
+        B6{"方法动作数量足够?"}:::decision
+        B7["返回运行结果: 缺方法动作"]:::internal
+        B8{"可执行入口足够?"}:::decision
+        B9["返回运行结果: 缺可执行入口"]:::internal
+        B10{"允许引导执行?"}:::decision
+        B11{"条件节点/结果节点/条件结果对/方法状态满足?"}:::decision
+        B12["返回对应运行缺口结果"]:::internal
+        B13["确定执行条件场景"]:::internal
+        B14{"条件场景可用<br/>或条件类型描述无输入?"}:::decision
+        B15["返回运行结果: 缺条件节点"]:::internal
+        B16["读取方法动作句柄"]:::internal
+        B17{"动作句柄是本能函数ID?"}:::decision
+        B18["返回运行结果: 缺可执行入口"]:::internal
+        B19{"停止或取消?"}:::decision
+        B20["返回运行结果: 已停止/取消"]:::internal
+        B21["确定实际输入场景/实际输出场景"]:::internal
+        B22["调用本能动作集执行功能函数"]:::internal
+        B23["读取运行闭环视图与运行码<br/>必要时写诊断日志"]:::internal
+        B24["记录方法条件节点/结果节点<br/>不创建动作动态"]:::internal
+        B25{"本能函数返回运行结果?"}:::decision
+        B26["返回本能函数运行结果"]:::result
+        B27["生成未知运行结果<br/>补写运行场景事实"]:::internal
+        B28{"timeoutUs=0?"}:::decision
+        B29["同步执行体"]:::internal
+        B30["异步执行体并等待"]:::internal
+        B31{"Future ready?"}:::decision
+        B32["返回异步执行结果"]:::result
+        B33["取消全部<br/>返回执行超时运行结果"]:::internal
+    end
+
+    subgraph C["外部模块调用（只表示模块，不展开）"]
+        C1["模块: 任务类<br/>归一/读取执行方法/解析任务场景/读取任务虚拟存在"]:::external
+        C2["模块: 方法类<br/>方法首节点校验/条件场景/结果场景/动作句柄/条件结果节点"]:::external
+        C3["模块: 方法虚拟存在服务类<br/>取或创建方法虚拟存在"]:::external
+        C4["模块: 本能动作管理模块<br/>创建运行结果实例/读取运行闭环视图/写运行场景事实"]:::external
+        C5["模块: 本能动作集<br/>执行功能函数"]:::external
+        C6["模块: 动作验证报告类<br/>构造动作验证报告摘要"]:::external
+        C7["模块: 日志模块<br/>诊断日志/运行日志"]:::external
+    end
+
+    subgraph D["硬边界"]
+        D1["任务执行/工作线程<br/>不创建动态"]:::forbidden
+        D2["任务执行<br/>不是本能方法<br/>不进入候选方法集"]:::forbidden
+        D3["任务状态变化动态<br/>只能由提交任务状态变化入口创建"]:::forbidden
+        D4["业务方法动作动态<br/>由被调用本能方法或治理提交入口创建"]:::forbidden
+    end
+
+    A0 --> A1 --> A2
+    A2 -- 是 --> A3 --> A20
+    A2 -- 否 --> A4 --> A5 --> A6 --> A7
+    A7 -- 是 --> A8 --> A20
+    A7 -- 否 --> A9 --> A10
+    A10 -- 是 --> A11 --> A13
+    A10 -- 否 --> A12 --> A13
+    A13 --> A14 --> A15 --> A16
+    A16 -- 是 --> A17 --> A19
+    A16 -- 否 --> A18 --> A19
+    A19 --> A20
+
+    A14 --> B0
+    B0 --> B1
+    B1 -- 是 --> B2 --> B3
+    B1 -- 否 --> B3
+    B3 -- 否 --> B4 --> A15
+    B3 -- 是 --> B5 --> B6
+    B6 -- 否 --> B7 --> A15
+    B6 -- 是 --> B8
+    B8 -- 否 --> B9 --> A15
+    B8 -- 是 --> B10
+    B10 -- 否 --> B11
+    B10 -- 是 --> B13
+    B11 -- 否 --> B12 --> A15
+    B11 -- 是 --> B13
+    B13 --> B14
+    B14 -- 否 --> B15 --> A15
+    B14 -- 是 --> B16 --> B17
+    B17 -- 否 --> B18 --> A15
+    B17 -- 是 --> B28
+    B28 -- 是 --> B29 --> B19
+    B28 -- 否 --> B30 --> B31
+    B31 -- 是 --> B32 --> A15
+    B31 -- 否 --> B33 --> A15
+    B19 -- 是 --> B20 --> A15
+    B19 -- 否 --> B21 --> B22 --> B23 --> B24 --> B25
+    B25 -- 是 --> B26 --> A15
+    B25 -- 否 --> B27 --> A15
+
+    A1 -.-> C1
+    A4 -.-> C1
+    A6 -.-> C1
+    A15 -.-> C4
+    A20 -.-> C6
+    B2 -.-> C1
+    B3 -.-> C2
+    B5 -.-> C2
+    B5 -.-> C3
+    B6 -.-> C2
+    B8 -.-> C2
+    B11 -.-> C2
+    B13 -.-> C2
+    B16 -.-> C2
+    B4 -.-> C4
+    B7 -.-> C4
+    B9 -.-> C4
+    B12 -.-> C4
+    B15 -.-> C4
+    B18 -.-> C4
+    B20 -.-> C4
+    B22 -.-> C5
+    B23 -.-> C4
+    B23 -.-> C7
+    B24 -.-> C2
+    B27 -.-> C4
+    B33 -.-> C4
+
+    A14 -. 禁止 .-> D1
+    B24 -. 禁止 .-> D1
+    A0 -. 边界 .-> D2
+    A20 -. 状态提交另走入口 .-> D3
+    B22 -. 动作事实由被调用方负责 .-> D4
+      </pre>
+    </section>
+    <section class="notes">
+      <strong>关键边界：</strong>
+      <p>任务执行是治理普通函数，只返回过程回执、建议状态、运行结果和动作验证摘要。任务执行桥可以调用本能动作集，但不能在桥内创建动作动态。</p>
+      <p>任务状态变化动态只能通过 <code>提交任务状态变化</code> 入口创建；业务方法动作动态由被调用本能方法或治理提交入口负责。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
