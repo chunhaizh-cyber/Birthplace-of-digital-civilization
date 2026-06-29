@@ -6594,6 +6594,21 @@ namespace {
                 return 查询区段ID == "worldTree"
                     || 查询区段ID == "worldRelations";
             }
+            if (指定区段ID == "demandTree") {
+                return 查询区段ID == "demandTree";
+            }
+            if (指定区段ID == "taskTree") {
+                return 查询区段ID == "taskTree";
+            }
+            if (指定区段ID == "methodTree") {
+                return 查询区段ID == "methodTree";
+            }
+            if (指定区段ID == "lexemeTree") {
+                return 查询区段ID == "lexemeTree";
+            }
+            if (指定区段ID == "worldRelations") {
+                return 查询区段ID == "worldRelations";
+            }
             return false;
         };
 
@@ -6981,6 +6996,8 @@ SELECT
     COALESCE([父节点主键], N'') AS [父节点主键],
     CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
     COALESCE([节点种类文本], N'') AS [节点种类文本],
+    COALESCE([名称文本], N'') AS [名称文本],
+    COALESCE([类型文本], N'') AS [类型文本],
     COALESCE([任务状态文本], N'') AS [任务状态文本],
     COALESCE([需求主键], N'') AS [需求主键],
     COALESCE([目标状态主键], N'') AS [目标状态主键],
@@ -7000,6 +7017,8 @@ SELECT
     COALESCE([父节点主键], N'') AS [父节点主键],
     CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
     COALESCE([节点种类文本], N'') AS [节点种类文本],
+    COALESCE([名称文本], N'') AS [名称文本],
+    COALESCE([类型文本], N'') AS [类型文本],
     COALESCE([动作名称], N'') AS [动作名称],
     COALESCE([动作句柄], N'') AS [动作句柄],
     COALESCE([来源文本], N'') AS [来源文本],
@@ -7057,8 +7076,8 @@ SELECT
     COALESCE([父节点主键], N'') AS [父节点主键],
     CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
     COALESCE([节点类型], N'') AS [节点类型],
-    COALESCE([词面文本], N'') AS [词面文本],
-    COALESCE([信息入口类型文本], N'') AS [信息入口类型文本],
+    COALESCE(NULLIF([词面文本], N''), NULLIF([显示文本], N''), [节点主键]) AS [名称文本],
+    COALESCE(NULLIF([信息入口类型文本], N''), NULLIF([映射主信息类型文本], N''), [节点类型]) AS [类型文本],
     COALESCE([映射主信息类型文本], N'') AS [映射主信息类型文本],
     COALESCE([绑定基础信息主键], N'') AS [绑定基础信息主键]
 FROM [鱼巢].[当前语素节点]
@@ -7540,6 +7559,8 @@ COALESCE([节点主键], N'') AS [节点主键],
 COALESCE([父节点主键], N'') AS [父节点主键],
 CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
 COALESCE([节点种类文本], N'') AS [节点种类文本],
+COALESCE([名称文本], N'') AS [名称文本],
+COALESCE([类型文本], N'') AS [类型文本],
 COALESCE([任务状态文本], N'') AS [任务状态文本],
 COALESCE([需求主键], N'') AS [需求主键],
 COALESCE([目标状态主键], N'') AS [目标状态主键],
@@ -7547,7 +7568,7 @@ COALESCE([结果状态主键], N'') AS [结果状态主键])SQL";
             if (!私有_读取SQL树直接子层("任务树子层", "[鱼巢].[当前任务树节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
-            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 8);
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 10);
         }
         if (区段ID == "methodTree") {
             constexpr std::string_view 字段 = R"SQL(
@@ -7555,6 +7576,8 @@ COALESCE([节点主键], N'') AS [节点主键],
 COALESCE([父节点主键], N'') AS [父节点主键],
 CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
 COALESCE([节点种类文本], N'') AS [节点种类文本],
+COALESCE([名称文本], N'') AS [名称文本],
+COALESCE([类型文本], N'') AS [类型文本],
 COALESCE([动作名称], N'') AS [动作名称],
 COALESCE([动作句柄], N'') AS [动作句柄],
 COALESCE([来源文本], N'') AS [来源文本],
@@ -7563,7 +7586,7 @@ CONVERT(nvarchar(20), COALESCE([结果项数量], 0)) AS [结果项数量])SQL";
             if (!私有_读取SQL树直接子层("方法树子层", "[鱼巢].[当前方法树节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
-            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 9);
+            return 私有_SQL控制面板普通树子链JSON(区段ID, 节点键, 行集, 11);
         }
         if (区段ID == "lexemeTree") {
             constexpr std::string_view 字段 = R"SQL(
@@ -7571,8 +7594,8 @@ COALESCE([节点主键], N'') AS [节点主键],
 COALESCE([父节点主键], N'') AS [父节点主键],
 CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
 COALESCE([节点类型], N'') AS [节点类型],
-COALESCE([词面文本], N'') AS [词面文本],
-COALESCE([信息入口类型文本], N'') AS [信息入口类型文本],
+COALESCE(NULLIF([词面文本], N''), NULLIF([显示文本], N''), [节点主键]) AS [名称文本],
+COALESCE(NULLIF([信息入口类型文本], N''), NULLIF([映射主信息类型文本], N''), [节点类型]) AS [类型文本],
 COALESCE([映射主信息类型文本], N'') AS [映射主信息类型文本],
 COALESCE([绑定基础信息主键], N'') AS [绑定基础信息主键])SQL";
             if (!私有_读取SQL树直接子层("语素树子层", "[鱼巢].[当前语素节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
@@ -7701,10 +7724,10 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
                 数据.需求树);
         }
         if (区段ID == "taskTree") {
-            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "任务树", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "任务树", { "节点", "父节点", "深度", "节点种类", "名称", "类型", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
         }
         if (区段ID == "methodTree") {
-            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "方法树", { "节点", "父节点", "深度", "节点种类", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "方法树", { "节点", "父节点", "深度", "节点种类", "名称", "类型", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
         }
         if (区段ID == "worldTree") {
             return 私有_SQL控制面板世界树刷新JSON(区段ID, 数据);
@@ -7713,7 +7736,7 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
             return 私有_SQL控制面板表格区段刷新JSON(区段ID, "世界树关系", { "宿主", "关系", "目标类", "目标", "目标显示", "序号" }, 数据.世界树关系);
         }
         if (区段ID == "lexemeTree") {
-            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "语素树", { "节点", "父节点", "深度", "类别", "词面", "入口类型", "主信息类型", "基础信息" }, 数据.语素树);
+            return 私有_SQL控制面板表格区段刷新JSON(区段ID, "语素树", { "节点", "父节点", "深度", "类别", "名称", "类型", "主信息类型", "基础信息" }, 数据.语素树);
         }
         if (区段ID == "features") {
             return 私有_SQL控制面板表格区段刷新JSON(区段ID, "特征类型", { "特征", "来源", "符号", "文件", "行" }, 数据.特征);
@@ -7897,8 +7920,8 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
                 "描述信息主键", "统计创建时间", "统计最后观测时间", "统计命中次数", "已截止", "阻塞父任务"
             },
             数据.需求树);
-        私有_追加SQL控制面板表(输出, "任务树", "taskTree", { "节点", "父节点", "深度", "节点种类", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
-        私有_追加SQL控制面板表(输出, "方法树", "methodTree", { "节点", "父节点", "深度", "节点种类", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
+        私有_追加SQL控制面板表(输出, "任务树", "taskTree", { "节点", "父节点", "深度", "节点种类", "名称", "类型", "任务状态", "需求", "目标状态", "结果状态" }, 数据.任务树);
+        私有_追加SQL控制面板表(输出, "方法树", "methodTree", { "节点", "父节点", "深度", "节点种类", "名称", "类型", "动作名", "动作句柄", "来源", "主结果特征", "结果数" }, 数据.方法树);
         std::size_t 世界树因果节点数 = 0;
         for (const auto& 行 : 数据.世界树) {
             if (私有_SQL字段(行, 3) == "因果") {
@@ -7925,7 +7948,7 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
         }
         输出 << "</tbody></table></div></div></section>\n";
         私有_追加SQL控制面板表(输出, "世界树关系", "worldRelations", { "宿主", "关系", "目标类", "目标", "目标显示", "序号" }, 数据.世界树关系);
-        私有_追加SQL控制面板表(输出, "语素树", "lexemeTree", { "节点", "父节点", "深度", "类别", "词面", "入口类型", "主信息类型", "基础信息" }, 数据.语素树);
+        私有_追加SQL控制面板表(输出, "语素树", "lexemeTree", { "节点", "父节点", "深度", "类别", "名称", "类型", "主信息类型", "基础信息" }, 数据.语素树);
         私有_追加SQL控制面板表(输出, "特征类型", "features", { "特征", "来源", "符号", "文件", "行" }, 数据.特征);
         私有_追加SQL控制面板表(输出, "控制面板字段目录", "catalog", { "字段", "分组", "C++类型", "结构", "文件", "行" }, 数据.字段目录);
 
@@ -8346,11 +8369,7 @@ function renderTreeNode(row, labelFn){
 )HTML";
         输出 << R"HTML(
 function genericNodeLabel(row){
-  const parts=[`<span class="tree-key">${escapeHtml(row.key||'节点')}</span>`];
-  if(row.kind)parts.push(`<span class="tree-kind">${escapeHtml(row.kind)}</span>`);
-  if(row.display)parts.push(`<span>${escapeHtml(row.display)}</span>`);
-  if(row.summary)parts.push(`<span class="tree-muted">${escapeHtml(row.summary)}</span>`);
-  return parts.join('');
+  return treeLabel(row);
 }
 function updateGenericSelection(){
   genericTreeRootsBySection.forEach(roots=>{
@@ -8400,31 +8419,78 @@ function requestSQLGenericSubtree(row){
 function selectGenericNode(row){
   if(!row)return;
   selectedGenericNode=row;
-  const rows=row.headers.map((header,index)=>[header||`字段${index+1}`,row.cells[index]||'']);
+  const rows=[
+    ['名称',row.name||row.display||''],
+    ['类型',row.type||row.kind||''],
+    ...row.headers.map((header,index)=>[header||`字段${index+1}`,row.cells[index]||''])
+  ];
   showNodeDetail(row.title||row.key,row.subtitle||row.kind||'SQL 行节点',rows);
   updateGenericSelection();
   requestSQLGenericSubtree(row);
 }
 function createGenericRowNode(sectionId,sectionTitle,headers,cells,index,treeLike){
-  const key=fieldText(cells[0]||`${sectionTitle}#${index+1}`);
-  let kind=treeLike?fieldText(cells[3]):fieldText(cells[1]||sectionTitle);
-  let display=treeLike?fieldText(cells[4]||cells[5]||cells[6]||''):fieldText(cells[2]||cells[1]||'');
+  const raw=(cellIndex)=>String(cells[cellIndex]??'').trim();
+  const key=raw(0)||`${sectionTitle}#${index+1}`;
+  let kind=treeLike?(raw(3)||'节点'):(raw(1)||sectionTitle);
+  let display=treeLike?(raw(4)||raw(5)||raw(6)||''):(raw(2)||raw(1)||'');
+  let name='';
+  let type='';
+  let valueKind='';
+  let value='';
+  let aux='';
   let summary=headers.slice(1,4).map((header,i)=>`${header}=${fieldText(cells[i+1])}`).join(' | ');
   let title=key;
   let subtitle=sectionTitle;
   if(sectionId==='demandTree'){
-    const name=fieldText(cells[3]||cells[6]||key);
-    const shape=fieldText(cells[4]||'');
-    const targetFeature=fieldText(cells[6]||'');
-    const task=fieldText(cells[7]||'');
-    kind=name;
+    name=raw(3)||raw(6)||key;
+    type=raw(9)||raw(10)||raw(12)||'需求';
+    const shape=raw(4);
+    const targetFeature=raw(6);
+    const targetFeatureType=raw(10);
+    const task=raw(7);
+    const taskType=raw(12);
+    kind='需求';
     display=shape;
-    summary=[targetFeature&&`目标特征=${targetFeature}`,task&&`任务=${task}`].filter(Boolean).join(' | ');
+    valueKind='目标语义';
+    value=raw(5);
+    aux=[targetFeature&&`目标特征=${targetFeature}`,targetFeatureType&&`目标特征类型=${targetFeatureType}`,task&&`任务=${task}`,taskType&&`任务类型=${taskType}`].filter(Boolean).join(' | ');
+    summary=aux;
+    title=name||key;
+    subtitle=`${sectionTitle} | 节点=${key}`;
+  }else if(sectionId==='taskTree'){
+    name=raw(4)||key;
+    type=raw(5)||raw(3);
+    display=raw(6);
+    valueKind='任务状态';
+    value=raw(6);
+    aux=[raw(7)&&`需求=${raw(7)}`,raw(8)&&`目标状态=${raw(8)}`,raw(9)&&`结果状态=${raw(9)}`].filter(Boolean).join(' | ');
+    summary=aux;
+    title=name||key;
+    subtitle=`${sectionTitle} | 节点=${key}`;
+  }else if(sectionId==='methodTree'){
+    name=raw(4)||raw(6)||key;
+    type=raw(5)||raw(3);
+    display=raw(6)||raw(8);
+    valueKind='来源';
+    value=raw(8);
+    aux=[raw(7)&&`动作句柄=${raw(7)}`,raw(9)&&`主结果特征=${raw(9)}`,raw(10)&&`结果数=${raw(10)}`].filter(Boolean).join(' | ');
+    summary=aux;
+    title=name||key;
+    subtitle=`${sectionTitle} | 节点=${key}`;
+  }else if(sectionId==='lexemeTree'){
+    name=raw(4)||key;
+    type=raw(5)||raw(6)||raw(3);
+    display=raw(4);
+    valueKind='基础信息';
+    value=raw(7);
+    aux=raw(6)?`主信息类型=${raw(6)}`:'';
+    summary=aux;
     title=name||key;
     subtitle=`${sectionTitle} | 节点=${key}`;
   }
-  const node={sectionId,key,parent:treeLike?String(cells[1]||''):'',depth:treeLike?String(cells[2]||'1'):'1',kind,display,summary,headers,cells,children:[],title,subtitle,lazySubtree:treeLike};
-  node.searchText=[sectionTitle,key,kind,display,summary,...cells].join(' ').toLowerCase();
+  if(!treeLike&&!aux)aux=summary;
+  const node={sectionId,key,parent:treeLike?raw(1):'',depth:treeLike?(raw(2)||'1'):'1',kind,display,name,type,valueKind,value,aux,summary,headers,cells,children:[],title,subtitle,lazySubtree:treeLike};
+  node.searchText=[sectionTitle,key,kind,display,name,type,valueKind,value,aux,summary,...cells].join(' ').toLowerCase();
   node.onSelect=()=>selectGenericNode(node);
   return node;
 }
@@ -10390,88 +10456,45 @@ WHERE [节点主键] = )SQL";
     快照.世界树根 = std::move(世界树根);
     记录快照阶段("世界树SQL视图占位构建完成");
 
-    快照.因果信息根 = 私有_构建因果信息树(
-        上下文,
-        快照.因果模板数,
-        快照.因果证据动态样本数);
-    记录快照阶段("因果信息树构建完成");
+    auto 因果信息根 = 私有_新节点(
+        "因果信息 | 来源=[鱼巢].[当前世界树节点] | 初始页不强读SQL投影",
+        0,
+        true);
+    因果信息根.子项.push_back(私有_新节点("请刷新因果信息页读取数据库加工视图"));
+    快照.因果信息根 = std::move(因果信息根);
+    记录快照阶段("因果信息SQL视图占位构建完成");
 
     auto 需求树根 = 私有_新节点(
-        "需求树 | 需求数=" + std::to_string(快照.需求数)
-            + " | " + 私有_需求满足数量摘要(快照),
+        "需求树 | 来源=[鱼巢].[当前需求面板节点] | 初始页不强读SQL投影",
         0,
         true);
-    if (需求根节点) {
-        需求树根.子项.push_back(
-            私有_构建需求根链骨架(需求根节点, 上下文));
-    }
-    else {
-        需求树根.子项.push_back(私有_新节点("需求根为空"));
-    }
+    需求树根.子项.push_back(私有_新节点("请刷新需求树页读取数据库加工视图"));
     快照.需求树根 = std::move(需求树根);
-    记录快照阶段("需求树骨架构建完成");
+    记录快照阶段("需求树SQL视图占位构建完成");
 
     auto 需求列表树根 = 私有_新节点(
-        "需求列表 | 需求数=" + std::to_string(快照.需求数),
+        "需求列表 | 来源=[鱼巢].[当前需求面板节点] | 初始页不强读SQL投影",
         0,
         true);
-    if (需求根节点) {
-        记录快照阶段("需求列表分页读取开始");
-        std::vector<需求节点*> 分页节点集{};
-        bool 分页还有更多 = false;
-        std::size_t 分页已遍历数量 = 0;
-        私有_读取需求列表分页(
-            需求根节点,
-            0,
-            私有_列表分页大小,
-            分页节点集,
-            分页还有更多,
-            分页已遍历数量);
-        记录快照阶段("需求列表分页读取完成");
-        for (auto* 节点 : 分页节点集) {
-            需求列表树根.子项.push_back(私有_需求列表详情节点(节点, 上下文));
-        }
-        if (分页还有更多) {
-            需求列表树根.子项.push_back(私有_创建需求列表加载更多节点(分页已遍历数量));
-        }
-    }
-    if (需求列表树根.子项.empty()) {
-        需求列表树根.子项.push_back(私有_新节点("暂无需求"));
-    }
+    需求列表树根.子项.push_back(私有_新节点("请刷新需求列表页读取数据库加工视图"));
     快照.需求列表树根 = std::move(需求列表树根);
-    记录快照阶段("需求列表骨架构建完成");
+    记录快照阶段("需求列表SQL视图占位构建完成");
 
     auto 任务树根 = 私有_新节点(
-        "任务树 | 任务节点=" + std::to_string(快照.任务数)
-            + " | 头=" + std::to_string(快照.任务头节点数)
-            + " | 步骤=" + std::to_string(快照.任务步骤节点数)
-            + " | 状态={" + 私有_任务状态数量摘要(快照) + "}",
+        "任务树 | 来源=[鱼巢].[当前任务树节点] | 初始页不强读SQL投影",
         0,
         true);
-    if (任务根节点) {
-        任务树根.子项.push_back(
-            私有_构建任务根链骨架(任务根节点, 上下文));
-    }
-    else {
-        任务树根.子项.push_back(私有_新节点("任务根为空"));
-    }
+    任务树根.子项.push_back(私有_新节点("请刷新任务树页读取数据库加工视图"));
     快照.任务树根 = std::move(任务树根);
-    记录快照阶段("任务树骨架构建完成");
+    记录快照阶段("任务树SQL视图占位构建完成");
 
     auto 方法树根 = 私有_新节点(
-        "方法树 | 方法数=" + std::to_string(快照.方法数)
-            + " | " + 私有_方法结构诊断摘要(快照),
+        "方法树 | 来源=[鱼巢].[当前方法树节点] | 初始页不强读SQL投影",
         0,
         true);
-    if (方法根节点) {
-        方法树根.子项.push_back(
-            私有_构建方法根链骨架(方法根节点, 上下文));
-    }
-    else {
-        方法树根.子项.push_back(私有_新节点("方法根为空"));
-    }
+    方法树根.子项.push_back(私有_新节点("请刷新方法树页读取数据库加工视图"));
     快照.方法树根 = std::move(方法树根);
-    记录快照阶段("方法树骨架构建完成");
+    记录快照阶段("方法树SQL视图占位构建完成");
 
     return 快照;
 }
@@ -10500,39 +10523,29 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
         return 私有_SQL控制面板区段刷新JSON(页面);
     }
 
-    const auto 读取SQL世界树页 = [&]() -> std::string {
-        std::string SQL = R"SQL(
-SELECT TOP (300)
-    COALESCE([节点主键], N'') AS [节点主键],
-    COALESCE([父节点主键], N'') AS [父节点主键],
-    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
-    COALESCE([节点类型], N'') AS [节点类型],
-    COALESCE([显示文本], N'') AS [显示文本],
-    COALESCE([名称文本], N'') AS [名称文本],
-    COALESCE([类型文本], N'') AS [类型文本],
-    COALESCE([值类别], N'') AS [值类别],
-    COALESCE([值文本], N'') AS [值文本],
-    COALESCE([辅助文本], N'') AS [辅助文本]
-FROM [鱼巢].[当前世界树节点]
-ORDER BY [行号];
-)SQL";
+    const auto 读取SQL投影树页 = [&](
+        std::string_view 页面ID,
+        std::string_view 标题名,
+        std::string_view 来源视图,
+        const std::string& SQL,
+        std::string_view 空提示) -> std::string {
         std::vector<std::vector<std::string>> 行集{};
         std::string 错误{};
-        if (!私有_读取SQL控制面板子链行集("世界树页面SQL视图", SQL, 行集, 错误)) {
+        if (!私有_读取SQL控制面板子链行集(std::string(标题名) + "页面SQL视图", SQL, 行集, 错误)) {
             auto 根 = 私有_新节点(
-                "世界树 | 来源=[鱼巢].[当前世界树节点] | 读取失败",
+                std::string(标题名) + " | 来源=" + std::string(来源视图) + " | 读取失败",
                 0,
                 true);
-            私有_追加叶字段(根, "读取来源", "[鱼巢].[当前世界树节点]");
+            私有_追加叶字段(根, "读取来源", std::string(来源视图));
             私有_追加叶字段(根, "错误", 错误);
-            return 私有_页面刷新JSON(页面, &根);
+            return 私有_页面刷新JSON(页面ID, &根);
         }
 
         const auto SQL字段 = [](const std::vector<std::string>& 行, const std::size_t 索引) -> std::string {
             return 索引 < 行.size() ? 行[索引] : std::string{};
         };
         auto 根 = 私有_新节点(
-            "世界树 | 来源=[鱼巢].[当前世界树节点] | SQL节点=" + std::to_string(行集.size()) + " | 窗口=300",
+            std::string(标题名) + " | 来源=" + std::string(来源视图) + " | SQL节点=" + std::to_string(行集.size()) + " | 窗口=300",
             0,
             true);
         std::vector<结构_控制面板树节点> 节点集{};
@@ -10572,17 +10585,19 @@ ORDER BY [行号];
             }
 
             auto 节点 = 私有_新节点(标题, 0, false);
-            节点.详情.push_back(私有_新节点("节点信息 | 来源=[鱼巢].[当前世界树节点]", 0, true));
-            私有_追加叶字段(节点.详情.back(), "节点主键", 键);
-            私有_追加叶字段(节点.详情.back(), "父节点", 父键);
-            私有_追加叶字段(节点.详情.back(), "深度", 深度);
-            私有_追加叶字段(节点.详情.back(), "类别", 类别);
-            私有_追加叶字段(节点.详情.back(), "显示", 显示);
-            私有_追加叶字段(节点.详情.back(), "名称", 名称);
-            私有_追加叶字段(节点.详情.back(), "类型", 类型);
-            私有_追加叶字段(节点.详情.back(), "值类", 值类);
-            私有_追加叶字段(节点.详情.back(), "值", 值);
-            私有_追加叶字段(节点.详情.back(), "辅助", 辅助);
+            auto 字段节点 = 私有_新节点("节点信息 | 来源=" + std::string(来源视图), 0, true);
+            私有_追加叶字段(字段节点, "节点主键", 键);
+            私有_追加叶字段(字段节点, "父节点", 父键);
+            私有_追加叶字段(字段节点, "深度", 深度);
+            私有_追加叶字段(字段节点, "类别", 类别);
+            私有_追加叶字段(字段节点, "显示", 显示);
+            私有_追加叶字段(字段节点, "名称", 名称);
+            私有_追加叶字段(字段节点, "类型", 类型);
+            私有_追加叶字段(字段节点, "值类", 值类);
+            私有_追加叶字段(字段节点, "值", 值);
+            私有_追加叶字段(字段节点, "辅助", 辅助);
+            私有_追加叶字段(字段节点, "读取来源", std::string(来源视图));
+            节点.详情.push_back(std::move(字段节点));
             键到索引[键] = 节点集.size();
             父键集.push_back(父键);
             节点集.push_back(std::move(节点));
@@ -10616,21 +10631,128 @@ ORDER BY [行号];
             根.子项.push_back(构建节点拷贝(构建节点拷贝, 索引, 0));
         }
         if (根.子项.empty()) {
-            根.子项.push_back(私有_新节点("当前 SQL 世界树视图暂无节点"));
+            根.子项.push_back(私有_新节点(std::string(空提示)));
         }
-        return 私有_页面刷新JSON(页面, &根);
+        return 私有_页面刷新JSON(页面ID, &根);
     };
 
     if (页面 == "world-tree") {
-        return 读取SQL世界树页();
+        return 读取SQL投影树页(
+            页面,
+            "世界树",
+            "[鱼巢].[当前世界树节点]",
+            R"SQL(
+SELECT TOP (300)
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点类型], N'') AS [节点类型],
+    COALESCE([显示文本], N'') AS [显示文本],
+    COALESCE([名称文本], N'') AS [名称文本],
+    COALESCE([类型文本], N'') AS [类型文本],
+    COALESCE([值类别], N'') AS [值类别],
+    COALESCE([值文本], N'') AS [值文本],
+    COALESCE([辅助文本], N'') AS [辅助文本]
+FROM [鱼巢].[当前世界树节点]
+ORDER BY [行号];
+)SQL",
+            "当前 SQL 世界树视图暂无节点");
+    }
+
+    if (页面 == "causal-info") {
+        return 读取SQL投影树页(
+            页面,
+            "因果信息",
+            "[鱼巢].[当前世界树节点]",
+            R"SQL(
+SELECT TOP (300)
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点类型], N'') AS [节点类型],
+    COALESCE([显示文本], N'') AS [显示文本],
+    COALESCE([名称文本], N'') AS [名称文本],
+    COALESCE([类型文本], N'') AS [类型文本],
+    COALESCE([值类别], N'') AS [值类别],
+    COALESCE([值文本], N'') AS [值文本],
+    COALESCE([辅助文本], N'') AS [辅助文本]
+FROM [鱼巢].[当前世界树节点]
+WHERE [节点类型] = N'因果'
+ORDER BY [行号];
+)SQL",
+            "当前 SQL 因果信息视图暂无节点");
+    }
+
+    if (页面 == "need-tree" || 页面 == "need-list") {
+        return 读取SQL投影树页(
+            页面,
+            页面 == "need-list" ? "需求列表" : "需求树",
+            "[鱼巢].[当前需求面板节点]",
+            R"SQL(
+SELECT TOP (300)
+    COALESCE([显示节点标识], N'') AS [节点主键],
+    COALESCE([显示父节点标识], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([显示深度], 0)) AS [深度],
+    N'需求' AS [节点类型],
+    COALESCE([树形摘要], N'') AS [显示文本],
+    COALESCE(NULLIF([节点名称], N''), NULLIF([目标特征显示], N''), [显示节点标识]) AS [名称文本],
+    COALESCE(NULLIF([逻辑组织类型], N''), NULLIF([目标特征类型], N''), N'需求') AS [类型文本],
+    N'目标语义' AS [值类别],
+    COALESCE([目标语义], N'') AS [值文本],
+    CONCAT(N'目标特征=', COALESCE([目标特征显示], N''), N' | 目标特征类型=', COALESCE([目标特征类型], N''), N' | 任务=', COALESCE([任务显示], N''), N' | 任务类型=', COALESCE([任务类型], N'')) AS [辅助文本]
+FROM [鱼巢].[当前需求面板节点]
+ORDER BY [行号];
+)SQL",
+            "当前 SQL 需求视图暂无节点");
+    }
+
+    if (页面 == "task-tree") {
+        return 读取SQL投影树页(
+            页面,
+            "任务树",
+            "[鱼巢].[当前任务树节点]",
+            R"SQL(
+SELECT TOP (300)
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点种类文本], N'') AS [节点类型],
+    COALESCE([任务状态文本], N'') AS [显示文本],
+    COALESCE(NULLIF([名称文本], N''), [节点主键]) AS [名称文本],
+    COALESCE(NULLIF([类型文本], N''), NULLIF([节点种类文本], N''), N'任务') AS [类型文本],
+    N'任务状态' AS [值类别],
+    COALESCE([任务状态文本], N'') AS [值文本],
+    CONCAT(N'需求=', COALESCE([需求主键], N''), N' | 目标状态=', COALESCE([目标状态主键], N''), N' | 结果状态=', COALESCE([结果状态主键], N'')) AS [辅助文本]
+FROM [鱼巢].[当前任务树节点]
+ORDER BY [行号];
+)SQL",
+            "当前 SQL 任务树视图暂无节点");
+    }
+
+    if (页面 == "method-tree") {
+        return 读取SQL投影树页(
+            页面,
+            "方法树",
+            "[鱼巢].[当前方法树节点]",
+            R"SQL(
+SELECT TOP (300)
+    COALESCE([节点主键], N'') AS [节点主键],
+    COALESCE([父节点主键], N'') AS [父节点主键],
+    CONVERT(nvarchar(20), COALESCE([深度], 0)) AS [深度],
+    COALESCE([节点种类文本], N'') AS [节点类型],
+    COALESCE(NULLIF([动作名称], N''), NULLIF([来源文本], N''), N'') AS [显示文本],
+    COALESCE(NULLIF([名称文本], N''), NULLIF([动作名称], N''), [节点主键]) AS [名称文本],
+    COALESCE(NULLIF([类型文本], N''), NULLIF([节点种类文本], N''), N'方法') AS [类型文本],
+    N'来源' AS [值类别],
+    COALESCE([来源文本], N'') AS [值文本],
+    CONCAT(N'动作句柄=', COALESCE([动作句柄], N''), N' | 主结果特征=', COALESCE([主结果特征主键], N''), N' | 结果数=', CONVERT(nvarchar(20), COALESCE([结果项数量], 0))) AS [辅助文本]
+FROM [鱼巢].[当前方法树节点]
+ORDER BY [行号];
+)SQL",
+            "当前 SQL 方法树视图暂无节点");
     }
 
     const auto 快照 = 读取控制面板快照(0, 0);
-    auto* 自我存在 = 自我.获取自我存在();
-    auto* 需求根节点 = 自我存在 ? 世界树.获取需求根节点(自我存在) : nullptr;
-    auto* 任务根节点 = 自我存在 ? 世界树.获取任务根节点(自我存在) : nullptr;
-    auto* 方法根节点 = 自我存在 ? 世界树.获取方法根节点(自我存在) : nullptr;
-    const auto 上下文 = 私有_创建构建上下文(16);
 
     if (页面 == "thread-status") {
         任务管理工作线程::结构_工作线程实例快照 工作线程快照{};
@@ -10638,100 +10760,6 @@ ORDER BY [行号];
         任务管理线程协议::结构_任务界面线程快照 界面线程快照{};
         (void)任务管理界面线程::读取任务管理界面线程快照(&界面线程快照);
         auto 根 = 私有_构建线程状态树(快照, 界面线程快照, 工作线程快照);
-        return 私有_页面刷新JSON(页面, &根);
-    }
-
-    if (页面 == "causal-info") {
-        std::size_t 因果模板数 = 0;
-        std::size_t 因果证据动态样本数 = 0;
-        for (auto* 因果节点 : 世界树.枚举节点_按主信息类型<因果主信息类>()) {
-            const auto* 主信息 = 世界树.取因果主信息(reinterpret_cast<const 因果节点类*>(因果节点));
-            if (!主信息) {
-                continue;
-            }
-            ++因果模板数;
-            因果证据动态样本数 += 主信息->证据动态样本.size();
-        }
-        auto 根 = 私有_构建因果信息树(
-            上下文,
-            因果模板数,
-            因果证据动态样本数);
-        return 私有_页面刷新JSON(页面, &根);
-    }
-
-    if (页面 == "need-tree") {
-        auto 根 = 私有_新节点(
-            "需求树 | 需求数=" + std::to_string(快照.需求数)
-                + " | " + 私有_需求满足数量摘要(快照),
-            0,
-            true);
-        if (需求根节点) {
-            根.子项.push_back(私有_构建需求根链骨架(需求根节点, 上下文));
-        }
-        else {
-            根.子项.push_back(私有_新节点("需求根为空"));
-        }
-        return 私有_页面刷新JSON(页面, &根);
-    }
-
-    if (页面 == "need-list") {
-        auto 根 = 私有_新节点(
-            "需求列表 | 需求数=" + std::to_string(快照.需求数),
-            0,
-            true);
-        if (需求根节点) {
-            std::vector<需求节点*> 分页节点集{};
-            bool 分页还有更多 = false;
-            std::size_t 分页已遍历数量 = 0;
-            私有_读取需求列表分页(
-                需求根节点,
-                0,
-                私有_列表分页大小,
-                分页节点集,
-                分页还有更多,
-                分页已遍历数量);
-            for (auto* 节点 : 分页节点集) {
-                根.子项.push_back(私有_需求列表详情节点(节点, 上下文));
-            }
-            if (分页还有更多) {
-                根.子项.push_back(私有_创建需求列表加载更多节点(分页已遍历数量));
-            }
-        }
-        if (根.子项.empty()) {
-            根.子项.push_back(私有_新节点("暂无需求"));
-        }
-        return 私有_页面刷新JSON(页面, &根);
-    }
-
-    if (页面 == "task-tree") {
-        auto 根 = 私有_新节点(
-            "任务树 | 任务节点=" + std::to_string(快照.任务数)
-                + " | 头=" + std::to_string(快照.任务头节点数)
-                + " | 步骤=" + std::to_string(快照.任务步骤节点数)
-                + " | 状态={" + 私有_任务状态数量摘要(快照) + "}",
-            0,
-            true);
-        if (任务根节点) {
-            根.子项.push_back(私有_构建任务根链骨架(任务根节点, 上下文));
-        }
-        else {
-            根.子项.push_back(私有_新节点("任务根为空"));
-        }
-        return 私有_页面刷新JSON(页面, &根);
-    }
-
-    if (页面 == "method-tree") {
-        auto 根 = 私有_新节点(
-            "方法树 | 方法数=" + std::to_string(快照.方法数)
-                + " | " + 私有_方法结构诊断摘要(快照),
-            0,
-            true);
-        if (方法根节点) {
-            根.子项.push_back(私有_构建方法根链骨架(方法根节点, 上下文));
-        }
-        else {
-            根.子项.push_back(私有_新节点("方法根为空"));
-        }
         return 私有_页面刷新JSON(页面, &根);
     }
 
@@ -12949,7 +12977,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="causal-info" data-title="因果信息" data-subtitle="当前世界树中记录的因果模板和证据动态样本。">
+        <section class="page" data-page="causal-info" data-title="因果信息" data-subtitle="从 SQL 投影视图读取因果节点；控制面板不直接拼 live 原始树。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">因果账本</div>
@@ -12966,7 +12994,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="真实父子关系、树形结构、目标状态与任务绑定。">
+        <section class="page" data-page="need-tree" data-title="需求树" data-subtitle="从 SQL 投影视图读取需求树结构；名称和类型由数据库视图加工。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -12983,7 +13011,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="need-list" data-title="需求列表" data-subtitle="按前序顺序平铺需求列表；列表窗口 100 项。">
+        <section class="page" data-page="need-list" data-title="需求列表" data-subtitle="从 SQL 投影视图读取需求列表；名称和类型由数据库视图加工。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -13000,7 +13028,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="task-tree" data-title="任务列表" data-subtitle="每一条任务是一棵树；中间栏只看结构，字段在右侧显示。">
+        <section class="page" data-page="task-tree" data-title="任务列表" data-subtitle="从 SQL 投影视图读取任务树结构；中间栏显示名称和类型。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">任务列表</div>
@@ -13017,7 +13045,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="method-tree" data-title="方法树" data-subtitle="真实方法树关系、方法首节点、条件节点与结果节点。">
+        <section class="page" data-page="method-tree" data-title="方法树" data-subtitle="从 SQL 投影视图读取方法树结构；中间栏显示名称和类型。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">原始树视图</div>
@@ -13445,27 +13473,27 @@ std::string 私有_生成控制面板HTML(
       'causal-info': {
         treeHost: 'tree-causal-info',
         detailHost: 'detail-causal-info',
-        detailHint: '因果主信息字段；因果模板和证据动态样本均来自当前世界树。'
+        detailHint: '因果信息页读取 [鱼巢].[当前世界树节点] 中的因果节点；右侧显示 SQL 视图加工后的名称和类型。'
       },
       'need-tree': {
         treeHost: 'tree-need-tree',
         detailHost: 'detail-need-tree',
-        detailHint: '需求节点字段'
+        detailHint: '需求树页读取 [鱼巢].[当前需求面板节点]；右侧显示 SQL 视图加工后的名称和类型。'
       },
       'need-list': {
         treeHost: 'tree-need-list',
         detailHost: 'detail-need-list',
-        detailHint: '需求列表字段'
+        detailHint: '需求列表读取 [鱼巢].[当前需求面板节点]；右侧显示 SQL 视图加工后的名称和类型。'
       },
       'task-tree': {
         treeHost: 'tree-task-tree',
         detailHost: 'detail-task-tree',
-        detailHint: '任务主信息字段'
+        detailHint: '任务树页读取 [鱼巢].[当前任务树节点]；右侧显示 SQL 视图加工后的名称和类型。'
       },
       'method-tree': {
         treeHost: 'tree-method-tree',
         detailHost: 'detail-method-tree',
-        detailHint: '方法主信息字段'
+        detailHint: '方法树页读取 [鱼巢].[当前方法树节点]；右侧显示 SQL 视图加工后的名称和类型。'
       },
       'settings': {
         treeHost: 'tree-settings',

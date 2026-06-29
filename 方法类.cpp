@@ -1083,6 +1083,8 @@ namespace {
         std::string 路径{};
         int 节点种类值 = 0;
         std::string 节点种类文本{};
+        std::string 名称文本{};
+        std::string 类型文本{};
         std::string 动作名文本{};
         std::string 动作句柄文本{};
         int 来源值 = 0;
@@ -1200,6 +1202,8 @@ namespace {
         const auto* 首节点信息 = 节点->主信息.取首节点信息();
         if (首节点信息) {
             行.动作名文本 = 私有_方法SQL入口文本(首节点信息->动作名);
+            行.名称文本 = 行.动作名文本.empty() ? 节点->获取主键() : 行.动作名文本;
+            行.类型文本 = 行.节点种类文本;
             行.动作句柄文本 = 私有_方法SQL动作句柄文本(首节点信息->动作句柄);
             行.来源值 = static_cast<int>(首节点信息->来源);
             行.来源文本 = 私有_方法SQL来源文本(首节点信息->来源);
@@ -1216,12 +1220,16 @@ namespace {
 
         const auto* 条件信息 = 节点->主信息.取条件节点信息();
         if (条件信息) {
+            行.名称文本 = "条件场景";
+            行.类型文本 = 行.节点种类文本;
             行.条件场景主键 = 私有_方法SQL引用主键(条件信息->条件场景);
             return;
         }
 
         const auto* 结果信息 = 节点->主信息.取结果节点信息();
         if (结果信息) {
+            行.名称文本 = "结果场景";
+            行.类型文本 = 行.节点种类文本;
             行.结果场景主键 = 私有_方法SQL引用主键(结果信息->结果场景);
             行.结果项数量 = static_cast<int>(结果信息->结果包.结果项集.size());
             return;
@@ -1255,6 +1263,12 @@ namespace {
         行.节点种类值 = static_cast<int>(节点种类);
         行.节点种类文本 = 私有_方法SQL节点种类文本(节点种类);
         私有_填充方法树SQL角色字段(节点, 行);
+        if (行.名称文本.empty()) {
+            行.名称文本 = 节点主键;
+        }
+        if (行.类型文本.empty()) {
+            行.类型文本 = 行.节点种类文本;
+        }
         行集.push_back(std::move(行));
 
         if (!节点->子) {
@@ -1326,6 +1340,8 @@ namespace {
             << "    [节点行号] int NOT NULL,\n"
             << "    [节点种类值] int NULL,\n"
             << "    [节点种类文本] nvarchar(80) NULL,\n"
+            << "    [名称文本] nvarchar(300) NULL,\n"
+            << "    [类型文本] nvarchar(300) NULL,\n"
             << "    [动作名称] nvarchar(300) NULL,\n"
             << "    [动作句柄] nvarchar(300) NULL,\n"
             << "    [来源值] int NULL,\n"
@@ -1359,6 +1375,10 @@ namespace {
             << "    DROP VIEW [鱼巢].[当前方法主信息];\n"
             << "IF COL_LENGTH(N'[鱼巢].[方法主信息]', N'条件组数量') IS NOT NULL\n"
             << "    ALTER TABLE [鱼巢].[方法主信息] DROP COLUMN [条件组数量];\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法主信息]', N'名称文本') IS NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法主信息] ADD [名称文本] nvarchar(300) NULL;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法主信息]', N'类型文本') IS NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法主信息] ADD [类型文本] nvarchar(300) NULL;\n"
             << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前方法主信息] AS\n"
             << "SELECT m.*\n"
             << "FROM [鱼巢].[方法主信息] m\n"
@@ -1382,6 +1402,8 @@ namespace {
             << "    m.[节点行号],\n"
             << "    m.[节点种类值],\n"
             << "    m.[节点种类文本],\n"
+            << "    m.[名称文本],\n"
+            << "    m.[类型文本],\n"
             << "    m.[动作名称],\n"
             << "    m.[动作句柄],\n"
             << "    m.[来源值],\n"
@@ -1416,6 +1438,10 @@ namespace {
             << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN [节点种类值];\n"
             << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'节点种类文本') IS NOT NULL\n"
             << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN [节点种类文本];\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'名称文本') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN [名称文本];\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'类型文本') IS NOT NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN [类型文本];\n"
             << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'动作名称') IS NOT NULL\n"
             << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN [动作名称];\n"
             << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'动作句柄') IS NOT NULL\n"
@@ -1436,6 +1462,10 @@ namespace {
             << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN [条件组数量];\n"
             << "IF COL_LENGTH(N'[鱼巢].[方法主信息]', N'条件组数量') IS NOT NULL\n"
             << "    ALTER TABLE [鱼巢].[方法主信息] DROP COLUMN [条件组数量];\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法主信息]', N'名称文本') IS NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法主信息] ADD [名称文本] nvarchar(300) NULL;\n"
+            << "IF COL_LENGTH(N'[鱼巢].[方法主信息]', N'类型文本') IS NULL\n"
+            << "    ALTER TABLE [鱼巢].[方法主信息] ADD [类型文本] nvarchar(300) NULL;\n"
             << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'结果项数量') IS NOT NULL\n"
             << "    ALTER TABLE [鱼巢].[方法树节点] DROP COLUMN [结果项数量];\n"
             << "IF COL_LENGTH(N'[鱼巢].[方法树节点]', N'允许自动查找') IS NOT NULL\n"
@@ -1462,11 +1492,13 @@ namespace {
                 << 行.同层序号 << ", "
                 << 行.直接子数量 << ", "
                 << 私有_方法SQL字符串(行.路径) << ");\n";
-            SQL << "INSERT INTO [鱼巢].[方法主信息] ([快照标识], [节点主键], [节点行号], [节点种类值], [节点种类文本], [动作名称], [动作句柄], [来源值], [来源文本], [方法虚拟存在主键], [条件场景主键], [结果场景主键], [主结果特征主键], [结果项数量], [允许自动查找], [有动作], [有结果能力]) VALUES (@快照标识, "
+            SQL << "INSERT INTO [鱼巢].[方法主信息] ([快照标识], [节点主键], [节点行号], [节点种类值], [节点种类文本], [名称文本], [类型文本], [动作名称], [动作句柄], [来源值], [来源文本], [方法虚拟存在主键], [条件场景主键], [结果场景主键], [主结果特征主键], [结果项数量], [允许自动查找], [有动作], [有结果能力]) VALUES (@快照标识, "
                 << 私有_方法SQL字符串(行.节点主键, false) << ", "
                 << 行.行号 << ", "
                 << 行.节点种类值 << ", "
                 << 私有_方法SQL字符串(行.节点种类文本) << ", "
+                << 私有_方法SQL字符串(行.名称文本) << ", "
+                << 私有_方法SQL字符串(行.类型文本) << ", "
                 << 私有_方法SQL字符串(行.动作名文本) << ", "
                 << 私有_方法SQL字符串(行.动作句柄文本) << ", "
                 << 行.来源值 << ", "
@@ -1556,6 +1588,8 @@ namespace {
                 私有_方法SQL字段整数(行.行号),
                 私有_方法SQL字段整数(行.节点种类值),
                 行.节点种类文本,
+                行.名称文本,
+                行.类型文本,
                 行.动作名文本,
                 行.动作句柄文本,
                 私有_方法SQL字段整数(行.来源值),
@@ -1628,6 +1662,8 @@ SELECT
     COALESCE(CONVERT(nvarchar(30), [节点行号]), N''),
     COALESCE(CONVERT(nvarchar(30), [节点种类值]), N''),
     COALESCE([节点种类文本], N''),
+    COALESCE([名称文本], N''),
+    COALESCE([类型文本], N''),
     COALESCE([动作名称], N''),
     COALESCE([动作句柄], N''),
     COALESCE(CONVERT(nvarchar(30), [来源值]), N''),
