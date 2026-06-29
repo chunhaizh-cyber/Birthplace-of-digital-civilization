@@ -7905,6 +7905,7 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
             << "；工作区：" << 私有_转义HTML(工作区) << "</p>"
             << "<div class=\"top-actions\">"
             << "<button id=\"openCameraWindow\" class=\"secondary\" type=\"button\">打开相机窗口</button>"
+            << "<button id=\"openSelfSceneWindow\" class=\"secondary\" type=\"button\">打开自我场景视频窗口</button>"
             << "<span id=\"panelStatus\">"
             << (初始待加载 ? "数据加载中，等待自我运行写入 SQL 投影" : "点击菜单只刷新当前页面数据")
             << "</span></div></header>\n"
@@ -8144,6 +8145,7 @@ const nodeDetail=document.getElementById('sqlNodeDetail');
 const causalInfoDetail=nodeDetail;
 const worldTreeHost=document.getElementById('worldTreeView');
 const openCameraButton=document.getElementById('openCameraWindow');
+const openSelfSceneButton=document.getElementById('openSelfSceneWindow');
 const panelStatus=document.getElementById('panelStatus');
 let causalInfoRoots=[];
 let worldTreeRoots=[];
@@ -9314,10 +9316,19 @@ function openCameraWindow(){
     panelStatus.textContent='静态 HTML 预览不能打开相机窗口。';
   }
 }
+function openSelfSceneWindow(){
+  if(window.chrome&&window.chrome.webview){
+    panelStatus.textContent='正在打开自我场景视频窗口...';
+    window.chrome.webview.postMessage('scene:open-window');
+  }else if(panelStatus){
+    panelStatus.textContent='静态 HTML 预览不能打开自我场景视频窗口。';
+  }
+}
 initMiddlePaneResize();
 buttons.forEach(button=>button.addEventListener('click',()=>activateMenuButton(button,true)));
 filter.addEventListener('input',applyFilter);
 if(openCameraButton)openCameraButton.addEventListener('click',openCameraWindow);
+if(openSelfSceneButton)openSelfSceneButton.addEventListener('click',openSelfSceneWindow);
 document.addEventListener('keydown',event=>{
   if(event.target&&['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName))return;
   if(/^[0-9]$/.test(event.key)){
@@ -9354,6 +9365,11 @@ window.setTimeout(()=>{if(window.chrome&&window.chrome.webview)请求刷新当�
 window.__panelApplyCameraWindowState=function(data){
   if(panelStatus&&data&&typeof data==='object'){
     panelStatus.textContent=data.message||(data.ok?'相机窗口已打开。':'相机窗口打开失败。');
+  }
+};
+window.__panelApplySceneWindowState=function(data){
+  if(panelStatus&&data&&typeof data==='object'){
+    panelStatus.textContent=data.message||(data.ok?'自我场景视频窗口已打开。':'自我场景视频窗口打开失败。');
   }
 };
 window.__panelApplyPageRefresh=应用SQL区段刷新;
@@ -16070,7 +16086,10 @@ std::filesystem::path 默认控制面板HTML路径()
         }
         else if (参数 == "--panel-self-scene"
             || 参数 == "--self-scene-window"
-            || 参数 == "--scene-window") {
+            || 参数 == "--scene-window"
+            || 参数 == "--self-scene-video-window"
+            || 参数 == "--scene-video-window"
+            || 参数 == "--voxel-window") {
             输出 = 枚举_控制面板命令::打开自我场景窗口;
         }
     }

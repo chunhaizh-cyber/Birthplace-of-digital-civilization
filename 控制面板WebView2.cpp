@@ -1821,7 +1821,7 @@ namespace {
             return L"鱼巢相机画面";
         }
         if (用途 == 枚举_WebView2窗口用途::自我场景) {
-            return L"鱼巢自我所在场景";
+            return L"鱼巢自我场景视频窗口";
         }
         return L"鱼巢控制面板";
     }
@@ -1929,6 +1929,7 @@ namespace {
             私有_窗口启动中槽(用途).store(false);
             ShowWindow(窗口, SW_SHOW);
             UpdateWindow(窗口);
+            SetForegroundWindow(窗口);
 
             MSG 消息{};
             while (GetMessageW(&消息, nullptr, 0, 0) > 0) {
@@ -2236,8 +2237,18 @@ void 请求关闭控制面板WebView2窗口() noexcept
 void 等待控制面板WebView2窗口关闭() noexcept
 {
     while (true) {
-        auto* 窗口 = 私有_窗口句柄.load();
-        if (!窗口 || !IsWindow(窗口)) {
+        auto* 控制面板窗口 = 私有_窗口句柄.load();
+        auto* 相机窗口 = 私有_相机播放窗口句柄.load();
+        auto* 自我场景窗口 = 私有_自我场景窗口句柄.load();
+        const bool 控制面板活动 = 私有_控制面板窗口线程运行中.load()
+            || (控制面板窗口 && IsWindow(控制面板窗口));
+        const bool 相机活动 = 私有_相机播放窗口线程运行中.load()
+            || 私有_相机播放窗口启动中.load()
+            || (相机窗口 && IsWindow(相机窗口));
+        const bool 自我场景活动 = 私有_自我场景窗口线程运行中.load()
+            || 私有_自我场景窗口启动中.load()
+            || (自我场景窗口 && IsWindow(自我场景窗口));
+        if (!控制面板活动 && !相机活动 && !自我场景活动) {
             break;
         }
         Sleep(100);
