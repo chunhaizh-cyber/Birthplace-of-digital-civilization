@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <initializer_list>
 #include <limits>
+#include <mutex>
 #include <sstream>
 #include <unordered_map>
 #include <utility>
@@ -31,6 +32,7 @@ namespace {
     constexpr std::uint64_t 私有_三维体素VecU_根 = 1;
     constexpr std::uint64_t 私有_三维体素VecU_节点 = 2;
     constexpr std::uint32_t 私有_三维体素最大细分层数 = 19;
+    std::mutex 私有_特征结构与值写入互斥{};
 
     static_assert(static_cast<I64>(枚举_任务状态::未定义) == 0);
     static_assert(static_cast<I64>(枚举_任务状态::未启动) == 1);
@@ -2251,6 +2253,7 @@ bool 特征类::常用抽象特征已初始化(const 基础信息节点类* 抽�
 // 功能：创建并返回或登记对应对象。
 特征节点类* 特征类::取或创建子特征_按类型(基础信息节点类* 宿主, const 语素入口节点类* 特征类型)
 {
+    std::lock_guard<std::mutex> 锁(私有_特征结构与值写入互斥);
     if (auto* 命中 = 查找子特征_按类型(宿主, 特征类型)) {
         return 命中;
     }
@@ -2587,6 +2590,8 @@ bool 特征类::匹配抽象特征(const 抽象特征节点类* 抽象特征, co
 // 功能：把处理结果写入指定对象、场景或日志。
 特征写入结果 特征类::写入特征值_按参数(特征节点类* 节点, const 特征值& 值, const 写入参数& 参数)
 {
+    std::lock_guard<std::mutex> 锁(私有_特征结构与值写入互斥);
+
     特征写入结果 结果{};
     结果.特征 = 节点;
 
