@@ -2116,6 +2116,179 @@ namespace {
             枚举_信息入口类型::特征模板入口);
     }
 
+    // 功能：把体素局部坐标按存在原点和最小体素边长转换为显示坐标。
+    std::int64_t 私有_体素局部坐标转场景坐标_控制面板(
+        const I64 原点,
+        const std::uint32_t 局部坐标,
+        const std::uint32_t 最小体素边长_mm) noexcept
+    {
+        const auto 值 = static_cast<long double>(原点)
+            + static_cast<long double>(局部坐标) * static_cast<long double>(最小体素边长_mm);
+        if (值 > static_cast<long double>((std::numeric_limits<std::int64_t>::max)())) {
+            return (std::numeric_limits<std::int64_t>::max)();
+        }
+        if (值 < static_cast<long double>((std::numeric_limits<std::int64_t>::min)())) {
+            return (std::numeric_limits<std::int64_t>::min)();
+        }
+        return static_cast<std::int64_t>(值);
+    }
+
+    // 功能：把三维体素链节点追加为控制面板显示用占据块。
+    void 私有_追加自我场景体素显示块_控制面板(
+        const 结构_三维体素链节点信息& 信息,
+        const 场景体素模块::结构_场景体素存在项& 体素项,
+        const std::uint32_t 最小体素边长_mm,
+        结构_控制面板自我场景体素复现项& 输出项) noexcept
+    {
+        if (!信息.有效
+            || 信息.是根
+            || 信息.状态 == 枚举_三维体素链节点状态::空
+            || 信息.边长 == 0
+            || 最小体素边长_mm == 0) {
+            return;
+        }
+
+        ++输出项.解码体素块总数;
+        constexpr std::size_t 每存在体素块显示上限 = 2048;
+        if (输出项.体素块列表.size() >= 每存在体素块显示上限) {
+            return;
+        }
+
+        结构_控制面板自我场景体素块 块{};
+        块.最小X = 私有_体素局部坐标转场景坐标_控制面板(
+            体素项.原点X_mm,
+            信息.x,
+            最小体素边长_mm);
+        块.最小Y = 私有_体素局部坐标转场景坐标_控制面板(
+            体素项.原点Y_mm,
+            信息.y,
+            最小体素边长_mm);
+        块.最小Z = 私有_体素局部坐标转场景坐标_控制面板(
+            体素项.原点Z_mm,
+            信息.z,
+            最小体素边长_mm);
+        块.最大X = 私有_体素局部坐标转场景坐标_控制面板(
+            体素项.原点X_mm,
+            信息.x + 信息.边长,
+            最小体素边长_mm);
+        块.最大Y = 私有_体素局部坐标转场景坐标_控制面板(
+            体素项.原点Y_mm,
+            信息.y + 信息.边长,
+            最小体素边长_mm);
+        块.最大Z = 私有_体素局部坐标转场景坐标_控制面板(
+            体素项.原点Z_mm,
+            信息.z + 信息.边长,
+            最小体素边长_mm);
+        块.层级 = 信息.层级;
+        块.状态 = static_cast<std::uint32_t>(信息.状态);
+        块.占据体素数量 = 信息.占据体素数量;
+        输出项.体素块列表.push_back(std::move(块));
+    }
+
+    // 功能：只读遍历三维体素二分层链，收集可绘制占据块。
+    void 私有_遍历自我场景体素链_控制面板(
+        const 特征值类::节点类* 节点,
+        const 场景体素模块::结构_场景体素存在项& 体素项,
+        const std::uint32_t 最小体素边长_mm,
+        结构_控制面板自我场景体素复现项& 输出项,
+        std::size_t& 已扫描节点数) noexcept
+    {
+        if (!节点 || 已扫描节点数 >= 8192) {
+            return;
+        }
+        ++已扫描节点数;
+
+        结构_三维体素链节点信息 信息{};
+        const auto* 值 = 特征值类::取节点VecU只读指针(节点);
+        if (!值 || !特征类::解析三维体素链节点VecU(*值, 信息) || !信息.有效) {
+            return;
+        }
+
+        if (!信息.是根) {
+            const bool 可绘制块 =
+                信息.状态 == 枚举_三维体素链节点状态::满
+                || (信息.状态 == 枚举_三维体素链节点状态::混合
+                    && (!节点->子 || 信息.层级 >= 信息.最大层级 || 信息.边长 <= 1));
+            if (可绘制块) {
+                私有_追加自我场景体素显示块_控制面板(
+                    信息,
+                    体素项,
+                    最小体素边长_mm,
+                    输出项);
+                return;
+            }
+        }
+
+        if (!节点->子) {
+            return;
+        }
+        auto* 首节点 = 节点->子;
+        auto* 当前 = 首节点;
+        do {
+            私有_遍历自我场景体素链_控制面板(
+                当前,
+                体素项,
+                最小体素边长_mm,
+                输出项,
+                已扫描节点数);
+            当前 = 当前->下;
+        } while (当前 && 当前 != 首节点 && 已扫描节点数 < 8192);
+    }
+
+    // 功能：从体素根句柄只读解析控制面板显示所需的体素形状。
+    void 私有_解码自我场景体素形状_控制面板(
+        const 场景体素模块::结构_场景体素存在项& 体素项,
+        结构_控制面板自我场景体素复现项& 输出项) noexcept
+    {
+        auto* 根节点 = 世界树.值池().取节点(体素项.三维体素根句柄);
+        if (!根节点) {
+            return;
+        }
+
+        结构_三维体素链节点信息 根信息{};
+        const auto* 根值 = 特征值类::取节点VecU只读指针(根节点);
+        if (!根值
+            || !特征类::解析三维体素链节点VecU(*根值, 根信息)
+            || !根信息.有效
+            || !根信息.是根) {
+            return;
+        }
+
+        输出项.根最大层级 = 根信息.最大层级;
+        输出项.根边长体素 = 根信息.边长;
+        输出项.原始宽度 = 根信息.原始宽度;
+        输出项.原始高度 = 根信息.原始高度;
+        输出项.原始深度 = 根信息.原始深度;
+        输出项.根占据体素数量 = 根信息.占据体素数量;
+        if (根信息.最小体素边长_mm > 0) {
+            输出项.最小体素边长_mm = 根信息.最小体素边长_mm;
+        }
+        const std::uint32_t 最小体素边长_mm = 输出项.最小体素边长_mm > 0
+            ? 输出项.最小体素边长_mm
+            : 1u;
+
+        if (!根节点->子
+            && 根信息.状态 != 枚举_三维体素链节点状态::空
+            && 根信息.边长 > 0) {
+            auto 根块 = 根信息;
+            根块.是根 = false;
+            私有_追加自我场景体素显示块_控制面板(
+                根块,
+                体素项,
+                最小体素边长_mm,
+                输出项);
+            return;
+        }
+
+        std::size_t 已扫描节点数 = 0;
+        私有_遍历自我场景体素链_控制面板(
+            根节点,
+            体素项,
+            最小体素边长_mm,
+            输出项,
+            已扫描节点数);
+    }
+
     // 功能：从自我所在场景只读生成控制面板体素显示快照。
     void 私有_读取自我场景体素复现快照(
         场景节点类* 自我所在场景,
@@ -2191,6 +2364,7 @@ namespace {
             项.原点Y = 体素项.原点Y_mm;
             项.原点Z = 体素项.原点Z_mm;
             项.最小体素边长_mm = 体素项.最小体素边长_mm;
+            私有_解码自我场景体素形状_控制面板(体素项, 项);
             快照.自我场景体素复现项列表.push_back(std::move(项));
         }
     }
@@ -9644,6 +9818,33 @@ window.__panelApplyDetail=function(){};
             输出 << ",\"origin\":";
             追加JSON_I64数组3(输出, 项.原点X, 项.原点Y, 项.原点Z);
             输出 << ",\"minVoxelMm\":" << 项.最小体素边长_mm;
+            输出 << ",\"rootLevel\":" << 项.根最大层级;
+            输出 << ",\"gridEdge\":" << 项.根边长体素;
+            输出 << ",\"originalSize\":";
+            追加JSON_I64数组3(
+                输出,
+                static_cast<I64>(项.原始宽度),
+                static_cast<I64>(项.原始高度),
+                static_cast<I64>(项.原始深度));
+            输出 << ",\"occupiedVoxels\":" << 项.根占据体素数量;
+            输出 << ",\"decodedBlocks\":" << 项.解码体素块总数;
+            输出 << ",\"blocks\":[";
+            for (std::size_t 块索引 = 0; 块索引 < 项.体素块列表.size(); ++块索引) {
+                if (块索引 > 0) {
+                    输出 << ",";
+                }
+                const auto& 块 = 项.体素块列表[块索引];
+                输出 << "{";
+                输出 << "\"min\":";
+                追加JSON_I64数组3(输出, 块.最小X, 块.最小Y, 块.最小Z);
+                输出 << ",\"max\":";
+                追加JSON_I64数组3(输出, 块.最大X, 块.最大Y, 块.最大Z);
+                输出 << ",\"level\":" << 块.层级;
+                输出 << ",\"state\":" << 块.状态;
+                输出 << ",\"occupied\":" << 块.占据体素数量;
+                输出 << "}";
+            }
+            输出 << "]";
             输出 << "}";
         }
         输出 << "]";
@@ -9757,6 +9958,25 @@ window.__panelApplyDetail=function(){};
             混合I64(项.原点Y);
             混合I64(项.原点Z);
             混合I64(项.最小体素边长_mm);
+            混合I64(项.根最大层级);
+            混合I64(项.根边长体素);
+            混合I64(项.原始宽度);
+            混合I64(项.原始高度);
+            混合I64(项.原始深度);
+            混合U64(项.根占据体素数量);
+            混合U64(项.解码体素块总数);
+            混合I64(项.体素块列表.size());
+            for (const auto& 块 : 项.体素块列表) {
+                混合I64(块.最小X);
+                混合I64(块.最小Y);
+                混合I64(块.最小Z);
+                混合I64(块.最大X);
+                混合I64(块.最大Y);
+                混合I64(块.最大Z);
+                混合I64(块.层级);
+                混合I64(块.状态);
+                混合U64(块.占据体素数量);
+            }
         }
         混合I64(快照.自我场景诊断区域列表.size());
         for (const auto& 区域 : 快照.自我场景诊断区域列表) {
@@ -15176,12 +15396,19 @@ std::string 私有_生成控制面板HTML(
       return 自我场景数组3(item?.origin);
     }
 
+    function 读取自我场景体素块列表(item) {
+      return Array.isArray(item?.blocks) ? item.blocks : [];
+    }
+
     function 读取自我场景体素统计(data) {
       const items = 读取自我场景体素列表(data);
       let withOrigin = 0;
       let withHandle = 0;
       let minEdge = 0;
       let maxEdge = 0;
+      let decodedBlocks = 0;
+      let visibleBlocks = 0;
+      let occupiedVoxels = 0;
       items.forEach((item) => {
         const origin = item?.origin;
         if (Array.isArray(origin) && origin.length >= 3) withOrigin += 1;
@@ -15191,13 +15418,19 @@ std::string 私有_生成控制面板HTML(
           minEdge = minEdge > 0 ? Math.min(minEdge, edge) : edge;
           maxEdge = Math.max(maxEdge, edge);
         }
+        decodedBlocks += Math.max(0, Number(item?.decodedBlocks || 0));
+        visibleBlocks += 读取自我场景体素块列表(item).length;
+        occupiedVoxels += Math.max(0, Number(item?.occupiedVoxels || 0));
       });
       return {
         total: items.length,
         withOrigin,
         withHandle,
         minEdge,
-        maxEdge
+        maxEdge,
+        decodedBlocks,
+        visibleBlocks,
+        occupiedVoxels
       };
     }
 
@@ -15228,9 +15461,13 @@ std::string 私有_生成控制面板HTML(
         const meta = document.createElement('div');
         meta.className = 'scene-existence-meta';
         const edge = Math.max(0, Number(item?.minVoxelMm || 0));
+        const blocks = 读取自我场景体素块列表(item);
         const parts = [
           `原点 ${格式化场景三元组(自我场景体素原点(item))}`,
           `边长 ${edge}`,
+          `网格 ${格式化场景三元组(item?.originalSize || [0, 0, 0])}`,
+          `占据 ${Number(item?.occupiedVoxels || 0)}`,
+          `块 ${blocks.length}/${Number(item?.decodedBlocks || 0)}`,
           `根 ${Number(item?.rootHandle || 0)}`,
           `特征 ${Number(item?.featurePtr || 0)}`
         ];
@@ -15262,8 +15499,8 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-rendered-existence-stat', `${existenceStats.withCenter}/${existenceStats.total} 个 / AABB ${existenceStats.withRange} / 颜色 ${data.realColorStateExistenceCount || 0} / 彩图 ${data.realTextureExistenceCount || 0}`);
       设置自我场景文本('scene-existence-range-stat', `自我场景 ${existenceStats.fromScene} / 宿主 ${existenceStats.fromHost} / 子树 ${data.sceneSubtreeExistences || 0}`);
       设置自我场景文本('scene-voxel-version-stat', `${data.voxelSnapshotOk ? '有效' : '无'} / V${data.voxelVersion || 0} / 坐标系 ${data.voxelCoordinateVersion || 0}`);
-      设置自我场景文本('scene-voxel-summary-stat', `${voxelStats.withOrigin}/${voxelStats.total} 个 / 入选 ${data.voxelSelectedExistences || 0} / 枚举 ${data.voxelEnumeratedExistences || 0}`);
-      设置自我场景文本('scene-voxel-source-stat', `坐标 ${data.voxelWithCoordinateExistences || 0} / 模型 ${data.voxelWithModelExistences || 0} / 根句柄 ${voxelStats.withHandle} / 边长 ${voxelStats.minEdge || 0}-${voxelStats.maxEdge || 0}`);
+      设置自我场景文本('scene-voxel-summary-stat', `${voxelStats.withOrigin}/${voxelStats.total} 个 / 入选 ${data.voxelSelectedExistences || 0} / 枚举 ${data.voxelEnumeratedExistences || 0} / 占据 ${voxelStats.occupiedVoxels}`);
+      设置自我场景文本('scene-voxel-source-stat', `坐标 ${data.voxelWithCoordinateExistences || 0} / 模型 ${data.voxelWithModelExistences || 0} / 根句柄 ${voxelStats.withHandle} / 块 ${voxelStats.visibleBlocks}/${voxelStats.decodedBlocks} / 边长 ${voxelStats.minEdge || 0}-${voxelStats.maxEdge || 0}`);
       设置自我场景文本('scene-voxel-gap-stat', `总 ${data.voxelGapCount || 0} / 类型 ${data.voxelMissingFeatureTypeCount || 0} / 坐标 ${data.voxelMissingCoordinateCount || 0} / 模型 ${data.voxelMissingModelCount || 0} / 版本 ${data.voxelMissingCoordinateVersionCount || 0}`);
       设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
@@ -15321,9 +15558,12 @@ std::string 私有_生成控制面板HTML(
       const hasScenePointer = !!data.scenePtr;
       const total = geometry ? Number(geometry.existenceTotalCount || 0) : 读取自我场景存在总量(data);
       const rendered = geometry ? Number(geometry.existenceNodeCount || 0) : 读取自我场景存在统计(data).withCenter;
-      const voxelTotal = geometry ? Number(geometry.voxelTotalCount || 0) : 读取自我场景体素统计(data).total;
-      const voxelRendered = geometry ? Number(geometry.voxelNodeCount || 0) : 读取自我场景体素统计(data).withOrigin;
-      const voxelText = voxelTotal > 0 ? ` 体素 ${voxelRendered}/${voxelTotal}。` : '';
+      const voxelStats = 读取自我场景体素统计(data);
+      const voxelTotal = geometry ? Number(geometry.voxelTotalCount || 0) : voxelStats.visibleBlocks;
+      const voxelRendered = geometry ? Number(geometry.voxelNodeCount || 0) : voxelStats.visibleBlocks;
+      const voxelText = voxelTotal > 0
+        ? ` 解码体素块 ${voxelRendered}/${voxelTotal}，占据体素 ${voxelStats.occupiedVoxels}，体素存在 ${voxelStats.total}。`
+        : '';
       const text = total > 0 || voxelTotal > 0
         ? `已从自我所在场景指针绘制 ${rendered}/${total} 个存在。${voxelText}`
         : (hasScenePointer ? '自我所在场景存在列表为空。' : '自我所在场景指针为空。');
@@ -15538,6 +15778,14 @@ std::string 私有_生成控制面板HTML(
         }
       });
       读取自我场景体素列表(data).forEach((item) => {
+        const blocks = 读取自我场景体素块列表(item);
+        if (blocks.length > 0) {
+          blocks.forEach((block) => {
+            自我场景纳入范围(min, max, 自我场景数组3(block?.min));
+            自我场景纳入范围(min, max, 自我场景数组3(block?.max));
+          });
+          return;
+        }
         const origin = 自我场景体素原点(item);
         const edge = Math.max(10, Number(item?.minVoxelMm || 0));
         自我场景纳入范围(min, max, [origin[0] - edge, origin[1] - edge, origin[2] - edge]);
@@ -15671,9 +15919,24 @@ std::string 私有_生成控制面板HTML(
       });
 
       const voxelItems = 读取自我场景体素列表(data || {});
-      const voxelRenderLimit = 512;
+      const voxelRenderLimit = 4096;
       let voxelRendered = 0;
-      voxelItems.slice(0, voxelRenderLimit).forEach((item) => {
+      voxelItems.forEach((item) => {
+        if (voxelRendered >= voxelRenderLimit) return;
+        const blocks = 读取自我场景体素块列表(item);
+        if (blocks.length > 0) {
+          blocks.forEach((block) => {
+            if (voxelRendered >= voxelRenderLimit) return;
+            const mn = 自我场景数组3(block?.min);
+            const mx = 自我场景数组3(block?.max);
+            pushBox(mn, mx, 自我场景体素盒颜色(item));
+            pushPoint(
+              [(mn[0] + mx[0]) / 2, (mn[1] + mx[1]) / 2, (mn[2] + mx[2]) / 2],
+              自我场景体素显示颜色(item));
+            voxelRendered += 1;
+          });
+          return;
+        }
         const origin = 自我场景体素原点(item);
         const edge = Math.max(10, Number(item?.minVoxelMm || 0));
         const half = edge / 2;
@@ -15703,7 +15966,10 @@ std::string 私有_生成控制面板HTML(
         existenceNodeCount: existenceView.rendered,
         existenceTotalCount: existenceView.total,
         voxelNodeCount: voxelRendered,
-        voxelTotalCount: voxelItems.length
+        voxelTotalCount: voxelItems.reduce((sum, item) => {
+          const blocks = 读取自我场景体素块列表(item);
+          return sum + (blocks.length > 0 ? blocks.length : 1);
+        }, 0)
       };
     }
 

@@ -81,6 +81,18 @@ struct 结构_控制面板自我场景存在复现项 {
     std::int64_t 空间极值轮廓点数 = 0;
 };
 
+struct 结构_控制面板自我场景体素块 {
+    std::int64_t 最小X = 0;
+    std::int64_t 最小Y = 0;
+    std::int64_t 最小Z = 0;
+    std::int64_t 最大X = 0;
+    std::int64_t 最大Y = 0;
+    std::int64_t 最大Z = 0;
+    std::uint32_t 层级 = 0;
+    std::uint32_t 状态 = 0;
+    std::uint64_t 占据体素数量 = 0;
+};
+
 struct 结构_控制面板自我场景体素复现项 {
     std::uintptr_t 存在指针 = 0;
     std::uintptr_t 体素特征指针 = 0;
@@ -90,6 +102,14 @@ struct 结构_控制面板自我场景体素复现项 {
     std::int64_t 原点Y = 0;
     std::int64_t 原点Z = 0;
     std::uint32_t 最小体素边长_mm = 0;
+    std::uint32_t 根最大层级 = 0;
+    std::uint32_t 根边长体素 = 0;
+    std::uint32_t 原始宽度 = 0;
+    std::uint32_t 原始高度 = 0;
+    std::uint32_t 原始深度 = 0;
+    std::uint64_t 根占据体素数量 = 0;
+    std::uint64_t 解码体素块总数 = 0;
+    std::vector<结构_控制面板自我场景体素块> 体素块列表{};
 };
 
 struct 结构_控制面板快照 {
