@@ -6859,15 +6859,7 @@ SELECT
     COALESCE([值类别], N'') AS [值类别],
     COALESCE([值文本], N'') AS [值文本],
     COALESCE([辅助文本], N'') AS [辅助文本]
-FROM [鱼巢].[当前世界树节点] n
-WHERE n.[节点类型] = N'因果'
-  AND NOT EXISTS (
-      SELECT 1
-      FROM [鱼巢].[当前世界树节点] ancestor
-      WHERE ancestor.[节点类型] = N'因果'
-        AND ancestor.[节点主键] <> n.[节点主键]
-        AND n.[路径文本] LIKE ancestor.[路径文本] + N'/%'
-  )
+FROM [鱼巢].[当前因果面板节点]
 ORDER BY [行号];
 )SQL",
                 &结构_SQL控制面板数据::因果信息
@@ -6883,19 +6875,7 @@ SELECT
     COALESCE([目标主键], N'') AS [目标主键],
     COALESCE([目标文本], N'') AS [目标文本],
     CONVERT(nvarchar(20), [序号]) AS [序号]
-FROM [鱼巢].[当前世界树关系]
-WHERE [宿主主键] IN (
-    SELECT [节点主键]
-    FROM [鱼巢].[当前世界树节点] n
-    WHERE n.[节点类型] = N'因果'
-      AND NOT EXISTS (
-          SELECT 1
-          FROM [鱼巢].[当前世界树节点] ancestor
-          WHERE ancestor.[节点类型] = N'因果'
-            AND ancestor.[节点主键] <> n.[节点主键]
-            AND n.[路径文本] LIKE ancestor.[路径文本] + N'/%'
-      )
-)
+FROM [鱼巢].[当前因果面板关系]
 ORDER BY [宿主主键], [序号], [关系名];
 )SQL",
                 &结构_SQL控制面板数据::因果信息关系
@@ -7426,6 +7406,8 @@ ORDER BY [行号];
 
     // 功能：按世界树节点键集合读取关系行。
     bool 私有_读取SQL世界树关系行集(
+        std::string_view 查询名,
+        std::string_view 来源视图,
         const std::vector<std::vector<std::string>>& 节点行集,
         std::vector<std::vector<std::string>>& 关系行集,
         std::string& 错误)
@@ -7454,13 +7436,15 @@ SELECT
     COALESCE([目标主键], N'') AS [目标主键],
     COALESCE([目标文本], N'') AS [目标文本],
     CONVERT(nvarchar(20), COALESCE([序号], 0)) AS [序号]
-FROM [鱼巢].[当前世界树关系]
+FROM )SQL";
+            SQL += 来源视图;
+            SQL += R"SQL(
 WHERE [宿主主键] IN ()SQL";
             SQL += IN列表;
             SQL += ") ORDER BY [行号];";
 
             std::vector<std::vector<std::string>> 本批行集{};
-            if (!私有_读取SQL控制面板子链行集("世界树子链关系", SQL, 本批行集, 错误)) {
+            if (!私有_读取SQL控制面板子链行集(std::string(查询名), SQL, 本批行集, 错误)) {
                 return false;
             }
             for (auto& 行 : 本批行集) {
@@ -7619,7 +7603,7 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             std::vector<std::vector<std::string>> 关系行集{};
-            if (!私有_读取SQL世界树关系行集(行集, 关系行集, 错误)) {
+            if (!私有_读取SQL世界树关系行集("世界树子链关系", "[鱼巢].[当前世界树关系]", 行集, 关系行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 行集, 关系行集);
@@ -7636,11 +7620,11 @@ COALESCE([类型文本], N'') AS [类型文本],
 COALESCE([值类别], N'') AS [值类别],
 COALESCE([值文本], N'') AS [值文本],
 COALESCE([辅助文本], N'') AS [辅助文本])SQL";
-            if (!私有_读取SQL树直接子层("因果信息子层", "[鱼巢].[当前世界树节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
+            if (!私有_读取SQL树直接子层("因果信息子层", "[鱼巢].[当前因果面板节点]", "[父节点主键]", 字段, 节点键, 行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             std::vector<std::vector<std::string>> 关系行集{};
-            if (!私有_读取SQL世界树关系行集(行集, 关系行集, 错误)) {
+            if (!私有_读取SQL世界树关系行集("因果信息子链关系", "[鱼巢].[当前因果面板关系]", 行集, 关系行集, 错误)) {
                 return 私有_SQL控制面板子链错误JSON(区段ID, 节点键, 错误);
             }
             return 私有_SQL控制面板世界树子链JSON(区段ID, 节点键, 行集, 关系行集);
@@ -7900,7 +7884,7 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
             << "<div class=\"world-tree-grid\"><div class=\"tree-panel\">"
             << "<div class=\"tree-toolbar\"><button id=\"causalInfoExpand\" type=\"button\">展开两层</button>"
             << "<button id=\"causalInfoCollapse\" type=\"button\">收起</button>"
-            << "<span class=\"note\">SQL 世界树根链因果根节点：" << 数据.因果信息.size()
+            << "<span class=\"note\">SQL 因果面板视图节点：" << 数据.因果信息.size()
             << "；组成关系：" << 数据.因果信息关系.size() << "</span></div>"
             << "<div id=\"causalInfoTreeView\" class=\"tree-view\"></div></div></div></section>\n";
         私有_追加SQL控制面板表(
@@ -8677,7 +8661,7 @@ function renderSQLCausalInfoSection(data){
   }
   resetCausalInfoIndexes(rows,relations);
   const note=document.querySelector('#causalInfo .tree-toolbar .note');
-  if(note)note.textContent=`SQL 世界树根链因果根节点：${rows.length}；组成关系：${relations.length}`;
+  if(note)note.textContent=`SQL 因果面板视图节点：${rows.length}；组成关系：${relations.length}`;
   buildCausalInfoTree();
   applyFilter();
   if(isSectionActive('causalInfo')){
@@ -8990,8 +8974,8 @@ function buildCausalInfoTree(){
   root.onSelect=()=>{
     showNodeDetail('因果信息','世界树因果根节点',[
       ['当前根节点数',String(causalInfoRoots.length)],
-      ['加载口径','无因果父祖先的因果节点'],
-      ['展开方式','点击因果根节点加载一层子链']
+      ['加载口径','[鱼巢].[当前因果面板节点]'],
+      ['展开方式','因果节点与关系节点均由数据库视图加工']
     ]);
     if(!causalInfoRoots.length&&panelStatus)panelStatus.textContent='当前因果信息没有可展开的根节点。';
   };
@@ -10457,7 +10441,7 @@ WHERE [节点主键] = )SQL";
     记录快照阶段("世界树SQL视图占位构建完成");
 
     auto 因果信息根 = 私有_新节点(
-        "因果信息 | 来源=[鱼巢].[当前世界树节点] | 初始页不强读SQL投影",
+        "因果信息 | 来源=[鱼巢].[当前因果面板节点] | 初始页不强读SQL投影",
         0,
         true);
     因果信息根.子项.push_back(私有_新节点("请刷新因果信息页读取数据库加工视图"));
@@ -10640,7 +10624,7 @@ std::string 读取控制面板页面刷新JSON(std::string_view 页面)
         return 读取SQL投影树页(
             页面,
             "世界树",
-            "[鱼巢].[当前世界树节点]",
+            "[鱼巢].[当前因果面板节点]",
             R"SQL(
 SELECT TOP (300)
     COALESCE([节点主键], N'') AS [节点主键],
@@ -10676,8 +10660,7 @@ SELECT TOP (300)
     COALESCE([值类别], N'') AS [值类别],
     COALESCE([值文本], N'') AS [值文本],
     COALESCE([辅助文本], N'') AS [辅助文本]
-FROM [鱼巢].[当前世界树节点]
-WHERE [节点类型] = N'因果'
+FROM [鱼巢].[当前因果面板节点]
 ORDER BY [行号];
 )SQL",
             "当前 SQL 因果信息视图暂无节点");
@@ -11728,7 +11711,7 @@ std::string 私有_生成控制面板HTML(
     const auto 因果信息摘要 = 私有_转义HTML(
         "因果模板=" + std::to_string(快照.因果模板数)
         + " | 证据动态样本=" + std::to_string(快照.因果证据动态样本数)
-        + " | 来源=世界树因果主信息");
+        + " | 来源=[鱼巢].[当前因果面板节点]");
     const auto 需求树摘要 = 私有_转义HTML(
         "需求数=" + std::to_string(快照.需求数)
         + " | " + 私有_需求满足数量摘要(快照)
@@ -12977,7 +12960,7 @@ std::string 私有_生成控制面板HTML(
           </div>
         </section>
 
-        <section class="page" data-page="causal-info" data-title="因果信息" data-subtitle="从 SQL 投影视图读取因果节点；控制面板不直接拼 live 原始树。">
+        <section class="page" data-page="causal-info" data-title="因果信息" data-subtitle="从 SQL 因果面板视图读取节点和关系；控制面板不直接拼 live 原始树。">
           <div class="workspace">
             <section class="panel tree-panel">
               <div class="panel-topline">因果账本</div>
@@ -13473,7 +13456,7 @@ std::string 私有_生成控制面板HTML(
       'causal-info': {
         treeHost: 'tree-causal-info',
         detailHost: 'detail-causal-info',
-        detailHint: '因果信息页读取 [鱼巢].[当前世界树节点] 中的因果节点；右侧显示 SQL 视图加工后的名称和类型。'
+        detailHint: '因果信息页读取 [鱼巢].[当前因果面板节点]；右侧显示 SQL 视图加工后的名称、类型和因果关系。'
       },
       'need-tree': {
         treeHost: 'tree-need-tree',

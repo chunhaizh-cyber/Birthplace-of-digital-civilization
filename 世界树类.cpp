@@ -1031,6 +1031,8 @@ namespace {
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树根树节点]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树根树节点];\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树根树节点主信息]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树根树节点主信息];\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树根树]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树根树];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前因果面板关系]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前因果面板关系];\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前因果面板节点]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前因果面板节点];\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树节点详情]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树节点详情];\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树主信息]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树主信息];\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前世界树关系]', N'V') IS NOT NULL DROP VIEW [鱼巢].[当前世界树关系];\n"
@@ -1185,6 +1187,198 @@ namespace {
             << "    AND ((r.[目标行号] > 0 AND t.[行号] = r.[目标行号])\n"
             << "        OR ((r.[目标行号] IS NULL OR r.[目标行号] <= 0) AND t.[节点主键] = r.[目标主键]))\n"
             << "WHERE r.[快照标识] = (SELECT TOP (1) [快照标识] FROM [鱼巢].[世界树快照] ORDER BY [捕获时间] DESC);');\n";
+        SQL << R"SQL(EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前因果面板节点] AS
+WITH 因果本体 AS (
+    SELECT
+        n.[记录标识],
+        n.[快照标识],
+        n.[行号],
+        n.[节点主键],
+        父因果.[父因果主键] AS [父节点主键],
+        n.[深度],
+        n.[同层序号],
+        n.[直接子数量],
+        n.[路径文本],
+        n.[显示文本],
+        n.[名称主键],
+        n.[名称文本],
+        n.[类型主键],
+        n.[类型文本],
+        p.[适用锚点类型值],
+        p.[适用层级],
+        p.[观察次数],
+        p.[条件命中次数],
+        p.[因出现次数],
+        p.[果出现次数],
+        p.[成立次数],
+        p.[失败次数],
+        p.[最近命中时间],
+        p.[最近失败时间],
+        p.[已验证],
+        CASE p.[适用锚点类型值]
+            WHEN 1 THEN N''场景''
+            WHEN 2 THEN N''存在''
+            ELSE N''未定义''
+        END AS [适用锚点类型文本],
+        主果.[目标文本] AS [主果文本],
+        果.[目标文本] AS [果文本],
+        条件.[目标文本] AS [条件文本],
+        动作.[目标文本] AS [因方法文本],
+        COALESCE(关系统计.[条件数量], 0) AS [条件数量],
+        COALESCE(关系统计.[结果数量], 0) AS [结果数量],
+        COALESCE(关系统计.[证据数量], 0) AS [证据数量],
+        COALESCE(关系统计.[动作数量], 0) AS [动作数量]
+    FROM [鱼巢].[当前世界树节点] n
+    JOIN [鱼巢].[世界树因果主信息] p
+        ON p.[快照标识] = n.[快照标识] AND p.[节点行号] = n.[行号]
+    OUTER APPLY (
+        SELECT TOP (1) a.[节点主键] AS [父因果主键]
+        FROM [鱼巢].[当前世界树节点] a
+        WHERE a.[节点类型] = N''因果''
+          AND a.[节点主键] <> n.[节点主键]
+          AND n.[路径文本] LIKE a.[路径文本] + N''/%''
+        ORDER BY LEN(a.[路径文本]) DESC
+    ) 父因果
+    OUTER APPLY (
+        SELECT TOP (1) r.[目标文本]
+        FROM [鱼巢].[当前世界树关系] r
+        WHERE r.[宿主主键] = n.[节点主键] AND r.[关系名] = N''主果比较模板''
+        ORDER BY r.[序号], r.[行号]
+    ) 主果
+    OUTER APPLY (
+        SELECT TOP (1) r.[目标文本]
+        FROM [鱼巢].[当前世界树关系] r
+        WHERE r.[宿主主键] = n.[节点主键] AND r.[关系名] = N''果比较模板''
+        ORDER BY r.[序号], r.[行号]
+    ) 果
+    OUTER APPLY (
+        SELECT TOP (1) r.[目标文本]
+        FROM [鱼巢].[当前世界树关系] r
+        WHERE r.[宿主主键] = n.[节点主键] AND r.[关系名] = N''条件比较模板''
+        ORDER BY r.[序号], r.[行号]
+    ) 条件
+    OUTER APPLY (
+        SELECT TOP (1) r.[目标文本]
+        FROM [鱼巢].[当前世界树关系] r
+        WHERE r.[宿主主键] = n.[节点主键] AND r.[关系名] = N''因方法模板''
+        ORDER BY r.[序号], r.[行号]
+    ) 动作
+    OUTER APPLY (
+        SELECT
+            SUM(CASE WHEN r.[关系名] = N''条件比较模板'' THEN 1 ELSE 0 END) AS [条件数量],
+            SUM(CASE WHEN r.[关系名] = N''果比较模板'' OR r.[关系名] = N''主果比较模板'' THEN 1 ELSE 0 END) AS [结果数量],
+            SUM(CASE WHEN r.[关系名] = N''证据动态样本'' THEN 1 ELSE 0 END) AS [证据数量],
+            SUM(CASE WHEN r.[关系名] = N''因方法模板'' THEN 1 ELSE 0 END) AS [动作数量]
+        FROM [鱼巢].[当前世界树关系] r
+        WHERE r.[宿主主键] = n.[节点主键]
+    ) 关系统计
+),
+因果节点 AS (
+    SELECT
+        c.[记录标识],
+        c.[快照标识],
+        c.[行号] * 1000 AS [行号],
+        c.[节点主键],
+        c.[父节点主键],
+        c.[深度],
+        c.[同层序号],
+        c.[直接子数量],
+        c.[路径文本],
+        N''因果'' AS [节点类型],
+        COALESCE(NULLIF(c.[名称文本], N''''), NULLIF(c.[果文本], N''''), NULLIF(c.[主果文本], N''''), NULLIF(c.[条件文本], N''''), c.[节点主键]) AS [显示文本],
+        23 AS [主信息类型值],
+        N''因果'' AS [主信息类型文本],
+        c.[名称主键],
+        CASE
+            WHEN NULLIF(c.[名称文本], N'''') IS NOT NULL THEN c.[名称文本]
+            WHEN COALESCE(c.[动作数量], 0) > 0 THEN N''动作致变：'' + COALESCE(NULLIF(c.[果文本], N''''), NULLIF(c.[主果文本], N''''), c.[节点主键])
+            ELSE N''状态变化：'' + COALESCE(NULLIF(c.[果文本], N''''), NULLIF(c.[主果文本], N''''), NULLIF(c.[条件文本], N''''), c.[节点主键])
+        END AS [名称文本],
+        c.[类型主键],
+        CASE
+            WHEN NULLIF(c.[类型文本], N'''') IS NOT NULL THEN c.[类型文本]
+            WHEN COALESCE(c.[动作数量], 0) > 0 THEN N''动作致变因果''
+            WHEN c.[已验证] = 1 THEN N''状态变化因果''
+            ELSE N''状态变化线索''
+        END AS [类型文本],
+        N''稳定度'' AS [值类别],
+        CONVERT(nvarchar(80), c.[成立次数] - c.[失败次数]) AS [值文本],
+        CONCAT(
+            N''锚点='', c.[适用锚点类型文本],
+            N'' | 层级='', CONVERT(nvarchar(20), c.[适用层级]),
+            N'' | 观察='', CONVERT(nvarchar(30), c.[观察次数]),
+            N'' | 成立='', CONVERT(nvarchar(30), c.[成立次数]),
+            N'' | 失败='', CONVERT(nvarchar(30), c.[失败次数]),
+            N'' | 条件='', CONVERT(nvarchar(20), c.[条件数量]),
+            N'' | 结果='', CONVERT(nvarchar(20), c.[结果数量]),
+            N'' | 证据='', CONVERT(nvarchar(20), c.[证据数量]),
+            N'' | 已验证='', CASE WHEN c.[已验证] = 1 THEN N''是'' ELSE N''否'' END
+        ) AS [辅助文本],
+        c.[节点主键] AS [因果节点主键],
+        N''因果节点'' AS [面板节点角色]
+    FROM 因果本体 c
+),
+关系节点 AS (
+    SELECT
+        r.[记录标识],
+        r.[快照标识],
+        c.[行号] * 1000 + 100 + ROW_NUMBER() OVER(PARTITION BY r.[宿主主键] ORDER BY r.[序号], r.[行号]) AS [行号],
+        CONCAT(r.[宿主主键], N''|关系|'', r.[关系名], N''|'', CONVERT(nvarchar(20), r.[序号]), N''|'', COALESCE(r.[目标主键], N'''')) AS [节点主键],
+        r.[宿主主键] AS [父节点主键],
+        c.[深度] + 1 AS [深度],
+        ROW_NUMBER() OVER(PARTITION BY r.[宿主主键] ORDER BY r.[序号], r.[行号]) - 1 AS [同层序号],
+        0 AS [直接子数量],
+        CONCAT(c.[路径文本], N''/'', r.[关系名], N''/'', COALESCE(r.[目标主键], N'''')) AS [路径文本],
+        COALESCE(NULLIF(r.[关系名], N''''), N''因果关系'') AS [节点类型],
+        COALESCE(NULLIF(t.[名称文本], N''''), NULLIF(t.[显示文本], N''''), NULLIF(r.[目标文本], N''''), NULLIF(r.[目标主键], N''''), r.[关系名]) AS [显示文本],
+        CAST(NULL AS int) AS [主信息类型值],
+        N''因果关系'' AS [主信息类型文本],
+        CAST(NULL AS nvarchar(80)) AS [名称主键],
+        COALESCE(NULLIF(t.[名称文本], N''''), NULLIF(t.[显示文本], N''''), NULLIF(r.[目标文本], N''''), NULLIF(r.[目标主键], N''''), r.[关系名]) AS [名称文本],
+        CAST(NULL AS nvarchar(80)) AS [类型主键],
+        COALESCE(NULLIF(t.[主信息类型文本], N''''), NULLIF(r.[目标类别], N''''), r.[关系名]) AS [类型文本],
+        N''关系'' AS [值类别],
+        COALESCE(NULLIF(r.[关系名], N''''), N''因果关系'') AS [值文本],
+        CONCAT(
+            N''目标主键='', COALESCE(NULLIF(r.[目标主键], N''''), N''空''),
+            N'' | 目标类型='', COALESCE(NULLIF(t.[主信息类型文本], N''''), NULLIF(r.[目标类别], N''''), N''空''),
+            N'' | 序号='', CONVERT(nvarchar(20), r.[序号])
+        ) AS [辅助文本],
+        r.[宿主主键] AS [因果节点主键],
+        N''因果关系'' AS [面板节点角色]
+    FROM [鱼巢].[当前世界树关系] r
+    JOIN 因果本体 c
+        ON c.[节点主键] = r.[宿主主键]
+    LEFT JOIN [鱼巢].[当前世界树节点] t
+        ON t.[快照标识] = r.[快照标识]
+        AND ((r.[目标行号] > 0 AND t.[行号] = r.[目标行号])
+            OR ((r.[目标行号] IS NULL OR r.[目标行号] <= 0) AND t.[节点主键] = r.[目标主键]))
+)
+SELECT * FROM 因果节点
+UNION ALL
+SELECT * FROM 关系节点;');
+EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前因果面板关系] AS
+SELECT
+    r.[记录标识],
+    r.[快照标识],
+    r.[行号],
+    r.[宿主主键],
+    r.[关系名],
+    COALESCE(NULLIF(t.[主信息类型文本], N''''), NULLIF(r.[目标类别], N''''), N'''') AS [目标类别],
+    r.[目标主键],
+    COALESCE(NULLIF(t.[名称文本], N''''), NULLIF(t.[显示文本], N''''), NULLIF(r.[目标文本], N''''), r.[目标主键]) AS [目标文本],
+    r.[序号],
+    c.[名称文本] AS [宿主因果名称],
+    c.[类型文本] AS [宿主因果类型]
+FROM [鱼巢].[当前世界树关系] r
+JOIN [鱼巢].[当前因果面板节点] c
+    ON c.[节点主键] = r.[宿主主键]
+   AND c.[面板节点角色] = N''因果节点''
+LEFT JOIN [鱼巢].[当前世界树节点] t
+    ON t.[快照标识] = r.[快照标识]
+    AND ((r.[目标行号] > 0 AND t.[行号] = r.[目标行号])
+        OR ((r.[目标行号] IS NULL OR r.[目标行号] <= 0) AND t.[节点主键] = r.[目标主键]));');
+)SQL";
         SQL << "EXEC(N'CREATE OR ALTER VIEW [鱼巢].[当前世界树节点详情] AS\n"
             << "SELECT n.[节点主键], v.[排序], v.[字段名], v.[字段类型], v.[字段值],\n"
             << "    CAST(NULL AS nvarchar(80)) AS [指针主键],\n"
