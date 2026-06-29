@@ -6531,6 +6531,11 @@ namespace {
     };
 
     using SQL控制面板目标行集 = std::vector<std::vector<std::string>> 结构_SQL控制面板数据::*;
+    using SQL控制面板查询项 = std::tuple<
+        std::string_view,
+        std::string_view,
+        std::string_view,
+        SQL控制面板目标行集>;
 
     // 功能：生成控制面板 SQL 读模型 ADO 连接串。
     std::string 私有_SQL控制面板ADO连接串()
@@ -6555,13 +6560,46 @@ namespace {
     }
 
     // 功能：从 SQL Server 最新投影视图读取控制面板数据。
-    bool 私有_读取SQL控制面板数据(结构_SQL控制面板数据& 数据, std::string& 错误)
+    bool 私有_读取SQL控制面板数据(
+        结构_SQL控制面板数据& 数据,
+        std::string& 错误,
+        std::string_view 指定区段ID = {})
     {
         数据 = {};
         const auto 连接串 = 私有_SQL控制面板ADO连接串();
+        const bool 区段读取 = !指定区段ID.empty();
+        const auto 区段需要查询 = [指定区段ID, 区段读取](std::string_view 查询区段ID) noexcept {
+            if (!区段读取 || 指定区段ID == 查询区段ID) {
+                return true;
+            }
+            if (指定区段ID == "metrics") {
+                return 查询区段ID == "runtimeBatch"
+                    || 查询区段ID == "syncStatus"
+                    || 查询区段ID == "eventFlow"
+                    || 查询区段ID == "currentTasks"
+                    || 查询区段ID == "currentDemands"
+                    || 查询区段ID == "currentMethods"
+                    || 查询区段ID == "currentWorld"
+                    || 查询区段ID == "currentDynamics"
+                    || 查询区段ID == "metrics";
+            }
+            if (指定区段ID == "causalInfo") {
+                return 查询区段ID == "causalInfo"
+                    || 查询区段ID == "causalInfoRelations";
+            }
+            if (指定区段ID == "causalChain") {
+                return 查询区段ID == "causalInfoRelations";
+            }
+            if (指定区段ID == "worldTree") {
+                return 查询区段ID == "worldTree"
+                    || 查询区段ID == "worldRelations";
+            }
+            return false;
+        };
 
-        const std::vector<std::tuple<std::string_view, std::string_view, SQL控制面板目标行集>> 运行态查询集{
+        const std::vector<SQL控制面板查询项> 运行态查询集{
             {
+                "runtimeBatch",
                 "控制面板运行批次",
                 R"SQL(
 SELECT TOP (1)
@@ -6577,6 +6615,7 @@ ORDER BY [启动时间] DESC;
                 &结构_SQL控制面板数据::运行批次
             },
             {
+                "syncStatus",
                 "SQL投影同步状态",
                 R"SQL(
 SELECT
@@ -6591,6 +6630,7 @@ ORDER BY [更新时间] DESC, [同步域];
                 &结构_SQL控制面板数据::同步状态
             },
             {
+                "eventFlow",
                 "控制面板事件流水",
                 R"SQL(
 SELECT TOP (300)
@@ -6605,6 +6645,7 @@ ORDER BY [发生时间] DESC, [事件ID] DESC;
                 &结构_SQL控制面板数据::事件流水
             },
             {
+                "currentTasks",
                 "当前任务显示项",
                 R"SQL(
 SELECT
@@ -6620,6 +6661,7 @@ ORDER BY [更新时间] DESC, [任务主键];
                 &结构_SQL控制面板数据::当前任务
             },
             {
+                "currentDemands",
                 "当前需求显示项",
                 R"SQL(
 SELECT
@@ -6635,6 +6677,7 @@ ORDER BY [更新时间] DESC, [需求主键];
                 &结构_SQL控制面板数据::当前需求
             },
             {
+                "currentMethods",
                 "当前方法显示项",
                 R"SQL(
 SELECT
@@ -6649,6 +6692,7 @@ ORDER BY [更新时间] DESC, [方法主键];
                 &结构_SQL控制面板数据::当前方法
             },
             {
+                "currentWorld",
                 "当前世界显示项",
                 R"SQL(
 SELECT
@@ -6663,6 +6707,7 @@ ORDER BY [更新时间] DESC, [对象主键];
                 &结构_SQL控制面板数据::当前世界
             },
             {
+                "currentDynamics",
                 "当前动态显示项",
                 R"SQL(
 SELECT
@@ -6678,7 +6723,10 @@ ORDER BY [更新时间] DESC, [动态主键];
             },
         };
 
-        for (const auto& [名称, SQL, 目标行集] : 运行态查询集) {
+        for (const auto& [查询区段ID, 名称, SQL, 目标行集] : 运行态查询集) {
+            if (!区段需要查询(查询区段ID)) {
+                continue;
+            }
             结构_ADO查询结果 查询结果{};
             if (!私有_执行ADO控制面板查询(
                 连接串,
@@ -6690,22 +6738,33 @@ ORDER BY [更新时间] DESC, [动态主键];
             }
             (数据.*目标行集) = std::move(查询结果.行集);
         }
-        if (数据.运行批次.empty()) {
+        if (!区段读取 && 数据.运行批次.empty()) {
             错误 = "SQL 控制面板运行批次为空";
             return false;
         }
         const auto 读取行字段 = [](const std::vector<std::string>& 行, const std::size_t 索引) {
             return 索引 < 行.size() ? 行[索引] : std::string{};
         };
-        数据.批次 = {
-            读取行字段(数据.运行批次.front(), 0),
-            读取行字段(数据.运行批次.front(), 1),
-            读取行字段(数据.运行批次.front(), 2),
-            std::string("运行态SQL显示镜像 | 状态=") + 读取行字段(数据.运行批次.front(), 5)
-        };
+        if (!数据.运行批次.empty()) {
+            数据.批次 = {
+                读取行字段(数据.运行批次.front(), 0),
+                读取行字段(数据.运行批次.front(), 1),
+                读取行字段(数据.运行批次.front(), 2),
+                std::string("运行态SQL显示镜像 | 状态=") + 读取行字段(数据.运行批次.front(), 5)
+            };
+        }
+        else {
+            数据.批次 = {
+                "区段刷新",
+                "",
+                "",
+                "按 SQL 控制面板当前区段读取"
+            };
+        }
 
-        const std::vector<std::tuple<std::string_view, std::string_view, SQL控制面板目标行集>> 查询集{
+        const std::vector<SQL控制面板查询项> 查询集{
             {
+                "metrics",
                 "面板指标",
                 R"SQL(
 SELECT TOP (80)
@@ -6720,6 +6779,7 @@ ORDER BY [记录标识];
                 &结构_SQL控制面板数据::指标
             },
             {
+                "threads",
                 "线程信息",
                 R"SQL(
 SELECT TOP (120)
@@ -6736,6 +6796,7 @@ ORDER BY [行号];
                 &结构_SQL控制面板数据::线程
             },
             {
+                "threadEvents",
                 "线程生命周期事件",
                 R"SQL(
 SELECT TOP (120)
@@ -6752,6 +6813,7 @@ ORDER BY [发生时间微秒] DESC, [消息标识] DESC;
                 &结构_SQL控制面板数据::线程事件
             },
             {
+                "actions",
                 "动作动态",
                 R"SQL(
 SELECT TOP (120)
@@ -6768,6 +6830,7 @@ ORDER BY [日志时间] DESC, [事件序号] DESC;
                 &结构_SQL控制面板数据::动作动态
             },
             {
+                "causalInfo",
                 "因果信息",
                 R"SQL(
 SELECT
@@ -6794,6 +6857,7 @@ ORDER BY [行号];
                 &结构_SQL控制面板数据::因果信息
             },
             {
+                "causalInfoRelations",
                 "因果信息关系",
                 R"SQL(
 SELECT
@@ -6821,6 +6885,7 @@ ORDER BY [宿主主键], [序号], [关系名];
                 &结构_SQL控制面板数据::因果信息关系
             },
             {
+                "features",
                 "特征类型",
                 R"SQL(
 SELECT TOP (120)
@@ -6835,6 +6900,7 @@ ORDER BY [特征名称];
                 &结构_SQL控制面板数据::特征
             },
             {
+                "catalog",
                 "控制面板字段目录",
                 R"SQL(
 SELECT TOP (160)
@@ -6850,6 +6916,7 @@ ORDER BY [数据分组], [指标键];
                 &结构_SQL控制面板数据::字段目录
             },
             {
+                "demandTree",
                 "需求树",
                 R"SQL(
 SELECT TOP (400)
@@ -6905,6 +6972,7 @@ ORDER BY [行号];
                 &结构_SQL控制面板数据::需求树
             },
             {
+                "taskTree",
                 "任务树",
                 R"SQL(
 SELECT
@@ -6923,6 +6991,7 @@ ORDER BY [行号];
                 &结构_SQL控制面板数据::任务树
             },
             {
+                "methodTree",
                 "方法树",
                 R"SQL(
 SELECT
@@ -6942,6 +7011,7 @@ ORDER BY [行号];
                 &结构_SQL控制面板数据::方法树
             },
             {
+                "worldTree",
                 "世界树",
                 R"SQL(
 SELECT
@@ -6961,6 +7031,7 @@ ORDER BY [行号];
                 &结构_SQL控制面板数据::世界树
             },
             {
+                "worldRelations",
                 "世界树关系",
                 R"SQL(
 SELECT TOP (2000)
@@ -6976,6 +7047,7 @@ ORDER BY [行号];
                 &结构_SQL控制面板数据::世界树关系
             },
             {
+                "lexemeTree",
                 "语素树",
                 R"SQL(
 SELECT
@@ -6995,7 +7067,10 @@ ORDER BY [行号];
             },
         };
 
-        for (const auto& [名称, SQL, 目标行集] : 查询集) {
+        for (const auto& [查询区段ID, 名称, SQL, 目标行集] : 查询集) {
+            if (!区段需要查询(查询区段ID)) {
+                continue;
+            }
             结构_ADO查询结果 查询结果{};
             if (!私有_执行ADO控制面板查询(
                 连接串,
@@ -7011,47 +7086,49 @@ ORDER BY [行号];
             (数据.*目标行集) = std::move(查询结果.行集);
         }
 
-        std::vector<std::vector<std::string>> 运行态指标{};
-        const auto 添加运行态指标 = [&](std::string 名称, const std::size_t 数量, std::string 来源) {
-            运行态指标.push_back({
-                std::move(名称),
-                "运行态SQL",
-                std::to_string(数量),
-                std::move(来源),
-                "控制面板运行态表"
-            });
-        };
-        添加运行态指标("运行批次", 数据.运行批次.size(), "[鱼巢].[控制面板运行批次]");
-        添加运行态指标("同步状态", 数据.同步状态.size(), "[鱼巢].[SQL投影同步状态]");
-        添加运行态指标("事件流水", 数据.事件流水.size(), "[鱼巢].[控制面板事件流水]");
-        添加运行态指标("当前任务", 数据.当前任务.size(), "[鱼巢].[当前任务显示项]");
-        添加运行态指标("当前需求", 数据.当前需求.size(), "[鱼巢].[当前需求显示项]");
-        添加运行态指标("当前方法", 数据.当前方法.size(), "[鱼巢].[当前方法显示项]");
-        添加运行态指标("当前世界", 数据.当前世界.size(), "[鱼巢].[当前世界显示项]");
-        添加运行态指标("当前动态", 数据.当前动态.size(), "[鱼巢].[当前动态显示项]");
-        if (!数据.投影读取错误.empty()) {
-            运行态指标.push_back({
-                "旧全量投影读取",
-                "校准路径",
-                "失败",
-                "可选读模型",
-                数据.投影读取错误
-            });
+        if (!区段读取 || 指定区段ID == "metrics") {
+            std::vector<std::vector<std::string>> 运行态指标{};
+            const auto 添加运行态指标 = [&](std::string 名称, const std::size_t 数量, std::string 来源) {
+                运行态指标.push_back({
+                    std::move(名称),
+                    "运行态SQL",
+                    std::to_string(数量),
+                    std::move(来源),
+                    "控制面板运行态表"
+                });
+            };
+            添加运行态指标("运行批次", 数据.运行批次.size(), "[鱼巢].[控制面板运行批次]");
+            添加运行态指标("同步状态", 数据.同步状态.size(), "[鱼巢].[SQL投影同步状态]");
+            添加运行态指标("事件流水", 数据.事件流水.size(), "[鱼巢].[控制面板事件流水]");
+            添加运行态指标("当前任务", 数据.当前任务.size(), "[鱼巢].[当前任务显示项]");
+            添加运行态指标("当前需求", 数据.当前需求.size(), "[鱼巢].[当前需求显示项]");
+            添加运行态指标("当前方法", 数据.当前方法.size(), "[鱼巢].[当前方法显示项]");
+            添加运行态指标("当前世界", 数据.当前世界.size(), "[鱼巢].[当前世界显示项]");
+            添加运行态指标("当前动态", 数据.当前动态.size(), "[鱼巢].[当前动态显示项]");
+            if (!数据.投影读取错误.empty()) {
+                运行态指标.push_back({
+                    "旧全量投影读取",
+                    "校准路径",
+                    "失败",
+                    "可选读模型",
+                    数据.投影读取错误
+                });
+            }
+            else {
+                运行态指标.push_back({
+                    "旧全量投影读取",
+                    "校准路径",
+                    "可用",
+                    "可选读模型",
+                    "旧投影视图已读取"
+                });
+            }
+            运行态指标.insert(
+                运行态指标.end(),
+                std::make_move_iterator(数据.指标.begin()),
+                std::make_move_iterator(数据.指标.end()));
+            数据.指标 = std::move(运行态指标);
         }
-        else {
-            运行态指标.push_back({
-                "旧全量投影读取",
-                "校准路径",
-                "可用",
-                "可选读模型",
-                "旧投影视图已读取"
-            });
-        }
-        运行态指标.insert(
-            运行态指标.end(),
-            std::make_move_iterator(数据.指标.begin()),
-            std::make_move_iterator(数据.指标.end()));
-        数据.指标 = std::move(运行态指标);
         return true;
     }
 
@@ -7549,7 +7626,7 @@ COALESCE([辅助文本], N'') AS [辅助文本])SQL";
     {
         结构_SQL控制面板数据 数据{};
         std::string 错误{};
-        if (!私有_读取SQL控制面板数据(数据, 错误)) {
+        if (!私有_读取SQL控制面板数据(数据, 错误, 区段ID)) {
             std::ostringstream 输出;
             输出 << "{\"ok\":false,\"kind\":\"sql-section\",\"page\":";
             私有_追加SQL控制面板JSON字符串(输出, 区段ID);

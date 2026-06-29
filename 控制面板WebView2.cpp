@@ -894,14 +894,44 @@ namespace {
             return;
         }
 
+        const std::string 页面文本(页面);
+        const auto 开始时间 = std::chrono::steady_clock::now();
         const auto JSON = 读取控制面板页面刷新JSON(页面);
+        const auto 生成耗时毫秒 = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - 开始时间).count();
         const auto 宽JSON = 私有_UTF8转宽字串(JSON);
         if (宽JSON.empty()) {
+            私有_记录WebView2诊断(
+                "页面刷新JSON转宽字串失败",
+                48,
+                S_OK,
+                GetLastError(),
+                "页面=" + 页面文本
+                + " | JSON字节=" + std::to_string(JSON.size())
+                + " | 生成耗时ms=" + std::to_string(生成耗时毫秒));
             return;
         }
 
         const std::wstring 脚本 = L"window.__panelApplyPageRefresh(" + 宽JSON + L");";
-        (void)上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
+        const HRESULT 脚本结果 = 上下文->WebView->ExecuteScript(脚本.c_str(), nullptr);
+        if (FAILED(脚本结果)) {
+            私有_记录WebView2诊断(
+                "页面刷新脚本执行失败",
+                49,
+                脚本结果,
+                GetLastError(),
+                "页面=" + 页面文本
+                + " | JSON字节=" + std::to_string(JSON.size())
+                + " | 生成耗时ms=" + std::to_string(生成耗时毫秒));
+            return;
+        }
+        if (生成耗时毫秒 > 500) {
+            项目运行日志(
+                "控制面板WebView2/页面刷新较慢 | 页面="
+                + 页面文本
+                + " | JSON字节=" + std::to_string(JSON.size())
+                + " | 生成耗时ms=" + std::to_string(生成耗时毫秒));
+        }
     }
 
     // 功能：服务所在模块的内部辅助流程。
