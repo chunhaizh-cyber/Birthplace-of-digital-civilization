@@ -18,6 +18,7 @@ module;
 #include <vector>
 
 #include "基础信息类.h"
+#include "特征类.h"
 
 export module 视觉观察融合模块;
 
@@ -167,6 +168,14 @@ enum class 枚举_体素融合点状态 : I64 {
     无融合点 = 5,
 };
 
+enum class 枚举_体素子轮廓候选状态 : I64 {
+    无 = 0,
+    表面区域 = 1,
+    未解释候选 = 2,
+    可生成局部体素候选 = 3,
+    输入非法 = 4,
+};
+
 struct 结构_体素融合点检查结果 {
     枚举_体素融合点状态 状态 = 枚举_体素融合点状态::无;
     std::uint64_t 新观察占据数量 = 0;
@@ -181,6 +190,27 @@ struct 结构_体素融合点检查结果 {
     }
 };
 
+struct 结构_体素颜色平均统计 {
+    bool 有效 = false;
+    std::uint64_t 像素数量 = 0;
+    std::uint32_t 平均颜色RGBA = 0;
+};
+
+struct 结构_体素子轮廓候选 {
+    I64 候选ID = 0;
+    枚举_体素子轮廓候选状态 状态 = 枚举_体素子轮廓候选状态::无;
+    std::uint32_t 颜色键 = 0;
+    结构_体素颜色平均统计 颜色统计{};
+    std::uint64_t 彩色像素数量 = 0;
+    std::uint64_t 深度支撑像素数量 = 0;
+    std::uint64_t 空间支撑像素数量 = 0;
+    I64 深度支撑率Q10000 = 0;
+    bool 有深度空间支撑 = false;
+    std::uint32_t 局部包围盒边长 = 0;
+    VecIU64 局部体素占据候选{};
+    场景体素模块::结构_正立方体体素包围盒检查结果 局部体素检查{};
+};
+
 struct 结构_体素加工任务 {
     I64 任务ID = 0;
     可解析引用<存在节点类> 父存在{};
@@ -188,8 +218,12 @@ struct 结构_体素加工任务 {
     I64 基准体素版本 = 0;
     std::uint32_t 包围盒边长 = 0;
     std::uint64_t 最大扫描体素数 = 2000000;
+    std::uint64_t 最大子轮廓候选数量 = 128;
     VecIU64 现有父体素占据快照{};
     VecIU64 父体素占据候选快照{};
+    结构_三维体素轮廓图视角 彩色轮廓视角{};
+    结构_三维体素轮廓图视角 深度轮廓视角{};
+    std::vector<std::uint8_t> 已确认子轮廓掩码{};
     时间戳 提交时间 = 0;
 };
 
@@ -204,6 +238,11 @@ struct 结构_体素加工候选结果包 {
     bool 是否存在融合点 = false;
     bool 是否触碰外边界 = false;
     bool 是否局部包围盒压紧 = false;
+    结构_体素颜色平均统计 父基础颜色统计{};
+    std::vector<结构_体素子轮廓候选> 子轮廓候选集合{};
+    I64 子轮廓候选数量 = 0;
+    I64 有深度支撑子候选数量 = 0;
+    I64 表面或未解释子候选数量 = 0;
     枚举_体素加工任务处理状态 处理状态 = 枚举_体素加工任务处理状态::无;
     枚举_体素加工可提交状态 可提交状态 = 枚举_体素加工可提交状态::未裁决;
     时间戳 生成时间 = 0;
@@ -392,6 +431,351 @@ namespace detail {
             结果.状态 = 枚举_体素融合点状态::无融合点;
         }
         return 结果;
+    }
+
+    // 功能：把无符号计数压入 I64 计数范围。
+    inline I64 计数转I64(const std::uint64_t 值) noexcept
+    {
+        return 值 > static_cast<std::uint64_t>((std::numeric_limits<I64>::max)())
+            ? (std::numeric_limits<I64>::max)()
+            : static_cast<I64>(值);
+    }
+
+    // 功能：返回轮廓视角声明尺寸对应的像素数量，非法尺寸返回 0。
+    inline std::size_t 轮廓视角像素数量(const 结构_三维体素轮廓图视角& 视角) noexcept
+    {
+        if (视角.宽度 == 0 || 视角.高度 == 0) return 0;
+        const auto 宽64 = static_cast<std::uint64_t>(视角.宽度);
+        const auto 高64 = static_cast<std::uint64_t>(视角.高度);
+        if (宽64 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)()) / 高64) {
+            return 0;
+        }
+        return static_cast<std::size_t>(宽64 * 高64);
+    }
+
+    // 功能：判断轮廓视角是否具备彩色分解所需的掩码和颜色数组。
+    inline bool 彩色轮廓视角可分解(const 结构_三维体素轮廓图视角& 视角) noexcept
+    {
+        const auto 像素数 = 轮廓视角像素数量(视角);
+        return 像素数 > 0
+            && 视角.轮廓掩码.size() >= 像素数
+            && 视角.颜色_RGBA.size() >= 像素数;
+    }
+
+    // 功能：判断候选深度视角是否能对齐彩色轮廓像素。
+    inline bool 深度轮廓视角可支撑(
+        const 结构_三维体素轮廓图视角& 彩色视角,
+        const 结构_三维体素轮廓图视角& 深度视角) noexcept
+    {
+        const auto 像素数 = 轮廓视角像素数量(彩色视角);
+        return 像素数 > 0
+            && 深度视角.宽度 == 彩色视角.宽度
+            && 深度视角.高度 == 彩色视角.高度
+            && 深度视角.深度_mm.size() >= 像素数
+            && 深度视角.空间点_mm.size() >= 像素数;
+    }
+
+    // 功能：选择与彩色轮廓同尺寸的深度视角，优先使用独立深度视角。
+    inline const 结构_三维体素轮廓图视角* 选择深度支撑视角(
+        const 结构_三维体素轮廓图视角& 彩色视角,
+        const 结构_三维体素轮廓图视角& 深度视角) noexcept
+    {
+        if (深度轮廓视角可支撑(彩色视角, 深度视角)) return &深度视角;
+        if (深度轮廓视角可支撑(彩色视角, 彩色视角)) return &彩色视角;
+        return nullptr;
+    }
+
+    // 功能：判断 RGBA 值是否代表可参与颜色分解的像素。
+    inline bool 颜色值有效(const std::uint32_t rgba) noexcept
+    {
+        return rgba != 0;
+    }
+
+    // 功能：把 RGBA 颜色压缩成候选分区键，只用于运行期颜色连通分区。
+    inline std::uint32_t 量化颜色键(const std::uint32_t rgba) noexcept
+    {
+        const auto r = (rgba >> 16) & 0xffu;
+        const auto g = (rgba >> 8) & 0xffu;
+        const auto b = rgba & 0xffu;
+        return ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+    }
+
+    struct 结构_RGBA累积 {
+        std::uint64_t A = 0;
+        std::uint64_t R = 0;
+        std::uint64_t G = 0;
+        std::uint64_t B = 0;
+        std::uint64_t 数量 = 0;
+    };
+
+    // 功能：把一个 RGBA 像素加入平均颜色累积器。
+    inline void 累积RGBA(结构_RGBA累积& 累积, const std::uint32_t rgba) noexcept
+    {
+        if (!颜色值有效(rgba)) return;
+        累积.A += (rgba >> 24) & 0xffu;
+        累积.R += (rgba >> 16) & 0xffu;
+        累积.G += (rgba >> 8) & 0xffu;
+        累积.B += rgba & 0xffu;
+        ++累积.数量;
+    }
+
+    // 功能：从 RGBA 累积器生成平均颜色统计。
+    inline 结构_体素颜色平均统计 完成颜色统计(const 结构_RGBA累积& 累积) noexcept
+    {
+        结构_体素颜色平均统计 统计{};
+        if (累积.数量 == 0) return 统计;
+        const auto a = static_cast<std::uint32_t>(累积.A / 累积.数量) & 0xffu;
+        const auto r = static_cast<std::uint32_t>(累积.R / 累积.数量) & 0xffu;
+        const auto g = static_cast<std::uint32_t>(累积.G / 累积.数量) & 0xffu;
+        const auto b = static_cast<std::uint32_t>(累积.B / 累积.数量) & 0xffu;
+        统计.有效 = true;
+        统计.像素数量 = 累积.数量;
+        统计.平均颜色RGBA = (a << 24) | (r << 16) | (g << 8) | b;
+        return 统计;
+    }
+
+    // 功能：按已确认子轮廓掩码扣除区域后计算父基础平均颜色。
+    inline 结构_体素颜色平均统计 计算父基础颜色统计(
+        const 结构_三维体素轮廓图视角& 彩色视角,
+        const std::vector<std::uint8_t>& 已确认子轮廓掩码)
+    {
+        结构_RGBA累积 累积{};
+        if (!彩色轮廓视角可分解(彩色视角)) return {};
+
+        const auto 像素数 = 轮廓视角像素数量(彩色视角);
+        const bool 有排除掩码 = 已确认子轮廓掩码.size() >= 像素数;
+        for (std::size_t i = 0; i < 像素数; ++i) {
+            if (彩色视角.轮廓掩码[i] == 0) continue;
+            if (有排除掩码 && 已确认子轮廓掩码[i] != 0) continue;
+            累积RGBA(累积, 彩色视角.颜色_RGBA[i]);
+        }
+        return 完成颜色统计(累积);
+    }
+
+    // 功能：判断深度视角指定像素是否有有效深度值。
+    inline bool 像素深度有效(
+        const 结构_三维体素轮廓图视角& 深度视角,
+        const std::size_t 索引) noexcept
+    {
+        return 索引 < 深度视角.深度_mm.size()
+            && 深度视角.深度_mm[索引] > 0;
+    }
+
+    // 功能：判断深度视角指定像素是否有有效空间点。
+    inline bool 像素空间点有效(
+        const 结构_三维体素轮廓图视角& 深度视角,
+        const std::size_t 索引) noexcept
+    {
+        return 索引 < 深度视角.空间点_mm.size()
+            && 深度视角.空间点_mm[索引].z > 0;
+    }
+
+    // 功能：创建正立方体 VecIU64 位块，非法尺寸返回空位块。
+    inline VecIU64 创建正立方体体素位块(
+        const std::uint32_t 包围盒边长,
+        const std::uint64_t 最大扫描体素数)
+    {
+        const auto 总数 = 三维体素总数(包围盒边长);
+        if (包围盒边长 < 3 || 总数 == 0 || 总数 > 最大扫描体素数) return {};
+        const auto 块数 = (总数 + 63ull) / 64ull;
+        if (块数 > static_cast<std::uint64_t>((std::numeric_limits<std::size_t>::max)())) return {};
+        return VecIU64(static_cast<std::size_t>(块数), 0);
+    }
+
+    // 功能：设置正立方体 VecIU64 位块中的占据状态。
+    inline bool 设置正立方体体素占据位(
+        VecIU64& 占据位块,
+        const std::uint32_t 包围盒边长,
+        const std::uint32_t x,
+        const std::uint32_t y,
+        const std::uint32_t z) noexcept
+    {
+        if (包围盒边长 < 3 || x >= 包围盒边长 || y >= 包围盒边长 || z >= 包围盒边长) {
+            return false;
+        }
+        const auto 索引 =
+            (static_cast<std::uint64_t>(z) * 包围盒边长 + y) * 包围盒边长 + x;
+        const auto 块索引 = 索引 / 64ull;
+        const auto 位索引 = 索引 % 64ull;
+        if (块索引 >= 占据位块.size()) return false;
+        占据位块[static_cast<std::size_t>(块索引)] |= (1ull << 位索引);
+        return true;
+    }
+
+    // 功能：把局部像素偏移映射到保留外边界后的有效区坐标。
+    inline std::uint32_t 映射到体素有效区(
+        const std::uint32_t 偏移,
+        const std::uint32_t 跨度,
+        const std::uint32_t 包围盒边长) noexcept
+    {
+        if (包围盒边长 < 3) return 0;
+        const auto 有效格数 = 包围盒边长 - 2;
+        if (跨度 <= 1 || 有效格数 <= 1) return 1;
+        const auto 分母 = static_cast<std::uint64_t>(跨度 - 1);
+        const auto 分子 = static_cast<std::uint64_t>(偏移) * (有效格数 - 1);
+        const auto 映射偏移 = static_cast<std::uint32_t>((分子 + 分母 / 2) / 分母);
+        return 1 + std::min<std::uint32_t>(映射偏移, 有效格数 - 1);
+    }
+
+    // 功能：按彩色连通分区和深度支撑生成子轮廓候选集合。
+    inline std::vector<结构_体素子轮廓候选> 生成子轮廓候选集合(
+        const 结构_三维体素轮廓图视角& 彩色视角,
+        const 结构_三维体素轮廓图视角& 深度视角,
+        const std::uint64_t 最大候选数量,
+        const std::uint64_t 最大扫描体素数)
+    {
+        std::vector<结构_体素子轮廓候选> 输出{};
+        if (!彩色轮廓视角可分解(彩色视角)) return 输出;
+
+        const auto 像素数 = 轮廓视角像素数量(彩色视角);
+        const auto 宽 = static_cast<std::size_t>(彩色视角.宽度);
+        const auto 高 = static_cast<std::size_t>(彩色视角.高度);
+        const auto* 深度支撑视角 = 选择深度支撑视角(彩色视角, 深度视角);
+        const auto 候选上限 = std::max<std::uint64_t>(1, 最大候选数量);
+        std::vector<std::uint8_t> 已访问(像素数, 0);
+        std::vector<std::size_t> 栈{};
+        std::vector<std::size_t> 连通像素{};
+
+        for (std::size_t 起点 = 0; 起点 < 像素数 && 输出.size() < 候选上限; ++起点) {
+            if (已访问[起点] != 0 || 彩色视角.轮廓掩码[起点] == 0) continue;
+            const auto 起点颜色 = 彩色视角.颜色_RGBA[起点];
+            if (!颜色值有效(起点颜色)) {
+                已访问[起点] = 1;
+                continue;
+            }
+
+            const auto 颜色键 = 量化颜色键(起点颜色);
+            栈.clear();
+            连通像素.clear();
+            栈.push_back(起点);
+            已访问[起点] = 1;
+
+            while (!栈.empty()) {
+                const auto 当前 = 栈.back();
+                栈.pop_back();
+                连通像素.push_back(当前);
+
+                const auto x = 当前 % 宽;
+                const auto y = 当前 / 宽;
+                const auto 尝试压入 = [&](const std::size_t nx, const std::size_t ny) {
+                    if (nx >= 宽 || ny >= 高) return;
+                    const auto 邻居 = ny * 宽 + nx;
+                    if (邻居 >= 像素数 || 已访问[邻居] != 0 || 彩色视角.轮廓掩码[邻居] == 0) return;
+                    const auto 邻居颜色 = 彩色视角.颜色_RGBA[邻居];
+                    if (!颜色值有效(邻居颜色) || 量化颜色键(邻居颜色) != 颜色键) return;
+                    已访问[邻居] = 1;
+                    栈.push_back(邻居);
+                };
+
+                if (x > 0) 尝试压入(x - 1, y);
+                尝试压入(x + 1, y);
+                if (y > 0) 尝试压入(x, y - 1);
+                尝试压入(x, y + 1);
+            }
+
+            if (连通像素.empty()) continue;
+
+            结构_体素子轮廓候选 候选{};
+            候选.候选ID = 计数转I64(static_cast<std::uint64_t>(输出.size() + 1));
+            候选.颜色键 = 颜色键;
+            候选.彩色像素数量 = static_cast<std::uint64_t>(连通像素.size());
+
+            std::size_t 最小X = 宽;
+            std::size_t 最小Y = 高;
+            std::size_t 最大X = 0;
+            std::size_t 最大Y = 0;
+            I64 最小深度 = (std::numeric_limits<I64>::max)();
+            I64 最大深度 = 0;
+            结构_RGBA累积 颜色累积{};
+
+            for (const auto 索引 : 连通像素) {
+                const auto x = 索引 % 宽;
+                const auto y = 索引 / 宽;
+                最小X = std::min(最小X, x);
+                最小Y = std::min(最小Y, y);
+                最大X = std::max(最大X, x);
+                最大Y = std::max(最大Y, y);
+                累积RGBA(颜色累积, 彩色视角.颜色_RGBA[索引]);
+                if (深度支撑视角 && 像素深度有效(*深度支撑视角, 索引)) {
+                    ++候选.深度支撑像素数量;
+                    if (像素空间点有效(*深度支撑视角, 索引)) {
+                        ++候选.空间支撑像素数量;
+                        const auto 深度值 = 深度支撑视角->深度_mm[索引];
+                        最小深度 = std::min<I64>(最小深度, 深度值);
+                        最大深度 = std::max<I64>(最大深度, 深度值);
+                    }
+                }
+            }
+
+            候选.颜色统计 = 完成颜色统计(颜色累积);
+            候选.深度支撑率Q10000 = 候选.彩色像素数量 > 0
+                ? 比例转Q10000(static_cast<double>(候选.深度支撑像素数量)
+                    / static_cast<double>(候选.彩色像素数量))
+                : 0;
+            候选.有深度空间支撑 =
+                候选.深度支撑像素数量 > 0 && 候选.空间支撑像素数量 > 0;
+
+            if (!候选.有深度空间支撑) {
+                候选.状态 = 枚举_体素子轮廓候选状态::表面区域;
+                输出.push_back(std::move(候选));
+                continue;
+            }
+
+            const auto 组件宽 = static_cast<std::uint32_t>(最大X - 最小X + 1);
+            const auto 组件高 = static_cast<std::uint32_t>(最大Y - 最小Y + 1);
+            auto 规格 = 场景体素模块::计算正立方体体素包围盒规格_按占据尺寸(组件宽, 组件高, 1);
+            候选.局部包围盒边长 = 规格.包围盒边长;
+            候选.局部体素占据候选 = 创建正立方体体素位块(
+                候选.局部包围盒边长,
+                最大扫描体素数);
+
+            if (规格.有效 && !候选.局部体素占据候选.empty()) {
+                for (const auto 索引 : 连通像素) {
+                    if (!深度支撑视角
+                        || !像素深度有效(*深度支撑视角, 索引)
+                        || !像素空间点有效(*深度支撑视角, 索引)) {
+                        continue;
+                    }
+                    const auto x = 索引 % 宽;
+                    const auto y = 索引 / 宽;
+                    const auto 局部X = 映射到体素有效区(
+                        static_cast<std::uint32_t>(x - 最小X),
+                        组件宽,
+                        候选.局部包围盒边长);
+                    const auto 局部Y = 映射到体素有效区(
+                        static_cast<std::uint32_t>(y - 最小Y),
+                        组件高,
+                        候选.局部包围盒边长);
+                    std::uint32_t 局部Z = 1;
+                    if (最大深度 > 最小深度 && 候选.局部包围盒边长 > 3) {
+                        const auto 有效格数 = 候选.局部包围盒边长 - 2;
+                        const auto 比例 = static_cast<double>(深度支撑视角->深度_mm[索引] - 最小深度)
+                            / static_cast<double>(最大深度 - 最小深度);
+                        const auto 映射 = static_cast<std::uint32_t>(
+                            std::llround(std::max(0.0, std::min(1.0, 比例)) * (有效格数 - 1)));
+                        局部Z = 1 + std::min<std::uint32_t>(映射, 有效格数 - 1);
+                    }
+                    设置正立方体体素占据位(
+                        候选.局部体素占据候选,
+                        候选.局部包围盒边长,
+                        局部X,
+                        局部Y,
+                        局部Z);
+                }
+                候选.局部体素检查 = 场景体素模块::检查正立方体体素包围盒(
+                    候选.局部体素占据候选,
+                    候选.局部包围盒边长,
+                    最大扫描体素数);
+                候选.状态 = 候选.局部体素检查.有占据
+                    ? 枚举_体素子轮廓候选状态::可生成局部体素候选
+                    : 枚举_体素子轮廓候选状态::未解释候选;
+            } else {
+                候选.状态 = 枚举_体素子轮廓候选状态::未解释候选;
+            }
+            输出.push_back(std::move(候选));
+        }
+
+        return 输出;
     }
 }
 
@@ -726,6 +1110,24 @@ private:
             任务.父体素占据候选快照,
             任务.包围盒边长);
         结果.是否存在融合点 = 结果.融合点检查.有融合点();
+        结果.父基础颜色统计 = detail::计算父基础颜色统计(
+            任务.彩色轮廓视角,
+            任务.已确认子轮廓掩码);
+        结果.子轮廓候选集合 = detail::生成子轮廓候选集合(
+            任务.彩色轮廓视角,
+            任务.深度轮廓视角,
+            任务.最大子轮廓候选数量,
+            任务.最大扫描体素数);
+        结果.子轮廓候选数量 = detail::计数转I64(
+            static_cast<std::uint64_t>(结果.子轮廓候选集合.size()));
+        for (const auto& 子候选 : 结果.子轮廓候选集合) {
+            if (子候选.状态 == 枚举_体素子轮廓候选状态::可生成局部体素候选) {
+                ++结果.有深度支撑子候选数量;
+            } else if (子候选.状态 == 枚举_体素子轮廓候选状态::表面区域
+                || 子候选.状态 == 枚举_体素子轮廓候选状态::未解释候选) {
+                ++结果.表面或未解释子候选数量;
+            }
+        }
         结果.处理状态 = 枚举_体素加工任务处理状态::已生成候选;
         结果.可提交状态 = 结果.是否存在融合点
             ? 枚举_体素加工可提交状态::未裁决
