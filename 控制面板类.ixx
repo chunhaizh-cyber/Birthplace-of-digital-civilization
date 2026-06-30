@@ -95,12 +95,16 @@ struct 结构_控制面板自我场景体素块 {
 
 struct 结构_控制面板自我场景体素复现项 {
     std::uintptr_t 存在指针 = 0;
+    std::uintptr_t 父存在指针 = 0;
     std::uintptr_t 体素特征指针 = 0;
     std::uintptr_t 体素根句柄 = 0;
     std::string 标题{};
     std::int64_t 原点X = 0;
     std::int64_t 原点Y = 0;
     std::int64_t 原点Z = 0;
+    std::int64_t 显示角色 = 1;
+    std::int64_t 父子坐标映射状态 = 0;
+    std::int64_t 颜色事实状态 = 0;
     std::uint32_t 最小体素边长_mm = 0;
     std::uint32_t 根最大层级 = 0;
     std::uint32_t 根边长体素 = 0;

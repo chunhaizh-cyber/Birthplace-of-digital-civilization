@@ -2315,9 +2315,13 @@ namespace {
 
         场景体素模块::结构_场景体素同步参数 参数{};
         参数.三维体素特征类型 = 私有_查找三维体素模型特征入口_控制面板();
+        参数.局部坐标原点X特征类型 = 私有_场景复现特征词("局部坐标原点X");
+        参数.局部坐标原点Y特征类型 = 私有_场景复现特征词("局部坐标原点Y");
+        参数.局部坐标原点Z特征类型 = 私有_场景复现特征词("局部坐标原点Z");
         参数.场景体素坐标系版本 = 1;
         参数.默认存在最小体素边长_mm = 1;
         参数.快照时间 = 结构体_时间戳::当前_微秒();
+        参数.包含内部世界子体素 = true;
 
         static std::mutex s_体素缓存互斥;
         static 场景体素模块::场景体素缓存类 s_体素缓存{};
@@ -2354,15 +2358,24 @@ namespace {
                 break;
             }
             auto* 存在 = 体素项.存在.获取();
+            auto* 父存在 = 体素项.父存在.获取();
             auto* 体素特征 = 体素项.三维体素特征.获取();
             结构_控制面板自我场景体素复现项 项{};
             项.存在指针 = 私有_地址(存在);
+            项.父存在指针 = 私有_地址(父存在);
             项.体素特征指针 = 私有_地址(体素特征);
             项.体素根句柄 = 体素项.三维体素根句柄.主信息指针;
-            项.标题 = 存在 ? 私有_安全节点摘要(存在, "体素存在") : std::string("空");
+            const bool 是内部子体素 =
+                体素项.显示角色 == static_cast<I64>(场景体素模块::枚举_场景体素显示角色::内部世界子存在体素);
+            项.标题 = 存在
+                ? 私有_安全节点摘要(存在, 是内部子体素 ? "内部子体素" : "体素存在")
+                : std::string("空");
             项.原点X = 体素项.原点X_mm;
             项.原点Y = 体素项.原点Y_mm;
             项.原点Z = 体素项.原点Z_mm;
+            项.显示角色 = 体素项.显示角色;
+            项.父子坐标映射状态 = 体素项.父子坐标映射状态;
+            项.颜色事实状态 = 体素项.颜色事实状态;
             项.最小体素边长_mm = 体素项.最小体素边长_mm;
             私有_解码自我场景体素形状_控制面板(体素项, 项);
             快照.自我场景体素复现项列表.push_back(std::move(项));
@@ -9811,10 +9824,14 @@ window.__panelApplyDetail=function(){};
             const auto& 项 = 项列表[索引];
             输出 << "{";
             输出 << "\"ptr\":" << 项.存在指针;
+            输出 << ",\"parentPtr\":" << 项.父存在指针;
             输出 << ",\"featurePtr\":" << 项.体素特征指针;
             输出 << ",\"rootHandle\":" << 项.体素根句柄;
             输出 << ",\"title\":";
             追加JSON字符串(输出, 项.标题);
+            输出 << ",\"role\":" << 项.显示角色;
+            输出 << ",\"mappingState\":" << 项.父子坐标映射状态;
+            输出 << ",\"colorFactState\":" << 项.颜色事实状态;
             输出 << ",\"origin\":";
             追加JSON_I64数组3(输出, 项.原点X, 项.原点Y, 项.原点Z);
             输出 << ",\"minVoxelMm\":" << 项.最小体素边长_mm;
@@ -9951,12 +9968,16 @@ window.__panelApplyDetail=function(){};
         混合I64(快照.自我场景体素复现项列表.size());
         for (const auto& 项 : 快照.自我场景体素复现项列表) {
             混合U64(项.存在指针);
+            混合U64(项.父存在指针);
             混合U64(项.体素特征指针);
             混合U64(项.体素根句柄);
             混合文本(项.标题);
             混合I64(项.原点X);
             混合I64(项.原点Y);
             混合I64(项.原点Z);
+            混合I64(项.显示角色);
+            混合I64(项.父子坐标映射状态);
+            混合I64(项.颜色事实状态);
             混合I64(项.最小体素边长_mm);
             混合I64(项.根最大层级);
             混合I64(项.根边长体素);
@@ -15400,10 +15421,37 @@ std::string 私有_生成控制面板HTML(
       return Array.isArray(item?.blocks) ? item.blocks : [];
     }
 
+    function 自我场景体素角色(item) {
+      return Number(item?.role || 1);
+    }
+
+    function 自我场景体素角色文本(item) {
+      return 自我场景体素角色(item) === 2 ? '内部子体素' : '父体素';
+    }
+
+    function 自我场景体素映射文本(item) {
+      const state = Number(item?.mappingState || 0);
+      if (state === 1) return '局部映射已读';
+      if (state === 2) return '缺局部原点';
+      return '无父子映射';
+    }
+
+    function 自我场景体素颜色事实文本(item) {
+      const state = Number(item?.colorFactState || 0);
+      if (state === 1) return '缺父基础色事实';
+      if (state === 2) return '缺子平均色事实';
+      return '颜色事实未读取';
+    }
+
+)HTML";
+    输出 << R"HTML(
     function 读取自我场景体素统计(data) {
       const items = 读取自我场景体素列表(data);
       let withOrigin = 0;
       let withHandle = 0;
+      let parentVoxels = 0;
+      let childVoxels = 0;
+      let colorFactMissing = 0;
       let minEdge = 0;
       let maxEdge = 0;
       let decodedBlocks = 0;
@@ -15413,6 +15461,9 @@ std::string 私有_生成控制面板HTML(
         const origin = item?.origin;
         if (Array.isArray(origin) && origin.length >= 3) withOrigin += 1;
         if (Number(item?.rootHandle || 0) !== 0) withHandle += 1;
+        if (自我场景体素角色(item) === 2) childVoxels += 1;
+        else parentVoxels += 1;
+        if (Number(item?.colorFactState || 0) > 0) colorFactMissing += 1;
         const edge = Math.max(0, Number(item?.minVoxelMm || 0));
         if (edge > 0) {
           minEdge = minEdge > 0 ? Math.min(minEdge, edge) : edge;
@@ -15426,6 +15477,9 @@ std::string 私有_生成控制面板HTML(
         total: items.length,
         withOrigin,
         withHandle,
+        parentVoxels,
+        childVoxels,
+        colorFactMissing,
         minEdge,
         maxEdge,
         decodedBlocks,
@@ -15463,11 +15517,14 @@ std::string 私有_生成控制面板HTML(
         const edge = Math.max(0, Number(item?.minVoxelMm || 0));
         const blocks = 读取自我场景体素块列表(item);
         const parts = [
+          自我场景体素角色文本(item),
           `原点 ${格式化场景三元组(自我场景体素原点(item))}`,
           `边长 ${edge}`,
           `网格 ${格式化场景三元组(item?.originalSize || [0, 0, 0])}`,
           `占据 ${Number(item?.occupiedVoxels || 0)}`,
           `块 ${blocks.length}/${Number(item?.decodedBlocks || 0)}`,
+          自我场景体素映射文本(item),
+          自我场景体素颜色事实文本(item),
           `根 ${Number(item?.rootHandle || 0)}`,
           `特征 ${Number(item?.featurePtr || 0)}`
         ];
@@ -15499,9 +15556,9 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-rendered-existence-stat', `${existenceStats.withCenter}/${existenceStats.total} 个 / AABB ${existenceStats.withRange} / 颜色 ${data.realColorStateExistenceCount || 0} / 彩图 ${data.realTextureExistenceCount || 0}`);
       设置自我场景文本('scene-existence-range-stat', `自我场景 ${existenceStats.fromScene} / 宿主 ${existenceStats.fromHost} / 子树 ${data.sceneSubtreeExistences || 0}`);
       设置自我场景文本('scene-voxel-version-stat', `${data.voxelSnapshotOk ? '有效' : '无'} / V${data.voxelVersion || 0} / 坐标系 ${data.voxelCoordinateVersion || 0}`);
-      设置自我场景文本('scene-voxel-summary-stat', `${voxelStats.withOrigin}/${voxelStats.total} 个 / 入选 ${data.voxelSelectedExistences || 0} / 枚举 ${data.voxelEnumeratedExistences || 0} / 占据 ${voxelStats.occupiedVoxels}`);
+      设置自我场景文本('scene-voxel-summary-stat', `${voxelStats.withOrigin}/${voxelStats.total} 个 / 父 ${voxelStats.parentVoxels} / 子 ${voxelStats.childVoxels} / 入选 ${data.voxelSelectedExistences || 0} / 枚举 ${data.voxelEnumeratedExistences || 0} / 占据 ${voxelStats.occupiedVoxels}`);
       设置自我场景文本('scene-voxel-source-stat', `坐标 ${data.voxelWithCoordinateExistences || 0} / 模型 ${data.voxelWithModelExistences || 0} / 根句柄 ${voxelStats.withHandle} / 块 ${voxelStats.visibleBlocks}/${voxelStats.decodedBlocks} / 边长 ${voxelStats.minEdge || 0}-${voxelStats.maxEdge || 0}`);
-      设置自我场景文本('scene-voxel-gap-stat', `总 ${data.voxelGapCount || 0} / 类型 ${data.voxelMissingFeatureTypeCount || 0} / 坐标 ${data.voxelMissingCoordinateCount || 0} / 模型 ${data.voxelMissingModelCount || 0} / 版本 ${data.voxelMissingCoordinateVersionCount || 0}`);
+      设置自我场景文本('scene-voxel-gap-stat', `总 ${data.voxelGapCount || 0} / 类型 ${data.voxelMissingFeatureTypeCount || 0} / 坐标 ${data.voxelMissingCoordinateCount || 0} / 模型 ${data.voxelMissingModelCount || 0} / 版本 ${data.voxelMissingCoordinateVersionCount || 0} / 颜色事实 ${voxelStats.colorFactMissing}`);
       设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
@@ -15835,10 +15892,12 @@ std::string 私有_生成控制面板HTML(
     }
 
     function 自我场景体素显示颜色(item) {
+      if (自我场景体素角色(item) === 2) return [0.22, 0.78, 0.94];
       return Number(item?.rootHandle || 0) !== 0 ? [0.96, 0.24, 0.48] : [0.92, 0.50, 0.66];
     }
 
     function 自我场景体素盒颜色(item) {
+      if (自我场景体素角色(item) === 2) return [0.08, 0.36, 0.52];
       return Number(item?.rootHandle || 0) !== 0 ? [0.58, 0.13, 0.30] : [0.50, 0.28, 0.36];
     }
 
