@@ -108,6 +108,11 @@ struct 结构_控制面板自我场景体素复现项 {
     std::int64_t 颜色RGBA = 0;
     std::int64_t 颜色像素数量 = 0;
     std::int64_t 颜色事实写入状态 = 0;
+    std::int64_t 体素颜色来源观察证据ID = 0;
+    std::int64_t 体素颜色来源基准体素版本 = 0;
+    std::int64_t 体素子候选ID = 0;
+    std::int64_t 体素局部子体素候选ID = 0;
+    std::int64_t 体素子候选映射状态 = 0;
     std::uint32_t 最小体素边长_mm = 0;
     std::uint32_t 根最大层级 = 0;
     std::uint32_t 根边长体素 = 0;
@@ -129,6 +134,7 @@ struct 结构_控制面板体素加工子候选诊断 {
     std::int64_t 深度支撑率 = 0;
     std::int64_t 颜色统计有效 = 0;
     std::int64_t 颜色像素数量 = 0;
+    std::int64_t 局部子体素候选ID = 0;
     std::int64_t 局部子体素候选数量 = 0;
     std::int64_t 局部包围盒边长 = 0;
     std::int64_t 局部体素输入有效 = 0;
@@ -668,6 +674,9 @@ bool 保存控制面板HTML(
 bool 启动控制面板窗口() noexcept;
 bool 启动控制面板相机窗口() noexcept;
 bool 启动控制面板自我场景窗口() noexcept;
+bool 保存控制面板自我场景窗口截图(
+    const std::filesystem::path& 输出路径,
+    std::uint32_t 等待渲染毫秒) noexcept;
 void 请求关闭控制面板窗口() noexcept;
 void 等待控制面板窗口关闭() noexcept;
 int 获取控制面板启动诊断码() noexcept;

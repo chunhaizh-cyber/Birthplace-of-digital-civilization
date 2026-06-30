@@ -2117,6 +2117,21 @@ namespace {
             枚举_信息入口类型::特征模板入口);
     }
 
+    // 功能：判断控制面板体素显示项中是否已包含指定存在。
+    bool 私有_自我场景体素项已包含存在_控制面板(
+        const 结构_控制面板快照& 快照,
+        const std::uintptr_t 存在指针) noexcept
+    {
+        if (存在指针 == 0) {
+            return false;
+        }
+        return std::any_of(
+            快照.自我场景体素复现项列表.begin(),
+            快照.自我场景体素复现项列表.end(),
+            [存在指针](const 结构_控制面板自我场景体素复现项& 项) noexcept {
+                return 项.存在指针 == 存在指针;
+            });
+    }
 
     // 功能：把体素局部坐标按存在原点和最小体素边长转换为显示坐标。
     std::int64_t 私有_体素局部坐标转场景坐标_控制面板(
@@ -2291,6 +2306,70 @@ namespace {
             已扫描节点数);
     }
 
+    // 功能：从自我所在场景直接子存在的 AABB 原点补充解码体素显示项；只读显示，不写回场景绝对坐标。
+    void 私有_追加自我场景AABB体素复现项_控制面板(
+        场景节点类* 自我所在场景,
+        const 语素入口节点类* 三维体素特征类型,
+        const std::size_t 体素显示上限,
+        结构_控制面板快照& 快照) noexcept
+    {
+        if (!自我所在场景 || !三维体素特征类型) {
+            return;
+        }
+
+        特征类 特征服务(&世界树.基础信息());
+        for (auto* 子存在 : 世界树.获取子存在(reinterpret_cast<基础信息节点类*>(自我所在场景))) {
+            if (!子存在 || 快照.自我场景体素复现项列表.size() >= 体素显示上限) {
+                break;
+            }
+
+            const auto 存在指针 = 私有_地址(子存在);
+            if (私有_自我场景体素项已包含存在_控制面板(快照, 存在指针)) {
+                continue;
+            }
+
+            结构_控制面板自我场景存在复现项 场景项{};
+            auto* 基础节点 = reinterpret_cast<基础信息节点类*>(子存在);
+            if (!私有_填充自我场景存在复现项(基础节点, 1, 场景项)
+                || (场景项.几何状态 & 2) == 0) {
+                continue;
+            }
+
+            auto* 体素特征 = 特征服务.查找子特征_按类型(
+                基础节点,
+                三维体素特征类型);
+            VecU句柄 体素根句柄{};
+            if (!特征服务.读取三维体素特征值(体素特征, 体素根句柄)) {
+                continue;
+            }
+
+            场景体素模块::结构_场景体素存在项 体素项{};
+            体素项.存在 = 可解析引用<存在节点类>{子存在};
+            体素项.三维体素特征 = 可解析引用<特征节点类>{体素特征};
+            体素项.三维体素根句柄 = 体素根句柄;
+            体素项.原点X_mm = 场景项.AABB最小X;
+            体素项.原点Y_mm = 场景项.AABB最小Y;
+            体素项.原点Z_mm = 场景项.AABB最小Z;
+            体素项.最小体素边长_mm = 1;
+
+            结构_控制面板自我场景体素复现项 输出项{};
+            输出项.存在指针 = 存在指针;
+            输出项.体素特征指针 = 私有_地址(体素特征);
+            输出项.体素根句柄 = 体素根句柄.主信息指针;
+            输出项.标题 = 场景项.标题 + " | AABB体素原点";
+            输出项.原点X = 体素项.原点X_mm;
+            输出项.原点Y = 体素项.原点Y_mm;
+            输出项.原点Z = 体素项.原点Z_mm;
+            输出项.显示角色 = static_cast<I64>(场景体素模块::枚举_场景体素显示角色::场景直接存在体素);
+            输出项.父子坐标映射状态 = static_cast<I64>(场景体素模块::枚举_场景体素父子映射状态::不适用);
+            输出项.颜色事实状态 = static_cast<I64>(场景体素模块::枚举_场景体素颜色事实状态::缺父基础颜色事实);
+            输出项.最小体素边长_mm = 体素项.最小体素边长_mm;
+            私有_解码自我场景体素形状_控制面板(体素项, 输出项);
+            if (输出项.解码体素块总数 > 0 || !输出项.体素块列表.empty()) {
+                快照.自我场景体素复现项列表.push_back(std::move(输出项));
+            }
+        }
+    }
 
     // 功能：从自我所在场景只读生成控制面板体素显示快照。
     void 私有_读取自我场景体素复现快照(
@@ -2335,6 +2414,11 @@ namespace {
         参数.子平均颜色RGBA特征类型 = 私有_场景复现特征词("体素子平均颜色RGBA");
         参数.子平均颜色像素数量特征类型 = 私有_场景复现特征词("体素子平均颜色像素数量");
         参数.子平均颜色事实状态特征类型 = 私有_场景复现特征词("体素子平均颜色事实状态");
+        参数.体素颜色来源观察证据ID特征类型 = 私有_场景复现特征词("体素颜色来源观察证据ID");
+        参数.体素颜色来源基准体素版本特征类型 = 私有_场景复现特征词("体素颜色来源基准体素版本");
+        参数.体素子候选ID特征类型 = 私有_场景复现特征词("体素子候选ID");
+        参数.体素局部子体素候选ID特征类型 = 私有_场景复现特征词("体素局部子体素候选ID");
+        参数.体素子候选映射状态特征类型 = 私有_场景复现特征词("体素子候选映射状态");
         参数.场景体素坐标系版本 = 1;
         参数.颜色事实已写入状态值 = 1;
         参数.默认存在最小体素边长_mm = 1;
@@ -2397,10 +2481,20 @@ namespace {
             项.颜色RGBA = 体素项.颜色RGBA;
             项.颜色像素数量 = 体素项.颜色像素数量;
             项.颜色事实写入状态 = 体素项.颜色事实写入状态;
+            项.体素颜色来源观察证据ID = 体素项.体素颜色来源观察证据ID;
+            项.体素颜色来源基准体素版本 = 体素项.体素颜色来源基准体素版本;
+            项.体素子候选ID = 体素项.体素子候选ID;
+            项.体素局部子体素候选ID = 体素项.体素局部子体素候选ID;
+            项.体素子候选映射状态 = 体素项.体素子候选映射状态;
             项.最小体素边长_mm = 体素项.最小体素边长_mm;
             私有_解码自我场景体素形状_控制面板(体素项, 项);
             快照.自我场景体素复现项列表.push_back(std::move(项));
         }
+        私有_追加自我场景AABB体素复现项_控制面板(
+            自我所在场景,
+            参数.三维体素特征类型,
+            体素显示上限,
+            快照);
 
         const auto 转I64 = [](const std::uint64_t 值) noexcept -> I64 {
             return 值 > static_cast<std::uint64_t>((std::numeric_limits<I64>::max)())
@@ -2442,6 +2536,7 @@ namespace {
                 子诊断.深度支撑率 = 子候选.深度支撑率Q10000;
                 子诊断.颜色统计有效 = 子候选.颜色统计.有效 ? 1 : 0;
                 子诊断.颜色像素数量 = 转I64(子候选.颜色统计.像素数量);
+                子诊断.局部子体素候选ID = 子候选.局部子体素候选ID;
                 const bool 有局部子体素候选 =
                     子候选.局部体素检查.输入有效
                     && 子候选.局部体素检查.有占据
@@ -9924,6 +10019,11 @@ window.__panelApplyDetail=function(){};
             输出 << ",\"colorRgba\":" << 项.颜色RGBA;
             输出 << ",\"colorPixels\":" << 项.颜色像素数量;
             输出 << ",\"colorWriteState\":" << 项.颜色事实写入状态;
+            输出 << ",\"colorObservationEvidenceId\":" << 项.体素颜色来源观察证据ID;
+            输出 << ",\"colorBaselineVersion\":" << 项.体素颜色来源基准体素版本;
+            输出 << ",\"voxelChildCandidateId\":" << 项.体素子候选ID;
+            输出 << ",\"localChildVoxelCandidateId\":" << 项.体素局部子体素候选ID;
+            输出 << ",\"childCandidateMappingState\":" << 项.体素子候选映射状态;
             输出 << ",\"origin\":";
             追加JSON_I64数组3(输出, 项.原点X, 项.原点Y, 项.原点Z);
             输出 << ",\"minVoxelMm\":" << 项.最小体素边长_mm;
@@ -10073,6 +10173,11 @@ window.__panelApplyDetail=function(){};
             混合I64(项.颜色RGBA);
             混合I64(项.颜色像素数量);
             混合I64(项.颜色事实写入状态);
+            混合I64(项.体素颜色来源观察证据ID);
+            混合I64(项.体素颜色来源基准体素版本);
+            混合I64(项.体素子候选ID);
+            混合I64(项.体素局部子体素候选ID);
+            混合I64(项.体素子候选映射状态);
             混合I64(项.最小体素边长_mm);
             混合I64(项.根最大层级);
             混合I64(项.根边长体素);
@@ -10122,6 +10227,7 @@ window.__panelApplyDetail=function(){};
                 混合I64(子.空间支撑像素数量);
                 混合I64(子.颜色统计有效);
                 混合I64(子.局部子体素候选数量);
+                混合I64(子.局部子体素候选ID);
             }
         }
         混合I64(快照.自我场景诊断区域列表.size());
@@ -10352,6 +10458,7 @@ window.__panelApplyDetail=function(){};
                 输出 << ",\"depthSupportRatio\":" << 子.深度支撑率;
                 输出 << ",\"colorStatsValid\":" << 子.颜色统计有效;
                 输出 << ",\"colorStatsPixels\":" << 子.颜色像素数量;
+                输出 << ",\"localChildVoxelCandidateId\":" << 子.局部子体素候选ID;
                 输出 << ",\"localVoxelCandidateCount\":" << 子.局部子体素候选数量;
                 输出 << ",\"localBoxEdge\":" << 子.局部包围盒边长;
                 输出 << ",\"localVoxelInputValid\":" << 子.局部体素输入有效;
@@ -15663,6 +15770,18 @@ std::string 私有_生成控制面板HTML(
       return '无父子映射';
     }
 
+    function 自我场景体素子候选映射文本(state) {
+      switch (Number(state || 0)) {
+        case 1: return '子候选已映射';
+        case 2: return '缺候选包';
+        case 3: return '无可映射子候选';
+        case 4: return '多可映射子候选';
+        case 5: return '版本不匹配';
+        case 9: return '输入非法';
+        default: return '未生成';
+      }
+    }
+
     function 自我场景体素RGBA值(item) {
       const value = Number(item?.colorRgba || 0);
       if (!Number.isFinite(value) || value <= 0) return 0;
@@ -15788,6 +15907,18 @@ std::string 私有_生成控制面板HTML(
         ];
         meta.textContent = parts.join(' / ');
         card.appendChild(meta);
+        if (自我场景体素角色(item) === 2) {
+          const mapping = document.createElement('div');
+          mapping.className = 'scene-existence-meta';
+          mapping.textContent = [
+            自我场景体素子候选映射文本(item?.childCandidateMappingState),
+            `子候选 ${Number(item?.voxelChildCandidateId || 0)}`,
+            `局部子体素 ${Number(item?.localChildVoxelCandidateId || 0)}`,
+            `颜色来源观察 ${Number(item?.colorObservationEvidenceId || 0)}`,
+            `基准 ${Number(item?.colorBaselineVersion || 0)}`
+          ].join(' / ');
+          card.appendChild(mapping);
+        }
         host.appendChild(card);
       });
       if (items.length > 24) {
@@ -15846,6 +15977,7 @@ std::string 私有_生成控制面板HTML(
             `深 ${Number(child?.depthPixels || 0)}`,
             `空间 ${Number(child?.spacePixels || 0)}`,
             `颜色统计 ${Number(child?.colorStatsValid || 0)}:${Number(child?.colorStatsPixels || 0)}`,
+            `局部ID ${Number(child?.localChildVoxelCandidateId || 0)}`,
             `局部体素 ${Number(child?.localVoxelCandidateCount || 0)}`,
             `边长 ${Number(child?.localBoxEdge || 0)}`
           ].join(' / ');
@@ -16945,6 +17077,13 @@ bool 启动控制面板自我场景窗口() noexcept
     return 启动控制面板WebView2自我场景窗口();
 }
 
+// 功能：保存自我场景 WebView2 窗口当前 PNG 截图。
+bool 保存控制面板自我场景窗口截图(
+    const std::filesystem::path& 输出路径,
+    const std::uint32_t 等待渲染毫秒) noexcept
+{
+    return 保存控制面板WebView2自我场景窗口截图(输出路径, 等待渲染毫秒);
+}
 
 // 功能：请求控制面板相关窗口关闭并等待窗口线程收束。
 void 请求关闭控制面板窗口() noexcept
