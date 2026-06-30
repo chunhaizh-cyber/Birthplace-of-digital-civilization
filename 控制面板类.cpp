@@ -2318,7 +2318,14 @@ namespace {
         参数.局部坐标原点X特征类型 = 私有_场景复现特征词("局部坐标原点X");
         参数.局部坐标原点Y特征类型 = 私有_场景复现特征词("局部坐标原点Y");
         参数.局部坐标原点Z特征类型 = 私有_场景复现特征词("局部坐标原点Z");
+        参数.父基础颜色RGBA特征类型 = 私有_场景复现特征词("体素父基础颜色RGBA");
+        参数.父基础颜色像素数量特征类型 = 私有_场景复现特征词("体素父基础颜色像素数量");
+        参数.父基础颜色事实状态特征类型 = 私有_场景复现特征词("体素父基础颜色事实状态");
+        参数.子平均颜色RGBA特征类型 = 私有_场景复现特征词("体素子平均颜色RGBA");
+        参数.子平均颜色像素数量特征类型 = 私有_场景复现特征词("体素子平均颜色像素数量");
+        参数.子平均颜色事实状态特征类型 = 私有_场景复现特征词("体素子平均颜色事实状态");
         参数.场景体素坐标系版本 = 1;
+        参数.颜色事实已写入状态值 = 1;
         参数.默认存在最小体素边长_mm = 1;
         参数.快照时间 = 结构体_时间戳::当前_微秒();
         参数.包含内部世界子体素 = true;
@@ -2376,6 +2383,9 @@ namespace {
             项.显示角色 = 体素项.显示角色;
             项.父子坐标映射状态 = 体素项.父子坐标映射状态;
             项.颜色事实状态 = 体素项.颜色事实状态;
+            项.颜色RGBA = 体素项.颜色RGBA;
+            项.颜色像素数量 = 体素项.颜色像素数量;
+            项.颜色事实写入状态 = 体素项.颜色事实写入状态;
             项.最小体素边长_mm = 体素项.最小体素边长_mm;
             私有_解码自我场景体素形状_控制面板(体素项, 项);
             快照.自我场景体素复现项列表.push_back(std::move(项));
@@ -9832,6 +9842,9 @@ window.__panelApplyDetail=function(){};
             输出 << ",\"role\":" << 项.显示角色;
             输出 << ",\"mappingState\":" << 项.父子坐标映射状态;
             输出 << ",\"colorFactState\":" << 项.颜色事实状态;
+            输出 << ",\"colorRgba\":" << 项.颜色RGBA;
+            输出 << ",\"colorPixels\":" << 项.颜色像素数量;
+            输出 << ",\"colorWriteState\":" << 项.颜色事实写入状态;
             输出 << ",\"origin\":";
             追加JSON_I64数组3(输出, 项.原点X, 项.原点Y, 项.原点Z);
             输出 << ",\"minVoxelMm\":" << 项.最小体素边长_mm;
@@ -9978,6 +9991,9 @@ window.__panelApplyDetail=function(){};
             混合I64(项.显示角色);
             混合I64(项.父子坐标映射状态);
             混合I64(项.颜色事实状态);
+            混合I64(项.颜色RGBA);
+            混合I64(项.颜色像素数量);
+            混合I64(项.颜色事实写入状态);
             混合I64(项.最小体素边长_mm);
             混合I64(项.根最大层级);
             混合I64(项.根边长体素);
@@ -15436,8 +15452,39 @@ std::string 私有_生成控制面板HTML(
       return '无父子映射';
     }
 
+    function 自我场景体素RGBA值(item) {
+      const value = Number(item?.colorRgba || 0);
+      if (!Number.isFinite(value) || value <= 0) return 0;
+      return value >>> 0;
+    }
+
+    function 自我场景体素真实颜色可用(item) {
+      const state = Number(item?.colorFactState || 0);
+      return (state === 3 || state === 4) && 自我场景体素RGBA值(item) > 0;
+    }
+
+    function 自我场景体素颜色数组(item) {
+      const rgba = 自我场景体素RGBA值(item);
+      if (rgba <= 0) return null;
+      const r = (rgba >>> 16) & 255;
+      const g = (rgba >>> 8) & 255;
+      const b = rgba & 255;
+      return [r / 255, g / 255, b / 255];
+    }
+
+    function 自我场景体素颜色文本(item) {
+      const rgba = 自我场景体素RGBA值(item);
+      if (rgba <= 0) return '';
+      const hex = (rgba & 0xffffff).toString(16).padStart(6, '0').toUpperCase();
+      return `#${hex}`;
+    }
+
     function 自我场景体素颜色事实文本(item) {
       const state = Number(item?.colorFactState || 0);
+      const colorText = 自我场景体素颜色文本(item);
+      const pixels = Math.max(0, Number(item?.colorPixels || 0));
+      if (state === 3) return `父基础色 ${colorText} / 像素 ${pixels}`;
+      if (state === 4) return `子平均色 ${colorText} / 像素 ${pixels}`;
       if (state === 1) return '缺父基础色事实';
       if (state === 2) return '缺子平均色事实';
       return '颜色事实未读取';
@@ -15463,7 +15510,7 @@ std::string 私有_生成控制面板HTML(
         if (Number(item?.rootHandle || 0) !== 0) withHandle += 1;
         if (自我场景体素角色(item) === 2) childVoxels += 1;
         else parentVoxels += 1;
-        if (Number(item?.colorFactState || 0) > 0) colorFactMissing += 1;
+        if (!自我场景体素真实颜色可用(item)) colorFactMissing += 1;
         const edge = Math.max(0, Number(item?.minVoxelMm || 0));
         if (edge > 0) {
           minEdge = minEdge > 0 ? Math.min(minEdge, edge) : edge;
@@ -15892,11 +15939,17 @@ std::string 私有_生成控制面板HTML(
     }
 
     function 自我场景体素显示颜色(item) {
+      const trueColor = 自我场景体素颜色数组(item);
+      if (自我场景体素真实颜色可用(item) && trueColor) return trueColor;
       if (自我场景体素角色(item) === 2) return [0.22, 0.78, 0.94];
       return Number(item?.rootHandle || 0) !== 0 ? [0.96, 0.24, 0.48] : [0.92, 0.50, 0.66];
     }
 
     function 自我场景体素盒颜色(item) {
+      const trueColor = 自我场景体素颜色数组(item);
+      if (自我场景体素真实颜色可用(item) && trueColor) {
+        return trueColor.map((value) => Math.max(0, Math.min(1, value * 0.62)));
+      }
       if (自我场景体素角色(item) === 2) return [0.08, 0.36, 0.52];
       return Number(item?.rootHandle || 0) !== 0 ? [0.58, 0.13, 0.30] : [0.50, 0.28, 0.36];
     }

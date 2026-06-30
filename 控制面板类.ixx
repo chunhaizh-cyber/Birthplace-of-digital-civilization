@@ -105,6 +105,9 @@ struct 结构_控制面板自我场景体素复现项 {
     std::int64_t 显示角色 = 1;
     std::int64_t 父子坐标映射状态 = 0;
     std::int64_t 颜色事实状态 = 0;
+    std::int64_t 颜色RGBA = 0;
+    std::int64_t 颜色像素数量 = 0;
+    std::int64_t 颜色事实写入状态 = 0;
     std::uint32_t 最小体素边长_mm = 0;
     std::uint32_t 根最大层级 = 0;
     std::uint32_t 根边长体素 = 0;
