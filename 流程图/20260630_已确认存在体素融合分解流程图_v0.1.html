@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>已确认存在体素融合分解流程图 v0.1</title>
+  <style>
+    body { margin: 0; font-family: "Microsoft YaHei", "Segoe UI", Arial, sans-serif; background: #f7f8fa; color: #1f2328; }
+    header { padding: 18px 24px 12px; border-bottom: 1px solid #d8dee4; background: #fff; }
+    h1 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+    .hint { margin: 0; font-size: 13px; color: #57606a; line-height: 1.6; max-width: 1280px; }
+    main { padding: 20px; }
+    .canvas { min-width: 1800px; padding: 16px; border: 1px solid #d8dee4; background: #fff; overflow: auto; }
+    .mermaid { min-width: 1760px; }
+    .notes { margin-top: 18px; padding: 16px; border: 1px solid #d8dee4; background: #fff; max-width: 1180px; line-height: 1.65; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>已确认存在体素融合分解流程图 v0.1</h1>
+    <p class="hint">表达已确认存在体素融合、彩色分解、子存在局部体素和体素加工线程的实现边界；流程图不是权威规范来源。</p>
+  </header>
+  <main>
+    <section class="canvas">
+      <pre class="mermaid">
+flowchart TD
+    A["已确认存在新增观察体素特征值"] --> B{"是否新增且未消费"}
+    B -- "否：旧当前值 / 融合写回 / 显示刷新" --> B1["不触发体素加工"]
+    B -- "是" --> C["读取父存在体素快照<br/>尺寸 / 位置 / AABB / 版本"]
+    C --> D["读取深度轮廓和彩色轮廓<br/>来源观察证据可回查"]
+    D --> E["生成体素加工任务<br/>记录基准体素版本 V1"]
+
+    subgraph W["体素加工工作线程：只计算候选"]
+        E --> F["计算正立方体包围盒 N*N*N<br/>N = 彩色轮廓最大边"]
+        F --> G["外边界保留 1 格空白<br/>有效区间 1..N-2"]
+        G --> H["按存在尺寸归一化<br/>最长方向贴有效区边界"]
+        H --> I{"深度候选是否有融合点"}
+        I -- "否" --> I1["输出待融合候选 / 缺口<br/>不写父体素"]
+        I -- "是" --> J["深度轮廓融合<br/>生成父体素占据候选"]
+        J --> K{"是否触碰最外层边界"}
+        K -- "是" --> K1["标记越界 / 截断 / 不完整<br/>不可提交稳定模型"]
+        K -- "否" --> L["彩色轮廓分解<br/>生成子轮廓候选"]
+        L --> M["深度轮廓补子轮廓空间信息<br/>空间占据 / 深度连续 / 边界"]
+        M --> N{"子轮廓是否有深度支撑"}
+        N -- "否" --> N1["表面颜色区域 / 未解释区域候选<br/>不得创建子存在"]
+        N -- "是" --> O["生成子存在局部体素候选<br/>正立方体局部包围盒"]
+        O --> P["统计颜色<br/>父色=扣除子轮廓后平均色<br/>子色=子轮廓平均色"]
+        P --> Q["生成体素加工结果包<br/>父候选 / 子候选 / 映射 / 质量状态"]
+    end
+
+    I1 --> R["返回提交入口"]
+    K1 --> R
+    N1 --> Q
+    Q --> R
+
+    subgraph S["提交入口和领域类：唯一正式写入路径"]
+        R --> T{"提交时父体素版本仍为 V1"}
+        T -- "否：已变 V2" --> T1["重算 / 合并 / 挂起<br/>不得覆盖新版本"]
+        T -- "是" --> U{"候选是否通过质量门"}
+        U -- "否" --> U1["写结构化缺口或待验证候选"]
+        U -- "是" --> V["写入父存在体素特征候选裁决结果<br/>更新版本和来源证据"]
+        V --> X{"是否存在可确认子存在候选"}
+        X -- "否" --> Y["只更新父体素和颜色"]
+        X -- "是" --> Z["确保父存在内部世界<br/>建立父子坐标映射"]
+        Z --> AA["创建或更新内部世界子存在<br/>写入子存在局部体素模型"]
+    end
+
+    Y --> AB["场景体素服务只读发布快照"]
+    AA --> AB
+    AB --> AC["控制面板只读显示<br/>父基础色先画，子体素颜色覆盖"]
+
+    B1 -. "禁止路径" .-> X1["外设原始帧 / UI / 日志<br/>不得直接写事实"]
+    W -. "禁止路径" .-> X2["加工线程不得直接写世界树<br/>不得创建子存在<br/>不得生成动作动态"]
+      </pre>
+    </section>
+    <section class="notes">
+      <p>关键边界：新增未消费观察体素特征值才触发加工；体素加工线程只产候选；没有融合点不写父体素；彩色分解必须由深度补空间；正式入账必须经过提交入口和版本闸门。</p>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, securityLevel: "loose", flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis" }, theme: "base", themeVariables: { fontFamily: "Microsoft YaHei, Segoe UI, Arial, sans-serif", lineColor: "#6a737d" } });
+  </script>
+</body>
+</html>
