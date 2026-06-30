@@ -39,7 +39,7 @@ export struct 结构_SQL控制面板显示项 {
     std::optional<std::int64_t> 状态值{};
     std::string 状态文本{};
     std::optional<std::int64_t> 满足关系掩码{};
-    std::optional<bool> 已满足{};
+    std::optional<bool> 本轮已截止{};
     std::string 类型文本{};
     std::string 显示摘要{};
 };

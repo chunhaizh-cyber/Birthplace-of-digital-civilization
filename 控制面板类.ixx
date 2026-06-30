@@ -162,7 +162,7 @@ struct 结构_控制面板快照 {
     std::size_t 方法条件结果不成对数 = 0;
     std::size_t 线程数 = 0;
 
-    std::size_t 需求已满足数 = 0;
+    std::size_t 需求本轮已截止数 = 0;
     std::size_t 需求状态已达未截止数 = 0;
     std::size_t 需求未满足数 = 0;
     std::size_t 需求树有子节点数 = 0;

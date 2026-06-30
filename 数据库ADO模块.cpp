@@ -478,11 +478,11 @@ namespace {
             << 私有_SQL字符串(显示项.主键) << " AS [需求主键], "
             << 私有_SQL可空字符串(显示项.父主键) << " AS [父需求主键], "
             << 私有_SQL可空整数(显示项.满足关系掩码) << " AS [满足关系掩码], "
-            << 私有_SQL可空布尔(显示项.已满足) << " AS [已满足], "
+            << 私有_SQL可空布尔(显示项.本轮已截止) << " AS [本轮已截止], "
             << 私有_SQL可空字符串(显示项.显示摘要) << " AS [显示摘要]) AS 源\n"
             << "ON 目标.[需求主键] = 源.[需求主键]\n"
-            << "WHEN MATCHED THEN UPDATE SET [运行ID]=源.[运行ID], [父需求主键]=源.[父需求主键], [满足关系掩码]=源.[满足关系掩码], [已满足]=源.[已满足], [更新时间]=SYSUTCDATETIME(), [显示摘要]=源.[显示摘要]\n"
-            << "WHEN NOT MATCHED THEN INSERT ([运行ID], [需求主键], [父需求主键], [满足关系掩码], [已满足], [更新时间], [显示摘要]) VALUES (源.[运行ID], 源.[需求主键], 源.[父需求主键], 源.[满足关系掩码], 源.[已满足], SYSUTCDATETIME(), 源.[显示摘要]);\n";
+            << "WHEN MATCHED THEN UPDATE SET [运行ID]=源.[运行ID], [父需求主键]=源.[父需求主键], [满足关系掩码]=源.[满足关系掩码], [本轮已截止]=源.[本轮已截止], [更新时间]=SYSUTCDATETIME(), [显示摘要]=源.[显示摘要]\n"
+            << "WHEN NOT MATCHED THEN INSERT ([运行ID], [需求主键], [父需求主键], [满足关系掩码], [本轮已截止], [更新时间], [显示摘要]) VALUES (源.[运行ID], 源.[需求主键], 源.[父需求主键], 源.[满足关系掩码], 源.[本轮已截止], SYSUTCDATETIME(), 源.[显示摘要]);\n";
         return SQL.str();
     }
 
@@ -623,10 +623,14 @@ namespace {
             << "    [需求主键] nvarchar(256) NOT NULL PRIMARY KEY,\n"
             << "    [父需求主键] nvarchar(256) NULL,\n"
             << "    [满足关系掩码] bigint NULL,\n"
-            << "    [已满足] bit NULL,\n"
+            << "    [本轮已截止] bit NULL,\n"
             << "    [更新时间] datetime2(3) NOT NULL,\n"
             << "    [显示摘要] nvarchar(1024) NULL\n"
             << ");\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前需求显示项]', N'U') IS NOT NULL AND COL_LENGTH(N'鱼巢.当前需求显示项', N'本轮已截止') IS NULL\n"
+            << "ALTER TABLE [鱼巢].[当前需求显示项] ADD [本轮已截止] bit NULL;\n"
+            << "IF OBJECT_ID(N'[鱼巢].[当前需求显示项]', N'U') IS NOT NULL AND COL_LENGTH(N'鱼巢.当前需求显示项', N'已满足') IS NOT NULL AND COL_LENGTH(N'鱼巢.当前需求显示项', N'本轮已截止') IS NOT NULL\n"
+            << "UPDATE [鱼巢].[当前需求显示项] SET [本轮已截止] = COALESCE([本轮已截止], [已满足]);\n"
             << "IF OBJECT_ID(N'[鱼巢].[当前方法显示项]', N'U') IS NULL\n"
             << "CREATE TABLE [鱼巢].[当前方法显示项] (\n"
             << "    [运行ID] uniqueidentifier NOT NULL,\n"

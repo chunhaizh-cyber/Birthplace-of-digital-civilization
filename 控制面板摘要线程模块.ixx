@@ -71,7 +71,7 @@ export struct 结构_控制面板摘要快照 {
 
     std::size_t 等待子需求数 = 0;
 
-    std::size_t 已满足需求数 = 0;
+    std::size_t 已终结需求数 = 0;
 
     std::size_t 筹办中任务数 = 0;
 
