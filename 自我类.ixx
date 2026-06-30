@@ -1,4 +1,8 @@
 module;
+// 文件头部规则注释模块：
+// 自我类接口只声明自我根需求、根任务、主链镜像和运行态入口；不承载机器决策状态。
+// 根任务不再作为可延后诊断项，安全 / 服务根需求必须有对应根任务承接壳。
+
 
 #include <atomic>
 #include <cstdint>
@@ -54,7 +58,7 @@ struct 结构_自我初始化结果 {
     bool 本能动作运行时已注册 = false;
     bool 根需求已就绪 = false;
     bool 根任务已就绪 = false;
-    bool 根任务允许延后 = true;
+    bool 根任务允许延后 = false;
     bool 治理任务已就绪 = false;
     bool 方法根已就绪 = false;
     bool 当前主链已回填 = false;
