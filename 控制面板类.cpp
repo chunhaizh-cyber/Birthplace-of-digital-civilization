@@ -50,6 +50,7 @@ module 控制面板类;
 import 全局共享函数类;
 import 控制面板WebView2;
 import 场景体素模块;
+import 视觉观察融合模块;
 import 自我类;
 import 自我类.特征定义;
 import 自我线程模块;
@@ -2116,6 +2117,7 @@ namespace {
             枚举_信息入口类型::特征模板入口);
     }
 
+
     // 功能：把体素局部坐标按存在原点和最小体素边长转换为显示坐标。
     std::int64_t 私有_体素局部坐标转场景坐标_控制面板(
         const I64 原点,
@@ -2289,6 +2291,7 @@ namespace {
             已扫描节点数);
     }
 
+
     // 功能：从自我所在场景只读生成控制面板体素显示快照。
     void 私有_读取自我场景体素复现快照(
         场景节点类* 自我所在场景,
@@ -2308,6 +2311,14 @@ namespace {
         快照.自我场景体素缺坐标存在数量 = 0;
         快照.自我场景体素缺体素存在数量 = 0;
         快照.自我场景体素缺坐标系版本数量 = 0;
+        快照.体素加工候选结果包数量 = 0;
+        快照.体素加工候选最新输入观察证据ID = 0;
+        快照.体素加工候选最新基准体素版本 = 0;
+        快照.体素加工候选最新父基础颜色有效 = 0;
+        快照.体素加工候选最新子轮廓候选数量 = 0;
+        快照.体素加工候选最新局部子体素候选数量 = 0;
+        快照.体素加工候选诊断分支 = 0;
+        快照.体素加工候选包诊断列表.clear();
 
         if (!自我所在场景) {
             return;
@@ -2389,6 +2400,74 @@ namespace {
             项.最小体素边长_mm = 体素项.最小体素边长_mm;
             私有_解码自我场景体素形状_控制面板(体素项, 项);
             快照.自我场景体素复现项列表.push_back(std::move(项));
+        }
+
+        const auto 转I64 = [](const std::uint64_t 值) noexcept -> I64 {
+            return 值 > static_cast<std::uint64_t>((std::numeric_limits<I64>::max)())
+                ? (std::numeric_limits<I64>::max)()
+                : static_cast<I64>(值);
+        };
+        const auto 候选结果包集合 = 视觉观察融合模块::读取体素加工候选结果包集合();
+        快照.体素加工候选结果包数量 = 转I64(static_cast<std::uint64_t>(候选结果包集合.size()));
+        constexpr std::size_t 候选包显示上限 = 16;
+        const std::size_t 起点 = 候选结果包集合.size() > 候选包显示上限
+            ? 候选结果包集合.size() - 候选包显示上限
+            : 0;
+        for (std::size_t 索引 = 起点; 索引 < 候选结果包集合.size(); ++索引) {
+            const auto& 候选包 = 候选结果包集合[索引];
+            结构_控制面板体素加工候选包诊断 包诊断{};
+            包诊断.包索引 = 转I64(static_cast<std::uint64_t>(索引 + 1));
+            包诊断.任务ID = 候选包.任务ID;
+            包诊断.父存在指针 = 私有_地址(候选包.父存在.获取());
+            包诊断.输入观察证据ID = 候选包.输入观察证据ID;
+            包诊断.基准体素版本 = 候选包.基准体素版本;
+            包诊断.处理状态 = static_cast<I64>(候选包.处理状态);
+            包诊断.可提交状态 = static_cast<I64>(候选包.可提交状态);
+            包诊断.生成时间 = 候选包.生成时间;
+            包诊断.父基础颜色统计有效 = 候选包.父基础颜色统计.有效 ? 1 : 0;
+            包诊断.父基础颜色像素数量 = 转I64(候选包.父基础颜色统计.像素数量);
+            包诊断.父基础颜色RGBA = static_cast<I64>(候选包.父基础颜色统计.平均颜色RGBA);
+            包诊断.子轮廓候选数量 = 候选包.子轮廓候选数量;
+            包诊断.深度支撑子候选数量 = 候选包.有深度支撑子候选数量;
+            包诊断.表面或未解释子候选数量 = 候选包.表面或未解释子候选数量;
+
+            for (const auto& 子候选 : 候选包.子轮廓候选集合) {
+                结构_控制面板体素加工子候选诊断 子诊断{};
+                子诊断.包索引 = 包诊断.包索引;
+                子诊断.候选ID = 子候选.候选ID;
+                子诊断.候选状态 = static_cast<I64>(子候选.状态);
+                子诊断.彩色像素数量 = 转I64(子候选.彩色像素数量);
+                子诊断.深度支撑像素数量 = 转I64(子候选.深度支撑像素数量);
+                子诊断.空间支撑像素数量 = 转I64(子候选.空间支撑像素数量);
+                子诊断.深度支撑率 = 子候选.深度支撑率Q10000;
+                子诊断.颜色统计有效 = 子候选.颜色统计.有效 ? 1 : 0;
+                子诊断.颜色像素数量 = 转I64(子候选.颜色统计.像素数量);
+                const bool 有局部子体素候选 =
+                    子候选.局部体素检查.输入有效
+                    && 子候选.局部体素检查.有占据
+                    && !子候选.局部体素占据候选.empty();
+                子诊断.局部子体素候选数量 = 有局部子体素候选 ? 1 : 0;
+                子诊断.局部包围盒边长 = 子候选.局部包围盒边长;
+                子诊断.局部体素输入有效 = 子候选.局部体素检查.输入有效 ? 1 : 0;
+                子诊断.局部体素有占据 = 子候选.局部体素检查.有占据 ? 1 : 0;
+                子诊断.局部体素触碰外边界 = 子候选.局部体素检查.触碰外边界 ? 1 : 0;
+                子诊断.局部体素压紧 = 子候选.局部体素检查.局部包围盒压紧 ? 1 : 0;
+                包诊断.局部子体素候选数量 += 子诊断.局部子体素候选数量;
+                包诊断.子候选列表.push_back(std::move(子诊断));
+            }
+
+            快照.体素加工候选包诊断列表.push_back(std::move(包诊断));
+        }
+        if (!快照.体素加工候选包诊断列表.empty()) {
+            const auto& 最新包 = 快照.体素加工候选包诊断列表.back();
+            快照.体素加工候选最新输入观察证据ID = 最新包.输入观察证据ID;
+            快照.体素加工候选最新基准体素版本 = 最新包.基准体素版本;
+            快照.体素加工候选最新父基础颜色有效 = 最新包.父基础颜色统计有效;
+            快照.体素加工候选最新子轮廓候选数量 = 最新包.子轮廓候选数量;
+            快照.体素加工候选最新局部子体素候选数量 = 最新包.局部子体素候选数量;
+            快照.体素加工候选诊断分支 = 最新包.子轮廓候选数量 <= 0
+                ? 1
+                : (最新包.局部子体素候选数量 <= 0 ? 2 : 3);
         }
     }
 
@@ -10015,6 +10094,36 @@ window.__panelApplyDetail=function(){};
                 混合U64(块.占据体素数量);
             }
         }
+        混合I64(快照.体素加工候选结果包数量);
+        混合I64(快照.体素加工候选最新输入观察证据ID);
+        混合I64(快照.体素加工候选最新基准体素版本);
+        混合I64(快照.体素加工候选最新父基础颜色有效);
+        混合I64(快照.体素加工候选最新子轮廓候选数量);
+        混合I64(快照.体素加工候选最新局部子体素候选数量);
+        混合I64(快照.体素加工候选诊断分支);
+        混合I64(快照.体素加工候选包诊断列表.size());
+        for (const auto& 包 : 快照.体素加工候选包诊断列表) {
+            混合I64(包.包索引);
+            混合I64(包.任务ID);
+            混合U64(包.父存在指针);
+            混合I64(包.输入观察证据ID);
+            混合I64(包.基准体素版本);
+            混合I64(包.处理状态);
+            混合I64(包.可提交状态);
+            混合I64(包.父基础颜色统计有效);
+            混合I64(包.父基础颜色像素数量);
+            混合I64(包.子轮廓候选数量);
+            混合I64(包.局部子体素候选数量);
+            for (const auto& 子 : 包.子候选列表) {
+                混合I64(子.候选ID);
+                混合I64(子.候选状态);
+                混合I64(子.彩色像素数量);
+                混合I64(子.深度支撑像素数量);
+                混合I64(子.空间支撑像素数量);
+                混合I64(子.颜色统计有效);
+                混合I64(子.局部子体素候选数量);
+            }
+        }
         混合I64(快照.自我场景诊断区域列表.size());
         for (const auto& 区域 : 快照.自我场景诊断区域列表) {
             混合I64(区域.区域编号);
@@ -10192,6 +10301,68 @@ window.__panelApplyDetail=function(){};
         输出 << ",\"voxelMissingCoordinateVersionCount\":" << 快照.自我场景体素缺坐标系版本数量;
         输出 << ",\"voxels\":";
         私有_追加自我场景体素复现项数组JSON(输出, 快照.自我场景体素复现项列表);
+        输出 << ",\"voxelCandidatePackageCount\":" << 快照.体素加工候选结果包数量;
+        输出 << ",\"voxelCandidateLatestObservationEvidenceId\":"
+            << 快照.体素加工候选最新输入观察证据ID;
+        输出 << ",\"voxelCandidateLatestBaselineVersion\":"
+            << 快照.体素加工候选最新基准体素版本;
+        输出 << ",\"voxelCandidateLatestParentColorValid\":"
+            << 快照.体素加工候选最新父基础颜色有效;
+        输出 << ",\"voxelCandidateLatestChildContourCount\":"
+            << 快照.体素加工候选最新子轮廓候选数量;
+        输出 << ",\"voxelCandidateLatestLocalChildVoxelCount\":"
+            << 快照.体素加工候选最新局部子体素候选数量;
+        输出 << ",\"voxelCandidateDiagnosticBranch\":"
+            << 快照.体素加工候选诊断分支;
+        输出 << ",\"voxelCandidatePackages\":[";
+        for (std::size_t 包索引 = 0; 包索引 < 快照.体素加工候选包诊断列表.size(); ++包索引) {
+            if (包索引 > 0) {
+                输出 << ",";
+            }
+            const auto& 包 = 快照.体素加工候选包诊断列表[包索引];
+            输出 << "{";
+            输出 << "\"index\":" << 包.包索引;
+            输出 << ",\"taskId\":" << 包.任务ID;
+            输出 << ",\"parentPtr\":" << 包.父存在指针;
+            输出 << ",\"observationEvidenceId\":" << 包.输入观察证据ID;
+            输出 << ",\"baselineVersion\":" << 包.基准体素版本;
+            输出 << ",\"processState\":" << 包.处理状态;
+            输出 << ",\"submitState\":" << 包.可提交状态;
+            输出 << ",\"generatedAt\":" << 包.生成时间;
+            输出 << ",\"parentColorValid\":" << 包.父基础颜色统计有效;
+            输出 << ",\"parentColorPixels\":" << 包.父基础颜色像素数量;
+            输出 << ",\"parentColorRgba\":" << 包.父基础颜色RGBA;
+            输出 << ",\"childContourCount\":" << 包.子轮廓候选数量;
+            输出 << ",\"depthSupportedChildCount\":" << 包.深度支撑子候选数量;
+            输出 << ",\"surfaceOrUnexplainedChildCount\":" << 包.表面或未解释子候选数量;
+            输出 << ",\"localChildVoxelCandidateCount\":" << 包.局部子体素候选数量;
+            输出 << ",\"children\":[";
+            for (std::size_t 子索引 = 0; 子索引 < 包.子候选列表.size(); ++子索引) {
+                if (子索引 > 0) {
+                    输出 << ",";
+                }
+                const auto& 子 = 包.子候选列表[子索引];
+                输出 << "{";
+                输出 << "\"packageIndex\":" << 子.包索引;
+                输出 << ",\"candidateId\":" << 子.候选ID;
+                输出 << ",\"state\":" << 子.候选状态;
+                输出 << ",\"colorPixels\":" << 子.彩色像素数量;
+                输出 << ",\"depthPixels\":" << 子.深度支撑像素数量;
+                输出 << ",\"spacePixels\":" << 子.空间支撑像素数量;
+                输出 << ",\"depthSupportRatio\":" << 子.深度支撑率;
+                输出 << ",\"colorStatsValid\":" << 子.颜色统计有效;
+                输出 << ",\"colorStatsPixels\":" << 子.颜色像素数量;
+                输出 << ",\"localVoxelCandidateCount\":" << 子.局部子体素候选数量;
+                输出 << ",\"localBoxEdge\":" << 子.局部包围盒边长;
+                输出 << ",\"localVoxelInputValid\":" << 子.局部体素输入有效;
+                输出 << ",\"localVoxelOccupied\":" << 子.局部体素有占据;
+                输出 << ",\"localVoxelTouchOuterBoundary\":" << 子.局部体素触碰外边界;
+                输出 << ",\"localVoxelPacked\":" << 子.局部体素压紧;
+                输出 << "}";
+            }
+            输出 << "]}";
+        }
+        输出 << "]";
         输出 << ",\"candidateCount\":" << 快照.自我场景空间候选数量;
         输出 << ",\"candidateValidPixels\":" << 快照.自我场景空间候选有效点数量;
         输出 << ",\"hypothesisState\":" << 快照.自我场景观察存在假设;
@@ -13853,8 +14024,25 @@ std::string 私有_生成控制面板HTML(
                     <div class="scene-stat-label">缺口</div>
                     <div id="scene-voxel-gap-stat" class="scene-stat-value">--</div>
                   </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">候选包</div>
+                    <div id="scene-voxel-candidate-package-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">最新证据</div>
+                    <div id="scene-voxel-candidate-source-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">子候选</div>
+                    <div id="scene-voxel-candidate-child-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
+                    <div class="scene-stat-label">P8c分支</div>
+                    <div id="scene-voxel-candidate-branch-stat" class="scene-stat-value">--</div>
+                  </div>
                 </div>
                 <div id="scene-voxel-list" class="scene-existence-list" aria-label="自我所在场景体素列表"></div>
+                <div id="scene-voxel-candidate-list" class="scene-existence-list" aria-label="体素加工候选结果包诊断"></div>
               </aside>
               <aside class="panel">
                 <div class="panel-topline">调试快照</div>
@@ -15429,6 +15617,29 @@ std::string 私有_生成控制面板HTML(
       return Array.isArray(data?.voxels) ? data.voxels : [];
     }
 
+    function 读取自我场景体素加工候选包列表(data) {
+      return Array.isArray(data?.voxelCandidatePackages) ? data.voxelCandidatePackages : [];
+    }
+
+    function 自我场景体素候选分支文本(branch) {
+      switch (Number(branch || 0)) {
+        case 1: return '无子轮廓候选';
+        case 2: return '有子轮廓但缺局部子体素';
+        case 3: return '可进入身份映射';
+        default: return '无候选包';
+      }
+    }
+
+    function 自我场景体素子候选状态文本(state) {
+      switch (Number(state || 0)) {
+        case 1: return '表面区域';
+        case 2: return '未解释候选';
+        case 3: return '可生成局部体素';
+        case 4: return '输入非法';
+        default: return '无';
+      }
+    }
+
     function 自我场景体素原点(item) {
       return 自我场景数组3(item?.origin);
     }
@@ -15587,6 +15798,69 @@ std::string 私有_生成控制面板HTML(
       }
     }
 
+    function 渲染自我场景体素加工候选诊断列表() {
+      const host = document.getElementById('scene-voxel-candidate-list');
+      if (!host) return;
+      host.textContent = '';
+      const data = 自我场景复现数据 || {};
+      const packages = 读取自我场景体素加工候选包列表(data);
+      if (packages.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'scene-existence-empty';
+        empty.textContent = '当前快照没有体素加工候选结果包。';
+        host.appendChild(empty);
+        return;
+      }
+      packages.slice(-8).forEach((pkg) => {
+        const card = document.createElement('div');
+        card.className = 'scene-existence-item';
+
+        const title = document.createElement('div');
+        title.className = 'scene-existence-title';
+        title.textContent = `包 ${Number(pkg?.index || 0)} / 任务 ${Number(pkg?.taskId || 0)} / 父 ${Number(pkg?.parentPtr || 0)}`;
+        card.appendChild(title);
+
+        const meta = document.createElement('div');
+        meta.className = 'scene-existence-meta';
+        const parts = [
+          `观察证据 ${Number(pkg?.observationEvidenceId || 0)}`,
+          `基准版本 ${Number(pkg?.baselineVersion || 0)}`,
+          `处理 ${Number(pkg?.processState || 0)}`,
+          `可提交 ${Number(pkg?.submitState || 0)}`,
+          `父色有效 ${Number(pkg?.parentColorValid || 0)}:${Number(pkg?.parentColorPixels || 0)}`,
+          `子轮廓 ${Number(pkg?.childContourCount || 0)}`,
+          `深度子候选 ${Number(pkg?.depthSupportedChildCount || 0)}`,
+          `局部子体素 ${Number(pkg?.localChildVoxelCandidateCount || 0)}`
+        ];
+        meta.textContent = parts.join(' / ');
+        card.appendChild(meta);
+
+        const children = Array.isArray(pkg?.children) ? pkg.children.slice(0, 6) : [];
+        children.forEach((child) => {
+          const row = document.createElement('div');
+          row.className = 'scene-existence-meta';
+          row.textContent = [
+            `子 ${Number(child?.candidateId || 0)}`,
+            自我场景体素子候选状态文本(child?.state),
+            `彩 ${Number(child?.colorPixels || 0)}`,
+            `深 ${Number(child?.depthPixels || 0)}`,
+            `空间 ${Number(child?.spacePixels || 0)}`,
+            `颜色统计 ${Number(child?.colorStatsValid || 0)}:${Number(child?.colorStatsPixels || 0)}`,
+            `局部体素 ${Number(child?.localVoxelCandidateCount || 0)}`,
+            `边长 ${Number(child?.localBoxEdge || 0)}`
+          ].join(' / ');
+          card.appendChild(row);
+        });
+        if (Array.isArray(pkg?.children) && pkg.children.length > children.length) {
+          const more = document.createElement('div');
+          more.className = 'scene-existence-meta';
+          more.textContent = `还有 ${pkg.children.length - children.length} 个子候选未展开。`;
+          card.appendChild(more);
+        }
+        host.appendChild(card);
+      });
+    }
+
 )HTML";
     输出 << R"HTML(
     function 更新自我场景统计() {
@@ -15606,6 +15880,10 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-voxel-summary-stat', `${voxelStats.withOrigin}/${voxelStats.total} 个 / 父 ${voxelStats.parentVoxels} / 子 ${voxelStats.childVoxels} / 入选 ${data.voxelSelectedExistences || 0} / 枚举 ${data.voxelEnumeratedExistences || 0} / 占据 ${voxelStats.occupiedVoxels}`);
       设置自我场景文本('scene-voxel-source-stat', `坐标 ${data.voxelWithCoordinateExistences || 0} / 模型 ${data.voxelWithModelExistences || 0} / 根句柄 ${voxelStats.withHandle} / 块 ${voxelStats.visibleBlocks}/${voxelStats.decodedBlocks} / 边长 ${voxelStats.minEdge || 0}-${voxelStats.maxEdge || 0}`);
       设置自我场景文本('scene-voxel-gap-stat', `总 ${data.voxelGapCount || 0} / 类型 ${data.voxelMissingFeatureTypeCount || 0} / 坐标 ${data.voxelMissingCoordinateCount || 0} / 模型 ${data.voxelMissingModelCount || 0} / 版本 ${data.voxelMissingCoordinateVersionCount || 0} / 颜色事实 ${voxelStats.colorFactMissing}`);
+      设置自我场景文本('scene-voxel-candidate-package-stat', `${data.voxelCandidatePackageCount || 0} 个 / 显示 ${读取自我场景体素加工候选包列表(data).length}`);
+      设置自我场景文本('scene-voxel-candidate-source-stat', `观察 ${data.voxelCandidateLatestObservationEvidenceId || 0} / 基准 ${data.voxelCandidateLatestBaselineVersion || 0} / 父色 ${data.voxelCandidateLatestParentColorValid || 0}`);
+      设置自我场景文本('scene-voxel-candidate-child-stat', `子轮廓 ${data.voxelCandidateLatestChildContourCount || 0} / 局部子体素 ${data.voxelCandidateLatestLocalChildVoxelCount || 0}`);
+      设置自我场景文本('scene-voxel-candidate-branch-stat', 自我场景体素候选分支文本(data.voxelCandidateDiagnosticBranch));
       设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
@@ -15640,6 +15918,7 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-safety-gap-stat', `安全评估证据不足原因 ${data.safetyEvidenceInsufficientReason || 0}`);
       渲染自我场景存在列表();
       渲染自我场景体素列表();
+      渲染自我场景体素加工候选诊断列表();
       更新自我场景图层摘要();
     }
 
@@ -16665,6 +16944,7 @@ bool 启动控制面板自我场景窗口() noexcept
 {
     return 启动控制面板WebView2自我场景窗口();
 }
+
 
 // 功能：请求控制面板相关窗口关闭并等待窗口线程收束。
 void 请求关闭控制面板窗口() noexcept
