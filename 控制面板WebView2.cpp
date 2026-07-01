@@ -48,6 +48,7 @@ using Microsoft::WRL::ComPtr;
 namespace {
     constexpr UINT 私有_WM_刷新控制面板窗口 = WM_APP + 220;
     constexpr UINT 私有_WM_页面刷新JSON = WM_APP + 221;
+    constexpr UINT 私有_WM_保存自我场景截图 = WM_APP + 222;
     constexpr wchar_t 私有_控制面板窗口类名[] = L"鱼巢控制面板WebView2重构窗口";
 
     enum class 枚举_WebView2窗口用途 : std::uintptr_t {
@@ -74,6 +75,12 @@ namespace {
         std::string 页面{};
         std::string JSON{};
         std::int64_t 生成耗时毫秒 = 0;
+    };
+
+    struct 结构_自我场景截图请求 {
+        std::filesystem::path 输出路径{};
+        std::promise<bool> 完成{};
+        std::atomic_bool 已完成{ false };
     };
 
     std::mutex 私有_窗口互斥{};
@@ -600,6 +607,163 @@ namespace {
     bool 私有_打开相机播放窗口(HWND 来源窗口) noexcept;
     bool 私有_打开自我场景窗口(HWND 来源窗口) noexcept;
 
+    // 功能：完成自我场景截图请求并记录失败原因。
+    void 私有_完成自我场景截图请求(
+        const std::shared_ptr<结构_自我场景截图请求>& 请求,
+        const bool 成功,
+        const HRESULT COM结果 = S_OK,
+        const DWORD Win32错误 = ERROR_SUCCESS,
+        const std::string& 附加 = {}) noexcept
+    {
+        if (!请求 || 请求->已完成.exchange(true)) {
+            return;
+        }
+        if (!成功) {
+            std::string 诊断 = 请求->输出路径.empty()
+                ? std::string{}
+                : ("路径=" + 路径UTF8文本(请求->输出路径));
+            if (!附加.empty()) {
+                if (!诊断.empty()) {
+                    诊断 += " | ";
+                }
+                诊断 += 附加;
+            }
+            私有_记录WebView2诊断(
+                "自我场景截图失败",
+                52,
+                COM结果,
+                Win32错误,
+                诊断);
+        }
+        try {
+            请求->完成.set_value(成功);
+        }
+        catch (...) {
+        }
+    }
+
+    // 功能：把 WebView2 截图流保存为 PNG 文件。
+    bool 私有_保存自我场景截图流到文件(
+        IStream& 截图流,
+        const std::filesystem::path& 输出路径) noexcept
+    {
+        try {
+            LARGE_INTEGER 起点{};
+            if (FAILED(截图流.Seek(起点, STREAM_SEEK_SET, nullptr))) {
+                return false;
+            }
+
+            STATSTG 状态{};
+            if (FAILED(截图流.Stat(&状态, STATFLAG_NONAME))) {
+                return false;
+            }
+
+            const auto 父目录 = 输出路径.parent_path();
+            if (!父目录.empty()) {
+                std::error_code 创建错误{};
+                std::filesystem::create_directories(父目录, 创建错误);
+                if (创建错误) {
+                    return false;
+                }
+            }
+
+            std::ofstream 输出(输出路径, std::ios::binary | std::ios::trunc);
+            if (!输出) {
+                return false;
+            }
+
+            std::vector<char> 缓冲(64 * 1024);
+            ULONGLONG 剩余字节 = 状态.cbSize.QuadPart;
+            while (剩余字节 > 0) {
+                const ULONG 本次请求 = static_cast<ULONG>(
+                    std::min<ULONGLONG>(剩余字节, static_cast<ULONGLONG>(缓冲.size())));
+                ULONG 已读 = 0;
+                const HRESULT 读取结果 = 截图流.Read(缓冲.data(), 本次请求, &已读);
+                if (FAILED(读取结果) || 已读 == 0) {
+                    return false;
+                }
+                输出.write(缓冲.data(), static_cast<std::streamsize>(已读));
+                if (!输出) {
+                    return false;
+                }
+                剩余字节 -= 已读;
+            }
+            return true;
+        }
+        catch (...) {
+            return false;
+        }
+    }
+
+    // 功能：在自我场景 WebView2 UI 线程保存当前窗口 PNG 预览。
+    void 私有_捕获自我场景窗口PNG(
+        HWND 窗口,
+        std::shared_ptr<结构_自我场景截图请求> 请求) noexcept
+    {
+        auto* 上下文 = 私有_取窗口上下文(窗口);
+        if (!上下文 || 上下文->用途 != 枚举_WebView2窗口用途::自我场景 || !上下文->WebView) {
+            私有_完成自我场景截图请求(
+                请求,
+                false,
+                E_FAIL,
+                ERROR_SUCCESS,
+                "自我场景窗口未就绪");
+            return;
+        }
+
+        ComPtr<IStream> 截图流{};
+        const HRESULT 建流结果 = CreateStreamOnHGlobal(nullptr, TRUE, &截图流);
+        if (FAILED(建流结果) || !截图流) {
+            私有_完成自我场景截图请求(
+                请求,
+                false,
+                FAILED(建流结果) ? 建流结果 : E_FAIL,
+                GetLastError(),
+                "创建截图内存流失败");
+            return;
+        }
+
+        auto 回调 = Microsoft::WRL::Callback<ICoreWebView2CapturePreviewCompletedHandler>(
+            [截图流, 请求](HRESULT 捕获结果) -> HRESULT {
+                if (FAILED(捕获结果)) {
+                    私有_完成自我场景截图请求(
+                        请求,
+                        false,
+                        捕获结果,
+                        ERROR_SUCCESS,
+                        "CapturePreview失败");
+                    return S_OK;
+                }
+                const bool 保存成功 = 请求
+                    && 私有_保存自我场景截图流到文件(*截图流.Get(), 请求->输出路径);
+                if (保存成功) {
+                    项目运行日志(
+                        "控制面板WebView2/自我场景截图已保存 | 路径="
+                        + 路径UTF8文本(请求->输出路径));
+                }
+                私有_完成自我场景截图请求(
+                    请求,
+                    保存成功,
+                    S_OK,
+                    保存成功 ? ERROR_SUCCESS : GetLastError(),
+                    保存成功 ? std::string{} : std::string("写入PNG文件失败"));
+                return S_OK;
+            });
+
+        const HRESULT 捕获调用结果 = 上下文->WebView->CapturePreview(
+            COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG,
+            截图流.Get(),
+            回调.Get());
+        if (FAILED(捕获调用结果)) {
+            私有_完成自我场景截图请求(
+                请求,
+                false,
+                捕获调用结果,
+                GetLastError(),
+                "CapturePreview调用失败");
+        }
+    }
+
     // 功能：服务所在模块的内部辅助流程。
     std::string 私有_Base64编码(const std::vector<std::uint8_t>& 数据)
     {
@@ -693,6 +857,7 @@ namespace {
 
             线程.等待停止();
             结构_D455深度相机线程配置 配置{};
+            配置.启用轻量观察报告 = false;
             const bool 已启动 = 启动外设线程_D455深度相机(配置);
             if (已启动) {
                 私有_相机窗口启动过外设线程.store(true);
@@ -1414,7 +1579,7 @@ namespace {
         clearInterval(相机自动采集句柄);
       }
       请求相机帧('camera:start');
-      相机自动采集句柄 = window.setInterval(() => 请求相机帧('camera:capture'), 1000);
+      相机自动采集句柄 = window.setInterval(() => 请求相机帧('camera:capture'), 16);
     }
 
     function 停止相机采集() {
@@ -1843,6 +2008,15 @@ namespace {
             };
             if (投递) {
                 私有_执行页面刷新JSON到页面(窗口, *投递);
+            }
+            return 0;
+        }
+        case 私有_WM_保存自我场景截图: {
+            std::unique_ptr<std::shared_ptr<结构_自我场景截图请求>> 请求{
+                reinterpret_cast<std::shared_ptr<结构_自我场景截图请求>*>(lParam)
+            };
+            if (请求 && *请求) {
+                私有_捕获自我场景窗口PNG(窗口, *请求);
             }
             return 0;
         }
@@ -2319,6 +2493,118 @@ bool 启动控制面板相机播放窗口() noexcept
 bool 启动控制面板WebView2自我场景窗口() noexcept
 {
     return 私有_打开自我场景窗口(nullptr);
+}
+
+// 功能：打开自我场景 WebView2 窗口并保存当前 PNG 预览。
+bool 保存控制面板WebView2自我场景窗口截图(
+    const std::filesystem::path& 输出路径,
+    const std::uint32_t 等待渲染毫秒) noexcept
+{
+    try {
+        if (输出路径.empty()) {
+            私有_记录WebView2诊断("自我场景截图输出路径为空", 52);
+            return false;
+        }
+        if (!私有_打开自我场景窗口(nullptr)) {
+            私有_记录WebView2诊断(
+                "自我场景截图打开窗口失败",
+                52,
+                S_OK,
+                ERROR_SUCCESS,
+                "路径=" + 路径UTF8文本(输出路径));
+            return false;
+        }
+
+        constexpr auto 最大窗口就绪等待 = std::chrono::seconds(10);
+        const auto 等待开始 = std::chrono::steady_clock::now();
+        HWND 自我场景窗口 = nullptr;
+        while (std::chrono::steady_clock::now() - 等待开始 < 最大窗口就绪等待) {
+            自我场景窗口 = 私有_自我场景窗口句柄.load();
+            if (自我场景窗口 && IsWindow(自我场景窗口)) {
+                auto* 上下文 = 私有_取窗口上下文(自我场景窗口);
+                if (上下文 && 上下文->WebView) {
+                    break;
+                }
+            }
+            Sleep(50);
+        }
+
+        if (!自我场景窗口 || !IsWindow(自我场景窗口)) {
+            私有_记录WebView2诊断(
+                "自我场景截图等待窗口超时",
+                52,
+                S_OK,
+                ERROR_TIMEOUT,
+                "路径=" + 路径UTF8文本(输出路径));
+            return false;
+        }
+        if (auto* 上下文 = 私有_取窗口上下文(自我场景窗口); !上下文 || !上下文->WebView) {
+            私有_记录WebView2诊断(
+                "自我场景截图等待WebView超时",
+                52,
+                S_OK,
+                ERROR_TIMEOUT,
+                "路径=" + 路径UTF8文本(输出路径));
+            return false;
+        }
+
+        PostMessageW(自我场景窗口, 私有_WM_刷新控制面板窗口, 0, 0);
+        if (等待渲染毫秒 > 0) {
+            Sleep(等待渲染毫秒);
+        }
+
+        auto 请求 = std::make_shared<结构_自我场景截图请求>();
+        请求->输出路径 = 输出路径;
+        auto 完成Future = 请求->完成.get_future();
+        auto* 投递 = new(std::nothrow) std::shared_ptr<结构_自我场景截图请求>(请求);
+        if (!投递) {
+            私有_记录WebView2诊断(
+                "自我场景截图请求分配失败",
+                52,
+                S_OK,
+                ERROR_OUTOFMEMORY,
+                "路径=" + 路径UTF8文本(输出路径));
+            return false;
+        }
+        if (!PostMessageW(
+            自我场景窗口,
+            私有_WM_保存自我场景截图,
+            0,
+            reinterpret_cast<LPARAM>(投递))) {
+            delete 投递;
+            私有_记录WebView2诊断(
+                "自我场景截图请求投递失败",
+                52,
+                S_OK,
+                GetLastError(),
+                "路径=" + 路径UTF8文本(输出路径));
+            return false;
+        }
+
+        const auto 完成等待 = std::chrono::milliseconds(
+            static_cast<std::int64_t>(等待渲染毫秒) + 10000);
+        if (完成Future.wait_for(完成等待) != std::future_status::ready) {
+            if (!请求->已完成.exchange(true)) {
+                私有_记录WebView2诊断(
+                    "自我场景截图保存超时",
+                    52,
+                    S_OK,
+                    ERROR_TIMEOUT,
+                    "路径=" + 路径UTF8文本(输出路径));
+            }
+            return false;
+        }
+        return 完成Future.get();
+    }
+    catch (...) {
+        私有_记录WebView2诊断(
+            "自我场景截图捕获未知异常",
+            52,
+            S_OK,
+            GetLastError(),
+            输出路径.empty() ? std::string{} : ("路径=" + 路径UTF8文本(输出路径)));
+        return false;
+    }
 }
 
 // 功能：请求控制面板相关窗口关闭并等待窗口线程收束。
