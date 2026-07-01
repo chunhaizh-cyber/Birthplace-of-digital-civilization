@@ -1,5 +1,11 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 本模块只封装 D455 相机采集能力，不承载世界树真值、需求树或价值结算。
+// 2. 轻量彩色视频帧只作为外设中间层供料和控制面板显示材料，不替代观察事实提交链。
+// 3. 完整观察帧采集仍负责深度、点云和轮廓材料；不得把视频快照当作空间候选或场景事实。
+
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -8,6 +14,17 @@ module;
 export module D455相机模块;
 
 import 相机接口模块;
+
+export struct 结构体_D455彩色视频帧 {
+    int 宽度 = 0;
+    int 高度 = 0;
+    std::uint64_t 系统到达时间_us = 0;
+    std::uint64_t 设备时间_us = 0;
+    std::uint8_t 时间域 = 0;
+    std::uint32_t 深度帧号 = 0;
+    std::uint32_t 彩色帧号 = 0;
+    std::vector<std::uint8_t> 颜色RGB{};
+};
 
 export class D455_相机实现 : public 抽象深度相机接口 {
 public:
@@ -78,6 +95,7 @@ public:
     bool 打开() override;
     void 关闭() override;
     bool 采集一帧(结构体_原始场景帧& 输出) override;
+    bool 采集彩色视频帧(结构体_D455彩色视频帧& 输出);
 
     const 配置项& 获取配置() const;
     bool 应用配置(const 配置项& 新配置);

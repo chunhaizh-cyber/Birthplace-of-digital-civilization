@@ -1,5 +1,10 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 本文件只实现 D455 相机采集和本地帧处理，不写世界树真值、需求树或价值结算。
+// 2. 轻量彩色视频采集只输出 RGB 帧和帧号时间戳，用于外设中间层视频供料。
+// 3. 完整观察采集负责深度、点云和轮廓材料；两条路径不得互相冒充业务事实。
+
 #include <librealsense2/rs2.hpp>
 
 #include <algorithm>
@@ -177,6 +182,34 @@ public:
         }
         catch (const rs2::error& e) {
             鱼巢_D455控制台输出(std::cerr << "采集一帧失败: " << e.what() << std::endl);
+            return false;
+        }
+    }
+
+    // 功能：读取 D455 当前彩色视频帧。
+    bool 采集彩色视频帧(结构体_D455彩色视频帧& 输出) {
+        if (!已打开) return false;
+
+        try {
+            rs2::frameset frames = 管道.wait_for_frames();
+            rs2::video_frame color = frames.get_color_frame();
+            if (!color) return false;
+
+            输出 = {};
+            输出.宽度 = color.get_width();
+            输出.高度 = color.get_height();
+            输出.系统到达时间_us = 结构体_时间戳::当前_微秒();
+            输出.设备时间_us = static_cast<std::uint64_t>(std::max(0.0, color.get_timestamp()) * 1000.0);
+            输出.时间域 = static_cast<std::uint8_t>(转换时间域(color.get_frame_timestamp_domain()));
+            输出.彩色帧号 = static_cast<std::uint32_t>(color.get_frame_number());
+            if (auto depth = frames.get_depth_frame(); depth) {
+                输出.深度帧号 = static_cast<std::uint32_t>(depth.get_frame_number());
+            }
+
+            return 复制彩色帧RGB(color, 输出.宽度, 输出.高度, 输出.颜色RGB);
+        }
+        catch (const rs2::error& e) {
+            鱼巢_D455控制台输出(std::cerr << "采集彩色视频帧失败: " << e.what() << std::endl);
             return false;
         }
     }
@@ -400,22 +433,31 @@ private:
         try_set(填洞滤波, RS2_OPTION_HOLES_FILL, cfg.填洞_模式);
     }
 
-    // 功能：从指定来源读取数据或状态。
-    void 读取对齐彩色(const rs2::video_frame& color, 结构体_原始场景帧& out) {
-        const int w = out.宽度;
-        const int h = out.高度;
+    // 功能：读取 D455 彩色帧并转换为连续 RGB 字节。
+    bool 复制彩色帧RGB(
+        const rs2::video_frame& color,
+        int w,
+        int h,
+        std::vector<std::uint8_t>& 输出RGB) const {
         const int cw = color.get_width();
         const int ch = color.get_height();
-        if (cw != w || ch != h) return;
+        输出RGB.clear();
+        if (cw != w || ch != h || w <= 0 || h <= 0) return false;
 
         const rs2_format fmt = color.get_profile().format();
         const int bpp = color.get_bytes_per_pixel();
         const int stride = color.get_stride_in_bytes();
         const std::uint8_t* base = static_cast<const std::uint8_t*>(color.get_data());
-        if (!base) return;
+        if (!base) return false;
+
+        const std::size_t 像素数 = static_cast<std::size_t>(w) * static_cast<std::size_t>(h);
+        输出RGB.assign(像素数 * 3, 0);
 
         auto write_rgb = [&](int u, int v, std::uint8_t R, std::uint8_t G, std::uint8_t B) {
-            out.颜色[索引(u, v, w)] = Color{ R, G, B };
+            const auto 目标 = 索引(u, v, w) * 3;
+            输出RGB[目标] = R;
+            输出RGB[目标 + 1] = G;
+            输出RGB[目标 + 2] = B;
             };
 
         if (fmt == RS2_FORMAT_RGB8 || fmt == RS2_FORMAT_BGR8 || fmt == RS2_FORMAT_RGBA8 || fmt == RS2_FORMAT_BGRA8) {
@@ -432,42 +474,61 @@ private:
                     }
                 }
             }
-            return;
+            return true;
         }
 
         if (fmt == RS2_FORMAT_YUYV && bpp == 2) {
             for (int v = 0; v < h; ++v) {
                 const std::uint8_t* row = base + static_cast<std::size_t>(v) * static_cast<std::size_t>(stride);
                 for (int u = 0; u < w; u += 2) {
+                    if (u + 1 >= w) {
+                        break;
+                    }
                     const std::uint8_t* p = row + static_cast<std::size_t>(u) * 2;
                     const std::uint8_t Y0 = p[0], U = p[1], Y1 = p[2], V = p[3];
                     std::uint8_t R{}, G{}, B{};
                     yuv_to_rgb(Y0, U, V, R, G, B);
                     write_rgb(u, v, R, G, B);
-                    if (u + 1 < w) {
-                        yuv_to_rgb(Y1, U, V, R, G, B);
-                        write_rgb(u + 1, v, R, G, B);
-                    }
+                    yuv_to_rgb(Y1, U, V, R, G, B);
+                    write_rgb(u + 1, v, R, G, B);
                 }
             }
-            return;
+            return true;
         }
 
         if (fmt == RS2_FORMAT_UYVY && bpp == 2) {
             for (int v = 0; v < h; ++v) {
                 const std::uint8_t* row = base + static_cast<std::size_t>(v) * static_cast<std::size_t>(stride);
                 for (int u = 0; u < w; u += 2) {
+                    if (u + 1 >= w) {
+                        break;
+                    }
                     const std::uint8_t* p = row + static_cast<std::size_t>(u) * 2;
                     const std::uint8_t U = p[0], Y0 = p[1], V = p[2], Y1 = p[3];
                     std::uint8_t R{}, G{}, B{};
                     yuv_to_rgb(Y0, U, V, R, G, B);
                     write_rgb(u, v, R, G, B);
-                    if (u + 1 < w) {
-                        yuv_to_rgb(Y1, U, V, R, G, B);
-                        write_rgb(u + 1, v, R, G, B);
-                    }
+                    yuv_to_rgb(Y1, U, V, R, G, B);
+                    write_rgb(u + 1, v, R, G, B);
                 }
             }
+            return true;
+        }
+
+        输出RGB.clear();
+        return false;
+    }
+
+    // 功能：从指定来源读取数据或状态。
+    void 读取对齐彩色(const rs2::video_frame& color, 结构体_原始场景帧& out) {
+        std::vector<std::uint8_t> RGB{};
+        if (!复制彩色帧RGB(color, out.宽度, out.高度, RGB)) {
+            return;
+        }
+        const std::size_t 像素数 = std::min(out.颜色.size(), RGB.size() / 3);
+        for (std::size_t i = 0; i < 像素数; ++i) {
+            const auto 源 = i * 3;
+            out.颜色[i] = Color{ RGB[源], RGB[源 + 1], RGB[源 + 2] };
         }
     }
 
@@ -881,6 +942,11 @@ void D455_相机实现::关闭() {
 // 功能：按函数名执行对应处理。
 bool D455_相机实现::采集一帧(结构体_原始场景帧& 输出) {
     return 实现指针 && 实现指针->采集一帧(输出);
+}
+
+// 功能：读取 D455 当前彩色视频帧。
+bool D455_相机实现::采集彩色视频帧(结构体_D455彩色视频帧& 输出) {
+    return 实现指针 && 实现指针->采集彩色视频帧(输出);
 }
 
 // 功能：读取并返回指定对象、状态或运行材料。

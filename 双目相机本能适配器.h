@@ -25,6 +25,22 @@ namespace 双目相机本能适配器 {
         std::uint8_t B = 0;
     };
 
+    struct 彩色视频帧 {
+        bool 成功 = false;
+        bool 相机已打开 = false;
+        失败原因 原因 = 失败原因::无;
+        std::string 消息{};
+        int 宽度 = 0;
+        int 高度 = 0;
+        std::uint64_t 系统到达时间_us = 0;
+        std::uint64_t 设备时间_us = 0;
+        std::uint8_t 时间域 = 0;
+        std::uint32_t 深度帧号 = 0;
+        std::uint32_t 彩色帧号 = 0;
+        std::int64_t 预期像素数量 = 0;
+        std::vector<std::uint8_t> 颜色RGB{};
+    };
+
     struct 空间坐标毫米 {
         std::int64_t X = 0;
         std::int64_t Y = 0;
@@ -208,5 +224,6 @@ namespace 双目相机本能适配器 {
     调用结果 打开() noexcept;
     调用结果 释放() noexcept;
     调用结果 检查() noexcept;
+    彩色视频帧 采集彩色视频帧() noexcept;
     调用结果 采集一帧(std::uint32_t 融合目标帧数 = 3) noexcept;
 }
