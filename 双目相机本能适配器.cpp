@@ -955,7 +955,9 @@ namespace {
     }
 
     // 功能：根据当前输入生成目标数据、场景、动态或回执。
-    双目相机本能适配器::调用结果 从帧生成结果(const 结构体_原始场景帧& 帧)
+    双目相机本能适配器::调用结果 从帧生成结果(
+        const 结构体_原始场景帧& 帧,
+        bool 提取空间候选)
     {
         双目相机本能适配器::调用结果 结果{};
         结果.成功 = true;
@@ -1043,15 +1045,17 @@ namespace {
         }
         结果.点云有效像素数量 = 转换像素计数(点云有效数);
         结果.像素覆盖状态 = 预期像素数 > 0 && 帧.深度.size() == 预期像素数 ? 1 : 0;
-        结果.空间候选列表 = 提取空间候选摘要(帧);
-        结果.空间候选数量 = 转换像素计数(结果.空间候选列表.size());
-        std::size_t 空间候选点数 = 0;
-        for (const auto& 候选 : 结果.空间候选列表) {
-            if (候选.像素数量 > 0) {
-                空间候选点数 += static_cast<std::size_t>(候选.像素数量);
+        if (提取空间候选) {
+            结果.空间候选列表 = 提取空间候选摘要(帧);
+            结果.空间候选数量 = 转换像素计数(结果.空间候选列表.size());
+            std::size_t 空间候选点数 = 0;
+            for (const auto& 候选 : 结果.空间候选列表) {
+                if (候选.像素数量 > 0) {
+                    空间候选点数 += static_cast<std::size_t>(候选.像素数量);
+                }
             }
+            结果.空间候选有效点数量 = 转换像素计数(空间候选点数);
         }
-        结果.空间候选有效点数量 = 转换像素计数(空间候选点数);
         结果.轮廓数量 = 帧.轮廓观测列表.size();
         结果.深度有效率 = 比例万分比(深度有效数, 预期像素数);
         结果.空间坐标有效率 = 比例万分比(点云有效数, 预期像素数);
@@ -1215,6 +1219,366 @@ namespace {
         return 结果;
     }
 
+    struct 结构_轻量深度网格统计 {
+        std::size_t 单元索引 = 0;
+        std::int64_t 像素数量 = 0;
+        std::int64_t 投影最小X = 0;
+        std::int64_t 投影最大X = 0;
+        std::int64_t 投影最小Y = 0;
+        std::int64_t 投影最大Y = 0;
+        std::int64_t 深度最小 = std::numeric_limits<std::int64_t>::max();
+        std::int64_t 深度最大 = 0;
+        std::int64_t 深度合计 = 0;
+    };
+
+    // 功能：把像素深度按粗网格压成高频报告候选，避免每帧执行全图 BFS 和全点云生成。
+    std::vector<双目相机本能适配器::空间候选摘要> 提取轻量深度网格候选摘要(
+        const 结构体_原始场景帧& 帧,
+        双目相机本能适配器::调用结果& 结果)
+    {
+        constexpr int 网格列数 = 8;
+        constexpr int 网格行数 = 6;
+        constexpr std::int64_t 最小深度mm = 250;
+        constexpr std::int64_t 最大深度mm = 3500;
+        constexpr std::int64_t 最小候选像素数 = 160;
+        constexpr std::size_t 最大候选数量 = 24;
+
+        std::vector<双目相机本能适配器::空间候选摘要> 输出{};
+        const int 宽 = 帧.宽度;
+        const int 高 = 帧.高度;
+        if (宽 <= 0
+            || 高 <= 0
+            || !帧.深度内参.有效
+            || 帧.深度内参.fx == 0.0
+            || 帧.深度内参.fy == 0.0
+            || 帧.深度.size() != static_cast<std::size_t>(宽) * static_cast<std::size_t>(高)) {
+            return 输出;
+        }
+
+        const std::size_t 像素总数 = 帧.深度.size();
+        std::vector<结构_轻量深度网格统计> 统计(static_cast<std::size_t>(网格列数 * 网格行数));
+        for (std::size_t i = 0; i < 统计.size(); ++i) {
+            统计[i].单元索引 = i;
+            统计[i].投影最小X = std::numeric_limits<std::int64_t>::max();
+            统计[i].投影最小Y = std::numeric_limits<std::int64_t>::max();
+        }
+
+        std::size_t 深度有效数 = 0;
+        for (std::size_t i = 0; i < 像素总数; ++i) {
+            if (!深度向量像素有效(帧.深度, 帧.深度有效, i)) {
+                continue;
+            }
+            ++深度有效数;
+            const auto 深度mm = 转换毫米(帧.深度[i]);
+            if (深度mm < 最小深度mm || 深度mm > 最大深度mm) {
+                continue;
+            }
+            const int x = static_cast<int>(i % static_cast<std::size_t>(宽));
+            const int y = static_cast<int>(i / static_cast<std::size_t>(宽));
+            const int 单元X = std::min(网格列数 - 1, (x * 网格列数) / 宽);
+            const int 单元Y = std::min(网格行数 - 1, (y * 网格行数) / 高);
+            auto& 单元 = 统计[static_cast<std::size_t>(单元Y * 网格列数 + 单元X)];
+            ++单元.像素数量;
+            单元.投影最小X = std::min<std::int64_t>(单元.投影最小X, x);
+            单元.投影最大X = std::max<std::int64_t>(单元.投影最大X, x);
+            单元.投影最小Y = std::min<std::int64_t>(单元.投影最小Y, y);
+            单元.投影最大Y = std::max<std::int64_t>(单元.投影最大Y, y);
+            单元.深度最小 = std::min<std::int64_t>(单元.深度最小, 深度mm);
+            单元.深度最大 = std::max<std::int64_t>(单元.深度最大, 深度mm);
+            单元.深度合计 += 深度mm;
+        }
+
+        结果.深度有效像素数量 = 转换像素计数(深度有效数);
+        结果.深度有效率 = 比例万分比(深度有效数, 像素总数);
+        结果.深度空洞数量 = 像素总数 > 深度有效数
+            ? 转换像素计数(像素总数 - 深度有效数)
+            : 0;
+
+        std::vector<std::size_t> 候选单元{};
+        候选单元.reserve(统计.size());
+        for (std::size_t i = 0; i < 统计.size(); ++i) {
+            if (统计[i].像素数量 >= 最小候选像素数) {
+                候选单元.push_back(i);
+            }
+        }
+        std::sort(
+            候选单元.begin(),
+            候选单元.end(),
+            [&](std::size_t 左, std::size_t 右) noexcept {
+                const auto& L = 统计[左];
+                const auto& R = 统计[右];
+                if (L.像素数量 != R.像素数量) {
+                    return L.像素数量 > R.像素数量;
+                }
+                const auto L平均 = L.像素数量 > 0 ? L.深度合计 / L.像素数量 : std::numeric_limits<std::int64_t>::max();
+                const auto R平均 = R.像素数量 > 0 ? R.深度合计 / R.像素数量 : std::numeric_limits<std::int64_t>::max();
+                return L平均 < R平均;
+            });
+        if (候选单元.size() > 最大候选数量) {
+            候选单元.resize(最大候选数量);
+        }
+        if (候选单元.empty()) {
+            return 输出;
+        }
+
+        std::vector<int> 单元到候选(统计.size(), -1);
+        输出.resize(候选单元.size());
+        for (std::size_t i = 0; i < 候选单元.size(); ++i) {
+            单元到候选[候选单元[i]] = static_cast<int>(i);
+            输出[i].候选编号 = static_cast<std::int64_t>(i);
+            输出[i].像素索引集合.reserve(static_cast<std::size_t>(统计[候选单元[i]].像素数量));
+        }
+
+        struct 空间累积 {
+            std::int64_t 数量 = 0;
+            std::int64_t X合计 = 0;
+            std::int64_t Y合计 = 0;
+            std::int64_t Z合计 = 0;
+            std::int64_t 最小X = std::numeric_limits<std::int64_t>::max();
+            std::int64_t 最大X = std::numeric_limits<std::int64_t>::lowest();
+            std::int64_t 最小Y = std::numeric_limits<std::int64_t>::max();
+            std::int64_t 最大Y = std::numeric_limits<std::int64_t>::lowest();
+            std::int64_t 最小Z = std::numeric_limits<std::int64_t>::max();
+            std::int64_t 最大Z = std::numeric_limits<std::int64_t>::lowest();
+        };
+        std::vector<空间累积> 空间统计(候选单元.size());
+        结果.空间坐标毫米XYZ.assign(像素总数, {});
+
+        const double fx = 帧.深度内参.fx;
+        const double fy = 帧.深度内参.fy;
+        const double cx = 帧.深度内参.cx;
+        const double cy = 帧.深度内参.cy;
+        for (std::size_t i = 0; i < 像素总数; ++i) {
+            if (!深度向量像素有效(帧.深度, 帧.深度有效, i)) {
+                continue;
+            }
+            const auto 深度mm = 转换毫米(帧.深度[i]);
+            if (深度mm < 最小深度mm || 深度mm > 最大深度mm) {
+                continue;
+            }
+            const int x = static_cast<int>(i % static_cast<std::size_t>(宽));
+            const int y = static_cast<int>(i / static_cast<std::size_t>(宽));
+            const int 单元X = std::min(网格列数 - 1, (x * 网格列数) / 宽);
+            const int 单元Y = std::min(网格行数 - 1, (y * 网格行数) / 高);
+            const auto 单元索引 = static_cast<std::size_t>(单元Y * 网格列数 + 单元X);
+            const int 候选索引 = 单元到候选[单元索引];
+            if (候选索引 < 0) {
+                continue;
+            }
+
+            const auto 候选序号 = static_cast<std::size_t>(候选索引);
+            auto& 候选 = 输出[候选序号];
+            候选.像素索引集合.push_back(static_cast<std::uint32_t>(i));
+
+            const auto 点X = 转换毫米((static_cast<double>(x) - cx) * static_cast<double>(深度mm) / fx);
+            const auto 点Y = 转换毫米((static_cast<double>(y) - cy) * static_cast<double>(深度mm) / fy);
+            const auto 点Z = 深度mm;
+            结果.空间坐标毫米XYZ[i] = 双目相机本能适配器::空间坐标毫米{ 点X, 点Y, 点Z };
+            auto& 累积 = 空间统计[候选序号];
+            ++累积.数量;
+            累积.X合计 += 点X;
+            累积.Y合计 += 点Y;
+            累积.Z合计 += 点Z;
+            累积.最小X = std::min<std::int64_t>(累积.最小X, 点X);
+            累积.最大X = std::max<std::int64_t>(累积.最大X, 点X);
+            累积.最小Y = std::min<std::int64_t>(累积.最小Y, 点Y);
+            累积.最大Y = std::max<std::int64_t>(累积.最大Y, 点Y);
+            累积.最小Z = std::min<std::int64_t>(累积.最小Z, 点Z);
+            累积.最大Z = std::max<std::int64_t>(累积.最大Z, 点Z);
+        }
+
+        std::int64_t 候选像素总数 = 0;
+        std::int64_t 深度支持累计 = 0;
+        std::int64_t 置信累计 = 0;
+        std::int64_t 验证通过数量 = 0;
+        for (std::size_t i = 0; i < 输出.size(); ++i) {
+            auto& 候选 = 输出[i];
+            const auto& 单元 = 统计[候选单元[i]];
+            const auto& 累积 = 空间统计[i];
+            const auto 像素数量 = static_cast<std::int64_t>(候选.像素索引集合.size());
+            if (像素数量 <= 0 || 累积.数量 <= 0) {
+                continue;
+            }
+
+            const auto ROI面积 = static_cast<std::size_t>(
+                (单元.投影最大X - 单元.投影最小X + 1)
+                * (单元.投影最大Y - 单元.投影最小Y + 1));
+            const auto 深度跨度 = 绝对差I64(单元.深度最大, 单元.深度最小);
+            const auto 深度一致率 = 限制I64(10000 - (深度跨度 * 10000) / 3000, 0, 10000);
+            const auto 投影覆盖率 = 比例万分比(
+                static_cast<std::size_t>(std::max<std::int64_t>(0, 像素数量)),
+                std::max<std::size_t>(1, ROI面积));
+            const auto 大小评分 = 比例万分比(
+                static_cast<std::size_t>(std::min<std::int64_t>(像素数量, 4000)),
+                static_cast<std::size_t>(4000));
+            const auto 置信度 = 限制I64((深度一致率 * 45 + 投影覆盖率 * 35 + 大小评分 * 20) / 100, 0, 10000);
+
+            候选.像素数量 = 像素数量;
+            候选.有效点比例 = 投影覆盖率;
+            候选.中心X = 累积.X合计 / 累积.数量;
+            候选.中心Y = 累积.Y合计 / 累积.数量;
+            候选.中心Z = 累积.Z合计 / 累积.数量;
+            候选.范围最小X = 累积.最小X;
+            候选.范围最大X = 累积.最大X;
+            候选.范围最小Y = 累积.最小Y;
+            候选.范围最大Y = 累积.最大Y;
+            候选.范围最小Z = 累积.最小Z;
+            候选.范围最大Z = 累积.最大Z;
+            候选.投影最小X = 单元.投影最小X;
+            候选.投影最大X = 单元.投影最大X;
+            候选.投影最小Y = 单元.投影最小Y;
+            候选.投影最大Y = 单元.投影最大Y;
+            候选.平均深度 = 单元.深度合计 / std::max<std::int64_t>(1, 单元.像素数量);
+            候选.最近深度 = 单元.深度最小;
+            候选.最远深度 = 单元.深度最大;
+            候选.空间连续性评分 = 置信度;
+            候选.范围稳定性评分 = 深度一致率;
+            候选.空间覆盖像素数 = 像素数量;
+            候选.空间匹配像素数 = 累积.数量;
+            候选.空间冲突像素数 = 0;
+            候选.轮廓支持像素数 = 像素数量;
+            候选.轮廓冲突像素数 = 0;
+            候选.深度一致率 = 深度一致率;
+            候选.范围内点比例 = 投影覆盖率;
+            候选.投影覆盖率 = 投影覆盖率;
+            候选.轮廓吻合率 = 投影覆盖率;
+            候选.轮廓来源类型 = 2 | 4;
+            候选.轮廓闭合度 = 投影覆盖率;
+            候选.轮廓深度支持率 = 深度一致率;
+            候选.轮廓颜色支持率 = 0;
+            候选.轮廓空间支持率 = 投影覆盖率;
+            候选.轮廓跨越深度断裂 = 深度一致率 < 6000 ? 1 : 0;
+            候选.轮廓穿过深度无效区域 = 0;
+            候选.轮廓依赖补全深度 = 0;
+            候选.轮廓置信度 = 置信度;
+            候选.像素归属验证状态 = 置信度 >= 5000 ? 1 : 0;
+            候选.观察确认补偿状态 = 置信度 >= 7000
+                ? 观察确认补偿状态_部分确认
+                : 观察确认补偿状态_待验证;
+            候选.缺失原因 = 深度一致率 < 4000 ? 缺失原因_边界不稳定 : 0;
+            候选.低置信轮廓状态 = 置信度 < 7000 ? 1 : 0;
+            候选.待补观察区域数量 = 候选.低置信轮廓状态 ? 1 : 0;
+            候选.补观察需求建议 = 候选.低置信轮廓状态 ? 补观察建议_内部世界细分 : 0;
+
+            候选像素总数 += 像素数量;
+            深度支持累计 += 深度一致率;
+            置信累计 += 置信度;
+            if (候选.像素归属验证状态 > 0) {
+                ++验证通过数量;
+            }
+        }
+
+        输出.erase(
+            std::remove_if(
+                输出.begin(),
+                输出.end(),
+                [](const auto& 候选) noexcept { return 候选.像素数量 <= 0 || 候选.像素索引集合.empty(); }),
+            输出.end());
+        for (std::size_t i = 0; i < 输出.size(); ++i) {
+            输出[i].候选编号 = static_cast<std::int64_t>(i);
+        }
+
+        结果.空间候选数量 = 转换像素计数(输出.size());
+        结果.空间候选有效点数量 = 候选像素总数;
+        结果.点云有效像素数量 = 候选像素总数;
+        结果.空间坐标有效率 = 比例万分比(
+            static_cast<std::size_t>(std::max<std::int64_t>(0, 候选像素总数)),
+            像素总数);
+        结果.空间点有效率 = 结果.空间坐标有效率;
+        结果.空间坐标毫米XYZ结构状态 = 结果.空间坐标毫米XYZ.size() == 像素总数 ? 1 : 0;
+        结果.轮廓数量 = 输出.size();
+        结果.深度轮廓数量 = 结果.空间候选数量;
+        结果.空间投影轮廓数量 = 结果.空间候选数量;
+        结果.融合轮廓数量 = 0;
+        结果.轮廓来源分层状态 = 2;
+        结果.轮廓闭合率 = 输出.empty() ? 0 : 10000;
+        结果.轮廓深度支持率 = 输出.empty() ? 0 : 深度支持累计 / static_cast<std::int64_t>(输出.size());
+        结果.轮廓颜色支持率 = 0;
+        结果.轮廓空间支持率 = 输出.empty() ? 0 : 结果.空间坐标有效率;
+        结果.融合轮廓置信度 = 输出.empty() ? 0 : 置信累计 / static_cast<std::int64_t>(输出.size());
+        结果.边界深度稳定率 = 结果.轮廓深度支持率;
+        结果.候选存在验证通过率 = 比例万分比(
+            static_cast<std::size_t>(std::max<std::int64_t>(0, 验证通过数量)),
+            输出.size());
+        结果.未解释区域比例 = 像素总数 > 0
+            ? 比例万分比(
+                static_cast<std::size_t>(std::max<std::int64_t>(
+                    0,
+                    static_cast<std::int64_t>(像素总数) - std::min<std::int64_t>(static_cast<std::int64_t>(像素总数), 候选像素总数))),
+                像素总数)
+            : 0;
+        结果.补观察缺口状态 = 输出.empty() || 结果.轮廓深度支持率 < 4000 ? 1 : 0;
+        结果.补观察缺失原因 = 输出.empty() ? 缺失原因_有效点不足 : 0;
+        结果.待补观察区域数量 = 0;
+        for (const auto& 候选 : 输出) {
+            结果.补观察缺失原因 |= 候选.缺失原因;
+            结果.待补观察区域数量 += std::max<std::int64_t>(0, 候选.待补观察区域数量);
+            if (候选.低置信轮廓状态 > 0) {
+                ++结果.低置信轮廓数量;
+            }
+            if (候选.观察确认补偿状态 == 观察确认补偿状态_待验证) {
+                ++结果.待验证候选数量;
+            } else if (候选.观察确认补偿状态 == 观察确认补偿状态_部分确认) {
+                ++结果.部分确认候选数量;
+            }
+        }
+        if (结果.补观察缺失原因 != 0) {
+            结果.补观察需求建议 = 补观察建议_继续观察未解释区域;
+        }
+        结果.帧质量评分 = (
+            结果.深度有效率 * 35
+            + 结果.空间坐标有效率 * 25
+            + 结果.候选存在验证通过率 * 25
+            + (10000 - std::min<std::int64_t>(10000, 结果.未解释区域比例)) * 15
+            ) / 100;
+        return 输出;
+    }
+
+    // 功能：根据 D455 轻量观察帧生成报告队列高频调用结果。
+    双目相机本能适配器::调用结果 从轻量观察帧生成结果(const 结构体_原始场景帧& 帧)
+    {
+        双目相机本能适配器::调用结果 结果{};
+        结果.成功 = true;
+        结果.相机已打开 = true;
+        结果.消息 = "D455 轻量观察报告采集完成";
+        结果.宽度 = 帧.宽度;
+        结果.高度 = 帧.高度;
+        结果.系统到达时间_us = 帧.时间戳.系统到达时间_us;
+        结果.设备时间_us = 帧.时间戳.设备时间_us;
+        结果.时间域 = static_cast<std::uint8_t>(帧.时间戳.域);
+        结果.深度帧号 = 帧.时间戳.深度帧号;
+        结果.彩色帧号 = 帧.时间戳.彩色帧号;
+        const std::size_t 预期像素数 = 帧.宽度 > 0 && 帧.高度 > 0
+            ? static_cast<std::size_t>(帧.宽度) * static_cast<std::size_t>(帧.高度)
+            : 0;
+        结果.预期像素数量 = 转换像素计数(预期像素数);
+        结果.像素特征数量 = 转换像素计数(帧.深度.size());
+        结果.彩色深度已对齐 = 帧.深度已对齐到彩色 ? 1 : 0;
+        结果.对齐目标 = 结果.彩色深度已对齐;
+        结果.彩色深度对齐状态 = 结果.彩色深度已对齐;
+        if (预期像素数 == 0 || 帧.深度.size() != 预期像素数) {
+            结果.成功 = false;
+            结果.原因 = 双目相机本能适配器::失败原因::采集失败;
+            结果.消息 = "D455 轻量观察帧深度结构不完整";
+            return 结果;
+        }
+
+        填充深度毫米结构(帧.深度, 帧.深度有效, 结果.原始深度毫米);
+        结果.深度有效性Mask.reserve(帧.深度.size());
+        for (std::size_t i = 0; i < 帧.深度.size(); ++i) {
+            结果.深度有效性Mask.push_back(深度向量像素有效(帧.深度, 帧.深度有效, i) ? 1 : 0);
+        }
+        结果.原始深度毫米结构状态 = 结果.原始深度毫米.size() == 预期像素数 ? 1 : 0;
+        结果.深度有效性Mask状态 = 结果.深度有效性Mask.size() == 预期像素数 ? 1 : 0;
+        结果.空间候选列表 = 提取轻量深度网格候选摘要(帧, 结果);
+        if (结果.空间候选列表.empty()) {
+            结果.成功 = false;
+            结果.原因 = 双目相机本能适配器::失败原因::采集失败;
+            结果.消息 = "D455 轻量观察帧缺少有效深度候选";
+        }
+        return 结果;
+    }
+
     // 功能：根据 D455 轻量视频帧生成适配器结果。
     双目相机本能适配器::彩色视频帧 从D455彩色视频帧生成结果(
         const 结构体_D455彩色视频帧& 帧)
@@ -1247,7 +1611,7 @@ namespace {
 namespace 双目相机本能适配器 {
 
     // 功能：按函数名执行对应处理。
-    调用结果 打开() noexcept
+    调用结果 打开(bool 使用低延迟观察配置) noexcept
     {
         std::lock_guard<std::mutex> 锁(g_互斥);
         调用结果 结果{};
@@ -1259,12 +1623,33 @@ namespace 双目相机本能适配器 {
         }
 
         try {
-            if (!g_相机) {
-                D455_相机实现::配置项 配置{};
+            D455_相机实现::配置项 配置{};
+            if (使用低延迟观察配置) {
+                配置.深度宽 = 424;
+                配置.深度高 = 240;
+                配置.彩色宽 = 424;
+                配置.彩色高 = 240;
+                配置.帧率 = 60;
+                配置.启用彩色流 = false;
+                配置.启用红外双目 = false;
+                配置.启用视差域处理 = false;
+                配置.启用空间滤波 = false;
+                配置.启用时间滤波 = false;
+                配置.启用填洞滤波 = false;
+                配置.启用轮廓提取 = false;
+            } else {
                 配置.启用轮廓提取 = true;
                 配置.轮廓_输出原始掩膜 = true;
+            }
+            if (!g_相机) {
                 g_相机 = std::make_unique<D455_相机实现>(配置);
                 g_相机已打开 = false;
+            } else if (!g_相机->应用配置(配置)) {
+                结果.原因 = 失败原因::打开失败;
+                结果.消息 = 使用低延迟观察配置
+                    ? "D455 应用低延迟观察配置失败"
+                    : "D455 应用默认观察配置失败";
+                return 结果;
             }
             if (!g_相机已打开) {
                 if (!g_相机->打开()) {
@@ -1372,8 +1757,42 @@ namespace 双目相机本能适配器 {
         }
     }
 
+    // 功能：采集 D455 轻量观察报告材料，供外设观察报告队列高频入队使用。
+    调用结果 采集一帧轻量报告() noexcept
+    {
+        std::lock_guard<std::mutex> 锁(g_互斥);
+        调用结果 结果{};
+        if (!g_相机 || !g_相机已打开) {
+            结果.原因 = 失败原因::不可用;
+            结果.消息 = "D455 未达到可用状态";
+            return 结果;
+        }
+
+        try {
+            结构体_原始场景帧 帧{};
+            if (!g_相机->采集轻量观察帧(帧)) {
+                结果.原因 = 失败原因::采集失败;
+                结果.消息 = "D455 轻量观察帧采集失败";
+                return 结果;
+            }
+            return 从轻量观察帧生成结果(帧);
+        }
+        catch (const std::exception& e) {
+            结果.原因 = 失败原因::采集失败;
+            结果.消息 = std::string("D455 轻量观察帧采集异常: ") + e.what();
+            return 结果;
+        }
+        catch (...) {
+            结果.原因 = 失败原因::采集失败;
+            结果.消息 = "D455 轻量观察帧采集未知异常";
+            return 结果;
+        }
+    }
+
     // 功能：按函数名执行对应处理。
-    调用结果 采集一帧(std::uint32_t 融合目标帧数) noexcept
+    调用结果 采集一帧(
+        std::uint32_t 融合目标帧数,
+        bool 提取空间候选) noexcept
     {
         std::lock_guard<std::mutex> 锁(g_互斥);
         调用结果 结果{};
@@ -1402,7 +1821,7 @@ namespace 双目相机本能适配器 {
                 }
                 帧组.push_back(std::move(后续帧));
             }
-            auto 输出 = 从帧生成结果(帧组.back());
+            auto 输出 = 从帧生成结果(帧组.back(), 提取空间候选);
             建立静态多帧融合诊断(输出, 帧组);
             return 输出;
         }

@@ -34,6 +34,7 @@ public:
         int 彩色宽 = 640;
         int 彩色高 = 480;
         int 帧率 = 30;
+        bool 启用彩色流 = true;
 
         bool 启用红外双目 = false;
         int 红外宽 = 640;
@@ -95,6 +96,7 @@ public:
     bool 打开() override;
     void 关闭() override;
     bool 采集一帧(结构体_原始场景帧& 输出) override;
+    bool 采集轻量观察帧(结构体_原始场景帧& 输出);
     bool 采集彩色视频帧(结构体_D455彩色视频帧& 输出);
 
     const 配置项& 获取配置() const;

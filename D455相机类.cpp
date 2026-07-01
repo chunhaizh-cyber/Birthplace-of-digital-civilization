@@ -55,7 +55,9 @@ public:
         try {
             rs2::config c;
             c.enable_stream(RS2_STREAM_DEPTH, cfg.深度宽, cfg.深度高, RS2_FORMAT_Z16, cfg.帧率);
-            c.enable_stream(RS2_STREAM_COLOR, cfg.彩色宽, cfg.彩色高, RS2_FORMAT_ANY, cfg.帧率);
+            if (cfg.启用彩色流) {
+                c.enable_stream(RS2_STREAM_COLOR, cfg.彩色宽, cfg.彩色高, RS2_FORMAT_ANY, cfg.帧率);
+            }
             if (cfg.启用红外双目) {
                 c.enable_stream(RS2_STREAM_INFRARED, 1, cfg.红外宽, cfg.红外高, RS2_FORMAT_Y8, cfg.帧率);
                 c.enable_stream(RS2_STREAM_INFRARED, 2, cfg.红外宽, cfg.红外高, RS2_FORMAT_Y8, cfg.帧率);
@@ -99,6 +101,7 @@ public:
     // 功能：按函数名执行对应处理。
     bool 采集一帧(结构体_原始场景帧& 输出) {
         if (!已打开) return false;
+        if (!cfg.启用彩色流) return false;
 
         try {
             rs2::frameset frames = 管道.wait_for_frames();
@@ -189,6 +192,7 @@ public:
     // 功能：读取 D455 当前彩色视频帧。
     bool 采集彩色视频帧(结构体_D455彩色视频帧& 输出) {
         if (!已打开) return false;
+        if (!cfg.启用彩色流) return false;
 
         try {
             rs2::frameset frames = 管道.wait_for_frames();
@@ -214,6 +218,55 @@ public:
         }
     }
 
+    // 功能：采集一帧轻量观察材料，只保留报告队列高频入队需要的深度、内参和帧元数据。
+    bool 采集轻量观察帧(结构体_原始场景帧& 输出) {
+        if (!已打开) return false;
+
+        try {
+            rs2::frameset frames = 管道.wait_for_frames();
+
+            rs2::depth_frame rawDepth = frames.get_depth_frame();
+            rs2::video_frame color = frames.get_color_frame();
+            if (!rawDepth) return false;
+
+            const int w = rawDepth.get_width();
+            const int h = rawDepth.get_height();
+            if (w <= 0 || h <= 0) return false;
+
+            输出 = {};
+            输出.时间戳.系统到达时间_us = 结构体_时间戳::当前_微秒();
+            输出.时间戳.设备时间_us = static_cast<std::uint64_t>(
+                std::max(0.0, rawDepth.get_timestamp()) * 1000.0);
+            输出.时间戳.域 = 转换时间域(rawDepth.get_frame_timestamp_domain());
+            输出.时间戳.深度帧号 = static_cast<std::uint32_t>(rawDepth.get_frame_number());
+            if (color) {
+                输出.时间戳.彩色帧号 = static_cast<std::uint32_t>(color.get_frame_number());
+            }
+            输出.宽度 = w;
+            输出.高度 = h;
+
+            const auto 当前深度Profile = rawDepth.get_profile().as<rs2::video_stream_profile>();
+            深度内参 = 当前深度Profile.get_intrinsics();
+            输出.深度内参 = 结构体_相机内参{
+                深度内参.fx,
+                深度内参.fy,
+                深度内参.ppx,
+                深度内参.ppy,
+                w,
+                h,
+                true
+            };
+            输出.深度已对齐到彩色 = false;
+            输出.深度单位_mm = 深度尺度 * 1000.0;
+
+            return 复制深度帧毫米(rawDepth, w, h, 输出.深度, 输出.深度有效);
+        }
+        catch (const rs2::error& e) {
+            鱼巢_D455控制台输出(std::cerr << "采集轻量观察帧失败: " << e.what() << std::endl);
+            return false;
+        }
+    }
+
     // 功能：按函数名执行对应处理。
     bool 采集一帧并提取轮廓(结构体_原始场景帧& 输出, std::vector<结构体_轮廓观测>& out轮廓) {
         if (!采集一帧(输出)) return false;
@@ -233,6 +286,7 @@ public:
             cfg.深度高 != 新配置.深度高 ||
             cfg.彩色宽 != 新配置.彩色宽 ||
             cfg.彩色高 != 新配置.彩色高 ||
+            cfg.启用彩色流 != 新配置.启用彩色流 ||
             cfg.启用红外双目 != 新配置.启用红外双目 ||
             cfg.红外宽 != 新配置.红外宽 ||
             cfg.红外高 != 新配置.红外高 ||
@@ -382,7 +436,7 @@ private:
                 catch (...) {
                 }
 
-                if (isColor) {
+                if (isColor && cfg.启用彩色流) {
                     if (s.supports(RS2_OPTION_ENABLE_AUTO_EXPOSURE)) {
                         s.set_option(RS2_OPTION_ENABLE_AUTO_EXPOSURE, cfg.彩色_自动曝光 ? 1.0f : 0.0f);
                     }
@@ -947,6 +1001,11 @@ bool D455_相机实现::采集一帧(结构体_原始场景帧& 输出) {
 // 功能：读取 D455 当前彩色视频帧。
 bool D455_相机实现::采集彩色视频帧(结构体_D455彩色视频帧& 输出) {
     return 实现指针 && 实现指针->采集彩色视频帧(输出);
+}
+
+// 功能：采集一帧轻量观察材料，只保留报告队列高频入队需要的深度、内参和帧元数据。
+bool D455_相机实现::采集轻量观察帧(结构体_原始场景帧& 输出) {
+    return 实现指针 && 实现指针->采集轻量观察帧(输出);
 }
 
 // 功能：读取并返回指定对象、状态或运行材料。

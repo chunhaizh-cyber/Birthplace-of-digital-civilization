@@ -221,9 +221,12 @@ namespace 双目相机本能适配器 {
         std::size_t 轮廓数量 = 0;
     };
 
-    调用结果 打开() noexcept;
+    调用结果 打开(bool 使用低延迟观察配置 = false) noexcept;
     调用结果 释放() noexcept;
     调用结果 检查() noexcept;
     彩色视频帧 采集彩色视频帧() noexcept;
-    调用结果 采集一帧(std::uint32_t 融合目标帧数 = 3) noexcept;
+    调用结果 采集一帧轻量报告() noexcept;
+    调用结果 采集一帧(
+        std::uint32_t 融合目标帧数 = 3,
+        bool 提取空间候选 = true) noexcept;
 }
