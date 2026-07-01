@@ -262,6 +262,8 @@ constexpr std::uint32_t 私有_租约超时最大重派次数 = 3;
 constexpr 时间戳 私有_默认工作项租约微秒 = 5'000'000;
 constexpr 时间戳 私有_租约重派退避基准微秒 = 250'000;
 constexpr 时间戳 私有_租约重派退避上限微秒 = 2'000'000;
+constexpr auto 私有_外设承接目标巡检间隔 = std::chrono::milliseconds(33);
+constexpr std::size_t 私有_外设承接每轮最大消费数 = 8;
 std::mutex 私有_外设观察执行前许可默认集注册锁{};
 
 结构_任务界面线程状态& 私有_界面状态() noexcept
@@ -4705,14 +4707,18 @@ void 私有_外设承接后台循环() noexcept
     项目运行日志(
         "任务管理界面线程/外设承接后台线程启动"
         " | 只巡检外设观察等待项=1"
-        " | 不派发普通任务=1");
+        " | 不派发普通任务=1"
+        " | 目标巡检间隔毫秒="
+        + std::to_string(私有_外设承接目标巡检间隔.count())
+        + " | 每轮最大消费数="
+        + std::to_string(私有_外设承接每轮最大消费数));
     auto& 状态 = 私有_界面状态();
     while (true) {
         {
             std::unique_lock<std::mutex> 锁(状态.锁);
             状态.外设承接条件变量.wait_for(
                 锁,
-                std::chrono::milliseconds(100),
+                私有_外设承接目标巡检间隔,
                 [&状态]() noexcept {
                     return 状态.外设承接后台停止请求;
                 });
@@ -4724,7 +4730,7 @@ void 私有_外设承接后台循环() noexcept
         std::size_t 上行数 = 0;
         try {
             上行数 = 私有_巡检外设观察等待项并生成上行(
-                4,
+                私有_外设承接每轮最大消费数,
                 私有_时间(0));
         } catch (const std::exception& 异常) {
             私有_记录外设承接巡检异常("外设承接后台循环", &异常);
@@ -8616,7 +8622,9 @@ bool 巡检外设观察等待项并生成上行消息(
     (void)启动任务管理界面线程();
     auto& 状态 = 私有_界面状态();
     const auto now = 私有_时间(当前时间);
-    const auto 消费上限 = 本轮最大消费数 == 0 ? static_cast<std::size_t>(4) : 本轮最大消费数;
+    const auto 消费上限 = 本轮最大消费数 == 0
+        ? 私有_外设承接每轮最大消费数
+        : 本轮最大消费数;
 
     {
         std::lock_guard<std::mutex> 锁(状态.锁);

@@ -1578,7 +1578,7 @@ namespace {
         clearInterval(相机自动采集句柄);
       }
       请求相机帧('camera:start');
-      相机自动采集句柄 = window.setInterval(() => 请求相机帧('camera:capture'), 1000);
+      相机自动采集句柄 = window.setInterval(() => 请求相机帧('camera:capture'), 16);
     }
 
     function 停止相机采集() {

@@ -227,6 +227,7 @@ namespace {
         释放,
         单帧采集,
         视频队列Smoke,
+        视频队列消费Smoke,
     };
 
     // 功能：解析输入文本、消息、场景或运行包。
@@ -299,6 +300,8 @@ namespace {
                 输出 = 枚举_命令行相机命令::单帧采集;
             } else if (参数 == "--d455-video-queue-smoke" || 参数 == "--camera-video-queue-smoke") {
                 输出 = 枚举_命令行相机命令::视频队列Smoke;
+            } else if (参数 == "--d455-video-queue-consume-smoke" || 参数 == "--camera-video-queue-consume-smoke") {
+                输出 = 枚举_命令行相机命令::视频队列消费Smoke;
             }
         }
         return 输出;
@@ -482,6 +485,92 @@ namespace {
             项目运行日志("命令行相机控制/" + 文本);
             鱼巢_控制台输出(std::cout << 文本 << '\n');
             return 结果.生命周期 == 枚举_D455深度相机线程生命周期状态::已停止 ? 0 : 2;
+        }
+
+        if (命令 == 枚举_命令行相机命令::视频队列消费Smoke) {
+            鱼巢_启动说明("D455视频队列消费Smoke");
+            结构_D455深度相机线程配置 配置{};
+            配置.目标样本数量 = 120;
+            配置.每次采集融合帧数 = 1;
+            配置.完整观察材料间隔 = std::chrono::milliseconds{0};
+            auto& 线程 = 获取全局外设线程_D455深度相机();
+            if (!线程.启动(配置)) {
+                const std::string 文本 = "视频队列消费Smoke/启动失败 | 原因=外设线程已运行或状态不可启动";
+                项目运行错误日志("命令行相机控制/" + 文本);
+                鱼巢_控制台输出(std::cout << 文本 << '\n');
+                return 2;
+            }
+
+            constexpr std::uint64_t 目标消费帧数 = 120;
+            constexpr auto 消费间隔 = std::chrono::milliseconds{16};
+            constexpr auto 最大等待 = std::chrono::milliseconds{15000};
+            const auto 开始 = std::chrono::steady_clock::now();
+            auto 下一次读取 = 开始;
+            std::uint64_t 读取次数 = 0;
+            std::uint64_t 成功读取次数 = 0;
+            std::uint64_t 唯一消费帧数 = 0;
+            std::uint64_t 上次消费视频帧ID = 0;
+            std::uint64_t 首次消费视频帧ID = 0;
+            std::uint64_t 末次消费视频帧ID = 0;
+            std::int64_t 首帧时间毫秒 = 0;
+            std::int64_t 末帧时间毫秒 = 0;
+
+            while (std::chrono::steady_clock::now() - 开始 < 最大等待
+                && 唯一消费帧数 < 目标消费帧数) {
+                const auto 快照 = 读取最新D455控制面板视频快照();
+                ++读取次数;
+                if (快照.成功) {
+                    ++成功读取次数;
+                    const auto 当前视频帧ID = 快照.报告ID;
+                    if (当前视频帧ID != 0 && 当前视频帧ID != 上次消费视频帧ID) {
+                        const auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::steady_clock::now().time_since_epoch()).count();
+                        if (唯一消费帧数 == 0) {
+                            首帧时间毫秒 = nowMs;
+                            首次消费视频帧ID = 当前视频帧ID;
+                        }
+                        末帧时间毫秒 = nowMs;
+                        末次消费视频帧ID = 当前视频帧ID;
+                        上次消费视频帧ID = 当前视频帧ID;
+                        ++唯一消费帧数;
+                        if (末次消费视频帧ID >= 目标消费帧数) {
+                            break;
+                        }
+                    }
+                }
+                下一次读取 += 消费间隔;
+                std::this_thread::sleep_until(下一次读取);
+            }
+
+            const auto 结果 = 线程.等待完成(std::chrono::milliseconds{15000});
+            const auto 消费统计帧数 = 唯一消费帧数 > 0 ? 唯一消费帧数 - 1 : 0;
+            const auto 消费窗口毫秒 = 末帧时间毫秒 > 首帧时间毫秒
+                ? 末帧时间毫秒 - 首帧时间毫秒
+                : 0;
+            const auto 消费FPSx100 = 消费窗口毫秒 > 0
+                ? static_cast<std::uint64_t>((消费统计帧数 * 100000ULL) / static_cast<std::uint64_t>(消费窗口毫秒))
+                : 0;
+            std::ostringstream 摘要;
+            摘要 << "视频队列消费Smoke/消费速率摘要"
+                << " | 口径=读取最新D455控制面板视频快照唯一视频帧"
+                << " | 唯一消费帧数=" << 唯一消费帧数
+                << " | 消费统计帧数=" << 消费统计帧数
+                << " | 消费窗口毫秒=" << 消费窗口毫秒
+                << " | 消费FPSx100=" << 消费FPSx100
+                << " | 读取次数=" << 读取次数
+                << " | 成功读取次数=" << 成功读取次数
+                << " | 首次视频帧ID=" << 首次消费视频帧ID
+                << " | 末次视频帧ID=" << 末次消费视频帧ID
+                << " | 目标读取间隔毫秒=" << 消费间隔.count();
+            const auto 摘要文本 = 摘要.str();
+            项目运行日志("命令行相机控制/" + 摘要文本);
+            const auto 线程文本 = "视频队列消费Smoke/线程结果 | " + 构造D455深度相机线程结果摘要(结果);
+            项目运行日志("命令行相机控制/" + 线程文本);
+            鱼巢_控制台输出(std::cout << 摘要文本 << '\n' << 线程文本 << '\n');
+            return 结果.生命周期 == 枚举_D455深度相机线程生命周期状态::已停止
+                && 消费FPSx100 >= 3000
+                ? 0
+                : 2;
         }
 
         鱼巢_启动说明("D455单帧采集");
