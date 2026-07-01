@@ -1295,8 +1295,6 @@ namespace {
         结构_任务管理派生需求消息 消息{};
         消息.消息头.任务主键 = 任务主键_筹办日志(任务头);
         消息.消息头.产生时间 = now;
-        消息.父需求指针 = reinterpret_cast<std::uintptr_t>(
-            const_cast<需求节点*>(来源需求));
         消息.父需求主键 = 来源需求 ? 来源需求->获取主键() : std::string{};
         消息.来源因果指针 = reinterpret_cast<std::uintptr_t>(项.来源因果);
         消息.来源因果主键 = 项.来源因果 ? 项.来源因果->获取主键() : std::string{};

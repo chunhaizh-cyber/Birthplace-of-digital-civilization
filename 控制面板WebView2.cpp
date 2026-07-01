@@ -28,9 +28,12 @@ module;
 #include <windows.h>
 #include <objbase.h>
 #include <wrl.h>
+#include <wincodec.h>
 
 #include "WebView2导入.h"
 #include "预处理开关变量.h"
+
+#pragma comment(lib, "Windowscodecs.lib")
 
 module 控制面板WebView2;
 
@@ -762,6 +765,158 @@ namespace {
                 GetLastError(),
                 "CapturePreview调用失败");
         }
+    }
+
+    // 功能：把窗口客户区位图保存为 PNG 文件。
+    bool 私有_保存窗口客户区PNG(
+        HWND 窗口,
+        const std::filesystem::path& 输出路径) noexcept
+    {
+        if (!窗口 || !IsWindow(窗口) || 输出路径.empty()) {
+            私有_记录WebView2诊断("截图参数无效", 35);
+            return false;
+        }
+
+        RECT 客户区{};
+        if (!GetClientRect(窗口, &客户区)) {
+            私有_记录WebView2诊断("截图读取客户区失败", 36, S_OK, GetLastError());
+            return false;
+        }
+
+        const int 宽 = 客户区.right - 客户区.left;
+        const int 高 = 客户区.bottom - 客户区.top;
+        if (宽 <= 0 || 高 <= 0) {
+            私有_记录WebView2诊断("截图客户区尺寸无效", 37);
+            return false;
+        }
+
+        std::error_code 目录错误{};
+        const auto 父目录 = 输出路径.parent_path();
+        if (!父目录.empty()) {
+            std::filesystem::create_directories(父目录, 目录错误);
+            if (目录错误) {
+                私有_记录WebView2诊断(
+                    "截图创建目录失败",
+                    38,
+                    S_OK,
+                    ERROR_SUCCESS,
+                    "路径=" + 路径UTF8文本(父目录));
+                return false;
+            }
+        }
+
+        HDC 窗口DC = GetDC(窗口);
+        if (!窗口DC) {
+            私有_记录WebView2诊断("截图获取窗口DC失败", 39, S_OK, GetLastError());
+            return false;
+        }
+
+        HDC 内存DC = CreateCompatibleDC(窗口DC);
+        HBITMAP 位图 = 内存DC ? CreateCompatibleBitmap(窗口DC, 宽, 高) : nullptr;
+        HGDIOBJ 原对象 = 位图 ? SelectObject(内存DC, 位图) : nullptr;
+        const BOOL 已复制 = 位图
+            ? (BitBlt(内存DC, 0, 0, 宽, 高, 窗口DC, 0, 0, SRCCOPY)
+                || PrintWindow(窗口, 内存DC, PW_CLIENTONLY))
+            : FALSE;
+        if (原对象) {
+            SelectObject(内存DC, 原对象);
+        }
+        if (内存DC) {
+            DeleteDC(内存DC);
+        }
+        ReleaseDC(窗口, 窗口DC);
+
+        if (!位图 || !已复制) {
+            if (位图) {
+                DeleteObject(位图);
+            }
+            私有_记录WebView2诊断("截图复制窗口像素失败", 40, S_OK, GetLastError());
+            return false;
+        }
+
+        const HRESULT COM初始化 = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+        const bool 本函数初始化COM = SUCCEEDED(COM初始化);
+        if (FAILED(COM初始化) && COM初始化 != RPC_E_CHANGED_MODE) {
+            DeleteObject(位图);
+            私有_记录WebView2诊断("截图COM初始化失败", 41, COM初始化);
+            return false;
+        }
+
+        bool 保存成功 = false;
+        try {
+            ComPtr<IWICImagingFactory> 工厂;
+            HRESULT 结果 = CoCreateInstance(
+                CLSID_WICImagingFactory,
+                nullptr,
+                CLSCTX_INPROC_SERVER,
+                IID_PPV_ARGS(&工厂));
+            if (SUCCEEDED(结果)) {
+                ComPtr<IWICBitmap> WIC位图;
+                结果 = 工厂->CreateBitmapFromHBITMAP(
+                    位图,
+                    nullptr,
+                    WICBitmapIgnoreAlpha,
+                    &WIC位图);
+                if (SUCCEEDED(结果)) {
+                    ComPtr<IWICStream> 流;
+                    结果 = 工厂->CreateStream(&流);
+                    if (SUCCEEDED(结果)) {
+                        const auto 宽路径 = 输出路径.wstring();
+                        结果 = 流->InitializeFromFilename(宽路径.c_str(), GENERIC_WRITE);
+                    }
+                    ComPtr<IWICBitmapEncoder> 编码器;
+                    if (SUCCEEDED(结果)) {
+                        结果 = 工厂->CreateEncoder(GUID_ContainerFormatPng, nullptr, &编码器);
+                    }
+                    if (SUCCEEDED(结果)) {
+                        结果 = 编码器->Initialize(流.Get(), WICBitmapEncoderNoCache);
+                    }
+                    ComPtr<IWICBitmapFrameEncode> 帧;
+                    if (SUCCEEDED(结果)) {
+                        结果 = 编码器->CreateNewFrame(&帧, nullptr);
+                    }
+                    if (SUCCEEDED(结果)) {
+                        结果 = 帧->Initialize(nullptr);
+                    }
+                    if (SUCCEEDED(结果)) {
+                        结果 = 帧->SetSize(static_cast<UINT>(宽), static_cast<UINT>(高));
+                    }
+                    WICPixelFormatGUID 像素格式 = GUID_WICPixelFormat32bppBGRA;
+                    if (SUCCEEDED(结果)) {
+                        结果 = 帧->SetPixelFormat(&像素格式);
+                    }
+                    if (SUCCEEDED(结果)) {
+                        结果 = 帧->WriteSource(WIC位图.Get(), nullptr);
+                    }
+                    if (SUCCEEDED(结果)) {
+                        结果 = 帧->Commit();
+                    }
+                    if (SUCCEEDED(结果)) {
+                        结果 = 编码器->Commit();
+                    }
+                }
+            }
+
+            保存成功 = SUCCEEDED(结果);
+            if (!保存成功) {
+                私有_记录WebView2诊断(
+                    "截图PNG编码失败",
+                    42,
+                    结果,
+                    ERROR_SUCCESS,
+                    "路径=" + 路径UTF8文本(输出路径));
+            }
+        }
+        catch (...) {
+            私有_记录WebView2诊断("截图PNG编码捕获未知异常", 43);
+            保存成功 = false;
+        }
+
+        DeleteObject(位图);
+        if (本函数初始化COM) {
+            CoUninitialize();
+        }
+        return 保存成功;
     }
 
     // 功能：服务所在模块的内部辅助流程。
@@ -2495,16 +2650,29 @@ bool 启动控制面板WebView2自我场景窗口() noexcept
     return 私有_打开自我场景窗口(nullptr);
 }
 
-// 功能：打开自我场景 WebView2 窗口并保存当前 PNG 预览。
+// 功能：打开自我场景 WebView2 窗口并保存当前 PNG 预览，必要时用窗口客户区截图兜底。
 bool 保存控制面板WebView2自我场景窗口截图(
     const std::filesystem::path& 输出路径,
     const std::uint32_t 等待渲染毫秒) noexcept
 {
+    const HWND 原有窗口 = 私有_自我场景窗口句柄.load();
+    const bool 已有窗口 = 原有窗口 && IsWindow(原有窗口);
+    bool 已调用打开窗口 = false;
+    auto 关闭临时窗口 = [&]() noexcept {
+        if (已有窗口 || !已调用打开窗口) {
+            return;
+        }
+        if (auto* 当前窗口 = 私有_自我场景窗口句柄.load(); 当前窗口 && IsWindow(当前窗口)) {
+            PostMessageW(当前窗口, WM_CLOSE, 0, 0);
+        }
+    };
+
     try {
         if (输出路径.empty()) {
             私有_记录WebView2诊断("自我场景截图输出路径为空", 52);
             return false;
         }
+        已调用打开窗口 = true;
         if (!私有_打开自我场景窗口(nullptr)) {
             私有_记录WebView2诊断(
                 "自我场景截图打开窗口失败",
@@ -2512,6 +2680,7 @@ bool 保存控制面板WebView2自我场景窗口截图(
                 S_OK,
                 ERROR_SUCCESS,
                 "路径=" + 路径UTF8文本(输出路径));
+            关闭临时窗口();
             return false;
         }
 
@@ -2536,6 +2705,7 @@ bool 保存控制面板WebView2自我场景窗口截图(
                 S_OK,
                 ERROR_TIMEOUT,
                 "路径=" + 路径UTF8文本(输出路径));
+            关闭临时窗口();
             return false;
         }
         if (auto* 上下文 = 私有_取窗口上下文(自我场景窗口); !上下文 || !上下文->WebView) {
@@ -2545,10 +2715,16 @@ bool 保存控制面板WebView2自我场景窗口截图(
                 S_OK,
                 ERROR_TIMEOUT,
                 "路径=" + 路径UTF8文本(输出路径));
+            关闭临时窗口();
             return false;
         }
 
         PostMessageW(自我场景窗口, 私有_WM_刷新控制面板窗口, 0, 0);
+        ShowWindow(自我场景窗口, IsIconic(自我场景窗口) ? SW_RESTORE : SW_SHOW);
+        BringWindowToTop(自我场景窗口);
+        SetWindowPos(自我场景窗口, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+        SetForegroundWindow(自我场景窗口);
+        UpdateWindow(自我场景窗口);
         if (等待渲染毫秒 > 0) {
             Sleep(等待渲染毫秒);
         }
@@ -2564,7 +2740,9 @@ bool 保存控制面板WebView2自我场景窗口截图(
                 S_OK,
                 ERROR_OUTOFMEMORY,
                 "路径=" + 路径UTF8文本(输出路径));
-            return false;
+            const bool 兜底成功 = 私有_保存窗口客户区PNG(自我场景窗口, 输出路径);
+            关闭临时窗口();
+            return 兜底成功;
         }
         if (!PostMessageW(
             自我场景窗口,
@@ -2578,7 +2756,9 @@ bool 保存控制面板WebView2自我场景窗口截图(
                 S_OK,
                 GetLastError(),
                 "路径=" + 路径UTF8文本(输出路径));
-            return false;
+            const bool 兜底成功 = 私有_保存窗口客户区PNG(自我场景窗口, 输出路径);
+            关闭临时窗口();
+            return 兜底成功;
         }
 
         const auto 完成等待 = std::chrono::milliseconds(
@@ -2592,9 +2772,14 @@ bool 保存控制面板WebView2自我场景窗口截图(
                     ERROR_TIMEOUT,
                     "路径=" + 路径UTF8文本(输出路径));
             }
-            return false;
+            const bool 兜底成功 = 私有_保存窗口客户区PNG(自我场景窗口, 输出路径);
+            关闭临时窗口();
+            return 兜底成功;
         }
-        return 完成Future.get();
+        const bool 主路径成功 = 完成Future.get();
+        const bool 成功 = 主路径成功 || 私有_保存窗口客户区PNG(自我场景窗口, 输出路径);
+        关闭临时窗口();
+        return 成功;
     }
     catch (...) {
         私有_记录WebView2诊断(
@@ -2603,6 +2788,7 @@ bool 保存控制面板WebView2自我场景窗口截图(
             S_OK,
             GetLastError(),
             输出路径.empty() ? std::string{} : ("路径=" + 路径UTF8文本(输出路径)));
+        关闭临时窗口();
         return false;
     }
 }
