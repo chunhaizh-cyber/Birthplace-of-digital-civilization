@@ -1313,7 +1313,7 @@ namespace 双目相机本能适配器 {
     }
 
     // 功能：按函数名执行对应处理。
-    调用结果 采集一帧() noexcept
+    调用结果 采集一帧(std::uint32_t 融合目标帧数) noexcept
     {
         std::lock_guard<std::mutex> 锁(g_互斥);
         调用结果 结果{};
@@ -1324,7 +1324,8 @@ namespace 双目相机本能适配器 {
         }
 
         try {
-            constexpr int 静态融合目标帧数 = 3;
+            const int 静态融合目标帧数 = static_cast<int>(
+                std::clamp<std::uint32_t>(融合目标帧数, 1U, 30U));
             std::vector<结构体_原始场景帧> 帧组{};
             帧组.reserve(静态融合目标帧数);
             结构体_原始场景帧 帧{};

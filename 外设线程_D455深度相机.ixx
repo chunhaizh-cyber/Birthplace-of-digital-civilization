@@ -1,5 +1,10 @@
 module;
 
+// 文件头部规则注释模块：
+// 1. 本模块只负责 D455 外设线程的采集、外设侧报告生产和运行期队列提交，不直接写世界树真值、需求树或价值结算。
+// 2. 高频视频材料入队属于外设中间层供料；速率日志只用于诊断，不参与机器判断或业务状态承载。
+// 3. 调整采样节拍时必须保持最新材料页和外设观察报告队列边界，不用旧帧回退伪造队列非空。
+
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
@@ -34,8 +39,9 @@ export enum class 枚举_D455深度相机线程生命周期状态 : std::uint8_t
 };
 
 export struct 结构_D455深度相机线程配置 {
-    std::chrono::milliseconds 采样间隔{300};
+    std::chrono::milliseconds 采样间隔{33};
     std::uint32_t 目标样本数量 = 0; // 0 表示持续采样，直到请求停止。
+    std::uint32_t 每次采集融合帧数 = 1; // 外色视频队列默认单帧入队，单帧命令入口仍保留多帧诊断默认值。
     bool 启动时打开相机 = true;
     bool 停止时释放相机 = true;
 };
@@ -2486,7 +2492,11 @@ namespace {
         const std::shared_ptr<结构_D455线程共享状态>& 状态)
     {
         std::lock_guard<std::mutex> 锁(状态->互斥);
-        return 状态->结果;
+        auto 结果 = 状态->结果;
+        if (结果.样本.empty() && !状态->样本.empty()) {
+            结果.样本 = 状态->样本;
+        }
+        return 结果;
     }
 
     constexpr std::uint64_t D455_高频日志间隔帧 = 10;
@@ -2991,6 +3001,9 @@ namespace {
             std::uint64_t 扫描跳过日志抑制条数 = 0;
             std::uint64_t 跟踪跳过日志抑制条数 = 0;
             std::uint64_t 扫描样本卡日志抑制条数 = 0;
+            std::uint64_t 逐簇识别材料页入队帧数 = 0;
+            const auto 入队统计开始 = std::chrono::steady_clock::now();
+            auto 下一采样时间 = 入队统计开始;
             while (true) {
                 {
                     std::lock_guard<std::mutex> 锁(状态->互斥);
@@ -3003,7 +3016,7 @@ namespace {
                 }
 
                 ++序号;
-                auto 采集结果 = 双目相机本能适配器::采集一帧();
+                auto 采集结果 = 双目相机本能适配器::采集一帧(配置.每次采集融合帧数);
                 std::optional<结构_外设观察报告队列项> 本帧逐簇识别报告{};
                 if (采集结果.成功) {
                     D455_写回迁移分割空间候选(&采集结果);
@@ -3015,6 +3028,9 @@ namespace {
                         扫描跳过日志抑制条数,
                         扫描样本卡日志抑制条数,
                         跟踪跳过日志抑制条数);
+                }
+                if (本帧逐簇识别报告.has_value()) {
+                    ++逐簇识别材料页入队帧数;
                 }
                 auto 样本 = D455_从调用结果生成样本(序号, 采集结果);
                 if (本帧逐簇识别报告.has_value()) {
@@ -3033,17 +3049,51 @@ namespace {
 
                 {
                     std::lock_guard<std::mutex> 锁(状态->互斥);
+                    const auto* 上一样本 = 状态->样本.empty() ? nullptr : &状态->样本.back();
+                    const bool 新样本基础可比 = 样本.基础特征可比;
+                    const bool 新基础连接稳定 = 上一样本
+                        && D455_基础采样样本对稳定(*上一样本, 样本);
+                    const bool 新候选连接稳定 = 上一样本
+                        && D455_观察候选样本对稳定(*上一样本, 样本);
                     状态->样本.push_back(std::move(样本));
-                    状态->结果 = D455_评估稳定性(
-                        状态->样本,
-                        枚举_D455深度相机线程生命周期状态::运行中);
+                    auto& 运行结果 = 状态->结果;
+                    运行结果.生命周期 = 枚举_D455深度相机线程生命周期状态::运行中;
+                    运行结果.已启动 = true;
+                    运行结果.已完成 = false;
+                    运行结果.样本数量 = static_cast<std::uint64_t>(状态->样本.size());
+                    if (新样本基础可比) {
+                        ++运行结果.基础可比样本数量;
+                    }
+                    if (新基础连接稳定) {
+                        ++运行结果.基础采样稳定连接数量;
+                    }
+                    if (新候选连接稳定) {
+                        ++运行结果.观察候选稳定连接数量;
+                    }
+                    运行结果.稳定连接数量 = 运行结果.基础采样稳定连接数量;
+                    if (状态->样本.size() >= 2) {
+                        运行结果.基础采样稳定 = 运行结果.基础可比样本数量 >= 2
+                            && 运行结果.基础采样稳定连接数量 >= 1
+                            && 新基础连接稳定;
+                        运行结果.观察候选稳定 = 运行结果.基础可比样本数量 >= 2
+                            && 运行结果.观察候选稳定连接数量 >= 1
+                            && 新候选连接稳定;
+                        运行结果.稳定 = 运行结果.基础采样稳定 && 运行结果.观察候选稳定;
+                    }
                 }
 
-                std::unique_lock<std::mutex> 锁(状态->互斥);
-                状态->条件.wait_for(
-                    锁,
-                    配置.采样间隔,
-                    [&]() noexcept { return 状态->停止请求; });
+                if (配置.采样间隔.count() > 0) {
+                    下一采样时间 += 配置.采样间隔;
+                    const auto 当前时间 = std::chrono::steady_clock::now();
+                    if (下一采样时间 < 当前时间) {
+                        下一采样时间 = 当前时间;
+                    }
+                    std::unique_lock<std::mutex> 锁(状态->互斥);
+                    状态->条件.wait_until(
+                        锁,
+                        下一采样时间,
+                        [&]() noexcept { return 状态->停止请求; });
+                }
             }
 
             if constexpr (D455_调试日志输出启用()) {
@@ -3069,6 +3119,21 @@ namespace {
             if (配置.停止时释放相机) {
                 (void)双目相机本能适配器::释放();
             }
+
+            const auto 入队统计结束 = std::chrono::steady_clock::now();
+            const auto 入队统计毫秒 = std::chrono::duration_cast<std::chrono::milliseconds>(
+                入队统计结束 - 入队统计开始).count();
+            const auto 入队FPS百倍 = 入队统计毫秒 > 0
+                ? static_cast<std::uint64_t>((逐簇识别材料页入队帧数 * 100000ULL)
+                    / static_cast<std::uint64_t>(入队统计毫秒))
+                : 0ULL;
+            项目运行日志(
+                "外设线程_D455深度相机/入队速率摘要 | 口径=逐簇识别报告与D455短期材料页成功入队"
+                " | 入队帧数=" + std::to_string(逐簇识别材料页入队帧数)
+                + " | 运行毫秒=" + std::to_string(入队统计毫秒)
+                + " | 入队FPSx100=" + std::to_string(入队FPS百倍)
+                + " | 目标采样间隔毫秒=" + std::to_string(配置.采样间隔.count())
+                + " | 每次采集融合帧数=" + std::to_string(配置.每次采集融合帧数));
 
             D455_设置结束(状态, 枚举_D455深度相机线程生命周期状态::已停止);
             const auto 最终结果 = D455_读取结果(状态);
