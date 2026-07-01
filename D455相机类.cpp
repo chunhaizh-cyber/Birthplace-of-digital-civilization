@@ -8,6 +8,7 @@ module;
 #include <librealsense2/rs2.hpp>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -154,7 +155,6 @@ public:
             输出.深度已对齐到彩色 = color.get_width() == w && color.get_height() == h;
             输出.深度单位_mm = 深度尺度 * 1000.0;
 
-            输出.颜色.assign(N, Color{ 255, 255, 255 });
             输出.点云.assign(N, Vector3D{ 0, 0, 0 });
 
             if (!复制深度帧毫米(rawDepth, w, h, 输出.原始深度, 输出.原始深度有效)) {
@@ -169,7 +169,9 @@ public:
                 (void)复制深度帧毫米(filledDepth, w, h, 输出.补全深度, 输出.补全深度有效);
             }
 
-            读取对齐彩色(color, 输出);
+            if (!读取对齐彩色(color, 输出)) {
+                return false;
+            }
             if (cfg.启用红外双目) {
                 读取双目红外(frames, 输出);
             }
@@ -218,34 +220,87 @@ public:
         }
     }
 
-    // 功能：采集一帧轻量观察材料，只保留报告队列高频入队需要的深度、内参和帧元数据。
+    // 功能：采集一帧队列高频观察材料，保留彩色对齐和深度滤波链；队列所需空间坐标与像素簇由报告构建阶段生成。
     bool 采集轻量观察帧(结构体_原始场景帧& 输出) {
         if (!已打开) return false;
 
         try {
+            结构体_D455轻量观察帧阶段耗时 本次耗时{};
+            const auto 计算耗时 = [](auto 起点, auto 终点) noexcept -> std::uint64_t {
+                return static_cast<std::uint64_t>(
+                    std::chrono::duration_cast<std::chrono::microseconds>(终点 - 起点).count());
+            };
+            const auto 总开始 = std::chrono::steady_clock::now();
+            auto 记录并失败 = [&]() noexcept {
+                本次耗时.总耗时微秒 = 计算耗时(总开始, std::chrono::steady_clock::now());
+                最近轻量观察帧阶段耗时 = 本次耗时;
+                return false;
+            };
+
+            const auto 等帧开始 = std::chrono::steady_clock::now();
             rs2::frameset frames = 管道.wait_for_frames();
+            const auto 等帧结束 = std::chrono::steady_clock::now();
+            本次耗时.等帧耗时微秒 = 计算耗时(等帧开始, 等帧结束);
 
-            rs2::depth_frame rawDepth = frames.get_depth_frame();
-            rs2::video_frame color = frames.get_color_frame();
-            if (!rawDepth) return false;
+            const auto 对齐开始 = std::chrono::steady_clock::now();
+            rs2::frameset processedFrames = cfg.启用彩色流
+                ? 对齐器.process(frames)
+                : frames;
+            const auto 对齐结束 = std::chrono::steady_clock::now();
+            本次耗时.对齐耗时微秒 = 计算耗时(对齐开始, 对齐结束);
 
-            const int w = rawDepth.get_width();
-            const int h = rawDepth.get_height();
-            if (w <= 0 || h <= 0) return false;
+            const auto 取帧开始 = std::chrono::steady_clock::now();
+            rs2::depth_frame rawDepth = processedFrames.get_depth_frame();
+            rs2::video_frame color = processedFrames.get_color_frame();
+            const auto 取帧结束 = std::chrono::steady_clock::now();
+            本次耗时.取帧耗时微秒 = 计算耗时(取帧开始, 取帧结束);
+            if (!rawDepth) return 记录并失败();
+            if (cfg.启用彩色流 && !color) return 记录并失败();
 
+            const auto 滤波开始 = std::chrono::steady_clock::now();
+            rs2::frame filtered = rawDepth;
+            if (cfg.启用降采样) {
+                filtered = 降采样滤波.process(filtered);
+            }
+            if (cfg.启用视差域处理) {
+                filtered = 深度到视差.process(filtered);
+            }
+            if (cfg.启用空间滤波) {
+                filtered = 空间滤波.process(filtered);
+            }
+            if (cfg.启用时间滤波) {
+                filtered = 时间滤波.process(filtered);
+            }
+            if (cfg.启用视差域处理) {
+                filtered = 视差到深度.process(filtered);
+            }
+
+            rs2::depth_frame filteredDepth = filtered.as<rs2::depth_frame>();
+            rs2::depth_frame 输出深度 = filteredDepth;
+            if (cfg.启用填洞滤波) {
+                输出深度 = 填洞滤波.process(filtered).as<rs2::depth_frame>();
+            }
+            const auto 滤波结束 = std::chrono::steady_clock::now();
+            本次耗时.滤波耗时微秒 = 计算耗时(滤波开始, 滤波结束);
+
+            const int w = 输出深度.get_width();
+            const int h = 输出深度.get_height();
+            if (w <= 0 || h <= 0) return 记录并失败();
+
+            const auto 元数据开始 = std::chrono::steady_clock::now();
             输出 = {};
             输出.时间戳.系统到达时间_us = 结构体_时间戳::当前_微秒();
             输出.时间戳.设备时间_us = static_cast<std::uint64_t>(
-                std::max(0.0, rawDepth.get_timestamp()) * 1000.0);
-            输出.时间戳.域 = 转换时间域(rawDepth.get_frame_timestamp_domain());
-            输出.时间戳.深度帧号 = static_cast<std::uint32_t>(rawDepth.get_frame_number());
+                std::max(0.0, 输出深度.get_timestamp()) * 1000.0);
+            输出.时间戳.域 = 转换时间域(输出深度.get_frame_timestamp_domain());
+            输出.时间戳.深度帧号 = static_cast<std::uint32_t>(输出深度.get_frame_number());
             if (color) {
                 输出.时间戳.彩色帧号 = static_cast<std::uint32_t>(color.get_frame_number());
             }
             输出.宽度 = w;
             输出.高度 = h;
 
-            const auto 当前深度Profile = rawDepth.get_profile().as<rs2::video_stream_profile>();
+            const auto 当前深度Profile = 输出深度.get_profile().as<rs2::video_stream_profile>();
             深度内参 = 当前深度Profile.get_intrinsics();
             输出.深度内参 = 结构体_相机内参{
                 深度内参.fx,
@@ -256,13 +311,32 @@ public:
                 h,
                 true
             };
-            输出.深度已对齐到彩色 = false;
+            输出.深度已对齐到彩色 = color && color.get_width() == w && color.get_height() == h;
             输出.深度单位_mm = 深度尺度 * 1000.0;
+            const auto 元数据结束 = std::chrono::steady_clock::now();
+            本次耗时.元数据耗时微秒 = 计算耗时(元数据开始, 元数据结束);
 
-            return 复制深度帧毫米(rawDepth, w, h, 输出.深度, 输出.深度有效);
+            const auto 彩色复制开始 = std::chrono::steady_clock::now();
+            if (cfg.启用彩色流 && color) {
+                if (!读取对齐彩色(color, 输出)) {
+                    return 记录并失败();
+                }
+            }
+            const auto 彩色复制结束 = std::chrono::steady_clock::now();
+            本次耗时.彩色复制耗时微秒 = 计算耗时(彩色复制开始, 彩色复制结束);
+
+            const auto 复制开始 = std::chrono::steady_clock::now();
+            const bool 成功 = 复制深度帧毫米(输出深度, w, h, 输出.深度, 输出.深度有效);
+            const auto 复制结束 = std::chrono::steady_clock::now();
+            本次耗时.深度复制耗时微秒 = 计算耗时(复制开始, 复制结束);
+            本次耗时.总耗时微秒 = 计算耗时(总开始, 复制结束);
+            本次耗时.有效 = 成功;
+            最近轻量观察帧阶段耗时 = 本次耗时;
+            return 成功;
         }
         catch (const rs2::error& e) {
             鱼巢_D455控制台输出(std::cerr << "采集轻量观察帧失败: " << e.what() << std::endl);
+            最近轻量观察帧阶段耗时 = {};
             return false;
         }
     }
@@ -320,6 +394,11 @@ public:
         return 最近轮廓;
     }
 
+    // 功能：读取最近一次轻量观察帧采集的诊断阶段耗时。
+    结构体_D455轻量观察帧阶段耗时 读取最近轻量观察帧阶段耗时() const {
+        return 最近轻量观察帧阶段耗时;
+    }
+
 private:
     bool 已打开 = false;
     配置项 cfg;
@@ -337,6 +416,7 @@ private:
     rs2::temporal_filter 时间滤波;
     rs2::disparity_transform 视差到深度;
     rs2::hole_filling_filter 填洞滤波;
+    结构体_D455轻量观察帧阶段耗时 最近轻量观察帧阶段耗时{};
 
     std::vector<double> 背景深度;
     std::vector<double> 背景权重;
@@ -503,6 +583,7 @@ private:
         const int stride = color.get_stride_in_bytes();
         const std::uint8_t* base = static_cast<const std::uint8_t*>(color.get_data());
         if (!base) return false;
+        if (stride < w * bpp) return false;
 
         const std::size_t 像素数 = static_cast<std::size_t>(w) * static_cast<std::size_t>(h);
         输出RGB.assign(像素数 * 3, 0);
@@ -573,17 +654,112 @@ private:
         return false;
     }
 
-    // 功能：从指定来源读取数据或状态。
-    void 读取对齐彩色(const rs2::video_frame& color, 结构体_原始场景帧& out) {
-        std::vector<std::uint8_t> RGB{};
-        if (!复制彩色帧RGB(color, out.宽度, out.高度, RGB)) {
-            return;
+    // 功能：读取 D455 彩色帧并直接转换为工程 Color 数组。
+    bool 复制彩色帧Color(
+        const rs2::video_frame& color,
+        int w,
+        int h,
+        std::vector<Color>& 输出颜色) const {
+        static_assert(sizeof(Color) == 3);
+        const int cw = color.get_width();
+        const int ch = color.get_height();
+        输出颜色.clear();
+        if (cw != w || ch != h || w <= 0 || h <= 0) return false;
+
+        const rs2_format fmt = color.get_profile().format();
+        const int bpp = color.get_bytes_per_pixel();
+        const int stride = color.get_stride_in_bytes();
+        const std::uint8_t* base = static_cast<const std::uint8_t*>(color.get_data());
+        if (!base) return false;
+
+        const std::size_t 像素数 = static_cast<std::size_t>(w) * static_cast<std::size_t>(h);
+        输出颜色.resize(像素数);
+
+        auto write_color = [&](int u, int v, std::uint8_t R, std::uint8_t G, std::uint8_t B) {
+            输出颜色[索引(u, v, w)] = Color{ R, G, B };
+            };
+
+        if (fmt == RS2_FORMAT_RGB8 && bpp == 3) {
+            for (int v = 0; v < h; ++v) {
+                const std::uint8_t* row = base + static_cast<std::size_t>(v) * static_cast<std::size_t>(stride);
+                std::memcpy(
+                    输出颜色.data() + static_cast<std::size_t>(v) * static_cast<std::size_t>(w),
+                    row,
+                    static_cast<std::size_t>(w) * sizeof(Color));
+            }
+            return true;
         }
-        const std::size_t 像素数 = std::min(out.颜色.size(), RGB.size() / 3);
-        for (std::size_t i = 0; i < 像素数; ++i) {
-            const auto 源 = i * 3;
-            out.颜色[i] = Color{ RGB[源], RGB[源 + 1], RGB[源 + 2] };
+
+        if ((fmt == RS2_FORMAT_BGR8 && bpp == 3)
+            || (fmt == RS2_FORMAT_RGBA8 && bpp == 4)
+            || (fmt == RS2_FORMAT_BGRA8 && bpp == 4)) {
+            for (int v = 0; v < h; ++v) {
+                const std::uint8_t* row = base + static_cast<std::size_t>(v) * static_cast<std::size_t>(stride);
+                for (int u = 0; u < w; ++u) {
+                    const std::uint8_t* px = row + static_cast<std::size_t>(u) * static_cast<std::size_t>(bpp);
+                    switch (fmt) {
+                    case RS2_FORMAT_BGR8:  write_color(u, v, px[2], px[1], px[0]); break;
+                    case RS2_FORMAT_RGBA8: write_color(u, v, px[0], px[1], px[2]); break;
+                    case RS2_FORMAT_BGRA8: write_color(u, v, px[2], px[1], px[0]); break;
+                    default: break;
+                    }
+                }
+            }
+            return true;
         }
+
+        if (fmt == RS2_FORMAT_YUYV && bpp == 2) {
+            for (int v = 0; v < h; ++v) {
+                const std::uint8_t* row = base + static_cast<std::size_t>(v) * static_cast<std::size_t>(stride);
+                for (int u = 0; u < w; u += 2) {
+                    if (u + 1 >= w) {
+                        break;
+                    }
+                    const std::uint8_t* p = row + static_cast<std::size_t>(u) * 2;
+                    const std::uint8_t Y0 = p[0], U = p[1], Y1 = p[2], V = p[3];
+                    std::uint8_t R{}, G{}, B{};
+                    yuv_to_rgb(Y0, U, V, R, G, B);
+                    write_color(u, v, R, G, B);
+                    yuv_to_rgb(Y1, U, V, R, G, B);
+                    write_color(u + 1, v, R, G, B);
+                }
+            }
+            return true;
+        }
+
+        if (fmt == RS2_FORMAT_UYVY && bpp == 2) {
+            for (int v = 0; v < h; ++v) {
+                const std::uint8_t* row = base + static_cast<std::size_t>(v) * static_cast<std::size_t>(stride);
+                for (int u = 0; u < w; u += 2) {
+                    if (u + 1 >= w) {
+                        break;
+                    }
+                    const std::uint8_t* p = row + static_cast<std::size_t>(u) * 2;
+                    const std::uint8_t U = p[0], Y0 = p[1], V = p[2], Y1 = p[3];
+                    std::uint8_t R{}, G{}, B{};
+                    yuv_to_rgb(Y0, U, V, R, G, B);
+                    write_color(u, v, R, G, B);
+                    yuv_to_rgb(Y1, U, V, R, G, B);
+                    write_color(u + 1, v, R, G, B);
+                }
+            }
+            return true;
+        }
+
+        输出颜色.clear();
+        return false;
+    }
+
+    // 功能：从指定来源读取已对齐彩色帧。
+    bool 读取对齐彩色(const rs2::video_frame& color, 结构体_原始场景帧& out) {
+        if (!复制彩色帧Color(color, out.宽度, out.高度, out.颜色)) {
+            out.颜色.clear();
+            return false;
+        }
+        const std::size_t 预期像素数 = out.宽度 > 0 && out.高度 > 0
+            ? static_cast<std::size_t>(out.宽度) * static_cast<std::size_t>(out.高度)
+            : 0;
+        return out.颜色.size() == 预期像素数;
     }
 
     // 功能：按函数名执行对应处理。
@@ -1003,9 +1179,14 @@ bool D455_相机实现::采集彩色视频帧(结构体_D455彩色视频帧& 输
     return 实现指针 && 实现指针->采集彩色视频帧(输出);
 }
 
-// 功能：采集一帧轻量观察材料，只保留报告队列高频入队需要的深度、内参和帧元数据。
+// 功能：采集一帧队列高频观察材料，保留报告队列所需彩色、对齐深度、内参和帧元数据。
 bool D455_相机实现::采集轻量观察帧(结构体_原始场景帧& 输出) {
     return 实现指针 && 实现指针->采集轻量观察帧(输出);
+}
+
+// 功能：读取最近一次轻量观察帧采集的诊断阶段耗时。
+结构体_D455轻量观察帧阶段耗时 D455_相机实现::读取最近轻量观察帧阶段耗时() const {
+    return 实现指针 ? 实现指针->读取最近轻量观察帧阶段耗时() : 结构体_D455轻量观察帧阶段耗时{};
 }
 
 // 功能：读取并返回指定对象、状态或运行材料。

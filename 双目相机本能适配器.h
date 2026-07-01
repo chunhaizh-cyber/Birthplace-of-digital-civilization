@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -219,12 +220,40 @@ namespace 双目相机本能适配器 {
         std::vector<空间候选摘要> 空间候选列表{};
         std::vector<诊断区域摘要> 诊断区域列表{};
         std::size_t 轮廓数量 = 0;
+        std::uint64_t 轻量相机总耗时微秒 = 0;
+        std::uint64_t 轻量相机等帧耗时微秒 = 0;
+        std::uint64_t 轻量相机对齐耗时微秒 = 0;
+        std::uint64_t 轻量相机取帧耗时微秒 = 0;
+        std::uint64_t 轻量相机滤波耗时微秒 = 0;
+        std::uint64_t 轻量相机元数据耗时微秒 = 0;
+        std::uint64_t 轻量相机彩色复制耗时微秒 = 0;
+        std::uint64_t 轻量相机深度复制耗时微秒 = 0;
+        std::uint64_t 轻量结果构建耗时微秒 = 0;
+        std::uint64_t 轻量候选摘要耗时微秒 = 0;
+    };
+
+    struct 轻量观察原始帧包 {
+        bool 成功 = false;
+        bool 相机已打开 = false;
+        失败原因 原因 = 失败原因::无;
+        std::string 消息{};
+        std::shared_ptr<void> 内部帧{};
+        std::uint64_t 轻量相机总耗时微秒 = 0;
+        std::uint64_t 轻量相机等帧耗时微秒 = 0;
+        std::uint64_t 轻量相机对齐耗时微秒 = 0;
+        std::uint64_t 轻量相机取帧耗时微秒 = 0;
+        std::uint64_t 轻量相机滤波耗时微秒 = 0;
+        std::uint64_t 轻量相机元数据耗时微秒 = 0;
+        std::uint64_t 轻量相机彩色复制耗时微秒 = 0;
+        std::uint64_t 轻量相机深度复制耗时微秒 = 0;
     };
 
     调用结果 打开(bool 使用低延迟观察配置 = false) noexcept;
     调用结果 释放() noexcept;
     调用结果 检查() noexcept;
     彩色视频帧 采集彩色视频帧() noexcept;
+    轻量观察原始帧包 采集轻量观察原始帧() noexcept;
+    调用结果 从轻量观察原始帧生成报告(轻量观察原始帧包 包) noexcept;
     调用结果 采集一帧轻量报告() noexcept;
     调用结果 采集一帧(
         std::uint32_t 融合目标帧数 = 3,
