@@ -2603,10 +2603,33 @@ namespace {
         const auto 读安全 = [&](const char* 特征名, I64& 字段) noexcept {
             (void)私有_读取场景复现I64_保留默认(安全宿主, 特征名, 字段);
         };
+        const auto 读任一 = [&](const char* 特征名, I64& 字段) noexcept {
+            if (私有_读取场景复现I64_保留默认(宿主, 特征名, 字段)) {
+                有快照 = true;
+                return;
+            }
+            if (私有_读取场景复现I64_保留默认(安全宿主, 特征名, 字段)) {
+                return;
+            }
+            auto* 自我宿主 = 世界树.自我指针
+                ? reinterpret_cast<基础信息节点类*>(世界树.自我指针)
+                : nullptr;
+            if (私有_读取场景复现I64_保留默认(自我宿主, 特征名, 字段)) {
+                return;
+            }
+            (void)私有_读取场景复现I64_保留默认(
+                reinterpret_cast<基础信息节点类*>(自我所在场景),
+                特征名,
+                字段);
+        };
 
         读("当前观察帧", 快照.自我场景当前观察帧);
         读("相机帧宽度", 快照.自我场景相机帧宽度);
         读("相机帧高度", 快照.自我场景相机帧高度);
+        读("相机水平视野角毫度", 快照.自我场景水平视野角毫度);
+        读("相机垂直视野角毫度", 快照.自我场景垂直视野角毫度);
+        读("相机视野参数状态", 快照.自我场景视野参数状态);
+        读任一("自我_场景绝对姿态明确状态", 快照.自我场景姿态明确状态);
         读("深度帧号", 快照.自我场景深度帧号);
         读("彩色帧号", 快照.自我场景彩色帧号);
         读("预期像素数量", 快照.自我场景预期像素数量);
@@ -10104,6 +10127,10 @@ window.__panelApplyDetail=function(){};
         混合I64(快照.自我场景彩色帧号);
         混合I64(快照.自我场景相机帧宽度);
         混合I64(快照.自我场景相机帧高度);
+        混合I64(快照.自我场景水平视野角毫度);
+        混合I64(快照.自我场景垂直视野角毫度);
+        混合I64(快照.自我场景视野参数状态);
+        混合I64(快照.自我场景姿态明确状态);
         混合I64(快照.自我场景空间候选数量);
         混合I64(快照.自我场景空间候选有效点数量);
         混合I64(快照.自我场景观察存在假设);
@@ -10309,6 +10336,11 @@ window.__panelApplyDetail=function(){};
         追加JSON字符串(输出, 快照.自我场景复现宿主存在样例摘要);
         输出 << ",\"width\":" << 快照.自我场景相机帧宽度;
         输出 << ",\"height\":" << 快照.自我场景相机帧高度;
+        输出 << ",\"viewFovHorizontalMilliDeg\":" << 快照.自我场景水平视野角毫度;
+        输出 << ",\"viewFovVerticalMilliDeg\":" << 快照.自我场景垂直视野角毫度;
+        输出 << ",\"viewParameterState\":" << 快照.自我场景视野参数状态;
+        输出 << ",\"cameraPoseState\":" << 快照.自我场景姿态明确状态;
+        输出 << ",\"viewSignature\":\"" << std::hex << 私有_自我场景复现签名(快照) << std::dec << "\"";
         输出 << ",\"depthFrame\":" << 快照.自我场景深度帧号;
         输出 << ",\"colorFrame\":" << 快照.自我场景彩色帧号;
         输出 << ",\"currentFrame\":" << 快照.自我场景当前观察帧;
@@ -14066,6 +14098,7 @@ std::string 私有_生成控制面板HTML(
               <button id="scene-reset-view" class="scene-btn secondary" type="button">重置视角</button>
               <button id="scene-refresh-window" class="scene-btn secondary" type="button">刷新快照</button>
               <button id="scene-toggle-rotation" class="scene-btn" type="button">暂停旋转</button>
+              <button id="scene-toggle-view-mode" class="scene-btn secondary" type="button">视野模式</button>
             </div>
           </section>
           <div class="scene-layout">
@@ -14160,6 +14193,10 @@ std::string 私有_生成控制面板HTML(
                     <div id="scene-frame-size-stat" class="scene-stat-value">--</div>
                   </div>
                   <div class="scene-stat">
+                    <div class="scene-stat-label">视野模式</div>
+                    <div id="scene-view-mode-stat" class="scene-stat-value">--</div>
+                  </div>
+                  <div class="scene-stat">
                     <div class="scene-stat-label">帧号</div>
                     <div id="scene-frame-stat" class="scene-stat-value">--</div>
                   </div>
@@ -14193,6 +14230,8 @@ std::string 私有_生成控制面板HTML(
                   </div>
                 </div>
               </aside>
+)HTML";
+        输出 << R"HTML(
               <aside class="panel">
                 <div class="panel-topline">场景内容</div>
                 <h3>自我场景信息</h3>
@@ -16005,6 +16044,10 @@ std::string 私有_生成控制面板HTML(
       const verifiedExistenceCount = Number(data.verifiedCount || 0);
       const sceneLimitText = data.sceneSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
       const hostLimitText = data.hostSubtreeScanLimitHit ? ` / 扫描达上限 ${data.sceneSubtreeScanLimit || 4096}` : '';
+      const viewModeText = 自我场景GL状态?.viewMode ? '开启' : '关闭';
+      const fovText = Number(data.viewParameterState || 0) > 0
+        ? `${(Number(data.viewFovHorizontalMilliDeg || 0) / 1000).toFixed(1)} x ${(Number(data.viewFovVerticalMilliDeg || 0) / 1000).toFixed(1)}度`
+        : '视野参数缺失';
       设置自我场景文本('scene-root-pointer-stat', `${data.sceneTitle || '空'} / ${data.scenePtr || 0}`);
       设置自我场景文本('scene-rendered-existence-stat', `${existenceStats.withCenter}/${existenceStats.total} 个 / AABB ${existenceStats.withRange} / 颜色 ${data.realColorStateExistenceCount || 0} / 彩图 ${data.realTextureExistenceCount || 0}`);
       设置自我场景文本('scene-existence-range-stat', `自我场景 ${existenceStats.fromScene} / 宿主 ${existenceStats.fromHost} / 子树 ${data.sceneSubtreeExistences || 0}`);
@@ -16017,6 +16060,7 @@ std::string 私有_生成控制面板HTML(
       设置自我场景文本('scene-voxel-candidate-child-stat', `子轮廓 ${data.voxelCandidateLatestChildContourCount || 0} / 局部子体素 ${data.voxelCandidateLatestLocalChildVoxelCount || 0}`);
       设置自我场景文本('scene-voxel-candidate-branch-stat', 自我场景体素候选分支文本(data.voxelCandidateDiagnosticBranch));
       设置自我场景文本('scene-frame-size-stat', `${data.width || 0} x ${data.height || 0}`);
+      设置自我场景文本('scene-view-mode-stat', `${viewModeText} / ${fovText} / 姿态 ${data.cameraPoseState || 0}`);
       设置自我场景文本('scene-frame-stat', `观察 ${data.currentFrame || 0} / D${data.depthFrame || 0} / C${data.colorFrame || 0}`);
       设置自我场景文本('scene-pixel-stat', `${data.pixelFeatures || 0} / 深度 ${data.depthValidPixels || 0}(${data.depthValidRatio || 0}) / 融合 ${data.fusedDepthValidPixels || 0}(${data.fusedDepthValidRatio || 0}) / 帧组 ${data.observationFrameGroupCount || 0} / 轮廓 ${data.colorContourCount || 0}/${data.depthContourCount || 0}/${data.spaceProjectionContourCount || 0}/${data.fusedContourCount || 0}`);
       设置自我场景文本('scene-candidate-stat', `${data.candidateCount || 0} / 有效点 ${data.candidateValidPixels || 0}`);
@@ -16065,6 +16109,7 @@ std::string 私有_生成控制面板HTML(
       gl.bufferData(gl.ARRAY_BUFFER, geometry.pointData, gl.DYNAMIC_DRAW);
       state.lineCount = geometry.lineCount;
       state.pointCount = geometry.pointCount;
+      state.viewSignature = String((data || {}).viewSignature || '');
       return geometry;
     }
 
@@ -16365,6 +16410,42 @@ std::string 私有_生成控制面板HTML(
       return Number(item?.rootHandle || 0) !== 0 ? [0.58, 0.13, 0.30] : [0.50, 0.28, 0.36];
     }
 
+    function 自我场景灰度颜色(color) {
+      const r = Number(color?.[0] || 0);
+      const g = Number(color?.[1] || 0);
+      const b = Number(color?.[2] || 0);
+      const l = Math.max(0, Math.min(1, r * 0.299 + g * 0.587 + b * 0.114));
+      return [l, l, l];
+    }
+
+    function 自我场景视野参数(data) {
+      const h = Number(data?.viewFovHorizontalMilliDeg || 0);
+      const v = Number(data?.viewFovVerticalMilliDeg || 0);
+      const valid = Number(data?.viewParameterState || 0) > 0 && h > 0 && v > 0;
+      return {
+        valid,
+        halfH: h * Math.PI / 360000,
+        halfV: v * Math.PI / 360000
+      };
+    }
+
+    function 自我场景点在视野内(point, data) {
+      const state = 自我场景GL状态;
+      if (!state || !state.viewMode) return true;
+      const view = 自我场景视野参数(data || {});
+      if (!view.valid) return true;
+      const x = Number(point?.[0] || 0);
+      const y = Number(point?.[1] || 0);
+      const z = Number(point?.[2] || 0);
+      if (z <= 0.0001) return false;
+      return Math.abs(Math.atan2(x, z)) <= view.halfH
+        && Math.abs(Math.atan2(y, z)) <= view.halfV;
+    }
+
+    function 自我场景视野颜色(point, color, data) {
+      return 自我场景点在视野内(point, data) ? color : 自我场景灰度颜色(color);
+    }
+
     function 构建自我场景真实存在视图(data) {
       const items = 读取自我场景真实存在列表(data);
       const nodes = [];
@@ -16400,10 +16481,16 @@ std::string 私有_生成控制面板HTML(
         target.push(q[0], q[1], q[2], color[0], color[1], color[2]);
       };
       const pushLine = (a, b, color) => {
-        pushVertex(lines, a, color);
-        pushVertex(lines, b, color);
+        const mid = [
+          (Number(a?.[0] || 0) + Number(b?.[0] || 0)) / 2,
+          (Number(a?.[1] || 0) + Number(b?.[1] || 0)) / 2,
+          (Number(a?.[2] || 0) + Number(b?.[2] || 0)) / 2
+        ];
+        const viewColor = 自我场景视野颜色(mid, color, data || {});
+        pushVertex(lines, a, viewColor);
+        pushVertex(lines, b, viewColor);
       };
-      const pushPoint = (p, color) => pushVertex(points, p, color);
+      const pushPoint = (p, color) => pushVertex(points, p, 自我场景视野颜色(p, color, data || {}));
 
       const gridColor = [0.17, 0.26, 0.29];
       const y = Math.min(0, range.min[1]);
@@ -16676,6 +16763,78 @@ std::string 私有_生成控制面板HTML(
 
 )HTML";
     输出 << R"HTML(
+    function 限制自我场景值(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function 自我场景当前眼位(state) {
+      if (!state || !state.viewMode) {
+        const angle = state ? state.angle : 0.72;
+        return [Math.sin(angle) * 6.4, 3.7, Math.cos(angle) * 6.4];
+      }
+      const distance = 7.4;
+      const pitch = 限制自我场景值(Number(state.manualPitch || 0.52), -1.15, 1.15);
+      const yaw = Number(state.manualYaw || 0.72);
+      const cp = Math.cos(pitch);
+      return [
+        Math.sin(yaw) * distance * cp,
+        Math.sin(pitch) * distance,
+        Math.cos(yaw) * distance * cp
+      ];
+    }
+
+    function 更新自我场景模式按钮() {
+      const state = 自我场景GL状态;
+      const rotationButton = document.getElementById('scene-toggle-rotation');
+      const viewButton = document.getElementById('scene-toggle-view-mode');
+      if (rotationButton && state) {
+        rotationButton.textContent = state.rotating ? '暂停旋转' : '继续旋转';
+      }
+      if (viewButton && state) {
+        viewButton.textContent = state.viewMode ? '退出视野' : '视野模式';
+        viewButton.classList.toggle('active', !!state.viewMode);
+      }
+    }
+
+    function 绑定自我场景鼠标视角(state) {
+      if (!state || !state.canvas || state.mouseBound) return;
+      const canvas = state.canvas;
+      state.mouseBound = true;
+      canvas.addEventListener('pointerdown', (event) => {
+        if (!state.viewMode) return;
+        state.dragging = true;
+        state.dragX = event.clientX;
+        state.dragY = event.clientY;
+        try {
+          canvas.setPointerCapture(event.pointerId);
+        } catch (_) {}
+        event.preventDefault();
+      });
+      canvas.addEventListener('pointermove', (event) => {
+        if (!state.viewMode || !state.dragging) return;
+        const dx = event.clientX - state.dragX;
+        const dy = event.clientY - state.dragY;
+        state.dragX = event.clientX;
+        state.dragY = event.clientY;
+        state.manualYaw += dx * 0.006;
+        state.manualPitch = 限制自我场景值(state.manualPitch + dy * 0.004, -1.15, 1.15);
+        请求绘制自我场景();
+        event.preventDefault();
+      });
+      const endDrag = (event) => {
+        if (!state.dragging) return;
+        state.dragging = false;
+        try {
+          canvas.releasePointerCapture(event.pointerId);
+        } catch (_) {}
+      };
+      canvas.addEventListener('pointerup', endDrag);
+      canvas.addEventListener('pointercancel', endDrag);
+      canvas.addEventListener('pointerleave', () => {
+        state.dragging = false;
+      });
+    }
+
     function 初始化自我场景WebGL() {
       if (自我场景GL状态) return 自我场景GL状态;
       更新自我场景统计();
@@ -16708,8 +16867,18 @@ std::string 私有_生成控制面板HTML(
           matrix: gl.getUniformLocation(program, 'u_matrix'),
           angle: 0.72,
           rotating: true,
+          viewMode: false,
+          manualYaw: 0.72,
+          manualPitch: 0.52,
+          dragging: false,
+          dragX: 0,
+          dragY: 0,
+          mouseBound: false,
+          viewSignature: String((自我场景复现数据 || {}).viewSignature || ''),
           frame: 0
         };
+        绑定自我场景鼠标视角(自我场景GL状态);
+        更新自我场景模式按钮();
         设置自我场景绘制状态(geometry);
       } catch (error) {
         设置自我场景状态(`OpenGL(WebGL) 渲染准备失败：${error.message || error}`, 'error');
@@ -16731,8 +16900,7 @@ std::string 私有_生成控制面板HTML(
       gl.useProgram(program);
 
       const aspect = Math.max(1, canvas.width) / Math.max(1, canvas.height);
-      const angle = state.angle;
-      const eye = [Math.sin(angle) * 6.4, 3.7, Math.cos(angle) * 6.4];
+      const eye = 自我场景当前眼位(state);
       const projection = 场景透视矩阵(Math.PI / 4.5, aspect, 0.1, 100);
       const view = 场景视图矩阵(eye, [0, 0, 0], [0, 1, 0]);
       const matrix = 场景矩阵相乘(projection, view);
@@ -16756,7 +16924,7 @@ std::string 私有_生成控制面板HTML(
       }
       绘制自我场景诊断覆盖层();
 
-      if (state.rotating && (自我场景窗口模式 || document.querySelector('.page.active')?.dataset.page === 'self-scene')) {
+      if (!state.viewMode && state.rotating && (自我场景窗口模式 || document.querySelector('.page.active')?.dataset.page === 'self-scene')) {
         state.angle += 0.006;
       }
       state.frame = window.requestAnimationFrame(绘制自我场景);
@@ -16774,17 +16942,35 @@ std::string 私有_生成控制面板HTML(
       const state = 初始化自我场景WebGL();
       if (!state) return;
       state.angle = 0.72;
+      state.manualYaw = 0.72;
+      state.manualPitch = 0.52;
       请求绘制自我场景();
     }
 
     function 切换自我场景旋转() {
       const state = 初始化自我场景WebGL();
       if (!state) return;
-      state.rotating = !state.rotating;
-      const button = document.getElementById('scene-toggle-rotation');
-      if (button) {
-        button.textContent = state.rotating ? '暂停旋转' : '继续旋转';
+      if (state.viewMode) {
+        state.viewMode = false;
+        const geometry = 更新自我场景几何缓冲(自我场景复现数据 || {});
+        设置自我场景绘制状态(geometry);
       }
+      state.rotating = !state.rotating;
+      更新自我场景模式按钮();
+      更新自我场景统计();
+      请求绘制自我场景();
+    }
+
+    function 切换自我场景视野模式() {
+      const state = 初始化自我场景WebGL();
+      if (!state) return;
+      state.viewMode = !state.viewMode;
+      state.rotating = state.viewMode ? false : true;
+      state.dragging = false;
+      const geometry = 更新自我场景几何缓冲(自我场景复现数据 || {});
+      设置自我场景绘制状态(geometry);
+      更新自我场景模式按钮();
+      更新自我场景统计();
       请求绘制自我场景();
     }
 
@@ -16894,6 +17080,7 @@ std::string 私有_生成控制面板HTML(
     const 自我场景重置按钮 = document.getElementById('scene-reset-view');
     const 自我场景刷新按钮 = document.getElementById('scene-refresh-window');
     const 自我场景旋转按钮 = document.getElementById('scene-toggle-rotation');
+    const 自我场景视野模式按钮 = document.getElementById('scene-toggle-view-mode');
     if (自我场景重置按钮) {
       自我场景重置按钮.addEventListener('click', 重置自我场景视角);
     }
@@ -16910,6 +17097,9 @@ std::string 私有_生成控制面板HTML(
     }
     if (自我场景旋转按钮) {
       自我场景旋转按钮.addEventListener('click', 切换自我场景旋转);
+    }
+    if (自我场景视野模式按钮) {
+      自我场景视野模式按钮.addEventListener('click', 切换自我场景视野模式);
     }
     if (自我场景窗口模式 && window.chrome && window.chrome.webview) {
       window.setInterval(请求自我场景复现帧, 3000);

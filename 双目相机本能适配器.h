@@ -121,6 +121,9 @@ namespace 双目相机本能适配器 {
         std::string 消息{};
         int 宽度 = 0;
         int 高度 = 0;
+        std::int64_t 水平视野角毫度 = 0;
+        std::int64_t 垂直视野角毫度 = 0;
+        std::int64_t 视野参数状态 = 0;
         std::uint64_t 系统到达时间_us = 0;
         std::uint64_t 设备时间_us = 0;
         std::uint8_t 时间域 = 0;
