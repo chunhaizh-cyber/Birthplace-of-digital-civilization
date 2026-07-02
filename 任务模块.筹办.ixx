@@ -216,6 +216,17 @@ namespace {
             return;
         }
 
+        bool 存在需丢弃项 = false;
+        for (const auto& 消息 : 结果.待上报派生需求消息集) {
+            if (是泛化学习信息补齐派生消息(消息)) {
+                存在需丢弃项 = true;
+                break;
+            }
+        }
+        if (!存在需丢弃项) {
+            return;
+        }
+
         std::vector<结构_任务管理派生需求消息> 保留{};
         保留.reserve(结果.待上报派生需求消息集.size());
         std::size_t 丢弃数量 = 0;
@@ -225,10 +236,6 @@ namespace {
                 continue;
             }
             保留.push_back(std::move(消息));
-        }
-
-        if (丢弃数量 == 0) {
-            return;
         }
 
         结果.待上报派生需求消息集 = std::move(保留);
