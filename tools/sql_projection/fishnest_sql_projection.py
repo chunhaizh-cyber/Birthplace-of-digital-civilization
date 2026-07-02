@@ -288,7 +288,7 @@ def split_backtick_features(text: str) -> list[str]:
 
 def extract_feature_dictionary(root: Path, features: list[dict[str, Any]], seen: set[tuple[str, str, str, int, str]]) -> list[dict[str, Any]]:
     relations: list[dict[str, Any]] = []
-    path = root / "详细设计" / "特征类型串联字典.md"
+    path = root / "规范" / "详细设计" / "特征类型串联字典.md"
     if not path.exists():
         return relations
     for line_no, line in enumerate(read_text(path).splitlines(), 1):
@@ -345,7 +345,7 @@ def tree_node_name(text: str) -> str:
 
 def extract_feature_tree(root: Path, features: list[dict[str, Any]], seen: set[tuple[str, str, str, int, str]]) -> list[dict[str, Any]]:
     relations: list[dict[str, Any]] = []
-    path = root / "详细设计" / "特征双根树.md"
+    path = root / "规范" / "详细设计" / "特征双根树.md"
     if not path.exists():
         return relations
     in_tree = False
