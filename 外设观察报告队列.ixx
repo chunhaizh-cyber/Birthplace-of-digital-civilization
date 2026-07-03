@@ -100,7 +100,6 @@ export enum class 枚举_目标观察约束可用性 : std::uint8_t {
     可用 = 1,
     可降级使用 = 2,
     已过期 = 3,
-    generation失配 = 4,
     目标已替代 = 5,
     材料不可回查 = 6,
     缺目标存在 = 7,
@@ -259,7 +258,6 @@ export struct 结构_外设观察像素簇摘要 {
     std::int64_t 跨帧轨迹待发布状态 = 0;
     std::int64_t 跨帧丢失宽限状态 = 0;
     枚举_外设Tracker轨迹状态 轨迹状态 = 枚举_外设Tracker轨迹状态::未指定;
-    std::string 轨迹状态generation{};
     std::int64_t 轨迹状态连续帧数 = 0;
     std::int64_t 平滑中心X = 0;
     std::int64_t 平滑中心Y = 0;
@@ -340,7 +338,6 @@ export struct 结构_外设提交包头 {
     std::string 外设ID{};
     std::string 材料页ID{};
     std::string 坐标系ID{};
-    std::string generation{};
     std::int64_t 有效截止时间毫秒 = 0;
     std::vector<std::string> 材料句柄集{};
     std::vector<枚举_外设提交缺口码> 缺失材料{};
@@ -522,13 +519,9 @@ export struct 结构_外设观察报告队列项 {
     std::int64_t 重捕获候选数量 = 0;
     std::int64_t 稳定特征样本数量 = 0;
     枚举_外设Tracker轨迹状态 轨迹状态 = 枚举_外设Tracker轨迹状态::未指定;
-    std::string 轨迹状态generation{};
     std::int64_t 轨迹状态连续帧数 = 0;
 
     std::uint64_t 目标观察约束ID = 0;
-    std::string 约束generation{};
-    std::string 目标特征generation{};
-    std::string 来源材料generation{};
     枚举_外设分割处理模式 本帧处理模式 = 枚举_外设分割处理模式::未指定;
     std::int64_t 本帧处理优先级 = 50;
     std::string 本帧处理掩码句柄{};
@@ -572,9 +565,6 @@ export struct 结构_外设观察等待项 {
     std::int64_t 目标特征当前值 = 0;
     枚举_目标特征当前值类型 目标特征当前值类型 = 枚举_目标特征当前值类型::未指定;
     std::string 目标特征当前值句柄{};
-    std::string 约束generation{};
-    std::string 目标特征generation{};
-    std::string 来源材料generation{};
     枚举_外设分割处理模式 本帧处理模式 = 枚举_外设分割处理模式::全局观察;
     std::int64_t 本帧处理优先级 = 50;
     std::string 本帧处理掩码句柄{};
@@ -617,10 +607,6 @@ export struct 结构_目标观察约束特征组 {
 
     std::uint64_t 来源报告ID = 0;
     std::uint64_t 来源帧ID = 0;
-
-    std::string 约束generation{};
-    std::string 目标特征generation{};
-    std::string 来源材料generation{};
 
     std::int64_t 写入时间毫秒 = 0;
     std::int64_t TTL毫秒 = 0;
@@ -953,15 +939,6 @@ namespace {
         return 材料来源报告ID == 0
             ? std::string{}
             : "D455材料页#报告" + std::to_string(材料来源报告ID);
-    }
-
-    // 功能：提交事实、动态、任务状态或运行回执。
-    std::string 外设提交_材料组代际身份(const 结构_外设观察报告队列项& 报告项)
-    {
-        if (报告项.报告生成方法ID.empty() && 报告项.报告生成方法版本ID.empty()) {
-            return {};
-        }
-        return 报告项.报告生成方法ID + "#" + 报告项.报告生成方法版本ID;
     }
 
     // 功能：提交事实、动态、任务状态或运行回执。
@@ -1779,16 +1756,6 @@ namespace {
             && 报告项.目标观察约束ID != 等待项.目标观察约束ID) {
             return false;
         }
-        if (!等待项.约束generation.empty()
-            && !报告项.约束generation.empty()
-            && 报告项.约束generation != 等待项.约束generation) {
-            return false;
-        }
-        if (!等待项.目标特征generation.empty()
-            && !报告项.目标特征generation.empty()
-            && 报告项.目标特征generation != 等待项.目标特征generation) {
-            return false;
-        }
         const bool 逐簇识别等待 =
             等待项.期望报告类型 == 枚举_外设观察报告类型::逐簇识别报告
             || (等待项.期望报告类型 == 枚举_外设观察报告类型::未指定
@@ -1851,8 +1818,7 @@ namespace {
     bool 目标观察约束_有精细材料(const 结构_目标观察约束特征组& 约束) noexcept
     {
         return !约束.像素集合掩码句柄.empty()
-            || !约束.点集句柄.empty()
-            || !约束.来源材料generation.empty();
+            || !约束.点集句柄.empty();
     }
 
     // 功能：等待线程、任务、外设或条件变化。
@@ -1901,9 +1867,6 @@ namespace {
         }
         if (约束.TTL毫秒 <= 0) {
             约束.TTL毫秒 = 目标观察约束默认TTL毫秒;
-        }
-        if (约束.约束generation.empty()) {
-            约束.约束generation = "目标观察约束#" + std::to_string(约束.约束ID);
         }
         if (约束.状态 == 枚举_目标观察约束状态::未定义) {
             约束.状态 = 枚举_目标观察约束状态::可用;
@@ -2070,7 +2033,6 @@ const char* 目标观察约束可用性文本(枚举_目标观察约束可用性
     case 枚举_目标观察约束可用性::可用: return "可用";
     case 枚举_目标观察约束可用性::可降级使用: return "可降级使用";
     case 枚举_目标观察约束可用性::已过期: return "已过期";
-    case 枚举_目标观察约束可用性::generation失配: return "generation失配";
     case 枚举_目标观察约束可用性::目标已替代: return "目标已替代";
     case 枚举_目标观察约束可用性::材料不可回查: return "材料不可回查";
     case 枚举_目标观察约束可用性::缺目标存在: return "缺目标存在";
@@ -2397,7 +2359,6 @@ std::string 构造观察材料质量判定摘要(const 结构_观察材料质量
     包头.外设ID = 报告项.来源外设ID;
     包头.材料页ID = 外设提交_材料页ID(报告项);
     包头.坐标系ID = 报告项.坐标系ID;
-    包头.generation = 外设提交_材料组代际身份(报告项);
     包头.有效截止时间毫秒 = 报告项.时间戳毫秒 > 0
         ? 报告项.时间戳毫秒 + 外设提交包默认有效毫秒
         : 0;
@@ -3120,18 +3081,12 @@ bool 完成外设观察等待项(std::uint64_t 等待项ID)
         return 设置(枚举_目标观察约束可用性::目标已替代, false, false);
     }
 
-    const bool 缺目标特征generation = 约束.目标特征generation.empty();
     const bool 缺精细材料 = !目标观察约束_有精细材料(约束);
-    if (缺目标特征generation || 缺精细材料) {
+    if (缺精细材料) {
         if (约束.允许降级) {
             return 设置(枚举_目标观察约束可用性::可降级使用, false, true);
         }
-        return 设置(
-            缺目标特征generation
-                ? 枚举_目标观察约束可用性::generation失配
-                : 枚举_目标观察约束可用性::材料不可回查,
-            false,
-            false);
+        return 设置(枚举_目标观察约束可用性::材料不可回查, false, false);
     }
 
     return 设置(枚举_目标观察约束可用性::可用, true, false);
@@ -3316,9 +3271,8 @@ std::string 构造目标观察约束摘要(const 结构_目标观察约束特征
         << " | 当前值类型=" << static_cast<int>(约束.目标特征当前值类型)
         << " | 当前值=" << 约束.目标特征当前值
         << " | 当前值句柄=" << 约束.目标特征当前值句柄
-        << " | 约束generation=" << 约束.约束generation
-        << " | 目标特征generation=" << 约束.目标特征generation
-        << " | 来源材料generation=" << 约束.来源材料generation
+        << " | 来源报告ID=" << 约束.来源报告ID
+        << " | 来源帧ID=" << 约束.来源帧ID
         << " | 来源等待项ID=" << 约束.来源等待项ID
         << " | TTL毫秒=" << 约束.TTL毫秒
         << " | ROI=" << 约束.ROI句柄
@@ -3725,14 +3679,9 @@ std::string 构造外设观察报告摘要(const 结构_外设观察报告队列
         输出 << " | 来源原始报告ID=" << 报告项.来源原始报告ID
             << " | 来源外设帧ID=" << 报告项.来源外设帧ID;
     }
-    if (报告项.目标观察约束ID != 0
-        || !报告项.约束generation.empty()
-        || 报告项.目标约束使用状态 != 0) {
+    if (报告项.目标观察约束ID != 0 || 报告项.目标约束使用状态 != 0) {
         输出 << " | 目标观察约束ID=" << 报告项.目标观察约束ID
             << " | 目标约束使用状态=" << 报告项.目标约束使用状态
-            << " | 约束generation=" << (报告项.约束generation.empty() ? "空" : 报告项.约束generation)
-            << " | 目标特征generation=" << (报告项.目标特征generation.empty() ? "空" : 报告项.目标特征generation)
-            << " | 来源材料generation=" << (报告项.来源材料generation.empty() ? "空" : 报告项.来源材料generation)
             << " | 目标特征当前观察值=" << 报告项.目标特征当前观察值
             << " | 目标特征误差值=" << 报告项.目标特征误差值;
     }
@@ -3758,7 +3707,6 @@ std::string 构造外设观察报告摘要(const 结构_外设观察报告队列
             << " | 跟踪状态=" << 报告项.跟踪状态值
             << " | 轨迹状态=" << 外设Tracker轨迹状态文本(报告项.轨迹状态)
             << " | 轨迹连续帧数=" << 报告项.轨迹状态连续帧数
-            << " | 轨迹状态generation=" << (报告项.轨迹状态generation.empty() ? "空" : 报告项.轨迹状态generation)
             << " | 丢失状态=" << 报告项.丢失状态值
             << " | 连续成功=" << 报告项.连续成功次数
             << " | 失败次数=" << 报告项.失败次数
@@ -4078,9 +4026,6 @@ std::string 构造外设观察等待项摘要(const 结构_外设观察等待项
         << " | 目标特征当前值类型=" << static_cast<int>(等待项.目标特征当前值类型)
         << " | 目标特征当前值=" << 等待项.目标特征当前值
         << " | 目标特征当前值句柄=" << 等待项.目标特征当前值句柄
-        << " | 约束generation=" << 等待项.约束generation
-        << " | 目标特征generation=" << 等待项.目标特征generation
-        << " | 来源材料generation=" << 等待项.来源材料generation
         << " | 目标约束有效截止时间毫秒=" << 等待项.目标约束有效截止时间毫秒
         << " | 允许降级匹配=" << 等待项.允许降级匹配;
     if (!等待项.幂等键.empty()) {

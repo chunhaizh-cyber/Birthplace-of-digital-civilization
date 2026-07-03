@@ -66,3 +66,59 @@ E0 可以按计划继续，不需要新增结构体。
 不得宣称 D1 已闭合、L2/L3 来源链已补强或真实 D455 烟测已完成。
 不得宣称自我苏醒完成或初步成熟完成。
 ```
+
+## 1. E0 完成证据
+
+当前切片：E0 / P13 已完成。
+
+已修改代码和说明：
+
+```text
+外设观察报告队列.ixx
+外设线程_D455深度相机.ixx
+任务模块.工作线程消息协议.ixx
+任务模块.管理工作线程.ixx
+任务模块.管理界面线程.impl.cpp
+自我线程模块.impl.cpp
+自我动作实现.扫描.ixx
+自我动作实现.外设模块.ixx
+说明书/函数功能说明文档.md
+```
+
+完成内容：
+
+```text
+1. 删除外设提交包头、报告项、等待项、目标观察约束特征组和任务承接请求中的旧 generation 字段。
+2. 删除 generation 失配可用性分支、目标约束匹配中的旧字符串比较、D455 轨迹状态字符串构造函数和外设材料组代际身份函数。
+3. 自我线程正式承接改为只按目标观察约束 ID 缺失 / 不一致阻断。
+4. 目标观察约束幂等键改用目标存在、目标特征、当前值、来源报告、来源簇和候选编号等结构化字段。
+5. 扫描和管理界面投影不再转交或输出旧字符串身份。
+```
+
+已运行命令：
+
+```powershell
+python .\tools\生成函数功能说明文档.py
+rg -n "generation|材料组代际身份" --glob "*.ixx" --glob "*.cpp" --glob "*.h" --glob "说明书/函数功能说明文档.md" --glob "!x64/**" --glob "!Debug/**" --glob "!Release/**" --glob "!logs/**" --glob "!日志/**" .
+git diff --check
+python .\tools\check_specs.py
+msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m
+```
+
+结果：
+
+```text
+函数说明生成：通过。
+关键词扫描：无命中。
+git diff --check：通过，仅提示 说明书/函数功能说明文档.md 下次 Git 触碰时 CRLF 将替换为 LF。
+check_specs：hard issues = 0，warnings = 0。
+Debug x64 构建：0 警告，0 错误。
+构建锁：已释放。
+```
+
+下一步：
+
+```text
+重新读取计划索引后进入 E1 / P3，从 S2b L2/L3 来源链补强继续。
+仍不得宣称 D1 已闭合、L2/L3 来源链已补强或真实 D455 烟测已完成。
+```

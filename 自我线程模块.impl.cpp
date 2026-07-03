@@ -13469,26 +13469,15 @@ bool 私有_落任务管理观察事实承接请求到自我内部世界(
             请求.目标观察约束ID != 0
             && 报告->目标观察约束ID != 0
             && 请求.目标观察约束ID != 报告->目标观察约束ID;
-        const bool 约束generation不一致 =
-            !请求.约束generation.empty()
-            && !报告->约束generation.empty()
-            && 请求.约束generation != 报告->约束generation;
-        const bool 目标特征generation不一致 =
-            !请求.目标特征generation.empty()
-            && !报告->目标特征generation.empty()
-            && 请求.目标特征generation != 报告->目标特征generation;
-        if (目标约束ID不一致
-            || 约束generation不一致
-            || 目标特征generation不一致) {
+        const bool 目标约束ID缺失 =
+            请求.目标观察约束ID != 0
+            && 报告->目标观察约束ID == 0;
+        if (目标约束ID不一致 || 目标约束ID缺失) {
             项目运行日志(
                 "自我线程/外设观察事实承接证据不足"
                 " | 原因=报告目标约束与承接请求不一致"
                 " | 请求目标观察约束ID=" + std::to_string(请求.目标观察约束ID)
                 + " | 报告目标观察约束ID=" + std::to_string(报告->目标观察约束ID)
-                + " | 请求约束generation=" + (请求.约束generation.empty() ? std::string("空") : 请求.约束generation)
-                + " | 报告约束generation=" + (报告->约束generation.empty() ? std::string("空") : 报告->约束generation)
-                + " | 请求目标特征generation=" + (请求.目标特征generation.empty() ? std::string("空") : 请求.目标特征generation)
-                + " | 报告目标特征generation=" + (报告->目标特征generation.empty() ? std::string("空") : 报告->目标特征generation)
                 + " | "
                 + 构造任务管理观察事实承接请求文本(请求));
             return false;

@@ -259,19 +259,45 @@ E1 的下一步从 S2b L2/L3 来源链补强继续；
 
 ## 10. 完成声明边界
 
-本计划生成后只能声明：
+本计划执行完成后可以声明：
 
 ```text
-已新增 `generation` 逻辑清理纠偏计划；
-计划索引可以把 E0 作为最优先执行项；
-后续代码实施必须从 S0 只读扫描开始。
+E0 已完成代码侧旧 generation 逻辑清理；
+源码和函数说明文档中的 generation / 材料组代际身份命中已清零；
+Debug x64 构建已通过；
+计划索引可以进入 E1 的 S2b L2/L3 来源链补强。
 ```
 
 不得声明：
 
 ```text
-代码中的 generation 已删除；
-旧材料身份逻辑已消失；
 D1 外设观察材料稳定关联与入队已闭合；
 真实 D455 队列烟测已通过。
+```
+
+## 11. 实施证据
+
+```text
+执行日期：2026-07-03
+状态：已完成
+修改范围：
+    外设观察报告队列.ixx
+    外设线程_D455深度相机.ixx
+    任务模块.工作线程消息协议.ixx
+    任务模块.管理工作线程.ixx
+    任务模块.管理界面线程.impl.cpp
+    自我线程模块.impl.cpp
+    自我动作实现.扫描.ixx
+    自我动作实现.外设模块.ixx
+    说明书/函数功能说明文档.md
+验证：
+    python .\tools\生成函数功能说明文档.py：通过
+    rg -n "generation|材料组代际身份" --glob "*.ixx" --glob "*.cpp" --glob "*.h" --glob "说明书/函数功能说明文档.md"：无命中
+    git diff --check：通过，仅有函数说明文档换行提示
+    python .\tools\check_specs.py：hard issues = 0，warnings = 0
+    msbuild .\鱼巢.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:LinkIncremental=false /m：0 警告，0 错误
+仍未完成：
+    D1 L2/L3 来源链补强；
+    D1 材料页一次性消费和过期清理；
+    真实 D455 队列烟测。
 ```

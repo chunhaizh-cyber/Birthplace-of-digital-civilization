@@ -273,9 +273,6 @@ namespace 自我动作实现模块::扫描模块 {
             std::string 来源观察存在ID{};
             std::string 可能归属存在ID{};
             std::uint64_t 约束ID = 0;
-            std::string 约束generation{};
-            std::string 目标特征generation{};
-            std::string 来源材料generation{};
             I64 时间戳毫秒 = 0;
             I64 TTL毫秒 = 0;
             std::uint32_t 特征材料数量 = 0;
@@ -1514,9 +1511,6 @@ namespace 自我动作实现模块::扫描模块 {
                 数据项.来源帧ID = 帧ID;
                 数据项.来源外设ID = 包.包头.外设ID;
                 数据项.约束ID = 报告.目标观察约束ID;
-                数据项.约束generation = 报告.约束generation;
-                数据项.目标特征generation = 报告.目标特征generation;
-                数据项.来源材料generation = 报告.来源材料generation;
                 数据项.时间戳毫秒 = 采集时间毫秒;
                 数据项.TTL毫秒 = 计算TTL毫秒(采集时间毫秒, 包.包头.有效截止时间毫秒);
                 数据项.材料质量等级 = 报告.帧质量评分;

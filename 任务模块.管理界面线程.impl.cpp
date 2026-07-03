@@ -4257,9 +4257,6 @@ bool 私有_按方法供料要求构造外设观察等待项(
             输出->目标特征当前值 = 最新约束->目标特征当前值;
             输出->目标特征当前值类型 = 最新约束->目标特征当前值类型;
             输出->目标特征当前值句柄 = 最新约束->目标特征当前值句柄;
-            输出->约束generation = 最新约束->约束generation;
-            输出->目标特征generation = 最新约束->目标特征generation;
-            输出->来源材料generation = 最新约束->来源材料generation;
             输出->本帧处理掩码句柄 = 最新约束->像素集合掩码句柄;
             输出->目标约束有效截止时间毫秒 =
                 最新约束->写入时间毫秒 > 0 && 最新约束->TTL毫秒 > 0
@@ -4309,8 +4306,7 @@ bool 私有_按方法供料要求构造外设观察等待项(
         + "|模式值=" + std::to_string(static_cast<int>(输出->观察运行模式))
         + "|目标存在ID=" + (输出->目标存在ID.empty() ? std::string{} : 输出->目标存在ID)
         + "|目标特征类型ID=" + (输出->目标特征类型ID.empty() ? std::string{} : 输出->目标特征类型ID)
-        + "|目标观察约束ID=" + std::to_string(输出->目标观察约束ID)
-        + "|目标特征generation=" + (输出->目标特征generation.empty() ? std::string{} : 输出->目标特征generation);
+        + "|目标观察约束ID=" + std::to_string(输出->目标观察约束ID);
     return true;
 }
 

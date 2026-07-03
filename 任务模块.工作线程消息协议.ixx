@@ -276,8 +276,6 @@ struct 结构_任务管理观察事实承接请求 {
     std::string 目标存在ID{};
     std::string 目标特征类型ID{};
     I64 目标特征当前值 = 0;
-    std::string 目标特征generation{};
-    std::string 约束generation{};
     std::string 来源外设ID{};
     I64 观察运行模式值 = 0;
     I64 报告类型值 = 0;
@@ -748,12 +746,6 @@ inline std::string 构造任务管理观察事实承接请求文本(
         << " | 承接稳定特征=" << (消息.请求承接稳定特征集合 ? "是" : "否");
     if (!消息.来源需求ID.empty()) {
         输出 << " | 来源需求=" << 消息.来源需求ID;
-    }
-    if (!消息.目标特征generation.empty()) {
-        输出 << " | 目标特征generation=" << 消息.目标特征generation;
-    }
-    if (!消息.约束generation.empty()) {
-        输出 << " | 约束generation=" << 消息.约束generation;
     }
     return 输出.str();
 }
