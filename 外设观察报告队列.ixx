@@ -785,8 +785,15 @@ export std::string 构造目标观察约束摘要(const 结构_目标观察约�
 export std::optional<结构_外设观察报告队列项> 读取最新外设观察报告(
     const std::string& 外设ID,
     枚举_外设观察报告类型 报告类型);
+export std::optional<结构_外设观察报告队列项> 读取最新外设观察报告(
+    const std::string& 外设ID,
+    枚举_外设观察报告类型 报告类型,
+    bool 包含已消费);
 export std::optional<结构_外设观察报告队列项> 读取外设观察报告_按ID(
     std::uint64_t 报告ID);
+export std::optional<结构_外设观察报告队列项> 读取外设观察报告_按ID(
+    std::uint64_t 报告ID,
+    bool 包含已消费);
 export std::vector<结构_外设观察等待项> 读取外设观察等待项集合(
     const std::string& 外设ID,
     枚举_外设观察运行模式 观察运行模式);
@@ -949,7 +956,7 @@ namespace {
     }
 
     // 功能：提交事实、动态、任务状态或运行回执。
-    std::string 外设提交_generation(const 结构_外设观察报告队列项& 报告项)
+    std::string 外设提交_材料组代际身份(const 结构_外设观察报告队列项& 报告项)
     {
         if (报告项.报告生成方法ID.empty() && 报告项.报告生成方法版本ID.empty()) {
             return {};
@@ -2390,7 +2397,7 @@ std::string 构造观察材料质量判定摘要(const 结构_观察材料质量
     包头.外设ID = 报告项.来源外设ID;
     包头.材料页ID = 外设提交_材料页ID(报告项);
     包头.坐标系ID = 报告项.坐标系ID;
-    包头.generation = 外设提交_generation(报告项);
+    包头.generation = 外设提交_材料组代际身份(报告项);
     包头.有效截止时间毫秒 = 报告项.时间戳毫秒 > 0
         ? 报告项.时间戳毫秒 + 外设提交包默认有效毫秒
         : 0;
@@ -3328,6 +3335,15 @@ std::optional<结构_外设观察报告队列项> 读取最新外设观察报告
     const std::string& 外设ID,
     枚举_外设观察报告类型 报告类型)
 {
+    return 读取最新外设观察报告(外设ID, 报告类型, false);
+}
+
+// 功能：从指定来源读取数据或状态。
+std::optional<结构_外设观察报告队列项> 读取最新外设观察报告(
+    const std::string& 外设ID,
+    枚举_外设观察报告类型 报告类型,
+    bool 包含已消费)
+{
     auto& 状态 = 外设观察队列状态();
     const auto 当前时间 = 外设观察当前时间毫秒();
     std::lock_guard<std::mutex> 锁(状态.互斥);
@@ -3335,6 +3351,9 @@ std::optional<结构_外设观察报告队列项> 读取最新外设观察报告
     D455_清理短期材料页_已加锁(状态, 当前时间);
     const 结构_外设观察报告队列项* 近组锚点 = nullptr;
     for (auto 迭代器 = 状态.报告队列.rbegin(); 迭代器 != 状态.报告队列.rend(); ++迭代器) {
+        if (!包含已消费 && 迭代器->已消费) {
+            continue;
+        }
         if (!外设ID.empty() && 迭代器->来源外设ID != 外设ID) {
             continue;
         }
@@ -3350,6 +3369,9 @@ std::optional<结构_外设观察报告队列项> 读取最新外设观察报告
     const auto 近组帧ID = 外设提交_帧ID(*近组锚点);
     const auto 近组外设ID = 近组锚点->来源外设ID;
     for (auto 迭代器 = 状态.报告队列.rbegin(); 迭代器 != 状态.报告队列.rend(); ++迭代器) {
+        if (!包含已消费 && 迭代器->已消费) {
+            continue;
+        }
         if (!外设ID.empty() && 迭代器->来源外设ID != 外设ID) {
             continue;
         }
@@ -3371,6 +3393,14 @@ std::optional<结构_外设观察报告队列项> 读取最新外设观察报告
 std::optional<结构_外设观察报告队列项> 读取外设观察报告_按ID(
     std::uint64_t 报告ID)
 {
+    return 读取外设观察报告_按ID(报告ID, true);
+}
+
+// 功能：从指定来源读取数据或状态。
+std::optional<结构_外设观察报告队列项> 读取外设观察报告_按ID(
+    std::uint64_t 报告ID,
+    bool 包含已消费)
+{
     if (报告ID == 0) {
         return std::nullopt;
     }
@@ -3380,6 +3410,9 @@ std::optional<结构_外设观察报告队列项> 读取外设观察报告_按ID
     外设观察报告_清理已加锁(状态, 当前时间);
     D455_清理短期材料页_已加锁(状态, 当前时间);
     for (auto 迭代器 = 状态.报告队列.rbegin(); 迭代器 != 状态.报告队列.rend(); ++迭代器) {
+        if (!包含已消费 && 迭代器->已消费) {
+            continue;
+        }
         if (迭代器->报告ID == 报告ID) {
             return *迭代器;
         }

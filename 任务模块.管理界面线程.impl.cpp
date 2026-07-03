@@ -1382,7 +1382,7 @@ bool 私有_写观察事实报告ID到任务输入(
         return false;
     }
 
-    const auto 报告可选 = 读取外设观察报告_按ID(报告ID);
+    const auto 报告可选 = 读取外设观察报告_按ID(报告ID, false);
     if (报告可选.has_value()) {
         if (报告可选->报告类型 == 枚举_外设观察报告类型::扫描变化报告) {
             std::ostringstream 日志;
