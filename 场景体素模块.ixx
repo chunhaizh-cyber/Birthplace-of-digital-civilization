@@ -72,12 +72,30 @@ enum class 枚举_场景体素颜色事实状态 : I64 {
     已读取子平均颜色事实 = 4,
 };
 
+struct 结构_场景体素AABB {
+    I64 最小X_mm = 1;
+    I64 最小Y_mm = 1;
+    I64 最小Z_mm = 1;
+    I64 最大X_mm = 0;
+    I64 最大Y_mm = 0;
+    I64 最大Z_mm = 0;
+
+    // 功能：判断 AABB 六个端点是否形成有效闭区间。
+    bool 有效() const noexcept
+    {
+        return 最小X_mm <= 最大X_mm
+            && 最小Y_mm <= 最大Y_mm
+            && 最小Z_mm <= 最大Z_mm;
+    }
+};
+
 struct 结构_场景体素存在项 {
     可解析引用<存在节点类> 存在{};
     可解析引用<存在节点类> 父存在{};
     可解析引用<特征节点类> 三维体素特征{};
     VecU句柄 三维体素根句柄{};
     Vector3D 场景绝对坐标_mm{};
+    结构_场景体素AABB 场景AABB_mm{};
     I64 原点X_mm = 0;
     I64 原点Y_mm = 0;
     I64 原点Z_mm = 0;
@@ -152,23 +170,6 @@ struct 结构_场景体素只读快照 {
 };
 
 using 结构_SceneVoxelPrior = 结构_场景体素只读快照;
-
-struct 结构_场景体素AABB {
-    I64 最小X_mm = 0;
-    I64 最小Y_mm = 0;
-    I64 最小Z_mm = 0;
-    I64 最大X_mm = 0;
-    I64 最大Y_mm = 0;
-    I64 最大Z_mm = 0;
-
-    // 功能：判断 AABB 六个端点是否形成有效闭区间。
-    bool 有效() const noexcept
-    {
-        return 最小X_mm <= 最大X_mm
-            && 最小Y_mm <= 最大Y_mm
-            && 最小Z_mm <= 最大Z_mm;
-    }
-};
 
 struct 结构_场景体素AABB统计 {
     I64 查询存在数量 = 0;
@@ -587,6 +588,55 @@ namespace detail {
             && 项.原点Z_mm <= 范围.最大Z_mm;
     }
 
+    // 功能：判断两个场景 AABB 是否相交，只作为先验候选过滤。
+    inline bool 私有_AABB相交(
+        const 结构_场景体素AABB& 左,
+        const 结构_场景体素AABB& 右) noexcept
+    {
+        return 左.有效()
+            && 右.有效()
+            && 左.最小X_mm <= 右.最大X_mm
+            && 左.最大X_mm >= 右.最小X_mm
+            && 左.最小Y_mm <= 右.最大Y_mm
+            && 左.最大Y_mm >= 右.最小Y_mm
+            && 左.最小Z_mm <= 右.最大Z_mm
+            && 左.最大Z_mm >= 右.最小Z_mm;
+    }
+
+    // 功能：从存在原点和最小体素边长生成第一版场景 AABB 摘要。
+    inline 结构_场景体素AABB 私有_构造场景AABB摘要(
+        I64 原点X_mm,
+        I64 原点Y_mm,
+        I64 原点Z_mm,
+        std::uint32_t 最小体素边长_mm) noexcept
+    {
+        结构_场景体素AABB 范围{};
+        if (最小体素边长_mm == 0) {
+            return 范围;
+        }
+        const I64 边长 = static_cast<I64>(最小体素边长_mm);
+        const I64 左半径 = 边长 / 2;
+        const I64 右半径 = std::max<I64>(0, 边长 - 左半径);
+        范围.最小X_mm = 饱和减少(原点X_mm, 左半径);
+        范围.最大X_mm = 饱和增加(原点X_mm, 右半径);
+        范围.最小Y_mm = 饱和减少(原点Y_mm, 左半径);
+        范围.最大Y_mm = 饱和增加(原点Y_mm, 右半径);
+        范围.最小Z_mm = 饱和减少(原点Z_mm, 左半径);
+        范围.最大Z_mm = 饱和增加(原点Z_mm, 右半径);
+        return 范围;
+    }
+
+    // 功能：优先按存在项 AABB 摘要过滤，缺摘要时退回原点过滤。
+    inline bool 私有_存在项命中AABB(
+        const 结构_场景体素存在项& 项,
+        const 结构_场景体素AABB& 范围) noexcept
+    {
+        if (项.场景AABB_mm.有效()) {
+            return 私有_AABB相交(项.场景AABB_mm, 范围);
+        }
+        return 私有_点在AABB内(项, 范围);
+    }
+
     // 功能：把非负双精度距离安全转换为 I64。
     inline bool 私有_非负双精度转I64(double 值, I64& 输出) noexcept
     {
@@ -791,6 +841,11 @@ public:
                 项.原点Y_mm = y;
                 项.原点Z_mm = z;
                 项.最小体素边长_mm = 参数.默认存在最小体素边长_mm;
+                项.场景AABB_mm = detail::私有_构造场景AABB摘要(
+                    项.原点X_mm,
+                    项.原点Y_mm,
+                    项.原点Z_mm,
+                    项.最小体素边长_mm);
                 项.显示角色 = static_cast<I64>(枚举_场景体素显示角色::内部世界子存在体素);
                 项.父子坐标映射状态 = static_cast<I64>(枚举_场景体素父子映射状态::已由局部原点映射);
                 填充颜色事实(
@@ -861,6 +916,11 @@ public:
             项.原点Y_mm = y;
             项.原点Z_mm = z;
             项.最小体素边长_mm = 参数.默认存在最小体素边长_mm;
+            项.场景AABB_mm = detail::私有_构造场景AABB摘要(
+                项.原点X_mm,
+                项.原点Y_mm,
+                项.原点Z_mm,
+                项.最小体素边长_mm);
             项.显示角色 = static_cast<I64>(枚举_场景体素显示角色::场景直接存在体素);
             项.父子坐标映射状态 = static_cast<I64>(枚举_场景体素父子映射状态::不适用);
             填充颜色事实(
@@ -895,7 +955,7 @@ public:
         return 最新快照_;
     }
 
-    // 功能：查询快照中位于 AABB 内的存在原点，不读取或修改世界树事实。
+    // 功能：查询快照中与 AABB 相交的存在项摘要，不读取或修改世界树事实。
     static std::vector<结构_场景体素存在项> 查询AABB(
         const 结构_场景体素只读快照& 快照,
         const 结构_场景体素AABB& 范围,
@@ -904,7 +964,7 @@ public:
         std::vector<结构_场景体素存在项> 结果{};
         if (!范围.有效()) return 结果;
         for (const auto& 项 : 快照.存在项集合) {
-            if (detail::私有_点在AABB内(项, 范围)) {
+            if (detail::私有_存在项命中AABB(项, 范围)) {
                 结果.push_back(项);
             }
         }
@@ -913,7 +973,7 @@ public:
         return 结果;
     }
 
-    // 功能：在最新快照中查询 AABB 内存在原点，不返回可写内部缓存引用。
+    // 功能：在最新快照中查询与 AABB 相交的存在项摘要，不返回可写内部缓存引用。
     std::vector<结构_场景体素存在项> 查询AABB(
         const 结构_场景体素AABB& 范围,
         I64 最大返回数量 = 0) const
@@ -921,7 +981,7 @@ public:
         return 查询AABB(读取最新快照(), 范围, 最大返回数量);
     }
 
-    // 功能：统计快照中位于 AABB 内的存在原点数量，不创建任何缺口节点。
+    // 功能：统计快照中与 AABB 相交的存在项摘要数量，不创建任何缺口节点。
     static 结构_场景体素AABB统计 统计AABB(
         const 结构_场景体素只读快照& 快照,
         const 结构_场景体素AABB& 范围)
@@ -932,7 +992,7 @@ public:
             static_cast<std::size_t>((std::numeric_limits<I64>::max)())));
         if (!范围.有效()) return 统计;
         for (const auto& 项 : 快照.存在项集合) {
-            if (detail::私有_点在AABB内(项, 范围)) {
+            if (detail::私有_存在项命中AABB(项, 范围)) {
                 ++统计.命中存在数量;
             }
         }
