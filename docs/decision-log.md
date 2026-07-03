@@ -101,6 +101,49 @@ yu-chao-root-cause
 - `C:\Users\zhchh\.codex\skills\<skill>\SKILL.md` 可读，且目录属性包含 `ReparsePoint`。
 - 后续云端同步后，在远端仓库可看到 `.codex/skills/` 下的自定义 skill。
 
+## 2026-07-03：新增 ChatGPT 侧鱼巢理论探讨 skill
+
+背景：
+
+ChatGPT「理论探讨」项目需要一个稳定入口，用于读取云端仓库状态、审查鱼巢理论口径、详细设计、实现映射计划和当前工程状态，避免沿用旧讨论或把未实现设计当成代码事实。
+
+决定：
+
+新增项目内自定义 skill：
+
+```text
+.codex/skills/chatgpt-yu-chao-theory
+```
+
+并建立全局目录联接：
+
+```text
+C:\Users\zhchh\.codex\skills\chatgpt-yu-chao-theory -> D:\鱼巢\.codex\skills\chatgpt-yu-chao-theory
+```
+
+原因：
+
+- 该 skill 明确区分 ChatGPT 侧理论审查和 Codex 侧代码执行。
+- 它要求以云端 `birthplace/main`、当前规范、详细设计、计划和代码事实为依据，降低旧对话漂移风险。
+- 放入 `.codex/skills/` 后可以随仓库同步，同时通过全局联接兼容默认 skill 加载路径。
+
+不采用的方案：
+
+- 不把它并入 `discuss`，因为 `discuss` 是通用讨论入口，而该 skill 专门面向 ChatGPT 侧理论项目和云端状态审查。
+- 不让该 skill 承担代码执行、构建、提交或推送职责，避免混淆 ChatGPT 讨论和 Codex 工程执行边界。
+
+影响：
+
+- ChatGPT 侧讨论可用 `$chatgpt-yu-chao-theory` 作为固定入口。
+- 后续修改该 skill 时，应直接修改 `.codex/skills/chatgpt-yu-chao-theory/` 下实体文件。
+- 克隆到新机器后仍需重建全局目录联接，Codex 才能从默认路径发现该 skill。
+
+后续验证方式：
+
+- `SKILL.md` frontmatter 中 `name` 与目录名一致，且存在 `description`。
+- `agents/openai.yaml` 的 `short_description` 保持短描述，`default_prompt` 明确包含 `$chatgpt-yu-chao-theory`。
+- 全局路径 `C:\Users\zhchh\.codex\skills\chatgpt-yu-chao-theory\SKILL.md` 可读，且父目录为 `ReparsePoint`。
+
 ## YYYY-MM-DD：决策标题
 
 背景：

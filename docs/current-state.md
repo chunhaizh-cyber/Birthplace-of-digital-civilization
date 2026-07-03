@@ -30,6 +30,7 @@ docs/decision-log.md 管为什么
 - 已新增 `docs/current-state.md` 和 `docs/decision-log.md`。
 - 已在 `AGENTS.md` 中加入三文件分工、工作前阅读和任务结束状态回写规则。
 - 已将本项目相关自定义 skill 实体移动到 `.codex/skills/`，并在 `C:\Users\zhchh\.codex\skills\` 下保留目录联接以兼容 Codex 默认加载路径。
+- 已新增 `chatgpt-yu-chao-theory` skill，作为 ChatGPT 侧鱼巢理论探讨、状态同步和设计审查入口。
 
 ## 正在处理
 
@@ -72,6 +73,7 @@ warnings: 0
 ```
 
 本次是文档治理和 skill 路径管理修改，未运行 C++ 构建。
+本次新增 `chatgpt-yu-chao-theory` skill 时，已检查 `SKILL.md` frontmatter、`agents/openai.yaml` 描述长度、默认提示和全局目录联接可读性。
 
 ## 已知问题
 

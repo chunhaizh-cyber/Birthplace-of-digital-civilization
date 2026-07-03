@@ -1,0 +1,4 @@
+interface:
+  display_name: "ChatGPT 鱼巢理论探讨"
+  short_description: "Review 鱼巢 theory against cloud state and project rules"
+  default_prompt: "Use $chatgpt-yu-chao-theory to analyze a 鱼巢 design or state snapshot, find conflicts, and draft conservative project documents."
