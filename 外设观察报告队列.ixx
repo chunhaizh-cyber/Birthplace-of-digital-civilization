@@ -753,6 +753,9 @@ export std::vector<枚举_外设提交缺口码> 收集观察材料质量缺口�
     const 结构_外设观察报告队列项& 报告项,
     const 结构_观察材料质量判定& 判定,
     const 结构_外设观察等待项* 等待项);
+export std::int64_t 外设提交缺口_结构化缺口大类(枚举_外设提交缺口码 缺口) noexcept;
+export std::int64_t 外设提交缺口_结构化阻断阶段(枚举_外设提交缺口码 缺口) noexcept;
+export std::int64_t 外设提交缺口_需求化处理建议(枚举_外设提交缺口码 缺口) noexcept;
 export std::string 构造观察材料质量判定摘要(const 结构_观察材料质量判定& 判定);
 export const char* 目标观察约束可用性文本(枚举_目标观察约束可用性 类型) noexcept;
 export std::uint64_t 提交目标观察约束特征组(结构_目标观察约束特征组 约束);
@@ -816,6 +819,28 @@ namespace {
     constexpr std::int64_t 外设质量状态_不可用 = 3;
     constexpr std::int64_t 外设质量状态_部分可用 = 4;
     constexpr std::int64_t 外设质量状态_需复验 = 5;
+
+    constexpr std::int64_t 结构化缺口大类_未定义 = 0;
+    constexpr std::int64_t 结构化缺口大类_外设材料缺口 = 1;
+    constexpr std::int64_t 结构化缺口大类_观察域材料缺口 = 2;
+    constexpr std::int64_t 结构化缺口大类_质量收束缺口 = 3;
+    constexpr std::int64_t 结构化缺口大类_坐标基准缺口 = 4;
+    constexpr std::int64_t 结构化缺口大类_像素归属缺口 = 5;
+    constexpr std::int64_t 结构化缺口大类_识别归属缺口 = 10;
+
+    constexpr std::int64_t 结构化阻断阶段_未定义 = 0;
+    constexpr std::int64_t 结构化阻断阶段_材料取得 = 1;
+    constexpr std::int64_t 结构化阻断阶段_材料质量收束 = 2;
+    constexpr std::int64_t 结构化阻断阶段_坐标基准收束 = 3;
+    constexpr std::int64_t 结构化阻断阶段_像素归属 = 4;
+    constexpr std::int64_t 结构化阻断阶段_识别归属 = 9;
+    constexpr std::int64_t 结构化阻断阶段_扫描比较 = 11;
+
+    constexpr std::int64_t 需求化建议_未评估 = 0;
+    constexpr std::int64_t 需求化建议_只记录过程证据 = 1;
+    constexpr std::int64_t 需求化建议_转外设材料闭环 = 6;
+    constexpr std::int64_t 需求化建议_转观察验证闭环 = 7;
+    constexpr std::int64_t 需求化建议_等待复验 = 11;
 
     struct 结构_D455短期观察材料页 {
         std::uint64_t 报告ID = 0;
@@ -2490,6 +2515,84 @@ std::int64_t 计算观察材料质量收束状态(
         return 外设质量状态_低质量;
     }
     return 外设质量状态_未评估;
+}
+
+// 功能：把外设提交缺口码映射为 D5 结构化缺口大类 I64 值域。
+std::int64_t 外设提交缺口_结构化缺口大类(枚举_外设提交缺口码 缺口) noexcept
+{
+    switch (缺口) {
+    case 枚举_外设提交缺口码::无:
+        return 结构化缺口大类_未定义;
+    case 枚举_外设提交缺口码::缺像素归属账本:
+        return 结构化缺口大类_像素归属缺口;
+    case 枚举_外设提交缺口码::低质量:
+    case 枚举_外设提交缺口码::深度无效:
+        return 结构化缺口大类_质量收束缺口;
+    case 枚举_外设提交缺口码::空间坐标无效:
+        return 结构化缺口大类_坐标基准缺口;
+    case 枚举_外设提交缺口码::缺可比历史:
+        return 结构化缺口大类_观察域材料缺口;
+    case 枚举_外设提交缺口码::缺已确认存在ID:
+    case 枚举_外设提交缺口码::缺目标种子:
+        return 结构化缺口大类_识别归属缺口;
+    default:
+        return 结构化缺口大类_外设材料缺口;
+    }
+}
+
+// 功能：把外设提交缺口码映射为 D5 结构化阻断阶段 I64 值域。
+std::int64_t 外设提交缺口_结构化阻断阶段(枚举_外设提交缺口码 缺口) noexcept
+{
+    switch (缺口) {
+    case 枚举_外设提交缺口码::无:
+        return 结构化阻断阶段_未定义;
+    case 枚举_外设提交缺口码::缺像素归属账本:
+        return 结构化阻断阶段_像素归属;
+    case 枚举_外设提交缺口码::低质量:
+    case 枚举_外设提交缺口码::深度无效:
+        return 结构化阻断阶段_材料质量收束;
+    case 枚举_外设提交缺口码::空间坐标无效:
+        return 结构化阻断阶段_坐标基准收束;
+    case 枚举_外设提交缺口码::缺可比历史:
+        return 结构化阻断阶段_扫描比较;
+    case 枚举_外设提交缺口码::缺已确认存在ID:
+    case 枚举_外设提交缺口码::缺目标种子:
+        return 结构化阻断阶段_识别归属;
+    default:
+        return 结构化阻断阶段_材料取得;
+    }
+}
+
+// 功能：把外设提交缺口码映射为 D5 需求化处理建议 I64 值域，不直接创建需求。
+std::int64_t 外设提交缺口_需求化处理建议(枚举_外设提交缺口码 缺口) noexcept
+{
+    switch (缺口) {
+    case 枚举_外设提交缺口码::无:
+        return 需求化建议_未评估;
+    case 枚举_外设提交缺口码::缺报告:
+    case 枚举_外设提交缺口码::外设采集失败:
+    case 枚举_外设提交缺口码::报告类型不匹配:
+    case 枚举_外设提交缺口码::低质量:
+    case 枚举_外设提交缺口码::深度无效:
+        return 需求化建议_只记录过程证据;
+    case 枚举_外设提交缺口码::缺原始观察帧:
+    case 枚举_外设提交缺口码::缺深度帧:
+    case 枚举_外设提交缺口码::缺彩色帧:
+    case 枚举_外设提交缺口码::缺对齐帧:
+    case 枚举_外设提交缺口码::缺空间候选:
+    case 枚举_外设提交缺口码::缺材料句柄:
+    case 枚举_外设提交缺口码::材料过期:
+        return 需求化建议_转外设材料闭环;
+    case 枚举_外设提交缺口码::缺像素归属账本:
+    case 枚举_外设提交缺口码::空间坐标无效:
+    case 枚举_外设提交缺口码::缺已确认存在ID:
+    case 枚举_外设提交缺口码::缺目标种子:
+        return 需求化建议_转观察验证闭环;
+    case 枚举_外设提交缺口码::缺可比历史:
+        return 需求化建议_等待复验;
+    default:
+        return 需求化建议_未评估;
+    }
 }
 
 // 功能：按既有质量收束状态和材料证据收集外设提交缺口码。
