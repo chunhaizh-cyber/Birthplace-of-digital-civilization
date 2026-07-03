@@ -1,0 +1,4 @@
+interface:
+  display_name: "实施前审查"
+  short_description: "Review local scope, facts, and risks before editing"
+  default_prompt: "Use $yu-chao-pre-implementation-review to在当前本地代码、规范、详细设计和计划索引基础上审查是否允许进入实现，并指出缺事实、越界或脏树风险。"

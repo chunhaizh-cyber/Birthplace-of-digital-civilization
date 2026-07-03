@@ -66,6 +66,67 @@ P6 已加入计划索引，但不是默认可执行代码切片；
 - 运行 `python .\tools\check_specs.py`。
 - 后续 S0 输出派生需求消息字段清单、入树拒绝回执字段清单、外设缺口码清单、视觉信息缺口清单、稳定键材料组成和缺失承载点。
 
+## 2026-07-03：Codex 本地事实扫描与 ChatGPT 云端审查分层
+
+背景：
+
+此前围绕 Skill 化工作流讨论时，曾把 `按云端代码检查` 和 Codex 侧事实扫描放在同一建议里。用户随后明确纠正：`按云端代码检查` 是针对 ChatGPT；对 Codex，应针对当前本地代码现状和当前 worktree，而不是默认以云端 `birthplace/main` 为事实基线。
+
+决定：
+
+新增两个项目内 Codex skill：
+
+```text
+.codex/skills/yu-chao-current-fact-scan
+.codex/skills/yu-chao-pre-implementation-review
+```
+
+并建立对应全局目录联接：
+
+```text
+C:\Users\zhchh\.codex\skills\yu-chao-current-fact-scan -> D:\鱼巢\.codex\skills\yu-chao-current-fact-scan
+C:\Users\zhchh\.codex\skills\yu-chao-pre-implementation-review -> D:\鱼巢\.codex\skills\yu-chao-pre-implementation-review
+```
+
+口径固定为：
+
+```text
+ChatGPT 侧：
+    按 birthplace/main / 云端代码检查
+
+Codex 侧：
+    按当前本地代码 / 当前 worktree 检查
+```
+
+其中：
+
+- `yu-chao-current-fact-scan` 只做本地只读事实扫描，不替代云端审查。
+- `yu-chao-pre-implementation-review` 作为改代码前的刹车片，检查当前本地事实、规范、详细设计、计划边界和 dirty worktree 风险。
+
+原因：
+
+- Codex 工程执行直接作用于当前工作区；若默认把云端当基线，容易误读当前 dirty worktree、误判真实入口，或把尚未同步的本地变化忽略掉。
+- ChatGPT 理论审查更适合把云端 `birthplace/main` 当作提交态权威基线。
+- 将“本地事实扫描”和“实施前审查”拆成两个 Skill，可以把高频提示词固定成可重复的轨道，而不是每次临时解释边界。
+
+不采用的方案：
+
+- 不再建议新开 `.agents/skills/` 平行体系，因为项目已经以 `.codex/skills/` 作为自定义 skill 实体目录。
+- 不把 `按云端代码检查` 作为 Codex 侧默认触发语句，避免本地事实和云端事实混层。
+- 不把实施前审查并入 `yu-chao-execute`，因为执行和审查的停止条件、输出契约和自由度不同。
+
+影响：
+
+- 后续用户若说 `按当前代码检查`、`按当前 worktree 检查`、`先扫描本地事实`，应优先触发本地事实扫描思路。
+- 后续用户若说 `实施前审查`、`先审查再改`、`改之前先检查`，应优先触发实施前审查思路，而不是直接实现。
+- ChatGPT 侧若明确要求 `云端代码检查`，仍由已有 `chatgpt-yu-chao-theory` 承接。
+
+后续验证方式：
+
+- 新增 skill 目录下的 `SKILL.md` frontmatter 中 `name` 与目录名一致，且存在 `description`。
+- 新增 `agents/openai.yaml` 的 `default_prompt` 明确区分本地事实扫描和实施前审查。
+- `C:\Users\zhchh\.codex\skills\yu-chao-current-fact-scan` 与 `...yu-chao-pre-implementation-review` 可读，且为指向仓库实体目录的 `Junction`。
+
 ## 2026-07-03：D3 待讨论点改为两阶段冻结
 
 背景：

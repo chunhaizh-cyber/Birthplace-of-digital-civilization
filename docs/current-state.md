@@ -125,6 +125,9 @@ S8 已生成并登记存在体素融合内部治理实现映射计划，作为 C
 - P11 S5 已复用既有同一性状态、同一性评分、证据帧数、目标已确认观察存在指针、冲突数量和映射缺口掩码，输出 C -> E 同一性候选证据与排他性冲突阻断；Debug x64 构建通过，check_specs hard issues 0 / warnings 0。
 - P11 S6 已新增 P11 映射缺口原因标准化摘要写入路径，把材料不可交付、证据不足、CE 多重对应冲突和视觉先验版本闸门不通过写入既有缺口摘要特征；Debug x64 构建通过，check_specs hard issues 0 / warnings 0。
 - P11 S7 已新增 P11 共享关联判断结果特征登记，并把既有共享结果特征接入观察、识别、跟踪、当前观察范围对应提交和扫描规格；Debug x64 构建通过，check_specs hard issues 0 / warnings 0。
+- 已新增仓库内 Codex skill：`.codex/skills/yu-chao-current-fact-scan/`，用于只读确认当前本地 worktree 的真实代码入口、调用点、承载结构和 dirty state 影响。
+- 已新增仓库内 Codex skill：`.codex/skills/yu-chao-pre-implementation-review/`，用于在改代码前检查当前本地事实、规范、详细设计、计划边界和脏树风险。
+- 已明确口径：`按云端代码检查` 保留给 ChatGPT / 云端基线审查；Codex 侧默认使用“按当前本地代码 / 当前 worktree 检查”。
 
 ## 正在处理
 
@@ -179,6 +182,10 @@ docs/decision-log.md
 规范/详细设计/待完成/20260703_观察候选到稳定存在收束总设计_v0.1.md
 计划/20260703_观察候选到稳定存在收束实现映射计划_v0.1.md
 实施记录/20260703_观察候选到稳定存在收束总设计_Codex断点清单.md
+.codex/skills/yu-chao-current-fact-scan/SKILL.md
+.codex/skills/yu-chao-current-fact-scan/agents/openai.yaml
+.codex/skills/yu-chao-pre-implementation-review/SKILL.md
+.codex/skills/yu-chao-pre-implementation-review/agents/openai.yaml
 ```
 
 本次保留的根目录计划：
@@ -189,7 +196,7 @@ docs/decision-log.md
 
 ## 测试状态
 
-本次 P11 S6 代码切片已运行 C++ 构建。
+最近一次代码切片 P11 S6 已运行 C++ 构建；本次 skill 生成为仓库文档 / skill 修改，未新增 C++ 构建或运行验证。
 
 已运行：
 

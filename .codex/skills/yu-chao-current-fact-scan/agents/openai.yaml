@@ -1,0 +1,4 @@
+interface:
+  display_name: "当前代码事实扫描"
+  short_description: "Read current local worktree facts before planning or editing"
+  default_prompt: "Use $yu-chao-current-fact-scan to按当前本地代码和当前worktree检查真实入口、调用点、承载结构和dirty state影响，不要把云端状态当作默认基线。"
