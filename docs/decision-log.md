@@ -66,6 +66,86 @@ P6 已加入计划索引，但不是默认可执行代码切片；
 - 运行 `python .\tools\check_specs.py`。
 - 后续 S0 输出派生需求消息字段清单、入树拒绝回执字段清单、外设缺口码清单、视觉信息缺口清单、稳定键材料组成和缺失承载点。
 
+## 2026-07-03：按“少而硬”安装项目级 MCP
+
+背景：
+
+用户提供了 MCP 安装建议，并明确当前工程重点是：仓库事实对账、代码实现核查、文档同步、构建验证。当前目标不是“工具越多越好”，而是让 Codex 优先盯住本地工程现实。
+
+决定：
+
+新增项目级配置文件：
+
+```text
+.codex/config.toml
+```
+
+在该文件中接入三个最小 MCP：
+
+```text
+fishnest-filesystem
+project-scripts-mcp
+context7
+```
+
+其中：
+
+- `fishnest-filesystem` 使用 `@modelcontextprotocol/server-filesystem`，白名单根目录只给 `D:\鱼巢`。
+- `project-scripts-mcp` 为仓库内自建 MCP，实体位于：
+
+```text
+.codex/mcp/project-scripts-mcp/
+```
+
+只开放五个白名单工具：
+
+```text
+check_specs
+build_debug_x64
+run_panel_html
+run_self_check_log
+git_snapshot
+```
+
+- `context7` 使用 `@upstash/context7-mcp`，用于版本相关文档查询。
+
+本轮明确不装：
+
+```text
+GitHub 官方 MCP
+DeepWiki
+Exa
+Firecrawl
+```
+
+原因：
+
+- 当前 Codex 已启用内置 GitHub 插件，先不重复接入 GitHub MCP。
+- DeepWiki / Exa / Firecrawl 会把当前工程从“本地事实优先”拉向外部资料优先，不符合这轮“少而硬”的目标。
+- `project-scripts-mcp` 比通用 shell 更适合当前工程，因为它能把检查、构建、回归和 Git 快照收束到白名单命令内。
+
+不采用的方案：
+
+- 不把 filesystem 根目录扩到整个磁盘、桌面或下载目录。
+- 不开放任意 shell MCP。
+- 不先装一整套搜索型 MCP 再指望靠提示词压住工具发散。
+- 不把自建 `project-scripts-mcp` 放到仓库外，因为它服务的是本项目的固定脚本和固定边界。
+
+影响：
+
+- 后续在 `D:\鱼巢` 新开 Codex 线程时，可直接依赖 `fishnest-filesystem` 做项目目录内读写和搜索。
+- 后续可通过 `project-scripts-mcp` 运行固定白名单检查，而不必每次重新拼接命令。
+- Context7 可作为库文档查询补充，但不替代本地代码和规范事实。
+
+后续验证方式：
+
+- `node --check .codex\mcp\project-scripts-mcp\server.mjs` 通过。
+- `npm install` 成功，0 vulnerabilities。
+- `project-scripts-mcp` 启动探测能保持运行，说明已进入 stdio 等待态。
+- `@modelcontextprotocol/server-filesystem` 和 `@upstash/context7-mcp` 启动探测通过。
+- `.codex/config.toml` 可被 `tomllib` 解析。
+- 新开 Codex 线程后，确认三个 MCP 出现在工具集中。
+
 ## 2026-07-03：Codex 本地事实扫描与 ChatGPT 云端审查分层
 
 背景：

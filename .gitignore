@@ -46,3 +46,5 @@ logs/
 运行输出/sql_projection/
 _run_*/
 _run_*
+node_modules/
+.codex/mcp/**/node_modules/

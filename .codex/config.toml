@@ -1,0 +1,15 @@
+[mcp_servers.fishnest-filesystem]
+command = "cmd"
+args = ["/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "D:\\鱼巢"]
+startup_timeout_sec = 60
+
+[mcp_servers.project-scripts-mcp]
+command = "node"
+args = ["D:\\鱼巢\\.codex\\mcp\\project-scripts-mcp\\server.mjs"]
+cwd = "D:\\鱼巢\\.codex\\mcp\\project-scripts-mcp"
+startup_timeout_sec = 60
+
+[mcp_servers.context7]
+command = "cmd"
+args = ["/c", "npx", "-y", "@upstash/context7-mcp"]
+startup_timeout_sec = 60
