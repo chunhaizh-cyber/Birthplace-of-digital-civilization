@@ -23,6 +23,8 @@ module;
 
 export module 外设观察报告队列;
 
+import 场景体素模块;
+
 export enum class 枚举_外设观察运行模式 : std::uint8_t {
     未指定 = 0,
     陌生环境逐簇识别 = 1,
@@ -776,6 +778,24 @@ export 结构_目标观察约束可用性判定 判断目标观察约束可用�
     const 结构_目标观察约束特征组& 约束,
     std::int64_t 当前时间毫秒,
     const 结构_外设观察等待项* 等待项);
+export std::uint64_t 发布外设观察先验_由场景体素先验快照(
+    const 场景体素模块::结构_SceneVoxelPrior& 先验快照,
+    const std::string& 目标外设编号,
+    const std::string& 目标存在ID,
+    const std::string& 目标特征类型ID,
+    std::int64_t 当前时间毫秒,
+    std::int64_t 最大允许先验年龄毫秒);
+export std::uint64_t 生成目标观察约束_由场景体素先验快照(
+    const 场景体素模块::结构_SceneVoxelPrior& 先验快照,
+    const std::string& 目标外设编号,
+    const std::string& 目标存在ID,
+    const std::string& 目标特征类型ID,
+    std::int64_t 当前时间毫秒,
+    std::int64_t 最大允许先验年龄毫秒);
+export std::optional<结构_目标观察约束特征组> 读取最新外设处理先验_按目标(
+    const std::string& 目标存在ID,
+    const std::string& 目标特征类型ID,
+    std::int64_t 当前时间毫秒);
 export bool 撤销目标观察约束特征组(std::uint64_t 约束ID);
 export std::size_t 清理目标观察约束特征组(std::int64_t 当前时间毫秒);
 export std::string 构造目标观察约束摘要(const 结构_目标观察约束特征组& 约束);
@@ -1940,6 +1960,84 @@ namespace {
     bool 目标观察约束_有精细材料(const 结构_目标观察约束特征组& 约束) noexcept
     {
         return !约束.像素集合掩码句柄.empty()
+            || !约束.点集句柄.empty();
+    }
+
+    // 功能：把 VecU 运行期句柄转成现有目标观察约束可回查句柄槽使用的不透明锚点。
+    std::string 外设先验_VecU不透明句柄(const char* 前缀, VecU句柄 句柄)
+    {
+        if (!句柄.有效()) return {};
+        return std::string(前缀) + std::to_string(static_cast<std::uint64_t>(句柄.主信息指针));
+    }
+
+    // 功能：把场景体素快照生成时间与外设队列毫秒时间统一成快照年龄材料。
+    std::int64_t 外设先验_快照年龄毫秒(
+        const 场景体素模块::结构_SceneVoxelPrior& 先验快照,
+        std::int64_t 当前时间毫秒) noexcept
+    {
+        if (先验快照.生成时间 <= 0) return 0;
+        if (当前时间毫秒 <= 0) {
+            当前时间毫秒 = 外设观察当前时间毫秒();
+        }
+        if (当前时间毫秒 <= 0) return 0;
+        const auto 当前时间毫秒U64 = static_cast<std::uint64_t>(当前时间毫秒);
+        const auto 当前时间微秒 = 当前时间毫秒U64 > (std::numeric_limits<std::uint64_t>::max)() / 1000
+            ? (std::numeric_limits<std::uint64_t>::max)()
+            : 当前时间毫秒U64 * 1000;
+        if (当前时间微秒 <= 先验快照.生成时间) return 0;
+        const auto 年龄毫秒 = (当前时间微秒 - 先验快照.生成时间) / 1000;
+        return 年龄毫秒 > static_cast<std::uint64_t>((std::numeric_limits<std::int64_t>::max)())
+            ? (std::numeric_limits<std::int64_t>::max)()
+            : static_cast<std::int64_t>(年龄毫秒);
+    }
+
+    // 功能：按只读快照存在项汇总第一版粗空间范围。
+    bool 外设先验_填充粗空间范围(
+        结构_目标观察约束特征组& 约束,
+        const 场景体素模块::结构_SceneVoxelPrior& 先验快照) noexcept
+    {
+        bool 已填充 = false;
+        for (const auto& 项 : 先验快照.存在项集合) {
+            if (!项.场景AABB_mm.有效()) continue;
+            if (!已填充) {
+                约束.空间范围最小X = 项.场景AABB_mm.最小X_mm;
+                约束.空间范围最大X = 项.场景AABB_mm.最大X_mm;
+                约束.空间范围最小Y = 项.场景AABB_mm.最小Y_mm;
+                约束.空间范围最大Y = 项.场景AABB_mm.最大Y_mm;
+                约束.空间范围最小Z = 项.场景AABB_mm.最小Z_mm;
+                约束.空间范围最大Z = 项.场景AABB_mm.最大Z_mm;
+                已填充 = true;
+                continue;
+            }
+            约束.空间范围最小X = std::min(约束.空间范围最小X, 项.场景AABB_mm.最小X_mm);
+            约束.空间范围最大X = std::max(约束.空间范围最大X, 项.场景AABB_mm.最大X_mm);
+            约束.空间范围最小Y = std::min(约束.空间范围最小Y, 项.场景AABB_mm.最小Y_mm);
+            约束.空间范围最大Y = std::max(约束.空间范围最大Y, 项.场景AABB_mm.最大Y_mm);
+            约束.空间范围最小Z = std::min(约束.空间范围最小Z, 项.场景AABB_mm.最小Z_mm);
+            约束.空间范围最大Z = std::max(约束.空间范围最大Z, 项.场景AABB_mm.最大Z_mm);
+        }
+        return 已填充;
+    }
+
+    // 功能：把场景体素先验句柄和粗空间范围写入目标观察约束材料槽。
+    bool 外设先验_填充先验材料(
+        结构_目标观察约束特征组& 约束,
+        const 场景体素模块::结构_SceneVoxelPrior& 先验快照)
+    {
+        约束.ROI句柄 = 外设先验_VecU不透明句柄(
+            "vecu://scene-prior/roi/",
+            先验快照.先验感兴趣区域集合句柄);
+        约束.像素集合掩码句柄 = 外设先验_VecU不透明句柄(
+            "vecu://scene-prior/free-space-mask/",
+            先验快照.已知空闲区句柄);
+        约束.点集句柄 = 外设先验_VecU不透明句柄(
+            "vecu://scene-prior/depth-range/",
+            先验快照.预计深度范围图句柄);
+
+        const bool 有粗空间范围 = 外设先验_填充粗空间范围(约束, 先验快照);
+        return 有粗空间范围
+            || !约束.ROI句柄.empty()
+            || !约束.像素集合掩码句柄.empty()
             || !约束.点集句柄.empty();
     }
 
@@ -3698,6 +3796,95 @@ std::vector<结构_目标观察约束特征组> 读取可用目标观察约束�
         }
     }
     return 结果;
+}
+
+// 功能：发布场景体素先验到既有目标观察约束材料槽，不写世界树事实或场景体素缓存。
+std::uint64_t 发布外设观察先验_由场景体素先验快照(
+    const 场景体素模块::结构_SceneVoxelPrior& 先验快照,
+    const std::string& 目标外设编号,
+    const std::string& 目标存在ID,
+    const std::string& 目标特征类型ID,
+    std::int64_t 当前时间毫秒,
+    std::int64_t 最大允许先验年龄毫秒)
+{
+    return 生成目标观察约束_由场景体素先验快照(
+        先验快照,
+        目标外设编号,
+        目标存在ID,
+        目标特征类型ID,
+        当前时间毫秒,
+        最大允许先验年龄毫秒);
+}
+
+// 功能：由场景体素只读快照生成目标观察约束，失败时返回 0 作为缺口待承接信号。
+std::uint64_t 生成目标观察约束_由场景体素先验快照(
+    const 场景体素模块::结构_SceneVoxelPrior& 先验快照,
+    const std::string& 目标外设编号,
+    const std::string& 目标存在ID,
+    const std::string& 目标特征类型ID,
+    std::int64_t 当前时间毫秒,
+    std::int64_t 最大允许先验年龄毫秒)
+{
+    if (目标存在ID.empty() || 目标特征类型ID.empty()) {
+        return 0;
+    }
+    if (!先验快照.只读状态 || 先验快照.版本 <= 0 || 先验快照.坐标系版本 <= 0) {
+        return 0;
+    }
+    if (当前时间毫秒 <= 0) {
+        当前时间毫秒 = 外设观察当前时间毫秒();
+    }
+    const auto 先验年龄毫秒 = 外设先验_快照年龄毫秒(先验快照, 当前时间毫秒);
+    if (最大允许先验年龄毫秒 > 0 && 先验年龄毫秒 > 最大允许先验年龄毫秒) {
+        return 0;
+    }
+    if (const auto 既有 = 选择最新可用目标观察约束(
+        目标存在ID,
+        目标特征类型ID,
+        当前时间毫秒)) {
+        return 既有->约束ID;
+    }
+
+    结构_目标观察约束特征组 约束{};
+    约束.幂等键 =
+        "scene-prior|device=" + 目标外设编号
+        + "|target=" + 目标存在ID
+        + "|feature=" + 目标特征类型ID
+        + "|snapshot=" + std::to_string(先验快照.版本);
+    约束.目标存在ID = 目标存在ID;
+    约束.目标特征类型ID = 目标特征类型ID;
+    约束.目标特征当前值 = 先验快照.版本;
+    约束.目标特征当前值类型 = 枚举_目标特征当前值类型::I64;
+    约束.目标特征稳定阈值 = 先验快照.统计.严重缺口数量;
+    约束.写入时间毫秒 = 当前时间毫秒;
+    约束.TTL毫秒 = 最大允许先验年龄毫秒 > 0
+        ? 最大允许先验年龄毫秒
+        : 目标观察约束默认TTL毫秒;
+    约束.最大允许观测年龄毫秒 = 最大允许先验年龄毫秒;
+    约束.最大允许报告年龄毫秒 = 最大允许先验年龄毫秒;
+    约束.允许降级 = true;
+    约束.允许缓存 = true;
+    约束.状态 = 枚举_目标观察约束状态::可用;
+
+    if (!外设先验_填充先验材料(约束, 先验快照)) {
+        return 0;
+    }
+    return 提交目标观察约束特征组(std::move(约束));
+}
+
+// 功能：按目标读取当前可用外设处理先验，本质上复用目标观察约束缓冲区。
+std::optional<结构_目标观察约束特征组> 读取最新外设处理先验_按目标(
+    const std::string& 目标存在ID,
+    const std::string& 目标特征类型ID,
+    std::int64_t 当前时间毫秒)
+{
+    if (目标存在ID.empty() || 目标特征类型ID.empty()) {
+        return std::nullopt;
+    }
+    return 选择最新可用目标观察约束(
+        目标存在ID,
+        目标特征类型ID,
+        当前时间毫秒);
 }
 
 // 功能：按函数名执行对应处理。
