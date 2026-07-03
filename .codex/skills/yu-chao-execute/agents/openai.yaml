@@ -1,0 +1,4 @@
+interface:
+  display_name: "执行/继续"
+  short_description: "Execute full Yu Chao plans continuously with locks"
+  default_prompt: "Use $yu-chao-execute to 按照计划索引执行完整计划或继续，并遵守计划索引与构建运行锁，直到全部完成或遇到无法解决的问题。"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "鱼巢流程图落盘"
+  short_description: "画流程图时自动生成同名Markdown和HTML文件。"
+  default_prompt: "画出流程图，并将 Markdown 和 HTML 文件落入项目的 流程图 目录。"

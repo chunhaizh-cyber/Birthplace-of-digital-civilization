@@ -29,10 +29,11 @@ docs/decision-log.md 管为什么
 - 已新增 `yu-chao-plan` skill，用于制定计划前检查详细设计，并在遇到冲突、不解或不确定时切入讨论、修订详细设计后再继续。
 - 已新增 `docs/current-state.md` 和 `docs/decision-log.md`。
 - 已在 `AGENTS.md` 中加入三文件分工、工作前阅读和任务结束状态回写规则。
+- 已将本项目相关自定义 skill 实体移动到 `.codex/skills/`，并在 `C:\Users\zhchh\.codex\skills\` 下保留目录联接以兼容 Codex 默认加载路径。
 
 ## 正在处理
 
-当前没有正在处理的代码实现切片。本次文档治理切片已完成并提交；同步状态以 Git 状态为准。
+当前没有正在处理的代码实现切片。本次自定义 skill 入仓库管理切片已完成实体移动和联接验证；提交和同步状态以 Git 状态为准。
 
 ## 未完成
 
@@ -49,6 +50,7 @@ docs/decision-log.md 管为什么
 AGENTS.md
 docs/current-state.md
 docs/decision-log.md
+.codex/skills/*
 ```
 
 最近已提交的关键文件：
@@ -69,7 +71,7 @@ hard issues: 0
 warnings: 0
 ```
 
-本次是文档治理修改，未运行 C++ 构建。
+本次是文档治理和 skill 路径管理修改，未运行 C++ 构建。
 
 ## 已知问题
 
@@ -77,9 +79,10 @@ warnings: 0
 - `需求树父子关系角色视图` 只是详细设计和实现映射计划完成，不能宣称代码已实现。
 - `docs/current-state.md` 是现实快照，可能随仓库变化过期；每次 Codex 任务结束前需要回写。
 - `AGENTS.md` 本次发生换行提示，Git 提示未来可能将 CRLF 替换为 LF。
+- 全局 skill 路径现在依赖目录联接；如果迁移机器或克隆仓库，需要重新建立从 `C:\Users\zhchh\.codex\skills\自定义skill` 到 `.codex/skills/自定义skill` 的联接。
 
 ## 下一步动作
 
-1. 按需要同步本次 `AGENTS.md`、`docs/current-state.md`、`docs/decision-log.md` 文档治理切片。
+1. 按需要同步本次 `.codex/skills/`、`AGENTS.md`、`docs/current-state.md`、`docs/decision-log.md` 管理切片。
 2. 若继续推进实现，先按 `yu-chao-plan` 和 R28 做代码事实扫描，不直接写代码。
 3. 每次后续 Codex 任务结束前，回写 `docs/current-state.md`；如有重要技术选择，回写 `docs/decision-log.md`。

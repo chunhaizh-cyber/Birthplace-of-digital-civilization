@@ -1,0 +1,4 @@
+interface:
+  display_name: "讨论"
+  short_description: "围绕项目观点做专家讨论，结合代码和规范给出直接可落地建议"
+  default_prompt: "使用 $discuss 围绕我的项目观点展开讨论：结合当前代码、规范和计划，指出可保留、需修改、需拆分或需查证的部分。"

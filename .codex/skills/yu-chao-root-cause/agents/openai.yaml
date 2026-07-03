@@ -1,0 +1,4 @@
+interface:
+  display_name: "鱼巢弹窗根因追踪"
+  short_description: "定位弹窗报错来源，追到真实根因，并用复跑日志验证。"
+  default_prompt: "追查这个弹窗报错的根因：定位弹窗入口、上游状态、真实根因、最小修复和验证证据。"

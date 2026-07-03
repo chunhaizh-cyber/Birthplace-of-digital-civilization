@@ -44,6 +44,63 @@ docs/decision-log.md 管为什么
 - 产生重要设计选择时，检查 `docs/decision-log.md` 是否新增对应条目。
 - 需要同步给 ChatGPT「理论探讨」项目时，直接复制最终同步摘要，并以仓库文档为事实来源。
 
+## 2026-07-03：自定义 skill 实体进入项目目录
+
+背景：
+
+`C:\Users\zhchh\.codex\skills` 下的自定义 skill 是本地文件，不在 `D:\鱼巢` 仓库中；因此普通 `git push birthplace main` 不会把 `yu-chao-plan` 等自定义 skill 同步到云端。
+
+决定：
+
+将本项目相关自定义 skill 的实体目录移动到：
+
+```text
+D:\鱼巢\.codex\skills\
+```
+
+同时在原 Codex 默认路径下保留同名目录联接：
+
+```text
+C:\Users\zhchh\.codex\skills\<skill> -> D:\鱼巢\.codex\skills\<skill>
+```
+
+移动范围只包括自定义 skill：
+
+```text
+digital-life-reasoning
+discuss
+yu-chao-execute
+yu-chao-flowchart
+yu-chao-plan
+yu-chao-root-cause
+```
+
+不移动 `.system` 和 `codex-primary-runtime`。
+
+原因：
+
+- 项目内实体目录可以被 Git 跟踪并同步到云端。
+- 保留全局目录联接可以兼容 Codex 当前默认 skill 加载路径。
+- 不移动系统 skill 和运行时目录，避免把 Codex 自带或缓存内容混入项目仓库。
+
+不采用的方案：
+
+- 不只复制一份到项目目录，因为容易出现全局副本和项目副本分叉。
+- 不直接整体移动 `C:\Users\zhchh\.codex\skills`，因为会影响 `.system`、运行时目录和 Codex 默认发现路径。
+- 不把 skill 塞进 `docs/`，因为 skill 本身是可执行协作规则，不是普通文档说明。
+
+影响：
+
+- 后续修改自定义 skill 时，应修改 `.codex/skills/` 中的实体文件。
+- 克隆到新机器后，仓库能带上自定义 skill 内容，但仍需要建立全局目录联接，Codex 才能从默认路径发现这些 skill。
+- 若目录联接失效，Codex 可能无法加载对应自定义 skill。
+
+后续验证方式：
+
+- `git status -- .codex/skills` 能看到自定义 skill 文件。
+- `C:\Users\zhchh\.codex\skills\<skill>\SKILL.md` 可读，且目录属性包含 `ReparsePoint`。
+- 后续云端同步后，在远端仓库可看到 `.codex/skills/` 下的自定义 skill。
+
 ## YYYY-MM-DD：决策标题
 
 背景：

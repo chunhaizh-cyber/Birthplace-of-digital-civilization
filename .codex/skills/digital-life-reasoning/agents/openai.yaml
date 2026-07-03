@@ -1,0 +1,5 @@
+interface:
+  display_name: "数字生命逻辑推理"
+  short_description: "Reason through digital-life theory and plans"
+  default_prompt: "Use $digital-life-reasoning to clarify a digital-life concept, test assumptions, and save the aligned result as a Markdown document."
+

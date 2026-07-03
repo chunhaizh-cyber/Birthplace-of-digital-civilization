@@ -122,6 +122,15 @@ AGENTS.md 第 7.1 章和第 9 章
 9. decision-log.md = 重要设计选择和取舍原因，不替代规范、详细设计或计划。
 ```
 
+## 自定义 Skill 存放规则
+
+```text
+1. 本项目相关自定义 skill 的实体文件放在 `.codex/skills/`，便于随仓库同步。
+2. `C:\Users\zhchh\.codex\skills\` 下对应自定义 skill 目录应保持为指向 `.codex/skills/` 的目录联接，以兼容 Codex 默认加载路径。
+3. `.system` 和 `codex-primary-runtime` 属于 Codex 系统 / 运行时目录，不移动进项目仓库。
+4. 新增或修改本项目长期使用的自定义 skill 后，优先修改 `.codex/skills/` 中的实体文件，并确认全局联接仍可读取。
+```
+
 正式流转只允许沿以下链路推进：
 
 ```text
